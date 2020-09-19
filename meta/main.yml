@@ -1,4 +1,5 @@
 galaxy_info:
+  role_name: falcon-installer
   author: CrowdStrike Solution Architecture
   description: Install and configure CrowdStrike's Falcon sensor on Linux, Windows, and OSX.
   company: CrowdStrike
