@@ -83,7 +83,7 @@
     url: https://{{ crowdstrike.api.url }}/sensors/entities/download-installer/v1?id={{ crowdstrike.sha256 }}
   method: GET
   headers:
-    authorization: Bearer $crowdstrike_oauth2_token
+    authorization: Bearer {{ crowdstrike.oauth2_token }}
 register: crowdstrike.installer_package
 #echo "Download the latest version : $latest_description"
 #echo "Save it to : $target_path$latest_name"

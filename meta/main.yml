@@ -1,4 +1,5 @@
 galaxy_info:
+  role_name: falcon-installer
   author: CrowdStrike Solution Architecture
   description: Install and configure CrowdStrike's Falcon sensor on Linux, Windows, and OSX.
   company: CrowdStrike
@@ -39,11 +40,11 @@ galaxy_info:
     versions:
       - any     # https://galaxy.ansible.com/api/v1/platforms/217/
 
-  - name: Amazon Linux AMI
+  - name: Amazon
     versions:
-    - 2018.03   # https://galaxy.ansible.com/api/v1/platforms/212/
-    - 2017.09   # https://galaxy.ansible.com/api/v1/platforms/164/
-    - 2017.03   # https://galaxy.ansible.com/api/v1/platforms/163/
+      - 2018.03   # https://galaxy.ansible.com/api/v1/platforms/212/
+      - 2017.09   # https://galaxy.ansible.com/api/v1/platforms/164/
+      - 2017.03   # https://galaxy.ansible.com/api/v1/platforms/163/
 
   # Debian 9
 
