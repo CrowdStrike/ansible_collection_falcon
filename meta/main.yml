@@ -1,0 +1,82 @@
+galaxy_info:
+  author: CrowdStrike Solution Architecture
+  description: Install and configure CrowdStrike's Falcon sensor on Linux, Windows, and OSX.
+  company: CrowdStrike
+
+  issue_tracker_url: https://github.com/CrowdStrike/ansible-role-crowdstrike-falcon
+
+  # This Ansible role is free and unencumbered software released into the
+  # public domain. For additional details on The Unlicense, please visit
+  # https://spdx.org/licenses/Unlicense.html
+  license: Unlicense
+
+  min_ansible_version: 2.9
+
+  #
+  # The list of officially supported operating systems is documented within
+  # the CrowdStrike Falcon support documentation:
+  #
+  # Falcon Sensor for Windows:
+  # https://falcon.crowdstrike.com/support/documentation/23/falcon-sensor-for-windows
+  #
+  # Falcon Sensor for Mac:
+  # https://falcon.crowdstrike.com/support/documentation/22/falcon-sensor-for-mac
+  #
+  # Falcon Sensor for Linux:
+  # https://falcon.crowdstrike.com/support/documentation/20/falcon-sensor-for-linux
+  #
+  # The platforms enumerated below should match those in the documentation listed above.
+  # If you notice something missing, please open a bug report (or pull request!) at:
+  #
+  # https://github.com/CrowdStrike/ansible-role-crowdstrike-falcon
+  #
+  # NOTE TO ROLE DEVELOPERS: To view the ansible naming scheme for platforms and
+  # versions (or releases), visit https://galaxy.ansible.com/api/v1/platforms/.
+  # If you don't wish to enumerate all versions for a particular platform, use 'all'.
+
+  platforms:
+  - name: Amazon Linux 2
+    versions:
+      - any     # https://galaxy.ansible.com/api/v1/platforms/217/
+
+  - name: Amazon Linux AMI
+    versions:
+    - 2018.03   # https://galaxy.ansible.com/api/v1/platforms/212/
+    - 2017.09   # https://galaxy.ansible.com/api/v1/platforms/164/
+    - 2017.03   # https://galaxy.ansible.com/api/v1/platforms/163/
+
+  # Debian 9
+
+  - name: EL    # Red Hat Enterprise Linux / CentOS / Oracle
+    versions:
+      - 6       # https://galaxy.ansible.com/api/v1/platforms/2/
+      - 7       # https://galaxy.ansible.com/api/v1/platforms/46/
+      - 8       # https://galaxy.ansible.com/api/v1/platforms/205/
+
+  - name: SLES  # SuSE Linux Enterprise Server (SLES)
+    versions:
+      - 15      # https://galaxy.ansible.com/api/v1/platforms/197/
+      - 12SP1   # https://galaxy.ansible.com/api/v1/platforms/74/
+      - 12      # https://galaxy.ansible.com/api/v1/platforms/73/
+      - 11SP4   # https://galaxy.ansible.com/api/v1/platforms/72/
+
+  - name: Ubuntu
+    versions:
+      - bionic  # 18.04 LTS / https://galaxy.ansible.com/api/v1/platforms/155/
+      - xenial  # 16.04 LTS / https://galaxy.ansible.com/api/v1/platforms/69/
+      - trusty  # 14.04 LTS / https://galaxy.ansible.com/api/v1/platforms/11/
+
+  galaxy_tags:
+    - CrowdStrike
+    - falcon
+    - sensor
+    - linux
+    - windows
+    - mac
+    - security
+    - falcon-sensor
+
+dependencies: []
+  # List your role dependencies here, one per line. Be sure to remove the '[]' above,
+  # if you add dependencies to this list.
+  

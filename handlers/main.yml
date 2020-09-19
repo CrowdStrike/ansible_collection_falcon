@@ -1,0 +1,8 @@
+---
+# handlers file for crowdstrike-falcon-role
+
+- name: CrowdStrike Falcon | Restart falcon-sensor Daemon
+  service:
+    name: falcon-sensor
+    state: restarted
+

@@ -1,0 +1,75 @@
+---
+# defaults file for crowdstrike-falcon-role
+
+crowdstrike:
+
+    #
+    # This installer is capable of three different installation
+    # methods:
+    #
+    #   api:                Fetch the latest installer directly from the CrowdStrike API
+    #   url:                Fetch installer from a URL
+    #   public_repo:        Public package repo (no authentication required)
+    #   private_repo:       Private package repository (authentication required)
+    #
+    install_method: api
+
+    #
+    # If using 'api' or 'url' methods, how many retries should the
+    # installer attempt?
+    #
+    retries: 3
+
+    # If using 'api' or 'url' methods, how many seconds should the
+    # installer wait between retries?
+    delay: 3
+
+    api:
+      #
+      # Which CrowdStrike API should we download from? Possible values:
+      #       US-GOV-1:   api.laggar.gcw.crowdstrike.com
+      #       EU-1:       api.eu-1.crowdstrike.com
+      #       US-2:       api.us-2.crowdstrike.com
+      #       Catch all:  api.crowdstrike.com
+      #
+      url: "api.crowdstrike.com"
+
+      #
+      # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
+      # API. If unknown, download from the CrowdStrike support portal:
+      #
+      #   https://falcon.crowdstrike.com/support/api-clients-and-keys
+      #
+      client_id: ""
+      client_secret: ""
+
+    #
+    # Where should the sensor file be downloaded to? By default
+    # this will be the homedir of the user the ansible playbook
+    # is running as.
+    #
+    # Note: On Linux, do not forget trailing "/", e.g. "/tmp/"!
+    #
+    install_temp_dir: ""
+
+    #
+    # Falcon requires that a master image remove the Falcon Agent ID (AID). This
+    # ensures instances spun up from the master receive their own, unique,
+    # Falcon Agent ID.
+    #
+    # If installing this role on a base AMI or master image, set this flag
+    # to 'true'.
+    remove_agent_id: false
+
+falconctl:
+    aid: ""
+    apd: ""
+    aph: ""
+    app: ""
+    trace: ""
+    feature: ""
+    message_log: ""
+    billing: ""
+    assert: ""
+    memfail_grace_period: ""
+    memfail_every_n: ""
