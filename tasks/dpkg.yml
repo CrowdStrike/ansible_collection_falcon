@@ -1,0 +1,23 @@
+- name: Debian-based Distro Installer | Add CrowdStrike GPG key
+  apt_key:
+    url: '{{ crowdstrike_gpg_key_url }}'
+    id: '{{ crowdstrike_gpg_key_id }}'
+    state: present
+
+- name: Debian-based Distro Installer | Install CrowdStrike Falcon Package
+  apt:
+    pkg: '{{ item }}'
+    state: installed
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Debian-based Distro Installer | Register Falcon Agent to CrowdStrike Customer ID (CID)
+  command: "/opt/CrowdStrike/falconctl -s --cid={{ falconctl.cid }}"
+  become: true
+
+- name: Debian-based Distro Installer | Start the falcon-sensor Process
+  service:
+    name: falcon-sensor
+    state: started
+    enabled: yes
+  become: true
