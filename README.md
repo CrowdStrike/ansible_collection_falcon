@@ -1,7 +1,16 @@
+![Ansible Lint](https://github.com/CrowdStrike/ansible-role-crowdstrike-falcon-installer/workflows/Ansible%20Lint/badge.svg)
+
 Role Name
 =========
 
 A brief description of the role goes here.
+
+Developer Requirements
+----------------------
+* This project uses GitHub pre-commit's to test changes locally. Visit https://pre-commit.com/#install to setup your dev machine. Cliff notes:
+
+  * For OSX: ``pip install pre-commit``
+  * For Ubuntu: ``sudo snap install pre-commit``
 
 Requirements
 ------------
