@@ -1,0 +1,27 @@
+---
+# Tasks for Installing CrowdStrike's Falcon Sensor via URL
+
+- name: CrowdStrike Falcon Installer | Downloading Installation Package from URL
+  get_url:
+    url: "{{ url }}"
+    dest: /tmp
+  register: crowdstrike.sensor_download
+  retries: "{{ crowdstrike.retries }}"
+  delay: "{{ crowdstrike.delay }}"
+  until: crowdstrike.sensor_download is success
+
+- name: CrowdStrike Falcon Installer | Installing Sensor via APT
+  apt:
+    deb: "{{ crowdstrike.sensor_download.dest }}"
+  when: ansible_pkg_mgr == 'apt'
+  register: crowdstrike.apt_installed
+
+- name: CrowdStrike Falcon Installer | Installing Sensor via YUM
+  yum:
+    name: "{{ crowdstrike.sensor_download.dest }}"
+  when: ansible_pkg_mgr == 'yum'
+  register: crowdstrike.yum_installed
+
+- name: CrowdStrike Falcon Installer | Storing Package Installation Result
+  set_fact:
+    crowdstrike.sensor_install_state: crowdstrike.apt_installer.changed or crowdstrike.yum_installed.changed
