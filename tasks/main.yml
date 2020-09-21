@@ -10,108 +10,22 @@
         - ansible_pkg_mgr is defined
         - ansible_pkg_mgr in ['yum', 'apt']
 
-- name: CrowdStrike Falcon Installer | Authenticate to CrowdStrike API
-  uri:
-    url: https://{{ crowdstrike.api.url }}/oauth2/token
-    method: POST
-    body: ???
-    return_content: yes
-    headers:
-        content-type: application/x-www-form-urlencoded
-    register: crowdstrike.oauth2_token
+- name: CrowdStrike Falcon Installer | Beginning URL Fetch-based Process
+  include_tasks: url.yml
+  when: crowdstrike.install_method == "url"
 
-#crowdstrike_oauth2_token=$(curl --request POST \
-#--silent \
-#--url "https://$target_cloud_api/oauth2/token" \
-#--header "content-type: application/x-www-form-urlencoded" \
-#--data client_id=$CS_API_CLIENT_ID \
-#--data client_secret=$CS_API_CLIENT_SECRET | \
-#  python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
-
-- name: CrowdStrike Falcon Installer | API Authorization Output
-  debug:
-    msg: "{{ crowdstrike.oauth2_token.json }}"
-
-- name: CrowdStrike Falcon Installer | Detect Target CID Based on Credentials
-  uri:
-    url: https://{{ crowdstrike.api.url }}/sensors/queries/isntallers/ccid/v1
-    method: GET
-    headers:
-        Content-Type: application/json
-    register: crowdstrike.cid
-#target_cid=$(curl --request GET \
-#  --silent \
-#  --url "https://$target_cloud_api/sensors/queries/installers/ccid/v1" \
-#  --header "Content-Type: application/json" | \
-#    python3 -c "import sys, json; print(json.load(sys.stdin)['resources'][0])")
-#echo "Target CID: $target_cid"
-
-- name: CrowdStrike Falcon Installer | Detect SHA256 of Latest Linux Sensor
-  uri:
-    url: https://{{ crowdstrike.api.url }}/sensors/combined/installers/v1?filter=platform%3A%22linux*%22%2Bos%3A%22$target_os%22&=&sort=version.desc&limit=1
-    method: GET
-    headers: 
-        authorization: Bearer {{ crowdstrike.oauth2_token }}
-    register: crowdstrike.sha256
-
-#latest_sensor_version_sha256=$(curl --request GET \
-#  --silent \
-#  --url "https://$target_cloud_api/sensors/combined/installers/v1?filter=platform%3A%22linux*%22%2Bos%3A%22$target_os%22&=&sort=version.desc&limit=1" \
-# --header "authorization: Bearer $crowdstrike_oauth2_token" | \
-#    python3 -c "import sys, json; print(json.load(sys.stdin)['resources'][0]['sha256'])")
-#echo "Latest version: $latest_sensor_version_sha256"
-
-- name: CrowdStrike Falcon Installer | Detect Name of Latest Linux Sensor
-  uri:
-    url: https://{{ crowdstrike.api.url }}/sensors/combined/installers/v1?filter=platform%3A%22linux*%22%2Bos%3A%22$target_os%22&=&sort=version.desc&limit=1
-    method: GET
-    headers:
-        authorization: Bearer {{ crowdstrike.oauth2_token }}
-    register: crowdstrike.installer_version
-# Get infos on the latest sensor version
-#latest_sensor_version_infos=$(curl --request GET \
-#  --silent \
-#  --url "https://$target_cloud_api/sensors/combined/installers/v1?filter=platform%3A%22linux*%22%2Bos%3A%22$target_os%22&=&sort=version.desc&limit=1" \
-# --header "authorization: Bearer $crowdstrike_oauth2_token")
- 
-# extract info from the JSON
-#latest_sha256=$(echo $latest_sensor_version_infos | python3 -c "import sys, json; print(json.load(sys.stdin)['resources'][0]['sha256'])")
-#latest_name=$(echo $latest_sensor_version_infos | python3 -c "import sys, json; print(json.load(sys.stdin)['resources'][0]['name'])")
-
-- name: CrowdStrike Falcon Installer | Download Latest Linux Sensor Installation Package
-  uri:
-    url: https://{{ crowdstrike.api.url }}/sensors/entities/download-installer/v1?id={{ crowdstrike.sha256 }}
-  method: GET
-  headers:
-      authorization: Bearer {{ crowdstrike.oauth2_token }}
-  register: crowdstrike.installer_package
-#echo "Download the latest version : $latest_description"
-#echo "Save it to : $target_path$latest_name"
-#curl --request GET \
-#  --url "https://$target_cloud_api/sensors/entities/download-installer/v1?id=$latest_sensor_version_sha256" \
-#  --header "authorization: Bearer $crowdstrike_oauth2_token" \
-#  --output "$target_path$latest_name"
-
-- name: CrowdStrike Falcon Installer | Download Installation Package
-  get_url:
-    url: "{{ url }}"
-    dest: /tmp
-  register: crwd_falcon_download
-  until: crwd_falcon_download is success
-  retries: {{ crowdstrike.retries }}
-  delay: {{ crowdstrike.delay }}
-
-#
-# If the endpoint is a Debian-based distro, use the dpkg installer
-#
-- include: dpkg.yml
-  when: ansible_pkg_mgr == 'apt'
-
-#
-# If the endpoint is a Red Hat-based distro, use the RPM installer
-#
-- include: rpm.yml
-  when: ansible_pkg_mgr == 'yum'
+- name: CrowdStrike Falcon Installed | Associate Sensor with your Customer ID (CID)
+  command: "/opt/CrowdStrike/falconctl -s -f --cid={{ cs_falcon_cid }}"
+  when: crowdstrike.sensor_install_state
 
 - name: CrowdStrike Falcon Installer | Remove Falcon Agent ID (AID) If Building A Primary Image
   command: "/opt/CrowdStrike/falconctl -d -f --aid"
+  when: crowdstrike.sensor_install_state and crowdstrike.remove_agent_id
+
+- name: CrowdStrike Falcon Installer | Start Falcon Daemon
+  service:
+    name: falcon-sensor
+    state: started
+    enabled: yes
+  become: true
+  when: crowdstrike.sensor_install_state

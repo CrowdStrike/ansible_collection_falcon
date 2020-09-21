@@ -12,7 +12,7 @@ crowdstrike:
     #   public_repo:        Public package repo (no authentication required)
     #   private_repo:       Private package repository (authentication required)
     #
-    install_method: api
+    install_method: url
 
     #
     # If using 'api' or 'url' methods, how many retries should the
@@ -23,25 +23,6 @@ crowdstrike:
     # If using 'api' or 'url' methods, how many seconds should the
     # installer wait between retries?
     delay: 3
-
-    api:
-      #
-      # Which CrowdStrike API should we download from? Possible values:
-      #       US-GOV-1:   api.laggar.gcw.crowdstrike.com
-      #       EU-1:       api.eu-1.crowdstrike.com
-      #       US-2:       api.us-2.crowdstrike.com
-      #       Catch all:  api.crowdstrike.com
-      #
-      url: "api.crowdstrike.com"
-
-      #
-      # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
-      # API. If unknown, download from the CrowdStrike support portal:
-      #
-      #   https://falcon.crowdstrike.com/support/api-clients-and-keys
-      #
-      client_id: ""
-      client_secret: ""
 
     #
     # Where should the sensor file be downloaded to? By default
@@ -60,6 +41,33 @@ crowdstrike:
     # If installing this role on a base AMI or master image, set this flag
     # to 'true'.
     remove_agent_id: false
+
+    #
+    # Your Falcon Customer ID (CID)
+    #
+    cid: yourCID123
+
+    #
+    # PARAMETERS FOR API-BASED INSTALLATION
+    #
+    api:
+      #
+      # Which CrowdStrike API should we download from? Possible values:
+      #       US-GOV-1:   api.laggar.gcw.crowdstrike.com
+      #       EU-1:       api.eu-1.crowdstrike.com
+      #       US-2:       api.us-2.crowdstrike.com
+      #       Catch all:  api.crowdstrike.com
+      #
+      url: "api.crowdstrike.com"
+
+      #
+      # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
+      # API. If unknown, download from the CrowdStrike support portal:
+      #
+      #   https://falcon.crowdstrike.com/support/api-clients-and-keys
+      #
+      client_id: ""
+      client_secret: ""
 
 falconctl:
     aid: ""
