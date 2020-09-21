@@ -43,6 +43,11 @@ crowdstrike:
     remove_agent_id: false
 
     #
+    # Your Falcon Customer ID (CID)
+    #
+    cid: yourCID123
+
+    #
     # PARAMETERS FOR API-BASED INSTALLATION
     #
     api:

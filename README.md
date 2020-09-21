@@ -30,11 +30,12 @@ A list of other roles hosted on Galaxy should go here, plus any details in regar
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
+If performing a ``url`` based install:
+```yaml
     - hosts: servers
       roles:
-         - { role: username.rolename, x: 42 }
+         - { role: crowdstrike.falcon_installer, crowdstrike.install_method: url, crowdstrike.download_url: https://fqdn/falcon-sensor.rpm, crowdstrike.cid: yourCID }
+```
 
 License
 -------

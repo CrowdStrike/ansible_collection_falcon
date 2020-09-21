@@ -3,7 +3,7 @@
 
 - name: CrowdStrike Falcon Installer | Downloading Installation Package from URL
   get_url:
-    url: "{{ url }}"
+    url: "{{ crowdstrike.download_url }}"
     dest: /tmp
   register: crowdstrike.sensor_download
   retries: "{{ crowdstrike.retries }}"
