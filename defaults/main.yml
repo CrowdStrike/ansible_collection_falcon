@@ -48,6 +48,12 @@ crowdstrike:
     cid: yourCID123
 
     #
+    # PARAMETERS FOR CUSTOM URL INSTALLATION
+    #
+    download_url: ""
+
+
+    #
     # PARAMETERS FOR API-BASED INSTALLATION
     #
     api:

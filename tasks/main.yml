@@ -11,6 +11,11 @@
         - ansible_pkg_mgr in ['yum', 'apt']
 
 - name: CrowdStrike Falcon Installer | Beginning URL Fetch-based Process
+  assert:
+    that:
+      - crowdstrike.download_url is defined
+      - ansible_pkg_mgr is defined
+      - ansible_pkg_mgr in ['yum', 'apt']
   include_tasks: url.yml
   when: crowdstrike.install_method == "url"
 

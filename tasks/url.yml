@@ -1,6 +1,27 @@
 ---
 # Tasks for Installing CrowdStrike's Falcon Sensor via URL
 
+#
+# A note on using get_url versus passing URL into apt/yum:
+# While a URL could be passed into apt or yum, the get_url method was
+# chosen because it supports retries and delay between retries.
+# Hopefully this makes the user experience more robust and minimizes
+# the effect of intermittent network issues.
+#
+# This choice isn't a one-way door. Feedback is most welcome if
+# this provides meaningfully improved user experience. If not,
+# we'll update the content to pass in a URL, e.g.:
+#
+# - name: CrowdStrike Falcon Installer | Install falcon-sensor from URL
+#   apt:
+#   deb: {{ crowdstrike.download_url }}
+#
+
+#
+# Attempt to download the package from {{ crowdstrike.download.url }}.
+# If there are issues, perform {{ crowdstrike.retries }} reconnection attempts
+# every {{ crowdstrike.delay }} seconds.
+# 
 - name: CrowdStrike Falcon Installer | Downloading Installation Package from URL
   get_url:
     url: "{{ crowdstrike.download_url }}"
@@ -10,18 +31,55 @@
   delay: "{{ crowdstrike.delay }}"
   until: crowdstrike.sensor_download is success
 
+#
+# If the package was downloaded successfully, as indicated by
+# crowdstrike.sensor_download being true, then attempt to
+# install it.
+#
+# If installation is successful, create a variable called
+# crowdstrike.apt_installed and mark it 'true'
+#
 - name: CrowdStrike Falcon Installer | Installing Sensor via APT
   apt:
     deb: "{{ crowdstrike.sensor_download.dest }}"
-  when: ansible_pkg_mgr == 'apt'
+    state: installed
+  when: crowdstrike.sensor_download and ansible_pkg_mgr == 'apt'
   register: crowdstrike.apt_installed
 
+#
+# If the package was downloaded successfully, as indicated by
+# crowdstrike.sensor_download being true, then attempt to
+# install it.
+#
+# If installation is successful, create a variable called
+# crowdstrike.yum_installed and mark it 'true'
+#
 - name: CrowdStrike Falcon Installer | Installing Sensor via YUM
   yum:
     name: "{{ crowdstrike.sensor_download.dest }}"
   when: ansible_pkg_mgr == 'yum'
   register: crowdstrike.yum_installed
 
+#
+# By this time stanza is executed the package will be installed or
+# an error generated. Either way, lets go ahead and cleanup by removing
+# the package file that was downloaded. The location of the package
+# is stored in the crowdstrike.sensor_download.dest variable.
+#
+- name: CrowdStrike Falcon Installer | Removing Temp File at {{ crowdstrike.sensor_download.dest }}
+  file:
+    path: {{ crowdstrike.sensor_download.dest }}
+    state: absent
+  when: crowdstrike.sensor_download.dest
+
+#
+# Create a true/false variable to indicate if the package installation
+# was successful. We'll check this installation status later, prior to
+# attempting to run the falconctl command to register the endpoint with
+# CrowdStrike.
+#
+# No sense trying to register if the sensor was never installed!
+#
 - name: CrowdStrike Falcon Installer | Storing Package Installation Result
   set_fact:
-    crowdstrike.sensor_install_state: crowdstrike.apt_installer.changed or crowdstrike.yum_installed.changed
+    crowdstrike.sensor_install_state: crowdstrike.apt_installed.changed or crowdstrike.yum_installed.changed

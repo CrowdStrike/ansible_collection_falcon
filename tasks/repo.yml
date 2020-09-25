@@ -1,0 +1,81 @@
+#
+# If the endpoint is using YUM as a package manager, and if the
+# repository does not require authentication, create a local YUM repository
+# config called "falcon-sensor" and point it at crowdstrike.repository.url
+#
+- name: CrowdStrike Falcon Installer | Adding Non-Authenticated YUM Repository
+  yum_repository:
+    name: falcon-sensor
+    description: Package repository for CrowdStrike Falcon
+    baseurl: "https://{{ crowdstrike.repository.url }}/rhel/$releasever"
+    gpgkey: "https://{{ crowdstrike.repository.gpg_url }}"
+  when: ansible_pkg_mgr == 'yum' and crowdstrike.repository.type == "authenticated" 
+
+#
+# Alternatively, if the endpoint is using YUM as a package manager, and if the
+# repository does require authentication, create a local YUM repository
+# config called "falcon-sensor" and point it at crowdstrike.repository.url.
+#
+# Use the variables crowdstrike.repository.username and crowdstrike.repository.password
+# to authenticate against the new repository.
+#
+- name: CrowdStrike Falcon Installer | Adding Authenticated YUM Repository
+  yum_repository:
+    name: falcon-sensor
+    description: Package repository for CrowdStrike Falcon
+    baseurl: "https://{{ crowdstrike.repository.username }}:{{ crowdstrike.repository.password }}@{{ crowdstrike.repository.url }}/rhel$releasever"
+    gpgkey: "https://{{ crowdstrike.repository.username }}:{{ crowdstrike.repository.password}}@{{ crowdstrike.repository.gpg_url }}"
+  when: ansible_pkg_mgr == 'yum' and crowdstrike.repository.type == "unauthenticated"
+
+#
+# As another possible deployment pattern, if the endpoint is using APT as a package manager, and if the
+# repository does require authentication, configure APT to use crowdstrike.repository.username and
+# crowdstrike.repository.password to authenticate against the repo at crowdstrike.repository.url
+#
+- name: CrowdStrike Falcon Installer | Configuring /etc/apt/auth.conf for Authenticated APT Repository
+    blockinfile:
+      path: /etc/apt/auth.conf
+      block: |
+        machine {{ crowdstrike.repository.url }}
+        login {{ crowdstrike.repository.username }}
+        password {{ crowdstrike.repository.password }}
+    when: ansible_pkg_mgr == 'apt' and crowdstrike.repository.type == "authenticated"
+
+#
+# If the endpoint is using APT as a package manager, create an APT repository
+# configuration file pointing the system at crowdstrike.repository.url.
+#
+# If this repository requires authentication, APT will look to the settings in /etc/apt/auth.conf
+# as configured above.
+#
+- name: CrowdStrike Falcon Installer | Adding APT Repository
+  apt_repository:
+    repo: "deb https://{{ crowdstrike.repository.url }}/ubuntu {{ ansible_distribution_release }} main"
+    state: present
+    filename: crowdstrike
+  when: ansible_pkg_mgr == 'apt'
+
+#- name: Debian-based Distro Installer | Add CrowdStrike GPG key
+#  apt_key:
+#  url: '{{ crowdstrike_gpg_key_url }}'
+#  id: '{{ crowdstrike_gpg_key_id }}'
+#  state: present
+
+#
+# Now that the repositories are configured, if the endpoint is using YUM,
+# go ahead and use YUM to install the falcon-sensor package.
+#
+- name: CrowdStrike Falcon Installer | Installing Sensor via YUM
+  yum:
+    name: falcon-sensor
+  when: ansible_pkg_mgr == 'yum'
+
+#
+# Now that the repositories are configured, if the endpoint is using APT,
+# go ahead and use apt to install the falcon-sensor package.
+#
+- name: CrowdStrike Falcon Installer | Installing Sensor via APT
+  apt:
+    name: falcon-sensor
+    state: installed
+    update_cache: yes
