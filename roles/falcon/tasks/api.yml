@@ -47,11 +47,11 @@
     checksum: "sha256:{{ falcon_api_sha_hash.json.resources[0].sha256 }}"
     headers:
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
-  register: falcon_api_installer_package
+  register: falcon_sensor_download
 
 - set_fact:
     falcon_cid: "{{ falcon_api_target_cid.json.resources[0] }}"
   when: not falcon_cid
 
 - set_fact:
-    non_win_pkg: "{{ falcon_api_installer_package.dest }}"
+    non_win_pkg: "{{ falcon_sensor_download.dest }}"

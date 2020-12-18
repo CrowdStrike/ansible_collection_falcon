@@ -6,6 +6,7 @@ rpm_packagers:
   - yum
   - rpm
   - dnf
+  - zypper
 
 dpkg_packagers:
   - apt

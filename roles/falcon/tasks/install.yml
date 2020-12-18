@@ -39,7 +39,7 @@
   - name: CrowdStrike Falcon | Install Falcon Sensor Package (Linux)
     package:
       name: "{{ non_win_pkg }}"
-      state: installed
+      state: present
     when: installed_sensor not in ansible_facts.packages
     register: falcon_installed
 

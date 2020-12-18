@@ -17,11 +17,29 @@
 
   when: falcon_install_method == "api"
 
-- name: CrowdStrike Falcon | Determine Target OS
+- name: CrowdStrike Falcon | Determine if Target OS Is Enterprise Linux
   set_fact:
      falcon_target_os: RHEL/CentOS/Oracle
-     falcon_os_family: linux
+     falcon_os_family: "{{ ansible_system | lower }}"
   when: ansible_os_family == "RedHat"
+
+- name: CrowdStrike Falcon | Determine if Target OS Is SLES
+  set_fact:
+    falcon_target_os: SLES
+    falcon_os_family: linux
+  when: ansible_distribution == "SLES"
+
+- name: CrowdStrike Falcon | Determine if Target OS Is Ubuntu
+  set_fact:
+     falcon_target_os: Ubuntu
+     falcon_os_family: "{{ ansible_system | lower }}"
+  when: ansible_distribution == "Ubuntu"
+
+- name: CrowdStrike Falcon | Determine if Target OS Is Debian
+  set_fact:
+     falcon_target_os: Debian
+     falcon_os_family: "{{ ansible_system | lower }}"
+  when: ansible_distribution == "Debian"
 
 - set_fact:
     installed_sensor: falcon-sensor
