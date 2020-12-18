@@ -69,5 +69,5 @@ falcon_retries: 3
 falcon_delay: 3
 
 # If true, uninstall a system
-# yes/no bool, default no
+# yes/no bool, default false
 falcon_uninstall: false
