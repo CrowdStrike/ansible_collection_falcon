@@ -1,0 +1,11 @@
+---
+- name: CrowdStrike Falcon | Stopping Falcon Service
+  service:
+    name: falcon-sensor
+    state: stopped
+
+- block:
+  - name: CrowdStrike Falcon | Uninstalling Falcon Sensor
+    package:
+      name: falcon-sensor
+      state: absent
