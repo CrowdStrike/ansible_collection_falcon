@@ -36,11 +36,22 @@
     package_facts:
       manager: auto
 
-  - name: CrowdStrike Falcon | Install Falcon Sensor Package (Linux)
+  - name: CrowdStrike Falcon | Install Falcon Sensor .deb Package (Linux)
+    package:
+      deb: "{{ non_win_pkg }}"
+      state: present
+    when:
+      - installed_sensor not in ansible_facts.packages
+      - ansible_pkg_mgr in dpkg_packagers
+    register: falcon_installed
+
+  - name: CrowdStrike Falcon | Install Falcon Sensor .rpm Package (Linux)
     package:
       name: "{{ non_win_pkg }}"
       state: present
-    when: installed_sensor not in ansible_facts.packages
+    when:
+      - installed_sensor not in ansible_facts.packages
+      - ansible_pkg_mgr in rpm_packagers
     register: falcon_installed
 
   - name: CrowdStrike Falcon | Verify Falcon Package Is Installed

@@ -17,29 +17,28 @@
 
   when: falcon_install_method == "api"
 
+- name: CrowdStrike Falcon | Configure Python Interpreter for older Linux OSes
+  set_fact:
+    ansible_python_interpreter: /usr/bin/python
+  when: ansible_distribution == "Amazon"
+
 - name: CrowdStrike Falcon | Determine if Target OS Is Enterprise Linux
   set_fact:
      falcon_target_os: RHEL/CentOS/Oracle
      falcon_os_family: "{{ ansible_system | lower }}"
   when: ansible_os_family == "RedHat"
 
-- name: CrowdStrike Falcon | Determine if Target OS Is SLES
+- name: CrowdStrike Falcon | Determine if Target OS Is Amazon Linux
   set_fact:
-    falcon_target_os: SLES
-    falcon_os_family: linux
-  when: ansible_distribution == "SLES"
+    falcon_target_os: "Amazon%20Linux"
+    falcon_os_family: "{{ ansible_system | lower }}"
+  when: ansible_distribution == "Amazon"
 
-- name: CrowdStrike Falcon | Determine if Target OS Is Ubuntu
+- name: "CrowdStrike Falcon | Determine if Target OS Is {{ ansible_distribution }}"
   set_fact:
-     falcon_target_os: Ubuntu
+     falcon_target_os: "{{ ansible_distribution }}"
      falcon_os_family: "{{ ansible_system | lower }}"
-  when: ansible_distribution == "Ubuntu"
-
-- name: CrowdStrike Falcon | Determine if Target OS Is Debian
-  set_fact:
-     falcon_target_os: Debian
-     falcon_os_family: "{{ ansible_system | lower }}"
-  when: ansible_distribution == "Debian"
+  when: ansible_distribution in ["Ubuntu", "Debian", "SLES"]
 
 - set_fact:
     installed_sensor: falcon-sensor
