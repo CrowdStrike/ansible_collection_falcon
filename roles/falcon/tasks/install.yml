@@ -1,0 +1,82 @@
+---
+#- name: CrowdStrike Falcon | Verify Customer CID Is Configured
+#  fail:
+#    msg: "falcon_cid has not been configured! This is needed to register the Falcon Sensor. Please re-run the install with your Customer CID." 
+#  when: not falcon_cid
+
+- block:
+  - set_fact:
+      installed_sensor: falcon-sensor
+    when:
+      - ansible_pkg_mgr in linux_packagers
+
+  - set_fact:
+      non_win_pkg: "{{ installed_sensor }}"
+    when:
+      - ansible_pkg_mgr in linux_packagers
+      - falcon_sensor_download is not defined
+
+  - name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from a file
+    rpm_key:
+      state: present
+      key: '{{ falcon_gpg_key }}'
+    when:
+      - falcon_gpg_key
+      - ansible_pkg_mgr in rpm_packagers
+
+  - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from a file
+    apt_key:
+      url: '{{ falcon_gpg_key }}'
+      state: present
+    when: 
+      - falcon_gpg_key
+      - ansible_pkg_mgr in dpkg_packagers
+
+  - name: CrowdStrike Falcon | Check if Falcon Sensor Package Is Installed
+    package_facts:
+      manager: auto
+
+  - name: CrowdStrike Falcon | Install Falcon Sensor .deb Package (Linux)
+    package:
+      deb: "{{ non_win_pkg }}"
+      state: present
+    when:
+      - installed_sensor not in ansible_facts.packages
+      - ansible_pkg_mgr in dpkg_packagers
+    register: falcon_installed
+
+  - name: CrowdStrike Falcon | Install Falcon Sensor .rpm Package (Linux)
+    package:
+      name: "{{ non_win_pkg }}"
+      state: present
+    when:
+      - installed_sensor not in ansible_facts.packages
+      - ansible_pkg_mgr in rpm_packagers
+    register: falcon_installed
+
+  - name: CrowdStrike Falcon | Verify Falcon Package Is Installed
+    package_facts:
+      manager: auto
+
+  - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID)
+    command: "/opt/CrowdStrike/falconctl -s -f --cid={{ falcon_cid }}"
+    when:
+      - falcon_cid
+      - installed_sensor in ansible_facts.packages 
+
+  - name: CrowdStrike Falcon | Remove Falcon Agent ID (AID) If Building A Primary Image
+    command: "/opt/CrowdStrike/falconctl -d -f --aid"
+    when:
+      - falcon_remove_agent_id
+      - falcon_cid
+      - installed_sensor in ansible_facts.packages
+
+  - name: CrowdStrike Falcon Installer | Start Falcon Sensor Daemon
+    service:
+      name: falcon-sensor
+      state: started
+      enabled: yes
+    become: true
+    when:
+      - falcon_cid
+      - installed_sensor in ansible_facts.packages

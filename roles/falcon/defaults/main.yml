@@ -1,83 +1,73 @@
 ---
 # defaults file for crowdstrike-falcon-role
 
-crowdstrike:
+# Your Falcon Customer ID (CID). Optional when using 'api' as an install method.
+# Required for any other installation method.
+#
+falcon_cid:
 
-    #
-    # This installer is capable of three different installation
-    # methods:
-    #
-    #   api:                Fetch the latest installer directly from the CrowdStrike API
-    #   url:                Fetch installer from a URL
-    #   public_repo:        Public package repo (no authentication required)
-    #   private_repo:       Private package repository (authentication required)
-    #
-    install_method: url
+# This installer is capable of three different installation
+# methods:
+#
+#   api:         Default: Fetch the latest installer directly from the CrowdStrike API.
+#   url:         Fetch installer from a URL
+#   repo:        Install from a package repository like APT, DNF, or YUM
+#
+falcon_install_method: api
 
-    #
-    # If using 'api' or 'url' methods, how many retries should the
-    # installer attempt?
-    #
-    retries: 3
+# Specify GPG Key file location if the file exists in a different location or
+# the installation method is repo. This is purely an optional step but is
+# considered a best practice.
+#
+falcon_gpg_key:
 
-    # If using 'api' or 'url' methods, how many seconds should the
-    # installer wait between retries?
-    delay: 3
+# Falcon requires that a master image remove the Falcon Agent ID (AID). This
+# ensures instances spun up from the master receive their own, unique,
+# Falcon Agent ID.
+#
+# If installing this role on a base AMI or master image, set this flag
+# to 'true'.
+#
+falcon_remove_agent_id: false
 
-    #
-    # Where should the sensor file be downloaded to? By default
-    # this will be the homedir of the user the ansible playbook
-    # is running as.
-    #
-    # Note: On Linux, do not forget trailing "/", e.g. "/tmp/"!
-    #
-    install_temp_dir: ""
+# CrowdStrike API URL for downloading the Falcon sensor. Possible values:
+#       US-GOV-1:   api.laggar.gcw.crowdstrike.com
+#       EU-1:       api.eu-1.crowdstrike.com
+#       US-2:       api.us-2.crowdstrike.com
+#       Catch all:  api.crowdstrike.com
+#
+falcon_api_url: "api.crowdstrike.com"
 
-    #
-    # Falcon requires that a master image remove the Falcon Agent ID (AID). This
-    # ensures instances spun up from the master receive their own, unique,
-    # Falcon Agent ID.
-    #
-    # If installing this role on a base AMI or master image, set this flag
-    # to 'true'.
-    remove_agent_id: false
+# 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
+# API. If unknown, download from the CrowdStrike support portal:
+#
+#   https://falcon.crowdstrike.com/support/api-clients-and-keys
+#
+falcon_api_client_id: ""
+falcon_api_client_secret: ""
 
-    #
-    # Your Falcon Customer ID (CID)
-    #
-    cid: yourCID123
+# Where should the sensor file be downloaded to? By default
+# this will be the homedir of the user the ansible playbook
+# is running as.
+#
+# Note: On Linux, do not forget trailing "/", e.g. "/tmp/"!
+#
+falcon_install_tmp_dir: ""
 
-    #
-    # PARAMETERS FOR API-BASED INSTALLATION
-    #
-    api:
-      #
-      # Which CrowdStrike API should we download from? Possible values:
-      #       US-GOV-1:   api.laggar.gcw.crowdstrike.com
-      #       EU-1:       api.eu-1.crowdstrike.com
-      #       US-2:       api.us-2.crowdstrike.com
-      #       Catch all:  api.crowdstrike.com
-      #
-      url: "api.crowdstrike.com"
+# If the installation method is 'url', provide the url for the sensor to
+# be downloaded from.
+#
+falcon_download_url:
 
-      #
-      # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
-      # API. If unknown, download from the CrowdStrike support portal:
-      #
-      #   https://falcon.crowdstrike.com/support/api-clients-and-keys
-      #
-      client_id: ""
-      client_secret: ""
+# If using 'api' or 'url' methods, the number of retries the
+# installer should attempt.
+#
+falcon_retries: 3
 
-falconctl:
-    aid: ""
-    apd: ""
-    aph: ""
-    app: ""
-    trace: ""
-    feature: ""
-    message_log: ""
-    billing: ""
-    assert: ""
-    memfail_grace_period: ""
-    memfail_every_n: ""
+# If using 'api' or 'url' methods, the time (in seconds) the installer
+# should wait between retries.
+falcon_delay: 3
+
+# If true, uninstall a system
+# yes/no bool, default false
+falcon_uninstall: false

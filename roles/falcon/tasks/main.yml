@@ -1,31 +1,31 @@
 ---
 # tasks file for crowdstrike-falcon-role
-
-- name: CrowdStrike Falcon Installer | Validate Required Parameters and Endpoint Environment
-  assert:
-    that:
-        - crowdstrike.api_url is defined
-        - crowdstrike.api_client_id is defined
-        - crowdstrike.api_client_secret is defined
-        - ansible_pkg_mgr is defined
-        - ansible_pkg_mgr in ['yum', 'apt']
-
-- name: CrowdStrike Falcon Installer | Beginning URL Fetch-based Process
-  include_tasks: url.yml
-  when: crowdstrike.install_method == "url"
-
-- name: CrowdStrike Falcon Installed | Associate Sensor with your Customer ID (CID)
-  command: "/opt/CrowdStrike/falconctl -s -f --cid={{ cs_falcon_cid }}"
-  when: crowdstrike.sensor_install_state
-
-- name: CrowdStrike Falcon Installer | Remove Falcon Agent ID (AID) If Building A Primary Image
-  command: "/opt/CrowdStrike/falconctl -d -f --aid"
-  when: crowdstrike.sensor_install_state and crowdstrike.remove_agent_id
-
-- name: CrowdStrike Falcon Installer | Start Falcon Daemon
-  service:
-    name: falcon-sensor
-    state: started
-    enabled: yes
+- block:
+  - include_tasks: uninstall.yml
+  when: falcon_uninstall
   become: true
-  when: crowdstrike.sensor_install_state
+  become_user: root
+
+- block:
+    - include_tasks: preinstall.yml
+  when:
+    - not falcon_uninstall
+
+- block:
+  - include_tasks: url.yml
+  when:
+    - not falcon_uninstall
+    - falcon_install_method == "url"
+
+- block:
+  - include_tasks: api.yml
+  when:
+    - not falcon_uninstall
+    - falcon_install_method == "api"
+
+- block:
+  - include_tasks: install.yml
+  when:
+    - not falcon_uninstall
+  become: true
+  become_user: root

@@ -1,2 +1,12 @@
 ---
 # vars file for crowdstrike-falcon-role
+linux_packagers: "{{ rpm_packagers + dpkg_packagers }}"
+
+rpm_packagers:
+  - yum
+  - rpm
+  - dnf
+  - zypper
+
+dpkg_packagers:
+  - apt
