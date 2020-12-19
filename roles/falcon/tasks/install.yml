@@ -24,7 +24,7 @@
       - falcon_gpg_key
       - ansible_pkg_mgr in rpm_packagers
 
-  - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT key from a file
+  - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from a file
     apt_key:
       url: '{{ falcon_gpg_key }}'
       state: present
