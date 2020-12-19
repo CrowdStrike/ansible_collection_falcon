@@ -22,7 +22,7 @@
     ansible_python_interpreter: /usr/bin/python
   when: ansible_distribution == "Amazon"
 
-- name: CrowdStrike Falcon | Determine if Target OS Is Enterprise Linux
+- name: CrowdStrike Falcon | Determine if Endpoint Operating System Is RHEL, CentOS, or Oracle Linux
   set_fact:
      falcon_target_os: RHEL/CentOS/Oracle
      falcon_os_family: "{{ ansible_system | lower }}"
