@@ -4,7 +4,14 @@
 # Your Falcon Customer ID (CID). Optional when using 'api' as an install method.
 # Required for any other installation method.
 #
-falcon_cid:
+falcon_cid: 
+
+# Installation tokens prevent unauthorized hosts from being accidentally or maliciously added
+# to your Customer ID (CID). Installation tokens are an optional security
+# measure for your CID. For more details:
+# https://falcon.crowdstrike.com/support/documentation/20/falcon-sensor-for-linux#optional:-installing-to-a-cid-that-requires-installation-tokens
+#
+falcon_instalation_token: 
 
 # This installer is capable of three different installation
 # methods:
