@@ -22,7 +22,7 @@
       Content-Type: application/json
   register: falcon_api_target_cid
 
-- name: CrowdStrike Falcon | Detect SHA256 of Latest Linux Sensor
+- name: CrowdStrike Falcon | Detect SHA256 of Latest Falcon Sensor
   uri:
     url: "https://{{ falcon_api_url }}/sensors/combined/installers/v1?filter=platform%3A%22{{ falcon_os_family }}*%22%2Bos%3A%22{{ falcon_target_os }}%22&=&sort=version.desc&limit=1"
     method: GET
@@ -31,7 +31,7 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
   register: falcon_api_sha_hash
 
-- name: CrowdStrike Falcon | Detect Name of Latest Linux Sensor
+- name: CrowdStrike Falcon | Detect Name of Latest Falcon Sensor
   uri:
     url: "https://{{ falcon_api_url }}/sensors/combined/installers/v1?filter=platform%3A%22{{ falcon_os_family }}*%22%2Bos%3A%22{{ falcon_target_os }}%22&=&sort=version.desc&limit=1"
     method: GET
