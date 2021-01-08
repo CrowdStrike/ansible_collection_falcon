@@ -66,7 +66,7 @@
       - installed_sensor in ansible_facts.packages 
 
   - name: CrowdStrike Falcon | Associated Falcon Sensor with your Customer ID (CID) Using Provisioning Token
-    command: "/opt/CrowdStrike/falconctl -s -f --cid={{ falcon_cid }} --provisioning-token={{ falcon_provisioning_token }}
+    command: "/opt/CrowdStrike/falconctl -s -f --cid={{ falcon_cid }} --provisioning-token={{ falcon_provisioning_token }}"
     when:
       - falcon_provisioning_token
       - falcon_cid
@@ -84,7 +84,6 @@
       name: falcon-sensor
       state: started
       enabled: yes
-    become: true
     when:
       - falcon_cid
       - installed_sensor in ansible_facts.packages
