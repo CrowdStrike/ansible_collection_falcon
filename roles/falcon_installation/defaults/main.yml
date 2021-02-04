@@ -1,5 +1,5 @@
 ---
-# defaults file for crowdstrike-falcon-role
+# defaults file for falcon_installation
 
 # Your Falcon Customer ID (CID). Optional when using 'api' as an install method.
 # Required for any other installation method.

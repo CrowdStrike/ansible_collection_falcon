@@ -1,5 +1,5 @@
 ---
-# vars file for crowdstrike-falcon-role
+# vars file for falcon_installation
 linux_packagers: "{{ rpm_packagers + dpkg_packagers }}"
 
 rpm_packagers:
