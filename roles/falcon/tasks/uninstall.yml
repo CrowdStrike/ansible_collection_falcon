@@ -1,11 +1,40 @@
 ---
-- name: CrowdStrike Falcon | Stopping Falcon Service
+- name: CrowdStrike Falcon | Stopping Falcon Service (Linux)
   service:
     name: falcon-sensor
     state: stopped
+  when:
+    - ansible_system == "Linux"
 
 - block:
-  - name: CrowdStrike Falcon | Uninstalling Falcon Sensor
+  - name: CrowdStrike Falcon | Uninstalling Falcon Sensor (Linux)
     package:
       name: falcon-sensor
       state: absent
+    when:
+      - ansible_system == "Linux"
+
+  - name: CrowdStrike Falcon | Stopping Falcon Sensor (macOS)
+    command: "launchctl stop com.crowdstrike.falcond"
+    ignore_errors: true
+    when:
+      - ansible_system == "Darwin"
+
+  - name: CrowdStrike Falcon | Uninstalling Falcon Sensor (macOS)
+    file:
+      path: "{{ item }}"
+      state: absent
+    loop:
+      - "/Applications/Falcon.app"
+      - "/Library/Application Support/CrowdStrike"
+      - "/Library/LaunchDaemons/com.crowdstrike.falcond.plist"
+    when:
+      - ansible_system == "Darwin"
+
+  - name: CrowdStrike Falcon | Cleaning up uninstalling Falcon Sensor (macOS)
+    command: "pkgutil --forget {{ item }}"
+    loop:
+      - com.crowdstrike.falcon.sensor
+      - com.crowdstrike.falcon.license
+    when:
+      - ansible_system == "Darwin"
