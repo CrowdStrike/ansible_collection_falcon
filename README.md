@@ -1,8 +1,6 @@
 # Ansible Collection - crowdstrike.falcon
 
-This collection is focused on downloading and installing the CrowdStrike Falcon Sensor.
-It can also uninstall the Falcon Sensor. Other enhancements are possible in the future
-to add more functionality.
+This collection is focused on downloading, installing, and removing, CrowdStrike's Falcon sensor on Linux platforms. Windows and OSX coming soon.
 
 # Installation
 
