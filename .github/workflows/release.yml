@@ -1,0 +1,31 @@
+name: Release to Galaxy
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Install pip
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible
+      - name: Create release artifacts
+        run: |
+          ansible-galaxy collection build
+          ansible-galaxy collection publish *.tar.gz --api-key ${{ secrets.GALAXY_API_KEY }}
+      - name: Release artifacts to Git Hub
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ./crowdstrike-falcon*.tar.gz
+          allowUpdates: true
+          name: Release ${{ github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
