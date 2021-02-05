@@ -1,17 +1,17 @@
 galaxy_info:
-  role_name: falcon-installer
+  role_name: falcon_installation
   author: CrowdStrike Solution Architecture
-  description: --CURRENTLY IN DEVELOPMENT -- Install and configure CrowdStrike's Falcon sensor on Linux using Ansible.
+  description: Install and configure CrowdStrike's Falcon sensor on Linux using Ansible.
   company: CrowdStrike
 
-  issue_tracker_url: https://github.com/CrowdStrike/ansible-role-crowdstrike-falcon
+  issue_tracker_url: https://github.com/CrowdStrike/ansible_collection_falcon
 
   # This Ansible role is free and unencumbered software released into the
   # public domain. For additional details on The Unlicense, please visit
   # https://spdx.org/licenses/Unlicense.html
   license: Unlicense
 
-  min_ansible_version: 2.9
+  min_ansible_version: 2.10
 
   #
   # The list of officially supported operating systems is documented within

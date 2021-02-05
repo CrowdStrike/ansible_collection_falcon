@@ -1,5 +1,5 @@
 ---
-# tasks file for crowdstrike-falcon-role
+# tasks file for falcon_installation
 - block:
   - include_tasks: uninstall.yml
   when: falcon_uninstall
