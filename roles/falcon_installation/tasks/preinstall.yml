@@ -51,12 +51,6 @@
     - ansible_pkg_mgr in linux_packagers
     - falcon_sensor_download is not defined
 
-- set_fact:
-    falcon_install_tmp_dir: /tmp/
-  when:
-    - not falcon_install_tmp_dir
-    - ansible_system == "Linux" or ansible_system == "Darwin"
-
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists
   file:
     path: "{{ falcon_install_tmp_dir }}"
