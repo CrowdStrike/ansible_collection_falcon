@@ -55,4 +55,4 @@
   file:
     path: "{{ falcon_install_tmp_dir }}"
     state: directory
-  when: falcon_install_tmp_dir
+  when: falcon_install_tmp_dir is defined
