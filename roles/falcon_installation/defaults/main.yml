@@ -59,7 +59,7 @@ falcon_api_client_secret: ""
 #
 # Note: On Linux, do not forget trailing "/", e.g. "/tmp/"!
 #
-falcon_install_tmp_dir: ""
+falcon_install_tmp_dir: "/tmp/"
 
 # If the installation method is 'url', provide the url for the sensor to
 # be downloaded from.
