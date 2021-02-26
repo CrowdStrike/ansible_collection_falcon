@@ -53,9 +53,8 @@ falcon_api_url: "api.crowdstrike.com"
 falcon_api_client_id: ""
 falcon_api_client_secret: ""
 
-# Where should the sensor file be downloaded to? By default
-# this will be the homedir of the user the ansible playbook
-# is running as.
+# Where should the sensor file be downloaded to? By default,
+# this will be the temp OS filesystem
 #
 # Note: On Linux, do not forget trailing "/", e.g. "/tmp/"!
 #
