@@ -54,7 +54,7 @@
     - falcon_sensor_download is not defined
 
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists
-  file: # noqa: risky-file-permissions      # We shouldn't try to change permissions if /tmp is used
+  file: # noqa: risky-file-permissions,208      # We shouldn't try to change permissions if /tmp is used
     path: "{{ falcon_install_tmp_dir }}"
     state: directory
   when: falcon_install_tmp_dir
