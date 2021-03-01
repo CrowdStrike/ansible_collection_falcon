@@ -68,14 +68,14 @@ galaxy_info:
       - trusty  # 14.04 LTS / https://galaxy.ansible.com/api/v1/platforms/11/
 
   galaxy_tags:
-    - CrowdStrike
+    - crowdstrike
     - falcon
     - sensor
     - linux
     - windows
     - mac
     - security
-    - falcon-sensor
+    - sensor
 
 dependencies: []
   # List your role dependencies here, one per line. Be sure to remove the '[]' above,

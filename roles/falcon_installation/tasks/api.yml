@@ -4,7 +4,7 @@
     url: "https://{{ falcon_api_url }}/oauth2/token"
     method: POST
     body_format: json
-    body: 
+    body:
       "client_id={{ falcon_api_client_id }}&client_secret={{ falcon_api_client_secret }}"
     return_content: true
     status_code: 201
@@ -49,9 +49,11 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
   register: falcon_sensor_download
 
-- set_fact:
+- name: CrowdStrike Falcon | Set CID received from API
+  set_fact:
     falcon_cid: "{{ falcon_api_target_cid.json.resources[0] }}"
   when: not falcon_cid
 
-- set_fact:
+- name: CrowdStrike Falcon | Set full file download path
+  set_fact:
     non_win_pkg: "{{ falcon_sensor_download.dest }}"

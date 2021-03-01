@@ -1,16 +1,18 @@
 ---
 #- name: CrowdStrike Falcon | Verify Customer CID Is Configured
 #  fail:
-#    msg: "falcon_cid has not been configured! This is needed to register the Falcon Sensor. Please re-run the install with your Customer CID." 
+#    msg: "falcon_cid has not been configured! This is needed to register the Falcon Sensor. Please re-run the install with your Customer CID."
 #  when: not falcon_cid
 
 - block:
-  - set_fact:
+  - name: CrowdStrike Falcon | Set default sensor name
+    set_fact:
       installed_sensor: falcon-sensor
     when:
       - ansible_pkg_mgr in linux_packagers
 
-  - set_fact:
+  - name: CrowdStrike Falcon | Set default sensor name for non-Windows installations
+    set_fact:
       non_win_pkg: "{{ installed_sensor }}"
     when:
       - ansible_pkg_mgr in linux_packagers
@@ -28,7 +30,7 @@
     apt_key:
       url: '{{ falcon_gpg_key }}'
       state: present
-    when: 
+    when:
       - falcon_gpg_key
       - ansible_pkg_mgr in dpkg_packagers
 
