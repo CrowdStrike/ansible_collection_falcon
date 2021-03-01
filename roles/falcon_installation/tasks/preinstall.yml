@@ -4,7 +4,7 @@
     fail:
       msg: "falcon_api_url is not configured! Please configure falcon_api_url and re-run the installation again!"
     when: not falcon_api_url
- 
+
   - name: CrowdStrike Falcon | Validate CrowdStrike API Client ID Is Defined
     fail:
       msg: falcon_api_client_id is not configured! Please configure falcon_api_client_id and re-run the installation again!
@@ -40,19 +40,21 @@
      falcon_os_family: "{{ ansible_system | lower }}"
   when: ansible_distribution in ["Ubuntu", "Debian", "SLES"]
 
-- set_fact:
+- name: CrowdStrike Falcon | Set default sensor name
+  set_fact:
     installed_sensor: falcon-sensor
   when:
     - ansible_pkg_mgr in linux_packagers
 
-- set_fact:
+- name: CrowdStrike Falcon | Set default sensor name for non-Windows installations
+  set_fact:
     non_win_pkg: "{{ installed_sensor }}"
   when:
     - ansible_pkg_mgr in linux_packagers
     - falcon_sensor_download is not defined
 
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists
-  file:
+  file: # noqa: risky-file-permissions      # We shouldn't try to change permissions if /tmp is used
     path: "{{ falcon_install_tmp_dir }}"
     state: directory
   when: falcon_install_tmp_dir

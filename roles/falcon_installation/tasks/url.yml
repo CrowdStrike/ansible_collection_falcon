@@ -12,5 +12,6 @@
   delay: "{{ falcon_delay }}"
   until: falcon_sensor_download is success
 
-- set_fact:
+- name: CrowdStrike Falcon | Set full file download path
+  set_fact:
     non_win_pkg: "{{ falcon_sensor_download.dest }}"
