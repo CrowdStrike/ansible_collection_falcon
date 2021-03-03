@@ -27,5 +27,5 @@ jobs:
         with:
           artifacts: ./crowdstrike-falcon*.tar.gz
           allowUpdates: true
-          name: Release ${{ github.ref }}
+          name: ${{ github.event.release.tag_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
