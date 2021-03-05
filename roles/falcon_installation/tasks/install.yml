@@ -73,7 +73,7 @@
   - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID)
     command: "/opt/CrowdStrike/falconctl -s -f --cid={{ falcon_cid }}"
     when:
-      - falcon_provisioning_token is not defined
+      - not falcon_provisioning_token
       - falcon_cid
       - ansible_facts.packages
       - installed_sensor in ansible_facts.packages
@@ -82,7 +82,7 @@
   - name: CrowdStrike Falcon | Associated Falcon Sensor with your Customer ID (CID) Using Provisioning Token
     command: "/opt/CrowdStrike/falconctl -s -f --cid={{ falcon_cid }} --provisioning-token={{ falcon_provisioning_token }}"
     when:
-      - falcon_provisioning_token is defined
+      - falcon_provisioning_token
       - falcon_cid is defined
       - ansible_facts.packages
       - installed_sensor in ansible_facts.packages
