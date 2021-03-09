@@ -1,0 +1,19 @@
+---
+- block:
+  - name: CrowdStrike Falcon | Install Falcon Sensor .exe Package (Windows)
+    win_package:
+      path: "{{ falcon_sensor_pkg }}"
+      state: present
+      creates_service: csfalconservice
+      arguments: '/install /quiet CID={{ falcon_cid }} {{ falcon_windows_install_args }}'
+    when:
+      - ansible_os_family == "Windows"
+    register: falcon_installed
+
+  - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Service (Windows)
+    win_service:
+      name: csfalconservice
+      state: started
+      start_mode: auto
+    when:
+      - falcon_cid is defined

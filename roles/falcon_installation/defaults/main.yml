@@ -57,6 +57,7 @@ falcon_api_client_secret: ""
 # this will be the temp OS filesystem
 #
 # Note: On Linux, do not forget trailing "/", e.g. "/tmp/"!
+#       For Windows, this can be "%SYSTEMROOT%\\Temp"
 #
 falcon_install_tmp_dir: "/tmp/"
 
@@ -72,8 +73,32 @@ falcon_retries: 3
 
 # If using 'api' or 'url' methods, the time (in seconds) the installer
 # should wait between retries.
+#
 falcon_delay: 3
+
+# Additional install arguments beyond the default required
+#
+# Note: /quiet /install CID={{ falcon_cid }} are already added so do not
+#       re-add them here.
+#
+falcon_windows_install_args: "/norestart"
+
+# Additional arugments to uninstall the sensor.
+# You can add your maintenance token here by adding MAINTENANCE_TOKEN=<token>
+#
+falcon_windows_uninstall_args: "/norestart"
+
+# Ansible become method for Windows systems.
+# The default is runas
+#
+falcon_windows_become_method: runas
+
+# Ansible become user for Windows systems.
+# The default is SYSTEM
+#
+falcon_windows_become_user: SYSTEM
 
 # If true, uninstall a system
 # yes/no bool, default false
+#
 falcon_uninstall: false

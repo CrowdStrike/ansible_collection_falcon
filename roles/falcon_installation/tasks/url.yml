@@ -14,4 +14,4 @@
 
 - name: CrowdStrike Falcon | Set full file download path
   set_fact:
-    non_win_pkg: "{{ falcon_sensor_download.dest }}"
+    falcon_sensor_pkg: "{{ falcon_sensor_download.dest }}"
