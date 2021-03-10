@@ -27,6 +27,10 @@ Currently the following variables are supported:
  * `falcon_download_url` - URL for downloading the sensor (string, default: null)
  * `falcon_retries` - Number of attempts to download the sensor (int, default: 3)
  * `falcon_delay` - Number of seconds before trying another download attempt (int, default: 3)
+ * `falcon_windows_install_args` - Additional Windows install arguments (string, default: `/norestart`)
+ * `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: `/norestart`)
+ * `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: `runas`)
+ * `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: `SYSTEM`)
  * `falcon_uninstall` - Uninstall the Falcon Sensor (bool, default: false)
 
 See [default/main.yaml](default/main.yaml) for more details on these variables.

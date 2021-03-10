@@ -13,7 +13,7 @@
 
   - name: CrowdStrike Falcon | Set default sensor name for non-Windows installations
     set_fact:
-      non_win_pkg: "{{ installed_sensor }}"
+      falcon_sensor_pkg: "{{ installed_sensor }}"
     when:
       - ansible_pkg_mgr in linux_packagers
       - falcon_sensor_download is not defined
@@ -41,7 +41,7 @@
 
   - name: CrowdStrike Falcon | Install Falcon Sensor .deb Package (Linux)
     package:
-      deb: "{{ non_win_pkg }}"
+      deb: "{{ falcon_sensor_pkg }}"
       state: present
     when:
       - ansible_facts.packages is defined
@@ -51,7 +51,7 @@
 
   - name: CrowdStrike Falcon | Install Falcon Sensor .rpm Package (Linux)
     package:
-      name: "{{ non_win_pkg }}"
+      name: "{{ falcon_sensor_pkg }}"
       state: present
     when:
       - ansible_facts.packages is defined
@@ -60,7 +60,7 @@
     register: falcon_installed
 
   - name: CrowdStrike Falcon | Install Falcon Sensor .pkg Package (macOS)
-    command: "/usr/sbin/installer -pkg {{ non_win_pkg }} -target /Applications"
+    command: "/usr/sbin/installer -pkg {{ falcon_sensor_pkg }} -target /Applications"
     when:
       - ansible_distribution == "MacOSX"
     register: falcon_installed
