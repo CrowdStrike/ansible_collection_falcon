@@ -12,9 +12,8 @@ ansible-galaxy collection install crowdstrike.falcon
 
 ## Installing on MacOS
 
-Due to Apple's decision to require Mobile Device Management (MDM) software to install kernel extensions without user prompting,
-the ansible collection with its roles will only be able to run on macOS in an interactive session which severely limits the
-power of Ansible.
+Apple platforms require Mobile Device Management (MDM) software to install kernel extensions
+without user prompting. Ansible is only able to run on macOS in an interactive session, which means end-users will receive prompts to accept the CrowdStrike kernel modules.
 
 # Example Playbooks
 
