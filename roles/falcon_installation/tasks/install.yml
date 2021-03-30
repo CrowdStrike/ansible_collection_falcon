@@ -37,7 +37,7 @@
   - name: CrowdStrike Falcon | Check if Falcon Sensor Package Is Installed
     package_facts:
       manager: auto
-    when: ansible_distribution != "Linux"
+    when: ansible_distribution != "MacOSX"
 
   - name: CrowdStrike Falcon | Install Falcon Sensor .deb Package (Linux)
     package:
@@ -60,7 +60,9 @@
     register: falcon_installed
 
   - name: CrowdStrike Falcon | Install Falcon Sensor .pkg Package (macOS)
-    command: "/usr/sbin/installer -pkg {{ falcon_sensor_pkg }} -target /Applications"
+    command: "/usr/sbin/installer -pkg {{ falcon_sensor_pkg }} -target /"
+    args:
+      creates: "/Applications/Falcon.app/Contents/Resources/falconctl"
     when:
       - ansible_distribution == "MacOSX"
     register: falcon_installed
@@ -68,23 +70,32 @@
   - name: CrowdStrike Falcon | Verify Falcon Package Is Installed
     package_facts:
       manager: auto
-    when: ansible_distribution != "Linux"
+    when: ansible_distribution != "MacOSX"
 
-  - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID)
+  - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (Linux)
     command: "/opt/CrowdStrike/falconctl -s -f --cid={{ falcon_cid }}"
     when:
       - not falcon_provisioning_token
       - falcon_cid
-      - ansible_facts.packages
+      - ansible_facts.packages is defined
       - installed_sensor in ansible_facts.packages
       - ansible_distribution != "MacOSX"
 
-  - name: CrowdStrike Falcon | Associated Falcon Sensor with your Customer ID (CID) Using Provisioning Token
+  - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (macOS)
+    command: "/Applications/Falcon.app/Contents/Resources/falconctl license {{ falcon_cid }}"
+    when:
+      - not falcon_provisioning_token
+      - falcon_cid
+      - ansible_distribution == "MacOSX"
+      - falcon_already_installed is defined
+      - not falcon_already_installed.stat.exists
+
+  - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) Using Provisioning Token
     command: "/opt/CrowdStrike/falconctl -s -f --cid={{ falcon_cid }} --provisioning-token={{ falcon_provisioning_token }}"
     when:
       - falcon_provisioning_token
       - falcon_cid is defined
-      - ansible_facts.packages
+      - ansible_facts.packages is defined
       - installed_sensor in ansible_facts.packages
       - ansible_distribution != "MacOSX"
 
@@ -93,7 +104,7 @@
     when:
       - falcon_remove_agent_id
       - falcon_cid
-      - ansible_facts.packages
+      - ansible_facts.packages is defined
       - ansible_distribution != "MacOSX"
 
   - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Daemon (Linux)
@@ -103,9 +114,10 @@
       enabled: yes
     when:
       - falcon_cid is defined
+      - ansible_facts.packages is defined
       - installed_sensor in ansible_facts.packages
 
   - name: CrowdStrike Falcon | Starting Falcon Sensor (macOS)
     command: "launchctl start com.crowdstrike.falcond"
     when:
-      - ansible_system == "Darwin"
+      - ansible_distribution == "MacOSX"
