@@ -33,7 +33,7 @@ Currently the following variables are supported:
  * `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: `SYSTEM`)
  * `falcon_uninstall` - Uninstall the Falcon Sensor (bool, default: false)
 
-See [default/main.yaml](default/main.yml) for more details on these variables.
+See [default/main.yml](default/main.yml) for more details on these variables.
 
 Dependencies
 ------------
