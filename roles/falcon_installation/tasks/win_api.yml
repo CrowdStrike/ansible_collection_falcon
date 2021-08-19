@@ -41,7 +41,7 @@
 - name: CrowdStrike Falcon | Download Latest Sensor Installation Package
   win_get_url:
     url: https://{{ falcon_api_url }}/sensors/entities/download-installer/v1?id={{ falcon_api_sha_hash.json.resources[0].sha256 }}
-    dest: "{{ falcon_install_tmp_dir }}\\{{ falcon_api_installer_version.json.resources[0].name }}"
+    dest: "{{ falcon_windows_tmp_dir }}\\{{ falcon_api_installer_version.json.resources[0].name }}"
     checksum: "{{ falcon_api_sha_hash.json.resources[0].sha256 }}"
     checksum_algorithm: sha256
     headers:
