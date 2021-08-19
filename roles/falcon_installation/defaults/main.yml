@@ -53,11 +53,10 @@ falcon_api_url: "api.crowdstrike.com"
 falcon_api_client_id: ""
 falcon_api_client_secret: ""
 
-# Where should the sensor file be downloaded to? By default,
-# this will be the temp OS filesystem
+# Where should the sensor file be downloaded to on Linux and MacOS systems?
+# By default, this will be the temp OS filesystem
 #
 # Note: On Linux, do not forget trailing "/", e.g. "/tmp/"!
-#       For Windows, this can be "%SYSTEMROOT%\\Temp"
 #
 falcon_install_tmp_dir: "/tmp/"
 
@@ -75,6 +74,13 @@ falcon_retries: 3
 # should wait between retries.
 #
 falcon_delay: 3
+
+# Where should the sensor file be downloaded to on Windows systems?
+# By default, this will be the temp OS filesystem
+#
+# For Windows, this can be "%SYSTEMROOT%\\Temp"
+#
+falcon_windows_tmp_dir: "%SYSTEMROOT%\\Temp"
 
 # Additional install arguments beyond the default required
 #

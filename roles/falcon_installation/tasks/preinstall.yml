@@ -80,11 +80,11 @@
 
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (Windows)
   win_file: # noqa: risky-file-permissions,208      # We shouldn't try to change permissions if /tmp is used
-    path: "{{ falcon_install_tmp_dir }}"
+    path: "{{ falcon_windows_tmp_dir }}"
     state: directory
   when:
     - ansible_os_family == "Windows"
-    - falcon_install_tmp_dir is defined
+    - falcon_windows_tmp_dir is defined
 
 - name: CrowdStrike Falcon | Verify Falcon is not already installed (macOS)
   stat:
