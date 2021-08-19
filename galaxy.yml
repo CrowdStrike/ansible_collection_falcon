@@ -16,7 +16,7 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-  - CrowdStrike Solutions Architecture <integrations@crowdstrike.com>
+  - CRWD Solutions Architecture <integrations@crowdstrike.com>
 
 # A short summary description of the collection
 description: >
