@@ -9,6 +9,9 @@
     when:
       - ansible_os_family == "Windows"
     register: falcon_installed
+    retries: "{{ falcon_windows_install_retries }}"
+    delay: "{{ falcon_windows_install_delay }}"
+    until: falcon_installed is success
 
   - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Service (Windows)
     win_service:
