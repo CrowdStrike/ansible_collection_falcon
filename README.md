@@ -1,3 +1,5 @@
+[![Ansible Lint](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/ansible-lint.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/ansible-lint.yml)
+
 # Ansible Collection - crowdstrike.falcon
 
 This collection is focused on downloading, installing, and removing CrowdStrike's Falcon sensor.
