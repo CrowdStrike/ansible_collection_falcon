@@ -75,6 +75,15 @@ falcon_retries: 3
 #
 falcon_delay: 3
 
+# Number of times to retry sensor install on windows
+#
+falcon_windows_install_retries: 10
+
+# Number of seconds to wait to retry sensor install
+# on windows in the event of a failure
+#
+falcon_windows_install_delay: 120
+
 # Where should the sensor file be downloaded to on Windows systems?
 # By default, this will be the temp OS filesystem
 #

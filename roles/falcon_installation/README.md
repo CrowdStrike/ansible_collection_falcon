@@ -27,6 +27,8 @@ Currently the following variables are supported:
  * `falcon_download_url` - URL for downloading the sensor (string, default: null)
  * `falcon_retries` - Number of attempts to download the sensor (int, default: 3)
  * `falcon_delay` - Number of seconds before trying another download attempt (int, default: 3)
+ * `falcon_windows_install_retries` - Number of times to retry sensor install on windows (int, default: 10)
+ * `falcon_windows_install_delay` - Number of seconds to wait to retry sensor install on windows in the event of a failure (int, default: 120)
  * `falcon_windows_tmp_dir` - Temporary Windows download and installation directory for the Falson Sensor (string, default: `%SYSTEMROOT%\\Temp`)
  * `falcon_windows_install_args` - Additional Windows install arguments (string, default: `/norestart`)
  * `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: `/norestart`)
