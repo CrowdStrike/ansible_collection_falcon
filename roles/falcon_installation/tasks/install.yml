@@ -76,7 +76,7 @@
     command: "/opt/CrowdStrike/falconctl -s -f --cid={{ falcon_cid }}"
     when:
       - not falcon_provisioning_token
-      - falcon_cid
+      - falcon_cid is defined
       - ansible_facts.packages is defined
       - installed_sensor in ansible_facts.packages
       - ansible_distribution != "MacOSX"
@@ -85,7 +85,7 @@
     command: "/Applications/Falcon.app/Contents/Resources/falconctl license {{ falcon_cid }}"
     when:
       - not falcon_provisioning_token
-      - falcon_cid
+      - falcon_cid is defined
       - ansible_distribution == "MacOSX"
       - falcon_already_installed is defined
       - not falcon_already_installed.stat.exists
@@ -103,7 +103,7 @@
     command: "/opt/CrowdStrike/falconctl -d -f --aid"
     when:
       - falcon_remove_agent_id
-      - falcon_cid
+      - falcon_cid is defined
       - ansible_facts.packages is defined
       - ansible_distribution != "MacOSX"
 
