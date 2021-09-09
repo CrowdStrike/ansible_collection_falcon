@@ -1,81 +1,80 @@
+---
 galaxy_info:
   role_name: falcon_installation
   author: CrowdStrike Solution Architecture
   description: Install and configure CrowdStrike's Falcon sensor on Linux using Ansible.
   company: CrowdStrike
 
+  # If the issue tracker for your role is not on github, uncomment the
+  # next line and provide a value
   issue_tracker_url: https://github.com/CrowdStrike/ansible_collection_falcon
 
-  # This Ansible role is free and unencumbered software released into the
-  # public domain. For additional details on The Unlicense, please visit
-  # https://spdx.org/licenses/Unlicense.html
+  # Choose a valid license ID from https://spdx.org - some suggested licenses:
+  # - BSD-3-Clause (default)
+  # - MIT
+  # - GPL-2.0-or-later
+  # - GPL-3.0-only
+  # - Apache-2.0
+  # - CC-BY-4.0
   license: Unlicense
+
 
   min_ansible_version: 2.10
 
+  # If this a Container Enabled role, provide the minimum Ansible Container version.
+  # min_ansible_container_version:
+
   #
-  # The list of officially supported operating systems is documented within
-  # the CrowdStrike Falcon support documentation:
-  #
-  # Falcon Sensor for Windows:
-  # https://falcon.crowdstrike.com/support/documentation/23/falcon-sensor-for-windows
-  #
-  # Falcon Sensor for Mac:
-  # https://falcon.crowdstrike.com/support/documentation/22/falcon-sensor-for-mac
-  #
-  # Falcon Sensor for Linux:
-  # https://falcon.crowdstrike.com/support/documentation/20/falcon-sensor-for-linux
-  #
-  # The platforms enumerated below should match those in the documentation listed above.
-  # If you notice something missing, please open a bug report (or pull request!) at:
-  #
-  # https://github.com/CrowdStrike/ansible-role-crowdstrike-falcon
-  #
-  # NOTE TO ROLE DEVELOPERS: To view the ansible naming scheme for platforms and
-  # versions (or releases), visit https://galaxy.ansible.com/api/v1/platforms/.
+  # Provide a list of supported platforms, and for each platform a list of versions.
   # If you don't wish to enumerate all versions for a particular platform, use 'all'.
-
+  # To view available platforms and versions (or releases), visit:
+  # https://galaxy.ansible.com/api/v1/platforms/
+  #
   platforms:
-  - name: Amazon Linux 2
-    versions:
-      - any     # https://galaxy.ansible.com/api/v1/platforms/217/
-
-  - name: Amazon
-    versions:
-      - 2018.03   # https://galaxy.ansible.com/api/v1/platforms/212/
-      - 2017.09   # https://galaxy.ansible.com/api/v1/platforms/164/
-      - 2017.03   # https://galaxy.ansible.com/api/v1/platforms/163/
-
-  # Debian 9
-
-  - name: EL    # Red Hat Enterprise Linux / CentOS / Oracle
-    versions:
-      - 6       # https://galaxy.ansible.com/api/v1/platforms/2/
-      - 7       # https://galaxy.ansible.com/api/v1/platforms/46/
-      - 8       # https://galaxy.ansible.com/api/v1/platforms/205/
-
-  - name: SLES  # SuSE Linux Enterprise Server (SLES)
-    versions:
-      - 15      # https://galaxy.ansible.com/api/v1/platforms/197/
-      - 12SP1   # https://galaxy.ansible.com/api/v1/platforms/74/
-      - 12      # https://galaxy.ansible.com/api/v1/platforms/73/
-      - 11SP4   # https://galaxy.ansible.com/api/v1/platforms/72/
-
-  - name: Ubuntu
-    versions:
-      - bionic  # 18.04 LTS / https://galaxy.ansible.com/api/v1/platforms/155/
-      - xenial  # 16.04 LTS / https://galaxy.ansible.com/api/v1/platforms/69/
-      - trusty  # 14.04 LTS / https://galaxy.ansible.com/api/v1/platforms/11/
+    - name: Amazon Linux 2
+      versions:
+        - any
+    - name: Amazon Linux
+      versions:
+        - 2018.03
+        - 2017.09
+    - name: Debian
+      versions:
+        - 9
+        - 10
+    - name: EL
+      versions:
+        - 6
+        - 7
+        - 8
+    - name: SLES
+      versions:
+        - 15
+        - 12SP1
+        - 12
+        - 11SP4
+    - name: Ubuntu
+      versions:
+        - focal
+        - bionic
+        - xenial
 
   galaxy_tags:
+    # List tags for your role here, one per line. A tag is a keyword that describes
+    # and categorizes the role. Users find roles by searching for tags. Be sure to
+    # remove the '[]' above, if you add tags to this list.
+    #
+    # NOTE: A tag is limited to a single word comprised of alphanumeric characters.
+    #       Maximum 20 tags per role.
     - crowdstrike
     - falcon
     - sensor
     - linux
     - windows
-    - mac
+    - macos
     - security
-    - sensor
+    - edr
+    - xdr
 
 dependencies: []
   # List your role dependencies here, one per line. Be sure to remove the '[]' above,

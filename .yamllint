@@ -1,0 +1,13 @@
+---
+# Based on ansible-lint config
+extends: default
+
+ignore: |
+  .*
+
+rules:
+  comments-indentation: disable
+  line-length: disable
+  truthy:
+    allowed-values: ["yes", "no", "true", "false"]
+  comments: disable
