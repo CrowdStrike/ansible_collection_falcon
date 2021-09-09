@@ -7,13 +7,11 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-
+  ansible_lint:
+    name: Verify Ansible Lint
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
-    - name: Lint Ansible Playbook
-      uses: ansible/ansible-lint-action@master
+    - uses: ansible/ansible-lint-action@master
       with:
         args: "-c tests/ansible-lint.conf"

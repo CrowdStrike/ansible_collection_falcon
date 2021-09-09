@@ -11,7 +11,7 @@ Ansible 2.10 or higher
 Role Variables
 --------------
 
-Currently the following variables are supported:
+The following variables are currently supported:
 
 ### Falcon Installation
 
@@ -52,7 +52,7 @@ This example installs the Falcon Sensor:
 ---
 - hosts: all
   roles:
-  - role: falcon_installation
+  - role: crowdstrike.falcon.falcon_installation
   vars:
     falcon_api_client_id: <Falcon_UI_OAUTH_client_id>
     falcon_api_client_secret: <Falcon_UI_OAUTH_client_secret>
@@ -64,7 +64,7 @@ This example uninstalls the Falcon Sensor:
 ---
 - hosts: all
   roles:
-  - role: falcon_installation
+  - role: crowdstrike.falcon.falcon_installation
   vars:
     falcon_uninstall: true
 ```
@@ -72,7 +72,7 @@ This example uninstalls the Falcon Sensor:
 License
 -------
 
-[Unlicense](LICENSE)
+[Unlicense](https://github.com/crowdstrike/ansible_collection_falcon/blob/main/LICENSE)
 
 Author Information
 ------------------

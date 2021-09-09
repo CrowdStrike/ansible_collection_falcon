@@ -9,7 +9,7 @@
     return_content: true
     status_code: 201
     headers:
-        content-type: application/x-www-form-urlencoded
+      content-type: application/x-www-form-urlencoded
   register: falcon_api_oauth2_token
 
 - name: CrowdStrike Falcon | Detect Target CID Based on Credentials
