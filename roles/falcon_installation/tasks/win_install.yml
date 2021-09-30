@@ -13,10 +13,21 @@
     delay: "{{ falcon_windows_install_delay }}"
     until: falcon_installed is success
 
+  - name: CrowdStrike Falcon Installer | Remove any AID Key
+    win_regedit:
+      path: "{{ item }}"
+      state: absent
+      delete_key: true
+    loop:
+      - 'HKLM:\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\{16e0423f-7058-48c9-a204-725362b67639}\Default\AG'
+      - 'HKLM:\SYSTEM\CurrentControlSet\Services\CSAgent\Sim\AG'
+    when:
+      - falcon_remove_agent_id
+
   - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Service (Windows)
     win_service:
       name: csfalconservice
-      state: started
+      state: "{{ falcon_service_state | default('started') }}"
       start_mode: auto
     when:
       - falcon_cid is defined

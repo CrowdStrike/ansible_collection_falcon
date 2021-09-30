@@ -110,7 +110,7 @@
   - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Daemon (Linux)
     service:
       name: falcon-sensor
-      state: started
+      state: "{{ falcon_service_state | default('started') }}"
       enabled: yes
     when:
       - falcon_cid is defined
@@ -118,6 +118,6 @@
       - installed_sensor in ansible_facts.packages
 
   - name: CrowdStrike Falcon | Starting Falcon Sensor (macOS)
-    command: "launchctl start com.crowdstrike.falcond"
+    command: "launchctl {{ falcon_service_state | default('start') }} com.crowdstrike.falcond"
     when:
       - ansible_distribution == "MacOSX"
