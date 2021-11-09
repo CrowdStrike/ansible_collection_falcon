@@ -5,10 +5,12 @@ driver:
   name: docker
 platforms:
   - name: instance
-    image: centos:8
+    image: "geerlingguy/docker-${MOLECULE_DISTRO:-centos7}-ansible:latest"
     pre_build_image: true
-    command: /sbin/init
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
     privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
 provisioner:
   name: ansible
 verifier:

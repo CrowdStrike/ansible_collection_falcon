@@ -1,8 +1,0 @@
----
-- name: Converge
-  hosts: all
-  vars:
-    falcon_api_client_id: 499cbeca929546529323642a2701fe39
-    falcon_api_client_secret: S8JeObwfDuyXc4dNo2isYgLVQRmAB5Ct1p037K69
-  roles:
-    - role: crowdstrike.falcon.falcon_installation
