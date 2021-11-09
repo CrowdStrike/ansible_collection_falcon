@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    falcon_api_client_id: "{{ lookup('env', 'FALCON_CID') }}"
+    falcon_api_client_secret: "{{ lookup('env', 'FALCON_SECRET') }}"
+  roles:
+    - role: crowdstrike.falcon.falcon_installation
