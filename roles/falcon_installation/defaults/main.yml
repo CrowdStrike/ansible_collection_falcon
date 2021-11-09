@@ -22,11 +22,11 @@ falcon_provisioning_token:
 #
 falcon_install_method: api
 
-# Specify GPG Key file location if the file exists in a different location or
-# the installation method is repo. This is purely an optional step but is
-# considered a best practice.
+# Specify whether or not to verify the Falcon sensor Linux based packages.
+# By default, this is enabled - which will handle the installation and importing
+# of the CrowdStrike Falcon sensor GPG Key.
 #
-falcon_gpg_key:
+falcon_gpg_key_check: yes
 
 # Falcon requires that a master image remove the Falcon Agent ID (AID). This
 # ensures instances spun up from the master receive their own, unique,
