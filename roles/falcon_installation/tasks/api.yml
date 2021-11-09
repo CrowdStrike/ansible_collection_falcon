@@ -33,7 +33,7 @@
 
 - name: CrowdStrike Falcon | Get SHA256 hash of Falcon installer for the required OS Version
   set_fact:
-    falcon_api_sha_hash: "{{ falcon_api_installer_list.json.resources | selectattr('os_version', 'equalto', ansible_distribution_major_version ) }}"
+    falcon_api_sha_hash: "{{ falcon_api_installer_list.json.resources | selectattr('os_version', 'contains', ansible_distribution_major_version ) }}"
 
 - name: CrowdStrike Falcon | Detect Name of Latest Falcon Sensor
   uri:
