@@ -1,6 +1,6 @@
 ---
 - name: CrowdStrike Falcon | Authenticate to CrowdStrike API
-  win_uri:
+  ansible.windows.win_uri:
     url: "https://{{ falcon_cloud }}/oauth2/token"
     method: POST
     body: "client_id={{ falcon_client_id }}&client_secret={{ falcon_client_secret }}"
@@ -11,7 +11,7 @@
   register: falcon_api_oauth2_token
 
 - name: CrowdStrike Falcon | Detect Target CID Based on Credentials
-  win_uri:
+  ansible.windows.win_uri:
     url: https://{{ falcon_cloud }}/sensors/queries/installers/ccid/v1
     method: GET
     return_content: true
@@ -25,7 +25,7 @@
     falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"' }}"
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
-  win_uri:
+  ansible.windows.win_uri:
     url: "https://{{ falcon_cloud }}/sensors/combined/installers/v1?filter={{ falcon_os_query | urlencode }}"
     method: GET
     return_content: true
@@ -34,11 +34,8 @@
       Content-Type: application/json
   register: falcon_api_installer_list
 
-- debug:
-    msg: "{{ falcon_api_installer_list.json.resources[0] }}"
-
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package
-  win_get_url:
+  ansible.windows.win_get_url:
     url: "https://{{ falcon_cloud }}/sensors/entities/download-installer/v1?id={{ falcon_api_installer_list.json.resources[falcon_sensor_version | int].sha256 }}"
     dest: "{{ falcon_windows_tmp_dir }}\\{{ falcon_api_installer_list.json.resources[falcon_sensor_version | int].name }}"
     checksum: "{{ falcon_api_installer_list.json.resources[0].sha256 }}"
@@ -48,10 +45,10 @@
   register: falcon_sensor_download
 
 - name: CrowdStrike Falcon | Set CID received from API
-  set_fact:
+  ansible.builtin.set_fact:
     falcon_cid: "{{ falcon_api_target_cid.json.resources[0] }}"
   when: not falcon_cid
 
 - name: CrowdStrike Falcon | Set full file download path
-  set_fact:
+  ansible.builtin.set_fact:
     falcon_sensor_pkg: "{{ falcon_sensor_download.dest }}"
