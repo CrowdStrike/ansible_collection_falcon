@@ -5,31 +5,21 @@
   when: ansible_distribution == "MacOSX"
   register: falcon_already_installed
 
-- name: CrowdStrike Falcon | Stopping Falcon Service (Linux)
-  service:
+- name: CrowdStrike Falcon | Uninstalling Falcon Sensor (Linux)
+  package:
     name: falcon-sensor
-    state: stopped
+    state: absent
   when:
     - ansible_system == "Linux"
 
 - block:
-    - name: CrowdStrike Falcon | Uninstalling Falcon Sensor (Linux)
-      package:
-        name: falcon-sensor
-        state: absent
-      when:
-        - ansible_system == "Linux"
-
     - name: CrowdStrike Falcon | Stopping Falcon Sensor (macOS)
       command: "launchctl stop com.crowdstrike.falcond"
-      ignore_errors: true
-      when:
-        - falcon_already_installed.stat.exists
-        - ansible_system == "Darwin"
+      when: falcon_already_installed.stat.exists
 
     - name: CrowdStrike Falcon | Uninstalling Falcon Sensor (macOS)
       command: "/Applications/Falcon.app/Contents/Resources/falconctl uninstall"
-      ignore_errors: true
-      when:
-        - falcon_already_installed.stat.exists
-        - ansible_system == "Darwin"
+      when: falcon_already_installed.stat.exists
+  when:
+    - falcon_already_installed is defined
+    - ansible_system == "Darwin"

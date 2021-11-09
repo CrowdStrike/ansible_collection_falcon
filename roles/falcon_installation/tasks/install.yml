@@ -18,20 +18,27 @@
       - ansible_pkg_mgr in linux_packagers
       - falcon_sensor_download is not defined
 
-  - name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from a file
+  - name: CrowdStrike Falcon | Transfer CrowdStrike Falcon RPM GPG key file
+    copy:
+      src: "{{ falcon_gpg_key }}"
+      dest: "{{ falcon_gpg_key_dest }}"
+    when:
+      - falcon_gpg_key_check
+
+  - name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from file
     rpm_key:
       state: present
-      key: '{{ falcon_gpg_key }}'
+      key: '{{ falcon_gpg_key_dest }}'
     when:
-      - falcon_gpg_key
+      - falcon_gpg_key_check
       - ansible_pkg_mgr in rpm_packagers
 
-  - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from a file
+  - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from file
     apt_key:
-      url: '{{ falcon_gpg_key }}'
+      file: '{{ falcon_gpg_key_dest }}'
       state: present
     when:
-      - falcon_gpg_key
+      - falcon_gpg_key_check
       - ansible_pkg_mgr in dpkg_packagers
 
   - name: CrowdStrike Falcon | Check if Falcon Sensor Package Is Installed
@@ -72,9 +79,18 @@
       manager: auto
     when: ansible_distribution != "MacOSX"
 
+  - name: CrowdStrike Falcon | Check if Customer ID (CID) is associated with Falcon Sensor (Linux)
+    command: "/opt/CrowdStrike/falconctl -g --cid"
+    register: cid_associated
+    failed_when:
+      - cid_associated.rc != 0
+      - cid_associated.rc != 255
+    changed_when: '"cid=" not in cid_associated.stdout'
+
   - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (Linux)
     command: "/opt/CrowdStrike/falconctl -s -f --cid={{ falcon_cid }}"
     when:
+      - '"cid=" not in cid_associated.stdout'
       - not falcon_provisioning_token
       - falcon_cid is defined
       - ansible_facts.packages is defined
