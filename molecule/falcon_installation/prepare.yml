@@ -7,6 +7,7 @@
       apt:
         name:
           - gpg-agent
+          - vim-enhanced
         update_cache: yes
       ignore_errors: yes
       when: ansible_pkg_mgr == 'apt'
