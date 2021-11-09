@@ -1,0 +1,10 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: Install dependencies
+      package:
+        name:
+          - sudo
+          - which
+        state: present
