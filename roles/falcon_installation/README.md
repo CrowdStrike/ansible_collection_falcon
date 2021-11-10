@@ -20,9 +20,9 @@ The following variables are currently supported:
  * `falcon_install_method` - The installation method for installing the sensor (string, default: api)
  * `falcon_gpg_key` - Location of the Falcon GPG Key file (string, default: null)
  * `falcon_remove_agent_id` - Remote the Falcon Agent ID (AID) (bool, default: false)
- * `falcon_api_url` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `api.crowdstrike.com`)
- * `falcon_api_client_id` - CrowdStrike OAUTH Client ID (string, default: null)
- * `falcon_api_client_secret` - CrowdStrike OAUTH Client Secret (string, default: null)
+ * `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `api.crowdstrike.com`)
+ * `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: null)
+ * `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: null)
  * `falcon_install_tmp_dir` - Temporary Linux and MacOS download and installation directory for the Falson Sensor (string, default: `/tmp/`)
  * `falcon_download_url` - URL for downloading the sensor (string, default: null)
  * `falcon_retries` - Number of attempts to download the sensor (int, default: 3)
@@ -54,8 +54,8 @@ This example installs the Falcon Sensor:
   roles:
   - role: crowdstrike.falcon.falcon_installation
   vars:
-    falcon_api_client_id: <Falcon_UI_OAUTH_client_id>
-    falcon_api_client_secret: <Falcon_UI_OAUTH_client_secret>
+    falcon_client_id: <Falcon_UI_OAUTH_client_id>
+    falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
 ```
 
 This example uninstalls the Falcon Sensor:

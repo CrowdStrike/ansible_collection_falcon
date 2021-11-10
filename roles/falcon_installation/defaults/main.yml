@@ -41,17 +41,17 @@ falcon_remove_agent_id: false
 #       US-GOV-1:   api.laggar.gcw.crowdstrike.com
 #       EU-1:       api.eu-1.crowdstrike.com
 #       US-2:       api.us-2.crowdstrike.com
-#       Catch all:  api.crowdstrike.com
+#       us-1:       api.crowdstrike.com
 #
-falcon_api_url: "api.crowdstrike.com"
+falcon_cloud: "api.crowdstrike.com"
 
 # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
 # API. If unknown, download from the CrowdStrike support portal:
 #
 #   https://falcon.crowdstrike.com/support/api-clients-and-keys
 #
-falcon_api_client_id: ""
-falcon_api_client_secret: ""
+falcon_client_id: ""
+falcon_client_secret: ""
 
 # Where should the sensor file be downloaded to on Linux and MacOS systems?
 # By default, this will be the temp OS filesystem

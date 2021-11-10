@@ -1,9 +1,9 @@
 ---
 - name: CrowdStrike Falcon | Authenticate to CrowdStrike API
   win_uri:
-    url: "https://{{ falcon_api_url }}/oauth2/token"
+    url: "https://{{ falcon_cloud }}/oauth2/token"
     method: POST
-    body: "client_id={{ falcon_api_client_id }}&client_secret={{ falcon_api_client_secret }}"
+    body: "client_id={{ falcon_client_id }}&client_secret={{ falcon_client_secret }}"
     return_content: true
     status_code: 201
     headers:
@@ -12,7 +12,7 @@
 
 - name: CrowdStrike Falcon | Detect Target CID Based on Credentials
   win_uri:
-    url: https://{{ falcon_api_url }}/sensors/queries/installers/ccid/v1
+    url: https://{{ falcon_cloud }}/sensors/queries/installers/ccid/v1
     method: GET
     return_content: true
     headers:
@@ -22,7 +22,7 @@
 
 - name: CrowdStrike Falcon | Detect SHA256 of Latest Falcon Sensor
   win_uri:
-    url: "https://{{ falcon_api_url }}/sensors/combined/installers/v1?filter=platform%3A%22{{ falcon_os_family }}*%22%2Bos%3A%22{{ falcon_target_os }}%22&=&sort=version.desc&limit=1"
+    url: "https://{{ falcon_cloud }}/sensors/combined/installers/v1?filter=platform%3A%22{{ falcon_os_family }}*%22%2Bos%3A%22{{ falcon_target_os }}%22&=&sort=version.desc&limit=1"
     method: GET
     return_content: true
     headers:
@@ -31,7 +31,7 @@
 
 - name: CrowdStrike Falcon | Detect Name of Latest Falcon Sensor
   win_uri:
-    url: "https://{{ falcon_api_url }}/sensors/combined/installers/v1?filter=platform%3A%22{{ falcon_os_family }}*%22%2Bos%3A%22{{ falcon_target_os }}%22&=&sort=version.desc&limit=1"
+    url: "https://{{ falcon_cloud }}/sensors/combined/installers/v1?filter=platform%3A%22{{ falcon_os_family }}*%22%2Bos%3A%22{{ falcon_target_os }}%22&=&sort=version.desc&limit=1"
     method: GET
     return_content: true
     headers:
@@ -40,7 +40,7 @@
 
 - name: CrowdStrike Falcon | Download Latest Sensor Installation Package
   win_get_url:
-    url: https://{{ falcon_api_url }}/sensors/entities/download-installer/v1?id={{ falcon_api_sha_hash.json.resources[0].sha256 }}
+    url: https://{{ falcon_cloud }}/sensors/entities/download-installer/v1?id={{ falcon_api_sha_hash.json.resources[0].sha256 }}
     dest: "{{ falcon_windows_tmp_dir }}\\{{ falcon_api_installer_version.json.resources[0].name }}"
     checksum: "{{ falcon_api_sha_hash.json.resources[0].sha256 }}"
     checksum_algorithm: sha256
