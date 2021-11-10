@@ -112,8 +112,3 @@ falcon_windows_become_method: runas
 # The default is SYSTEM
 #
 falcon_windows_become_user: SYSTEM
-
-# If true, uninstall a system
-# yes/no bool, default false
-#
-falcon_uninstall: false

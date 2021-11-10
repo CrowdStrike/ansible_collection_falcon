@@ -1,41 +1,29 @@
 ---
 # tasks file for falcon_installation
 - block:
-    - include_role:
-        name: crowdstrike.falcon.falcon_uninstall
-  when:
-    - falcon_uninstall
-
-- block:
     - include_tasks: preinstall.yml
-  when:
-    - not falcon_uninstall
 
 - block:
     - include_tasks: url.yml
   when:
-    - not falcon_uninstall
     - falcon_install_method == "url"
     - ansible_os_family != "Windows"
 
 - block:
     - include_tasks: api.yml
   when:
-    - not falcon_uninstall
     - falcon_install_method == "api"
     - ansible_os_family != "Windows"
 
 - block:
     - include_tasks: win_api.yml
   when:
-    - not falcon_uninstall
     - falcon_install_method == "api"
     - ansible_os_family == "Windows"
 
 - block:
     - include_tasks: install.yml
   when:
-    - not falcon_uninstall
     - ansible_os_family != "Windows"
   become: true
   become_user: root
@@ -43,7 +31,6 @@
 - block:
     - include_tasks: win_install.yml
   when:
-    - not falcon_uninstall
     - ansible_os_family == "Windows"
   become: true
   become_method: "{{ falcon_windows_become_method }}"
