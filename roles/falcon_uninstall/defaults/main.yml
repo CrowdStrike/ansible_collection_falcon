@@ -1,0 +1,15 @@
+---
+# Additional arugments to uninstall the sensor.
+# You can add your maintenance token here by adding MAINTENANCE_TOKEN=<token>
+#
+falcon_windows_uninstall_args: "/norestart"
+
+# Ansible become method for Windows systems.
+# The default is runas
+#
+falcon_windows_become_method: runas
+
+# Ansible become user for Windows systems.
+# The default is SYSTEM
+#
+falcon_windows_become_user: SYSTEM
