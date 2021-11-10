@@ -16,8 +16,8 @@ jobs:
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
-      FALCON_CID: ${{ secrets.FALCON_API_CLIENT_ID }}
-      FALCON_SECRET: ${{ secrets.FALCON_API_CLIENT_SECRET }}
+      FALCON_CLIENT_ID: ${{ secrets.FALCON_CLIENT_ID }}
+      FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
     strategy:
       fail-fast: false
       matrix:
@@ -33,10 +33,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Set up Python 3.8
+      - name: Set up Python
         uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
 
       - name: Install dependencies
         run: |

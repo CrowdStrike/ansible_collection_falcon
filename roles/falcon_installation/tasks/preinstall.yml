@@ -2,18 +2,18 @@
 - block:
   - name: "CrowdStrike Falcon | Validate Required API URL Is Defined"
     fail:
-      msg: "falcon_api_url is not configured! Please configure falcon_api_url and re-run the installation again!"
-    when: not falcon_api_url
+      msg: "falcon_cloud is not configured! Please configure falcon_cloud and re-run the installation again!"
+    when: not falcon_cloud
 
   - name: CrowdStrike Falcon | Validate CrowdStrike API Client ID Is Defined
     fail:
-      msg: falcon_api_client_id is not configured! Please configure falcon_api_client_id and re-run the installation again!
-    when: not falcon_api_client_id
+      msg: falcon_client_id is not configured! Please configure falcon_client_id and re-run the installation again!
+    when: not falcon_client_id
 
   - name: CrowdStrike Falcon | Validate CrowdStrike API Client Secret Is Defined
     fail:
-      msg: falcon_api_client_secret is not configured! Please configure falcon_api_client_secret and re-run the installation again!
-    when: not falcon_api_client_secret
+      msg: falcon_client_secret is not configured! Please configure falcon_client_secret and re-run the installation again!
+    when: not falcon_client_secret
 
   when: falcon_install_method == "api"
 

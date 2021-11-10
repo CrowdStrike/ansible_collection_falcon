@@ -12,4 +12,3 @@ dpkg_packagers:
   - apt
 
 falcon_gpg_key: falcon-sensor.gpg
-falcon_gpg_key_dest: /tmp/falcon-sensor.gpg
