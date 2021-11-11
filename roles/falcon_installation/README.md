@@ -23,6 +23,7 @@ The following variables are currently supported:
  * `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `api.crowdstrike.com`)
  * `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: null)
  * `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: null)
+ * `falcon_sensor_version` - Sensor version to install (int, default: 0 [latest])
  * `falcon_install_tmp_dir` - Temporary Linux and MacOS download and installation directory for the Falson Sensor (string, default: `/tmp/`)
  * `falcon_download_url` - URL for downloading the sensor (string, default: null)
  * `falcon_retries` - Number of attempts to download the sensor (int, default: 3)
