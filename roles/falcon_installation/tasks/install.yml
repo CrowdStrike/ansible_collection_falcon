@@ -41,30 +41,21 @@
       - falcon_gpg_key_check
       - ansible_pkg_mgr in dpkg_packagers
 
-  - name: CrowdStrike Falcon | Check if Falcon Sensor Package Is Installed
-    package_facts:
-      manager: auto
-    when: ansible_distribution != "MacOSX"
-
   - name: CrowdStrike Falcon | Install Falcon Sensor .deb Package (Linux)
-    package:
+    apt:
       deb: "{{ falcon_sensor_pkg }}"
       state: present
+      force: yes # deb's way to downgrade
     when:
-      - ansible_facts.packages is defined
-      - installed_sensor not in ansible_facts.packages
       - ansible_pkg_mgr in dpkg_packagers
-    register: falcon_installed
 
   - name: CrowdStrike Falcon | Install Falcon Sensor .rpm Package (Linux)
-    package:
+    yum:
       name: "{{ falcon_sensor_pkg }}"
       state: present
+      allow_downgrade: yes
     when:
-      - ansible_facts.packages is defined
-      - installed_sensor not in ansible_facts.packages
       - ansible_pkg_mgr in rpm_packagers
-    register: falcon_installed
 
   - name: CrowdStrike Falcon | Install Falcon Sensor .pkg Package (macOS)
     command: "/usr/sbin/installer -pkg {{ falcon_sensor_pkg }} -target /"
@@ -72,7 +63,6 @@
       creates: "/Applications/Falcon.app/Contents/Resources/falconctl"
     when:
       - ansible_distribution == "MacOSX"
-    register: falcon_installed
 
   - name: CrowdStrike Falcon | Verify Falcon Package Is Installed
     package_facts:
