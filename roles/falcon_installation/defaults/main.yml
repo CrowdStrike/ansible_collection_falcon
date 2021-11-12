@@ -53,6 +53,12 @@ falcon_cloud: "api.crowdstrike.com"
 falcon_client_id: ""
 falcon_client_secret: ""
 
+# The Falcon sensor version to install. By default, this is the latest sensor version.
+# Setting the value to 1 would install the sensor at N-1.
+# The value must be an integer between 0 and 5 inclusive.
+#
+falcon_sensor_version: 0
+
 # Where should the sensor file be downloaded to on Linux and MacOS systems?
 # By default, this will be the temp OS filesystem
 #

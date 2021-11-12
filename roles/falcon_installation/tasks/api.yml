@@ -22,33 +22,25 @@
       Content-Type: application/json
   register: falcon_api_target_cid
 
-- name: CrowdStrike Falcon | Get list of all Falcon sensors
+- name: "CrowdStrike Falcon | Build API Query"
+  set_fact:
+    falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"' }}"
+
+- name: CrowdStrike Falcon | Get list of filtered Falcon sensors
   uri:
-    url: "https://{{ falcon_cloud }}/sensors/combined/installers/v1?filter=platform%3A%22{{ falcon_os_family }}*%22%2Bos%3A%22{{ falcon_target_os }}%22&=&sort=version.desc"
+    url: "https://{{ falcon_cloud }}/sensors/combined/installers/v1?filter={{ falcon_os_query | urlencode }}"
     method: GET
     return_content: true
     headers:
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
+      Content-Type: application/json
   register: falcon_api_installer_list
 
-- name: CrowdStrike Falcon | Get SHA256 hash of Falcon installer for the required OS Version
-  set_fact:
-    falcon_api_sha_hash: "{{ falcon_api_installer_list.json.resources | selectattr('os_version', 'contains', ansible_distribution_major_version ) }}"
-
-- name: CrowdStrike Falcon | Detect Name of Latest Falcon Sensor
-  uri:
-    url: "https://{{ falcon_cloud }}/sensors/combined/installers/v1?filter=platform%3A%22{{ falcon_os_family }}*%22%2Bos%3A%22{{ falcon_target_os }}%22&=&sort=version.desc&limit=1"
-    method: GET
-    return_content: true
-    headers:
-      authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
-  register: falcon_api_installer_version
-
-- name: CrowdStrike Falcon | Download Latest Sensor Installation Package
+- name: CrowdStrike Falcon | Download Falcon Sensor Installation Package
   get_url:
-    url: "https://{{ falcon_cloud }}/sensors/entities/download-installer/v1?id={{ falcon_api_sha_hash[0].sha256 }}"
+    url: "https://{{ falcon_cloud }}/sensors/entities/download-installer/v1?id={{ falcon_api_installer_list.json.resources[falcon_sensor_version | int].sha256 }}"
     dest: "{{ falcon_install_tmp_dir }}"
-    checksum: "sha256:{{ falcon_api_sha_hash[0].sha256 }}"
+    checksum: "sha256:{{ falcon_api_installer_list.json.resources[falcon_sensor_version | int].sha256 }}"
     headers:
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
   register: falcon_sensor_download
