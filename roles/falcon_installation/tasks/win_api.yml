@@ -20,9 +20,45 @@
       Content-Type: application/json
   register: falcon_api_target_cid
 
+# Block when falcon_sensor_update_policy_name is supplied
+- block:
+  - name: "CrowdStrike Falcon | Override falcon_sensor_version when falcon_sensor_update_policy_name supplied"
+    ansible.builtin.set_fact:
+      falcon_sensor_version: 0
+
+  - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query"
+    ansible.builtin.set_fact:
+      falcon_sensor_update_policy_query: "{{ 'platform_name:\"' + falcon_sensor_update_policy_platform + '\"+name.raw:\"' + falcon_sensor_update_policy_name + '\"' }}"
+
+  - name: "CrowdStrike Falcon | Search for Sensor Update Policy"
+    ansible.windows.win_uri:
+      url: "https://{{ falcon_cloud }}/policy/combined/sensor-update/v2?filter={{ falcon_sensor_update_policy_query | urlencode }}"
+      method: GET
+      return_content: true
+      headers:
+        authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
+        Content-Type: application/json
+    register: falcon_sensor_update_policy_info
+
+  - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
+    ansible.builtin.fail:
+      msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} was found!"
+    when: falcon_sensor_update_policy_info.json.resources[0] is not defined
+
+  - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy"
+    ansible.builtin.set_fact:
+      falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.json.resources[0].settings.sensor_version }}"
+
+  - name: "CrowdStrike Falcon | Build API Query"
+    ansible.builtin.set_fact:
+      falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_update_policy_package_version + '\"' }}"
+
+  when: falcon_sensor_update_policy_name
+
 - name: "CrowdStrike Falcon | Build API Query"
-  set_fact:
+  ansible.builtin.set_fact:
     falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"' }}"
+  when: not falcon_sensor_update_policy_name
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
   ansible.windows.win_uri:

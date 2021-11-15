@@ -46,4 +46,4 @@ License
 Author Information
 ------------------
 
-CrowdStrike Solutions Architects
+CrowdStrike Solution Architects
