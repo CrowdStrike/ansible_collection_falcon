@@ -59,6 +59,15 @@ falcon_client_secret: ""
 #
 falcon_sensor_version: 0
 
+# The name of the Falcon Sensor Update Policy to use in order to specify the Falcon sensor
+# version to install. This is optional, however, if specified, please note that this will
+# override the falcon_sensor_version variable.
+#
+# Note: To use the default Falcon Sensor update policy:
+#   falcon_sensor_update_policy_name: "platform_default"
+#
+falcon_sensor_update_policy_name: ""
+
 # Where should the sensor file be downloaded to on Linux and MacOS systems?
 # By default, this will be the temp OS filesystem
 #

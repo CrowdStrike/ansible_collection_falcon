@@ -1,7 +1,7 @@
 Installation
 =========
 
-This role will install or uninstall the CrowdStrike Falcon Sensor.
+This role will install the CrowdStrike Falcon Sensor.
 
 Requirements
 ------------
@@ -24,6 +24,7 @@ The following variables are currently supported:
  * `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: null)
  * `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: null)
  * `falcon_sensor_version` - Sensor version to install (int, default: 0 [latest])
+ * `falcon_sensor_update_policy_name` - Sensor update policy used to control sensor version (string, default: null)
  * `falcon_install_tmp_dir` - Temporary Linux and MacOS download and installation directory for the Falson Sensor (string, default: `/tmp/`)
  * `falcon_download_url` - URL for downloading the sensor (string, default: null)
  * `falcon_retries` - Number of attempts to download the sensor (int, default: 3)
@@ -46,7 +47,7 @@ Privilege escalation (sudo) is required for this role to function properly.
 Example Playbooks
 ----------------
 
-This example installs the Falcon Sensor:
+This example installs the latest Falcon Sensor:
 
 ```yaml
 ---
@@ -57,7 +58,30 @@ This example installs the Falcon Sensor:
     falcon_client_id: <Falcon_UI_OAUTH_client_id>
     falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
 ```
-
+---
+This example installs the Falcon Sensor at version N-2:
+```yaml
+---
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_installation
+  vars:
+    falcon_client_id: <Falcon_UI_OAUTH_client_id>
+    falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+    falcon_sensor_version: 2
+```
+---
+This example installs the Falcon Sensor using a sensor update policy called "ACME Policy":
+```yaml
+---
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_installation
+  vars:
+    falcon_client_id: <Falcon_UI_OAUTH_client_id>
+    falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+    falcon_sensor_update_policy_name: "ACME Policy"
+```
 License
 -------
 
@@ -66,4 +90,4 @@ License
 Author Information
 ------------------
 
-CrowdStrike Solutions Architects
+CrowdStrike Solution Architects
