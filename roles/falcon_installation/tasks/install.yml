@@ -17,6 +17,7 @@
     ansible.builtin.copy:
       src: "{{ falcon_gpg_key }}"
       dest: "{{ falcon_install_tmp_dir }}{{ falcon_gpg_key }}"
+      mode: 0644
     when:
       - falcon_gpg_key_check
 
