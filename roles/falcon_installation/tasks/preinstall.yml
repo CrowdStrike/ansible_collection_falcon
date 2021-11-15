@@ -103,7 +103,8 @@
     - falcon_sensor_download is not defined
 
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (non-Windows)
-  ansible.builtin.file: # noqa: risky-file-permissions,208      # We shouldn't try to change permissions if /tmp is used
+  ansible.builtin.file:
+    # noqa: risky-file-permissions
     path: "{{ falcon_install_tmp_dir }}"
     state: directory
   when:
@@ -111,7 +112,8 @@
     - falcon_install_tmp_dir is defined
 
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (Windows)
-  ansible.windows.win_file: # noqa: risky-file-permissions,208      # We shouldn't try to change permissions if /tmp is used
+  ansible.windows.win_file:
+    # noqa: risky-file-permissions
     path: "{{ falcon_windows_tmp_dir }}"
     state: directory
   when:

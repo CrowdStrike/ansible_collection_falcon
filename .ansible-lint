@@ -1,6 +1,11 @@
+exclude_paths:
+  - molecule
+
 enable_list:
   - fqcn-builtins  # opt-in
 
 skip_list:
   - '204'
-  - experimental  # all rules tagged as experimental
+
+warn_list:
+  - experimental
