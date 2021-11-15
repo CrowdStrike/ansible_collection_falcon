@@ -21,7 +21,7 @@
   register: falcon_api_target_cid
 
 - name: "CrowdStrike Falcon | Build API Query"
-  set_fact:
+  ansible.builtin.set_fact:
     falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"' }}"
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
