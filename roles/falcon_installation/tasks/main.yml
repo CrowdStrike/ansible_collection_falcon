@@ -1,35 +1,41 @@
 ---
 # tasks file for falcon_installation
 - block:
-    - include_tasks: preinstall.yml
+    - ansible.builtin.include_tasks: preinstall.yml
+      # noqa unnamed-task 502
 
 - block:
-    - include_tasks: url.yml
+    - ansible.builtin.include_tasks: url.yml
+      # noqa unnamed-task 502
   when:
     - falcon_install_method == "url"
     - ansible_os_family != "Windows"
 
 - block:
-    - include_tasks: api.yml
+    - ansible.builtin.include_tasks: api.yml
+      # noqa unnamed-task 502
   when:
     - falcon_install_method == "api"
     - ansible_os_family != "Windows"
 
 - block:
-    - include_tasks: win_api.yml
+    - ansible.builtin.include_tasks: win_api.yml
+      # noqa unnamed-task 502
   when:
     - falcon_install_method == "api"
     - ansible_os_family == "Windows"
 
 - block:
-    - include_tasks: install.yml
+    - ansible.builtin.include_tasks: install.yml
+      # noqa unnamed-task 502
   when:
     - ansible_os_family != "Windows"
   become: true
   become_user: root
 
 - block:
-    - include_tasks: win_install.yml
+    - ansible.builtin.include_tasks: win_install.yml
+      # noqa unnamed-task 502
   when:
     - ansible_os_family == "Windows"
   become: true

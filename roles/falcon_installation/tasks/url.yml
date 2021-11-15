@@ -1,7 +1,7 @@
 ---
 # Tasks for Installing CrowdStrike's Falcon Sensor via URL
 - name: CrowdStrike Falcon | Downloading Installation Package from URL
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ falcon_download_url }}"
     dest: "{{ falcon_install_tmp_dir }}"
   when:
@@ -13,5 +13,5 @@
   until: falcon_sensor_download is success
 
 - name: CrowdStrike Falcon | Set full file download path
-  set_fact:
+  ansible.builtin.set_fact:
     falcon_sensor_pkg: "{{ falcon_sensor_download.dest }}"
