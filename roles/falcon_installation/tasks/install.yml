@@ -37,21 +37,13 @@
       - falcon_gpg_key_check
       - ansible_pkg_mgr in dpkg_packagers
 
-  - name: CrowdStrike Falcon | Install Falcon Sensor .deb Package (Linux)
-    ansible.builtin.apt:
-      deb: "{{ falcon_sensor_pkg }}"
+  - name: CrowdStrike Falcon | Install Falcon Sensor Package (Linux)
+    ansible.builtin.package:
+      deb: "{{ falcon_sensor_pkg if (ansible_pkg_mgr in dpkg_packagers) else omit }}"
+      name: "{{ falcon_sensor_pkg if (ansible_pkg_mgr in rpm_packagers) else omit }}"
       state: present
-      force: yes # deb's way to downgrade
     when:
-      - ansible_pkg_mgr in dpkg_packagers
-
-  - name: CrowdStrike Falcon | Install Falcon Sensor .rpm Package (Linux)
-    ansible.builtin.yum:
-      name: "{{ falcon_sensor_pkg }}"
-      state: present
-      allow_downgrade: yes
-    when:
-      - ansible_pkg_mgr in rpm_packagers
+      - ansible_pkg_mgr in linux_packagers
 
   - name: CrowdStrike Falcon | Install Falcon Sensor .pkg Package (macOS)
     ansible.builtin.command: "/usr/sbin/installer -pkg {{ falcon_sensor_pkg }} -target /"
