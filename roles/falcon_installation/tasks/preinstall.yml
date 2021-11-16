@@ -17,8 +17,8 @@
 
   - name: "CrowdStrike Falcon | Validate CrowdStrike Falcon Sensor version is correctly set"
     ansible.builtin.fail:
-      msg: "falcon_sensor_version must be an integer between 0 and 5 inclusive!"
-    when: falcon_sensor_version | int < 0 or falcon_sensor_version | int > 5
+      msg: "falcon_sensor_version_decrement must be an integer between 0 and 5 inclusive!"
+    when: falcon_sensor_version_decrement | int < 0 or falcon_sensor_version_decrement | int > 5
 
   when: falcon_install_method == "api"
 

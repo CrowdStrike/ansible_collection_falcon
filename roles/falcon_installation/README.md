@@ -23,7 +23,7 @@ The following variables are currently supported:
  * `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `api.crowdstrike.com`)
  * `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: null)
  * `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: null)
- * `falcon_sensor_version` - Sensor version to install (int, default: 0 [latest])
+ * `falcon_sensor_version_decrement` - Sensor N-x version to install (int, default: 0 [latest])
  * `falcon_sensor_update_policy_name` - Sensor update policy used to control sensor version (string, default: null)
  * `falcon_install_tmp_dir` - Temporary Linux and MacOS download and installation directory for the Falson Sensor (string, default: `/tmp/`)
  * `falcon_download_url` - URL for downloading the sensor (string, default: null)
@@ -42,7 +42,9 @@ See [default/main.yml](default/main.yml) for more details on these variables.
 Dependencies
 ------------
 
-Privilege escalation (sudo) is required for this role to function properly.
+- Privilege escalation (sudo) is required for this role to function properly.
+- Make sure that scope Sensor Download [read] is enabled in the CrowdStrike API.
+- To use `falcon_sensor_update_policy_name`, make sure that scope Sensor update policies [read] is enabled in the CrowdStrike API.
 
 Example Playbooks
 ----------------
@@ -68,7 +70,7 @@ This example installs the Falcon Sensor at version N-2:
   vars:
     falcon_client_id: <Falcon_UI_OAUTH_client_id>
     falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
-    falcon_sensor_version: 2
+    falcon_sensor_version_decrement: 2
 ```
 ---
 This example installs the Falcon Sensor using a sensor update policy called "ACME Policy":
