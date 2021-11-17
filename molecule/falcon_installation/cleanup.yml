@@ -1,0 +1,4 @@
+- name: Cleanup
+  hosts: all
+  roles:
+    - role: crowdstrike.falcon.falcon_uninstall
