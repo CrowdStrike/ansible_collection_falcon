@@ -5,7 +5,7 @@ on:
       - 'roles/falcon_installation/**'
       - 'molecule/falcon_installation/**'
       - '.github/workflows/falcon_installation.yml'
-  pull_request:
+  pull_request_target:
     paths:
       - 'roles/falcon_installation/**'
       - 'molecule/falcon_installation/**'
