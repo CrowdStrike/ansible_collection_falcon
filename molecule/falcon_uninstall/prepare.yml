@@ -1,0 +1,25 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    # Ubuntu specific
+    - name: Install apt dependencies
+      ansible.builtin.apt:
+        name:
+          - gpg-agent
+        update_cache: yes
+      ignore_errors: yes
+      when: ansible_pkg_mgr == 'apt'
+
+    - name: Install dependencies
+      ansible.builtin.package:
+        name:
+          - sudo
+        state: present
+
+    - name: Run falcon_installation role
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_installation
+      vars:
+        falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+        falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"

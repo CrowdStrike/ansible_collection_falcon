@@ -12,6 +12,6 @@
     ansible.builtin.set_fact:
       installed_sensor: falcon-sensor
 
-  - name: Verify Falcon Sensor is installed
+  - name: Verify Falcon Sensor is not installed
     ansible.builtin.assert:
-      that: installed_sensor in ansible_facts.packages
+      that: installed_sensor not in ansible_facts.packages
