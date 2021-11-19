@@ -1,0 +1,55 @@
+name: "crowdstrike.falcon.falcon_uninstall"
+on:
+  push:
+    paths:
+      - 'roles/falcon_uninstall/**'
+      - 'molecule/falcon_uninstall/**'
+      - '.github/workflows/falcon_uninstall.yml'
+  pull_request_target:
+    paths:
+      - 'roles/falcon_uninstall/**'
+      - 'molecule/falcon_uninstall/**'
+      - '.github/workflows/falcon_uninstall.yml'
+jobs:
+  molecule:
+    runs-on: ubuntu-18.04
+    env:
+      PY_COLORS: 1
+      ANSIBLE_FORCE_COLOR: 1
+      FALCON_CLIENT_ID: ${{ secrets.FALCON_CLIENT_ID }}
+      FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+    strategy:
+      fail-fast: false
+      matrix:
+        molecule_distro:
+          - { "distro":"centos7" }
+          - { "distro":"centos8" }
+          - { "distro":"amazonlinux2" }
+          - { "distro":"ubuntu2004" }
+          - { "distro":"debian10" }
+        collection_role:
+          - falcon_uninstall
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt install apt-transport-https ca-certificates curl software-properties-common
+          python -m pip install --upgrade pip
+          pip install molecule[docker,lint,ansible] yamllint ansible-lint
+
+      - name: Build/Install the collection
+        run: |
+          collection_file=$( basename $(ansible-galaxy collection build -f | awk -F" " '{print $NF}'))
+          ansible-galaxy collection install $collection_file
+
+      - name: Run role tests
+        run: >-
+          molecule --version &&
+          ansible --version &&
+          MOLECULE_DISTRO=${{ matrix.molecule_distro.distro }}
+          molecule --debug test -s ${{ matrix.collection_role }} -- -v
