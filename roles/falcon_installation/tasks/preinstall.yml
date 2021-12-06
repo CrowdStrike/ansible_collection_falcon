@@ -73,6 +73,7 @@
 - name: "CrowdStrike Falcon | Endpoint Operating System Detected Is Microsoft Windows"
   ansible.builtin.set_fact:
     falcon_os_version: ""
+    falcon_target_os: "Windows"
     falcon_sensor_update_policy_platform: "{{ ansible_os_family }}"
   when: ansible_os_family == "Windows"
 
