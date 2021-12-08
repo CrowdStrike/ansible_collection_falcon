@@ -110,6 +110,74 @@ class FalconCtl(object):
         self.validate_params(self.params)
         self.state = self.params["state"]
 
+    def __run_command(self, cmd):
+        rc, stdout, stderr = self.module.run_command(
+            cmd, use_unsafe_shell=False)
+
+        # return formatted stdout
+        return format_stdout(stdout)
+
+    def __validate_regex(self, string, regex, flags=re.IGNORECASE):
+        """Validate whether option matches specified format"""
+        return re.match(
+            regex, string, flags=flags)
+
+    def add_args(self, state):
+        fstate = self.states[state]
+        args = [self.falconctl, "-%s" % fstate, "-f"]
+
+        for k in self.params:
+            if self.params[k]:
+                if k in self.valid_params[fstate]:
+                    key = k.replace("_", "-")
+                    if state == "present":
+                        args.append("--%s=%s" %
+                                    (key, self.params[k]))
+                    else:
+                        args.append("--%s" % (key))
+                else:
+                    if k != "state":
+                        self.module.fail_json(
+                            msg="Cannot use '%s' with state '%s'" % (k, state))
+        return args
+
+    def check_mode(self, before):
+
+        values = {}
+        # Use before to validate keys
+        if self.state == "present":
+            for k in before:
+                # Let's set values based on what is being passed in.
+                # TODO: Add some sanitazation to handle edge case for opts
+                if k == "cid":
+                    # Clean this crap up
+                    values.update({
+                        k: self.params[k].lower()[:32]
+                    })
+                else:
+                    values.update({
+                        k: self.params[k].lower()
+                    })
+        else:
+            values.update({k: None for k in before})
+
+        return values
+
+    def execute(self):
+        cmd = self.add_args(self.params["state"])
+        if not self.module.check_mode:
+            self.__run_command(cmd)
+
+    def get_values(self):
+        values = []
+
+        for k in self.params:
+            if self.params[k]:
+                if k in FALCONCTL_GET_OPTIONS:
+                    values.append(k)
+
+        # get current values
+        return get_options(values)
 
     def validate_params(self, params):
         """Check parameters that are conditionally required"""
@@ -148,85 +216,10 @@ class FalconCtl(object):
 
         if params["tags"]:
             valid_tags = self.__validate_regex(
-                params["tags"], "^[a-zA-Z0-9\/\-_\,]+$")
+                params["tags"], r"^[a-zA-Z0-9\/\-_\,]+$")
             if not valid_tags:
                 self.module.fail_json(
                     msg="value of tags must be one of: all alphanumerics, '/', '-', '_', and ',', got %s" % (params["tags"]))
-
-
-    def __validate_regex(self, string, regex, flags=re.IGNORECASE):
-        """Validate whether option matches specified format"""
-        return re.match(
-            regex, string, flags=flags)
-
-
-    def add_args(self, state):
-        fstate = self.states[state]
-        args = [self.falconctl, "-%s" % fstate, "-f"]
-
-        for k in self.params:
-            if self.params[k]:
-                if k in self.valid_params[fstate]:
-                    key = k.replace("_", "-")
-                    if state == "present":
-                        args.append("--%s=%s" %
-                                    (key, self.params[k]))
-                    else:
-                        args.append("--%s" % (key))
-                else:
-                    if k != "state":
-                        self.module.fail_json(
-                            msg="Cannot use '%s' with state '%s'" % (k, state))
-        return args
-
-
-    def get_values(self):
-        values = []
-
-        for k in self.params:
-            if self.params[k]:
-                if k in FALCONCTL_GET_OPTIONS:
-                    values.append(k)
-
-        # get current values
-        return get_options(values)
-
-
-    def __run_command(self, cmd):
-        rc, stdout, stderr = self.module.run_command(
-            cmd, use_unsafe_shell=False)
-
-        # return formatted stdout
-        return format_stdout(stdout)
-
-
-    def execute(self):
-        cmd = self.add_args(self.params["state"])
-        if not self.module.check_mode:
-            self.__run_command(cmd)
-
-
-    def check_mode(self, before):
-
-        values = {}
-        # Use before to validate keys
-        if self.state == "present":
-            for k in before:
-                # Let's set values based on what is being passed in.
-                # TODO: Add some sanitazation to handle edge case for opts
-                if k == "cid":
-                    # Clean this crap up
-                    values.update({
-                        k: self.params[k].lower()[:32]
-                    })
-                else:
-                    values.update({
-                        k: self.params[k].lower()
-                    })
-        else:
-            values.update({k: None for k in before})
-
-        return values
 
 
 def main():

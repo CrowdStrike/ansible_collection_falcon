@@ -67,7 +67,7 @@ def format_stdout(stdout):
         return None
     else:
         # Expect stdout in <option>=<value>
-        return re.sub("[\"\s\\n\.]", "", stdout).split("=")[1]
+        return re.sub(r"[\"\s\\n\.]", "", stdout).split("=")[1]
 
 
 def get_options(opts):

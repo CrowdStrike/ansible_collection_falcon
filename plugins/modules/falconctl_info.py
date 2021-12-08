@@ -91,8 +91,8 @@ class FalconCtlInfo(object):
         self.module = module
         self.name = module.params['name']
         self.cs_path = "/opt/CrowdStrike"
-        self.falconctl = self.module.get_bin_path('falconctl', required=True, opt_dirs=[self.cs_path])
-
+        self.falconctl = self.module.get_bin_path(
+            'falconctl', required=True, opt_dirs=[self.cs_path])
 
     def get_options(self):
         return get_options(self.name)
@@ -101,7 +101,8 @@ class FalconCtlInfo(object):
 def main():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-        name=dict(type='list', elements='str', required=False, choices=FALCONCTL_GET_OPTIONS),
+        name=dict(type='list', elements='str', required=False,
+                  choices=FALCONCTL_GET_OPTIONS),
     )
 
     result = dict(
@@ -133,6 +134,7 @@ def main():
     # in the event of a successful module execution, you will want to
     # simple AnsibleModule.exit_json(), passing the key/value results
     module.exit_json(**result)
+
 
 if __name__ == '__main__':
     main()
