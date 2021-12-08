@@ -70,6 +70,33 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils import FALCONCTL_GET_OPTIONS, get_options, format_stdout
 
 
+VALID_PARAMS = {
+    "s": [
+        "cid",
+        "apd",
+        "aph",
+        "app",
+        "trace",
+        "feature",
+        "metadata_query",
+        "message_log",
+        "billing",
+        "tags",
+        "provisioning_token",
+    ],
+    "d": [
+        "cid",
+        "aid",
+        "apd",
+        "aph",
+        "app",
+        "trace",
+        "billing",
+        "tags",
+        "provisioning_token",
+    ],
+}
+
 class FalconCtl(object):
 
     def __init__(self, module):
@@ -80,35 +107,20 @@ class FalconCtl(object):
         self.falconctl = self.module.get_bin_path(
             "falconctl", required=True, opt_dirs=[self.cs_path])
         self.states = {"present": "s", "absent": "d"}
-        self.valid_params = {
-            "s": [
-                "cid",
-                "apd",
-                "aph",
-                "app",
-                "trace",
-                "feature",
-                "metadata_query",
-                "message_log",
-                "billing",
-                "tags",
-                "provisioning_token",
-            ],
-            "d": [
-                "cid",
-                "aid",
-                "apd",
-                "aph",
-                "app",
-                "trace",
-                "billing",
-                "tags",
-                "provisioning_token",
-            ],
-        }
+        self.valid_params = VALID_PARAMS
 
         self.validate_params(self.params)
         self.state = self.params["state"]
+
+
+    def __list_to_string(self, value):
+        """Converts paramaters passed as lists to strings"""
+        if type(value) is list:
+            # Make a copy and return it
+            new_value = value.copy()
+            return ','.join(new_value)
+        return value
+
 
     def __run_command(self, cmd):
         rc, stdout, stderr = self.module.run_command(
@@ -117,10 +129,12 @@ class FalconCtl(object):
         # return formatted stdout
         return format_stdout(stdout)
 
+
     def __validate_regex(self, string, regex, flags=re.IGNORECASE):
         """Validate whether option matches specified format"""
         return re.match(
             regex, string, flags=flags)
+
 
     def add_args(self, state):
         fstate = self.states[state]
@@ -132,32 +146,47 @@ class FalconCtl(object):
                     key = k.replace("_", "-")
                     if state == "present":
                         args.append("--%s=%s" %
-                                    (key, self.params[k]))
+                                    (key, self.__list_to_string(self.params[k])))
                     else:
                         args.append("--%s" % (key))
                 else:
                     if k != "state":
                         self.module.fail_json(
-                            msg="Cannot use '%s' with state '%s'" % (k, state))
+                            msg=("Cannot use '%s' with state '%s'. Valid options for "
+                                 "state '%s' are: %s." % (k, state, state, ', '.join(VALID_PARAMS[fstate])))
+                        )
         return args
+
+
+    def sanitize_opt(self, key, value):
+        """Returns a sanitized representation of the Falcon Sensor option.
+
+        There are edge cases dealing with some of the available GET options
+        that need to be addressed prior to utilizing stdout.
+        """
+        # Deal with CID
+        if key == "cid":
+            # Get the 32 chars in lowercase
+            return value.lower()[:32]
+        # Deal with list valueions
+        if type(value) is list:
+            if key == "feature":
+                if 'none' in value and len(value) > 1:
+                    # remove none from list by making copy, to keep orig intact
+                    new_list = value.copy()
+                    new_list.remove('none')
+                    return self.__list_to_string(new_list)
+            return self.__list_to_string(value)
+
+        return value.lower()
+
 
     def check_mode(self, before):
 
         values = {}
         # Use before to validate keys
         if self.state == "present":
-            for k in before:
-                # Let's set values based on what is being passed in.
-                # TODO: Add some sanitazation to handle edge case for opts
-                if k == "cid":
-                    # Clean this crap up
-                    values.update({
-                        k: self.params[k].lower()[:32]
-                    })
-                else:
-                    values.update({
-                        k: self.params[k].lower()
-                    })
+            values.update({k: self.sanitize_opt(k, self.params[k]) for k in before})
         else:
             values.update({k: None for k in before})
 
@@ -181,9 +210,6 @@ class FalconCtl(object):
 
     def validate_params(self, params):
         """Check parameters that are conditionally required"""
-        # Currently we have a condition for provisioning_token and cid. However,
-        # the default ansible required_if module is very limiting in terms of dealing
-        # with strings so we handle it here.
         if params["metadata_query"]:
             choices_str = ["enable", "disable"]
             choices_list = ["enableAWS", "enableAzure", "enableGCP",
@@ -245,7 +271,7 @@ def main():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True,
+        supports_check_mode=True
     )
 
     # Instantiate class

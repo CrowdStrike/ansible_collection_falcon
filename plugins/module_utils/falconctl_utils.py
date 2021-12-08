@@ -12,7 +12,6 @@ __metaclass__ = type
 import re
 from subprocess import check_output, STDOUT, CalledProcessError
 
-# Let's use the more robust run_command from AnsibleModule
 from ansible.module_utils.common.process import get_bin_path
 
 # Constants
@@ -67,7 +66,8 @@ def format_stdout(stdout):
         return None
     else:
         # Expect stdout in <option>=<value>
-        return re.sub(r"[\"\s\\n\.]", "", stdout).split("=")[1]
+        output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]
+        return output if output else None
 
 
 def get_options(opts):
