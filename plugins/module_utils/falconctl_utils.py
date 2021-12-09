@@ -27,7 +27,8 @@ FALCONCTL_GET_OPTIONS = [
     'message_log',
     'billing',
     'tags',
-    'provisioning_token'
+    'provisioning_token',
+    'version'
 ]
 
 # Private use only. This is to ensure that the command is checked
@@ -66,7 +67,10 @@ def format_stdout(stdout):
         return None
     else:
         # Expect stdout in <option>=<value>
-        output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]
+        if 'version' in stdout:
+            output = re.sub(r"[\"\s\n]|\(.*\)", "", stdout).split("=")[1]
+        else:
+            output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]
         return output if output else None
 
 

@@ -9,8 +9,7 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-
-DOCUMENTATION = """
+DOCUMENTATION = r'''
 ---
 module: falconctl
 author:
@@ -20,25 +19,73 @@ short_description: Configure CrowdStrike Falcon Sensor
 description:
   - Configures CrowdStrike Falcon Sensor on Linux systems
 options:
+    state:
+      description:
+        - Ensures that requested parameters are removed (absent) or added (present) to the Falcon sensor.
+      type: str
+      required: yes
+      choices: [ absent, present ]
     cid:
       description:
         - CrowdStrike Falcon Customer ID (CID).
       type: str
-    state:
-      description:
-        - If falconctl will set, delete, or only return configuration settings.
-      type: str
-      default: present
-      choices: [ absent, present ]
-    force:
-      description:
-        - Force falconctl to configure settings.
-      type: bool
-      default: "no"
     provisioning_token:
       description:
         - Installation tokens prevent unauthorized hosts from being accidentally or maliciously added to your customer ID (CID).
         - Optional security measure for your CID.
+        - This paramter requires supplying a C(cid).
+      type: str
+    aid:
+      description:
+        - Whether or not you would like to delete the associated Agent ID.
+        - Useful when preparing a host as a master image for cloning or virtualization.
+        - This applies only to C(state=absent).
+      type: bool
+    apd:
+      description:
+        - Whether to enable or disable the Falcon sensor to use a proxy.
+      type: bool
+    aph:
+      description:
+        - Specifies the application proxy host to use for Falcon sensor proxy configuration.
+      type: str
+    app:
+      description:
+        - Specifies the application proxy port to use for Falcon sensor proxy configuration.
+      type: int
+    trace:
+      description:
+        - Configure the appropriate trace level.
+      type: str
+      choices: [ none, err, warn, info, debug ]
+    feature:
+      description:
+        - Configure the Falcon sensor feature flags.
+      type: list
+      elements: str
+      choices: [ none, enableLog, disableLogBuffer, disableOsfm, emulateUpdate ]
+    metadata_query:
+      description:
+        - Configure the Falcon sensor cloud provider metadata query flags.
+      type: str
+    message_log:
+      description:
+        - Whether or not you would like to log messages to disk.
+      type: bool
+    billing:
+      description:
+        - Specify the (Pay-As-You-Go) billing model for Cloud Workloads.
+        - Falcon for Cloud Workloads (Pay-As-You-Go) is a billing model for your hosts that run in
+          Amazon Web Services (AWS), Google Cloud Platform (GCP), and Microsoft Azure.
+        - For ephemeral workloads in these cloud environments, you pay only for the hours that hosts
+          are active each month C(metered), rather than a full annual contract price per sensor C(default).
+      type: str
+      choices: [ default, metered ]
+    tags:
+      description:
+        - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.
+        - To assign multiple tags, separate tags with commas.
+        - The combined length of all tags for a host, including comma separators, cannot exceed 256 characters.
       type: str
 extends_documentation_fragment:
     - action_common_attributes
@@ -50,19 +97,37 @@ attributes:
     platform:
         support: full
         platforms: posix
-"""
+'''
 
-EXAMPLES = """
+EXAMPLES = r'''
 - name: Set CrowdStrike Falcon CID
   crowdstrike.falcon.falconctl:
     state: present
     cid: 1234567890ABCDEF1234567890ABCDEF-12
 
+- name: Set CrowdStrike Falcon CID with Provisioning Token
+  crowdstrike.falcon.falconctl:
+    state: present
+    cid: 1234567890ABCDEF1234567890ABCDEF-12
+    provisioning_token: 12345678
+
 - name: Delete CrowdStrike Falcon CID
   crowdstrike.falcon.falconctl:
     state: absent
     cid: 1234567890ABCDEF1234567890ABCDEF-12
-"""
+
+- name: Delete Agent ID to Prep Master Image
+  crowdstrike.falcon.falconctl:
+    state: absent
+    aid: yes
+
+- name: Configure Falcon Sensor Proxy
+  crowdstrike.falcon.falconctl:
+    state: present
+    apd: yes
+    aph: http://example.com
+    app: 8080
+'''
 
 import re
 
@@ -250,7 +315,7 @@ class FalconCtl(object):
 
 def main():
     module_args = dict(
-        state=dict(default="present", choices=[
+        state=dict(required=True, choices=[
                    "absent", "present"], type="str"),
         cid=dict(required=False, no_log=False, type="str"),
         provisioning_token=dict(required=False, type="str"),

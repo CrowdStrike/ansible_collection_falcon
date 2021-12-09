@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Ansible module to configure CrowdStrike Falcon Sensor on Linux systems.
+# Ansible info module used to query options for the CrowdStrike Falcon Sensor on Linux systems.
 # Copyright: (c) 2021, CrowdStrike Inc.
 
 # Unlicense (see LICENSE or https://www.unlicense.org)
@@ -59,24 +59,16 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
-# These are examples of possible return values, and in general should use other names for return values.
-original_message:
-    description: The original name param that was passed in.
-    type: str
-    returned: always
-    sample: 'hello world'
-message:
-    description: The output message that the test module generates.
-    type: str
-    returned: always
-    sample: 'goodbye'
-my_useful_info:
-    description: The dictionary containing information about your system.
+falconctl_info:
+    description:
+      - The dictionary containing values of requested Falcon sensor options.
+      - Option values consist of strings, or null for options not set.
     type: dict
-    returned: always
+    returned: success
     sample: {
-        'foo': 'bar',
-        'answer': 42,
+        'cid': '53abc1234c584115a46efc25dd831a2b',
+        'provisioning_token': '1234567',
+        'tags': null
     }
 '''
 
