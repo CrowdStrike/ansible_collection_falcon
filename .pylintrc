@@ -139,10 +139,15 @@ disable=print-statement,
         deprecated-sys-function,
         exception-escape,
         comprehension-escape,
-        consider-using-f-string,
+        consider-using-f-string,  # Remove when we no longer run on python2 systems
         invalid-name,
         wrong-import-position,
-        import-error
+        import-error,
+        duplicate-code,
+        missing-module-docstring,
+        too-few-public-methods,
+        useless-object-inheritance,  # Remove when we no longer run on python2 systems
+
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

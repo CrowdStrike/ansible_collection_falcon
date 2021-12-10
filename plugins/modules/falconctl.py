@@ -162,7 +162,9 @@ VALID_PARAMS = {
     ],
 }
 
+
 class FalconCtl(object):
+    """Falonctl Class for running falconctl -s or -d"""
 
     def __init__(self, module):
         self.module = module
@@ -177,31 +179,33 @@ class FalconCtl(object):
         self.validate_params(self.params)
         self.state = self.params["state"]
 
-
-    def __list_to_string(self, value):
+    @classmethod
+    def __list_to_string(cls, value):
         """Converts paramaters passed as lists to strings"""
-        if type(value) is list:
+        if isinstance(value, list):
             # Make a copy and return it
             new_value = value.copy()
             return ','.join(new_value)
         return value
 
-
     def __run_command(self, cmd):
         rc, stdout, stderr = self.module.run_command(
             cmd, use_unsafe_shell=False)
 
+        if stderr:
+            self.module.fail_json(rc=rc, stderr=stderr)
+
         # return formatted stdout
         return format_stdout(stdout)
 
-
-    def __validate_regex(self, string, regex, flags=re.IGNORECASE):
+    @classmethod
+    def __validate_regex(cls, string, regex, flags=re.IGNORECASE):
         """Validate whether option matches specified format"""
         return re.match(
             regex, string, flags=flags)
 
-
     def add_args(self, state):
+        """Add correct falconctl args for valid states"""
         fstate = self.states[state]
         args = [self.falconctl, "-%s" % fstate, "-f"]
 
@@ -222,9 +226,9 @@ class FalconCtl(object):
                         )
         return args
 
-
     def sanitize_opt(self, key, value):
-        """Returns a sanitized representation of the Falcon Sensor option.
+        """
+        Returns a sanitized representation of the Falcon Sensor option.
 
         There are edge cases dealing with some of the available GET options
         that need to be addressed prior to utilizing stdout.
@@ -234,7 +238,7 @@ class FalconCtl(object):
             # Get the 32 chars in lowercase
             return value.lower()[:32]
         # Deal with list valueions
-        if type(value) is list:
+        if isinstance(value, list):
             if key == "feature":
                 if 'none' in value and len(value) > 1:
                     # remove none from list by making copy, to keep orig intact
@@ -245,24 +249,26 @@ class FalconCtl(object):
 
         return value.lower()
 
-
     def check_mode(self, before):
-
+        """Ansible check_mode with falconctl return values with pretty formatting"""
         values = {}
         # Use before to validate keys
         if self.state == "present":
-            values.update({k: self.sanitize_opt(k, self.params[k]) for k in before})
+            values.update({k: self.sanitize_opt(
+                k, self.params[k]) for k in before})
         else:
             values.update({k: None for k in before})
 
         return values
 
     def execute(self):
+        """Run the falconctl commmand"""
         cmd = self.add_args(self.params["state"])
         if not self.module.check_mode:
             self.__run_command(cmd)
 
     def get_values(self):
+        """Return falconctl -g options for diff mode"""
         values = []
 
         for k in self.params:
@@ -313,7 +319,7 @@ class FalconCtl(object):
                     msg="value of tags must be one of: all alphanumerics, '/', '-', '_', and ',', got %s" % (params["tags"]))
 
 
-def main():
+def main():  # pylint: disable=missing-function-docstring
     module_args = dict(
         state=dict(required=True, choices=[
                    "absent", "present"], type="str"),

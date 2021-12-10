@@ -62,18 +62,20 @@ def __get_many(opts):
 
 
 def format_stdout(stdout):
+    """Formats output from falconctl"""
     # Format stdout
     if stdout == "" or "not set" in stdout:
         return None
+
+    # Expect stdout in <option>=<value>
+    if 'version' in stdout:
+        output = re.sub(r"[\"\s\n]|\(.*\)", "", stdout).split("=")[1]
     else:
-        # Expect stdout in <option>=<value>
-        if 'version' in stdout:
-            output = re.sub(r"[\"\s\n]|\(.*\)", "", stdout).split("=")[1]
-        else:
-            output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]
-        return output if output else None
+        output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]
+    return output if output else None
 
 
 def get_options(opts):
+    """Return falconctl -g valid options"""
     requested = opts if opts else FALCONCTL_GET_OPTIONS
     return __get_many(requested)

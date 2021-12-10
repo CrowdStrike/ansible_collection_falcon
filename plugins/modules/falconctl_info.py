@@ -79,7 +79,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils
 
 
 class FalconCtlInfo(object):
-
+    """Class that provides falconctl info"""
     def __init__(self, module):
         self.module = module
         self.name = module.params['name']
@@ -88,10 +88,11 @@ class FalconCtlInfo(object):
             'falconctl', required=True, opt_dirs=[self.cs_path])
 
     def get_options(self):
+        """Gets options from falconctl_utils for falconctl_info"""
         return get_options(self.name)
 
 
-def main():
+def main():  # pylint: disable=missing-function-docstring
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
         name=dict(type='list', elements='str', required=False,
