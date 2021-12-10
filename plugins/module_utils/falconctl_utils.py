@@ -10,7 +10,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import re
-from subprocess import check_output, STDOUT, CalledProcessError
+from subprocess import check_output, STDOUT, CalledProcessError  # nosec
 
 from ansible.module_utils.common.process import get_bin_path
 
@@ -50,7 +50,7 @@ def __get(opt):
     opt = opt.replace("_", "-")
     cmd.append("--%s" % opt)
     try:
-        stdout = check_output(cmd, universal_newlines=True, stderr=STDOUT)
+        stdout = check_output(cmd, universal_newlines=True, stderr=STDOUT, shell=False)
     except CalledProcessError:
         stdout = ""
 
