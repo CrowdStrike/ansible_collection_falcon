@@ -2,14 +2,20 @@ name: Python Lint
 
 on:
   push:
-    branches: [ main ]
+    paths:
+      - 'plugins/**'
+      - '.github/workflows/linting.yml'
+
   pull_request:
-    branches: [ main ]
+    paths:
+      - 'plugins/**'
+      - '.github/workflows/linting.yml'
 
 jobs:
   pylint:
     runs-on: ubuntu-latest
-
+    env:
+      PY_COLORS: 1
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
