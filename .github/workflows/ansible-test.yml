@@ -1,0 +1,43 @@
+name: Ansible Test
+
+on:
+  push:
+    paths:
+      - 'plugins/**'
+      - '.github/workflows/ansible-test.yml'
+
+  pull_request:
+    paths:
+      - 'plugins/**'
+      - '.github/workflows/ansible-test.yml'
+
+jobs:
+  ansible-test:
+    runs-on: ubuntu-18.04
+    env:
+      PY_COLORS: 1
+      ANSIBLE_FORCE_COLOR: 1
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y libyaml-dev
+          python -m pip install --upgrade pip
+          pip install ansible yamllint
+
+      - name: Build/Install the Collection
+        run: |
+          collection_file=$( basename $(ansible-galaxy collection build -f | awk -F" " '{print $NF}'))
+          ansible-galaxy collection install $collection_file
+
+      - name: Run ansible tests
+        run: >-
+          cd $HOME/.ansible/collections/ansible_collections/crowdstrike/falcon/ &&
+          ansible --version &&
+          ansible-test sanity
