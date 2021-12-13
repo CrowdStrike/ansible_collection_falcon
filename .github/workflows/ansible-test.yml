@@ -27,9 +27,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get install -y libyaml-dev
+          sudo apt-get install -y libyaml-dev python3-venv
           python -m pip install --upgrade pip
-          pip install ansible yamllint
+          pip install ansible yamllint jinja2 pylint pyyaml voluptuous
 
       - name: Build/Install the Collection
         run: |

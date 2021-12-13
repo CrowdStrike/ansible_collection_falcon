@@ -44,8 +44,8 @@ options:
     elements: str
 
 author:
-  - Carlos Matos <matosc15@gmail.com>
-  - Gabriel Alford <redhatrises@gmail.com>
+  - Carlos Matos (@carlosmmatos)
+  - Gabriel Alford (@redhatrises)
 '''
 
 EXAMPLES = r'''
