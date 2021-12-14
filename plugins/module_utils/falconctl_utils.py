@@ -2,8 +2,8 @@
 
 # Ansible module utility used for returning Falcon Sensor GET options.
 # Copyright: (c) 2021, CrowdStrike Inc.
-
-# Unlicense (see LICENSE or https://www.unlicense.org)
+#
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 # Make coding more python3-ish
 from __future__ import (absolute_import, division, print_function)

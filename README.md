@@ -49,4 +49,4 @@ All contributions are welcome!
 
 # License
 
-See the [Unlicense](LICENSE) for more information.
+See the [license](LICENSE) for more information.
