@@ -87,7 +87,7 @@ This example installs the Falcon Sensor using a sensor update policy called "ACM
 License
 -------
 
-[Unlicense](https://github.com/crowdstrike/ansible_collection_falcon/blob/main/LICENSE)
+[License](https://github.com/crowdstrike/ansible_collection_falcon/blob/main/LICENSE)
 
 Author Information
 ------------------
