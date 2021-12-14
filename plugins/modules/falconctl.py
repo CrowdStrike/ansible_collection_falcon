@@ -332,7 +332,7 @@ def main():  # pylint: disable=missing-function-docstring
         trace=dict(required=False, choices=[
                    "none", "err", "warn", "info", "debug"], type="str"),
         feature=dict(required=False, choices=[
-            "none", "enableLog", "disableLogBuffer", "disableOsfm", "emulateUpdate"], type="list"),
+            "none", "enableLog", "disableLogBuffer", "disableOsfm", "emulateUpdate"], type="list", elements='str'),
         metadata_query=dict(required=False, type="str"),
         message_log=dict(required=False, type="bool"),
         billing=dict(required=False, choices=[
