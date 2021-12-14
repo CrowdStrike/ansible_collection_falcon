@@ -37,7 +37,8 @@ options:
         'message_log',
         'billing',
         'tags',
-        'provisioning_token'
+        'provisioning_token',
+        'version'
         ]
     type: list
     elements: str
