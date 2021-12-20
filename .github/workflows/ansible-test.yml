@@ -17,6 +17,8 @@ jobs:
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
+      FALCON_CLIENT_ID: ${{ secrets.FALCON_CLIENT_ID }}
+      FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
     steps:
       - name: Check out code
@@ -30,6 +32,7 @@ jobs:
           sudo apt-get install -y libyaml-dev python3-venv
           python -m pip install --upgrade pip
           pip install ansible yamllint jinja2 pylint pyyaml voluptuous
+          curl -L https://raw.githubusercontent.com/crowdstrike/falcon-linux-install-bash/main/falcon-linux-deploy.sh | sudo -E bash
 
       - name: Build/Install the Collection
         run: |
