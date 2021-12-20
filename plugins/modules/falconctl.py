@@ -13,8 +13,8 @@ DOCUMENTATION = r'''
 ---
 module: falconctl
 author:
-  - Gabriel Alford <redhatrises@gmail.com>
-  - Carlos Matos <matosc15@gmail.com>
+  - Gabriel Alford (@redhatrises)
+  - Carlos Matos (@carlosmmatos)
 short_description: Configure CrowdStrike Falcon Sensor
 description:
   - Configures CrowdStrike Falcon Sensor on Linux systems
