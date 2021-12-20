@@ -189,14 +189,11 @@ class FalconCtl(object):
         return value
 
     def __run_command(self, cmd):
-        rc, stdout, stderr = self.module.run_command(
+        output = self.module.run_command(
             cmd, use_unsafe_shell=False)
 
-        if stderr:
-            self.module.fail_json(rc=rc, stderr=stderr)
-
         # return formatted stdout
-        return format_stdout(stdout)
+        return format_stdout(output[1])
 
     @classmethod
     def __validate_regex(cls, string, regex, flags=re.IGNORECASE):
@@ -323,7 +320,7 @@ def main():  # pylint: disable=missing-function-docstring
     module_args = dict(
         state=dict(required=True, choices=[
                    "absent", "present"], type="str"),
-        cid=dict(required=False, no_log=True, type="str"),
+        cid=dict(required=False, no_log=False, type="str"),
         provisioning_token=dict(required=False, type="str", no_log=True),
         aid=dict(required=False, type="bool"),
         apd=dict(required=False, type="bool"),
