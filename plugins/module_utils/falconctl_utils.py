@@ -10,7 +10,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import re
-from subprocess import check_output, STDOUT, CalledProcessError
+from subprocess import check_output, STDOUT, CalledProcessError  # nosec
 
 from ansible.module_utils.common.process import get_bin_path
 
@@ -50,7 +50,7 @@ def __get(opt):
     opt = opt.replace("_", "-")
     cmd.append("--%s" % opt)
     try:
-        stdout = check_output(cmd, universal_newlines=True, stderr=STDOUT)
+        stdout = check_output(cmd, universal_newlines=True, stderr=STDOUT, shell=False)
     except CalledProcessError:
         stdout = ""
 
@@ -62,18 +62,20 @@ def __get_many(opts):
 
 
 def format_stdout(stdout):
+    """Formats output from falconctl"""
     # Format stdout
     if stdout == "" or "not set" in stdout:
         return None
+
+    # Expect stdout in <option>=<value>
+    if 'version' in stdout:
+        output = re.sub(r"[\"\s\n]|\(.*\)", "", stdout).split("=")[1]
     else:
-        # Expect stdout in <option>=<value>
-        if 'version' in stdout:
-            output = re.sub(r"[\"\s\n]|\(.*\)", "", stdout).split("=")[1]
-        else:
-            output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]
-        return output if output else None
+        output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]
+    return output if output else None
 
 
 def get_options(opts):
+    """Return falconctl -g valid options"""
     requested = opts if opts else FALCONCTL_GET_OPTIONS
     return __get_many(requested)
