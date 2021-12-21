@@ -15,9 +15,9 @@
 
   - name: CrowdStrike Falcon | Remove tmp install directory (Windows)
     ansible.builtin.win_file:
-      path: "{{ falcon_install_win_temp_directory.path }}"
+      path: "{{ falcon_windows_tmp_dir }}/ansible*falcon"
       state: absent
-    when: falcon_install_win_temp_directory.path is defined
+    when: falcon_windows_tmp_dir is defined
     changed_when: no
 
   - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Service (Windows)

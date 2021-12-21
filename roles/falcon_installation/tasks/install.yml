@@ -16,23 +16,26 @@
   - name: CrowdStrike Falcon | Transfer CrowdStrike Falcon RPM GPG key file
     ansible.builtin.copy:
       src: "{{ falcon_gpg_key }}"
-      dest: "{{ falcon_install_tmp_dir }}{{ falcon_gpg_key }}"
+      dest: "{{ falcon_install_temp_directory.path }}{{ falcon_gpg_key }}"
       mode: 0644
+    changed_when: false
     when:
       - falcon_gpg_key_check
 
   - name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from file
     ansible.builtin.rpm_key:
       state: present
-      key: '{{ falcon_install_tmp_dir }}{{ falcon_gpg_key }}'
+      key: '{{ falcon_install_temp_directory.path }}{{ falcon_gpg_key }}'
+    changed_when: false
     when:
       - falcon_gpg_key_check
       - ansible_pkg_mgr in rpm_packagers
 
   - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from file
     ansible.builtin.apt_key:
-      file: '{{ falcon_install_tmp_dir }}{{ falcon_gpg_key }}'
+      file: '{{ falcon_install_temp_directory.path }}{{ falcon_gpg_key }}'
       state: present
+    changed_when: false
     when:
       - falcon_gpg_key_check
       - ansible_pkg_mgr in dpkg_packagers
@@ -59,9 +62,9 @@
 
   - name: CrowdStrike Falcon | Remove tmp install directory
     ansible.builtin.file:
-      path: "{{ falcon_install_temp_directory.path }}"
+      path: "{{ falcon_install_tmp_dir }}/ansible*falcon"
       state: absent
-    when: falcon_install_temp_directory.path is defined
+    when: falcon_install_tmp_dir is defined
     changed_when: no
 
   - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (Linux)
