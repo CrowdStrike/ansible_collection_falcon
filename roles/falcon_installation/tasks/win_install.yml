@@ -18,6 +18,7 @@
       path: "{{ falcon_install_win_temp_directory.path }}"
       state: absent
     when: falcon_install_win_temp_directory.path is defined
+    changed_when: no
 
   - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Service (Windows)
     ansible.windows.win_service:

@@ -101,6 +101,7 @@
     - ansible_system == "Linux" or ansible_system == "Darwin"
     - falcon_install_tmp_dir is defined
   register: falcon_install_temp_directory
+  changed_when: no
 
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (Windows)
   ansible.windows.win_tempfile:
@@ -111,6 +112,7 @@
     - ansible_os_family == "Windows"
     - falcon_windows_tmp_dir is defined
   register: falcon_install_win_temp_directory
+  changed_when: no
 
 - name: CrowdStrike Falcon | Verify Falcon is not already installed (macOS)
   ansible.builtin.stat:
