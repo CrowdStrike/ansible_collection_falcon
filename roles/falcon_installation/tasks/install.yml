@@ -62,6 +62,7 @@
       path: "{{ falcon_install_temp_directory.path }}"
       state: absent
     when: falcon_install_temp_directory.path is defined
+    changed_when: no
 
   - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (Linux)
     crowdstrike.falcon.falconctl:
