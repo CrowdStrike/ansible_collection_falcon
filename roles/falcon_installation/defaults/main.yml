@@ -38,12 +38,17 @@ falcon_gpg_key_check: yes
 falcon_remove_agent_id: false
 
 # CrowdStrike API URL for downloading the Falcon sensor. Possible values:
-#       US-GOV-1:   api.laggar.gcw.crowdstrike.com
-#       EU-1:       api.eu-1.crowdstrike.com
-#       US-2:       api.us-2.crowdstrike.com
 #       us-1:       api.crowdstrike.com
+#       us-2:       api.us-2.crowdstrike.com
+#       eu-1:       api.eu-1.crowdstrike.com
+#       us-gov-1:   api.laggar.gcw.crowdstrike.com
 #
 falcon_cloud: "api.crowdstrike.com"
+
+# Auto-discover the CrowdStrike Cloud API Region. When disabled,
+# 'falcon_cloud' should be changed to the appropriate cloud region.
+#
+falcon_cloud_autodiscover: true
 
 # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
 # API. If unknown, download from the CrowdStrike support portal:
