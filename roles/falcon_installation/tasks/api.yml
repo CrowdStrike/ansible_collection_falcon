@@ -12,6 +12,13 @@
       content-type: application/x-www-form-urlencoded
   register: falcon_api_oauth2_token
 
+- name: CrowdStrike Falcon | Auto-discover CrowdStrike Cloud Region
+  ansible.builtin.set_fact:
+      falcon_cloud: "{{ falcon_cloud_urls[falcon_api_oauth2_token.x_cs_region] }}"
+  when:
+    - falcon_cloud_autodiscover
+    - falcon_api_oauth2_token.x_cs_region != ""
+
 - name: CrowdStrike Falcon | Detect Target CID Based on Credentials
   ansible.builtin.uri:
     url: https://{{ falcon_cloud }}/sensors/queries/installers/ccid/v1
