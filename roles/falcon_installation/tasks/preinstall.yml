@@ -93,22 +93,24 @@
     - falcon_sensor_download is not defined
 
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (non-Windows)
-  ansible.builtin.file:
-    # noqa: risky-file-permissions
+  ansible.builtin.tempfile:
     path: "{{ falcon_install_tmp_dir }}"
     state: directory
+    suffix: falcon
   when:
     - ansible_system == "Linux" or ansible_system == "Darwin"
     - falcon_install_tmp_dir is defined
+  register: falcon_install_temp_directory
 
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (Windows)
-  ansible.windows.win_file:
-    # noqa: risky-file-permissions
+  ansible.windows.win_tempfile:
     path: "{{ falcon_windows_tmp_dir }}"
     state: directory
+    suffix: falcon
   when:
     - ansible_os_family == "Windows"
     - falcon_windows_tmp_dir is defined
+  register: falcon_install_win_temp_directory
 
 - name: CrowdStrike Falcon | Verify Falcon is not already installed (macOS)
   ansible.builtin.stat:

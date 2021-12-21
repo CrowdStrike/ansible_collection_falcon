@@ -57,6 +57,12 @@
       manager: auto
     when: ansible_distribution != "MacOSX"
 
+  - name: CrowdStrike Falcon | Remove tmp install directory
+    ansible.builtin.file:
+      path: "{{ falcon_install_temp_directory.path }}"
+      state: absent
+    when: falcon_install_temp_directory.path is defined
+
   - name: CrowdStrike Falcon | Check if Customer ID (CID) is associated with Falcon Sensor (Linux)
     ansible.builtin.command: "/opt/CrowdStrike/falconctl -g --cid"
     register: cid_associated
