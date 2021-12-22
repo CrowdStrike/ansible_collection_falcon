@@ -80,11 +80,12 @@
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package
   ansible.windows.win_get_url:
     url: "https://{{ falcon_cloud }}/sensors/entities/download-installer/v1?id={{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].sha256 }}"
-    dest: "{{ falcon_windows_tmp_dir }}\\{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].name }}"
+    dest: "{{ falcon_install_win_temp_directory.path }}\\{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].name }}"
     checksum: "{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].sha256 }}"
     checksum_algorithm: sha256
     headers:
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
+  changed_when: false
   register: falcon_sensor_download
 
 - name: CrowdStrike Falcon | Set CID received from API
