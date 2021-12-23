@@ -1,5 +1,5 @@
 ---
-# tasks file for falcon_installation
+# tasks file for falcon_install
 - block:
     - ansible.builtin.include_tasks: preinstall.yml
       # noqa unnamed-task 502

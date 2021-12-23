@@ -1,5 +1,5 @@
 ---
-# handlers file for falcon_installation
+# handlers file for falcon_install
   - name: CrowdStrike Falcon | Restart Falcon Sensor
     ansible.builtin.service:
       name: falcon-sensor

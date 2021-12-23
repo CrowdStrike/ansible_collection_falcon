@@ -1,5 +1,5 @@
 ---
-# defaults file for falcon_installation
+# defaults file for falcon_install
 
 # Your Falcon Customer ID (CID). Optional when using 'api' as an install method.
 # Required for any other installation method.

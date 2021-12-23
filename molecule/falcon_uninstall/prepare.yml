@@ -17,9 +17,9 @@
           - sudo
         state: present
 
-    - name: Run falcon_installation role
+    - name: Run falcon_install role
       ansible.builtin.include_role:
-        name: crowdstrike.falcon.falcon_installation
+        name: crowdstrike.falcon.falcon_install
       vars:
         falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
         falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"

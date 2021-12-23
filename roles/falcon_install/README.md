@@ -1,4 +1,4 @@
-Installation
+falcon_install
 =========
 
 This role will install the CrowdStrike Falcon Sensor.
@@ -13,10 +13,6 @@ Role Variables
 
 The following variables are currently supported:
 
-### Falcon Installation
-
- * `falcon_cid` - Your Falcon Customer ID (CID) (string, default: null)
- * `falcon_provisioning_token` - Falcon Installation Token (string, default: null)
  * `falcon_install_method` - The installation method for installing the sensor (string, default: api)
  * `falcon_gpg_key` - Location of the Falcon GPG Key file (string, default: null)
  * `falcon_remove_agent_id` - Remote the Falcon Agent ID (AID) (bool, default: false)
@@ -56,7 +52,7 @@ This example installs the latest Falcon Sensor:
 ---
 - hosts: all
   roles:
-  - role: crowdstrike.falcon.falcon_installation
+  - role: crowdstrike.falcon.falcon_install
   vars:
     falcon_client_id: <Falcon_UI_OAUTH_client_id>
     falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
@@ -67,7 +63,7 @@ This example installs the Falcon Sensor at version N-2:
 ---
 - hosts: all
   roles:
-  - role: crowdstrike.falcon.falcon_installation
+  - role: crowdstrike.falcon.falcon_install
   vars:
     falcon_client_id: <Falcon_UI_OAUTH_client_id>
     falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
@@ -79,7 +75,7 @@ This example installs the Falcon Sensor using a sensor update policy called "ACM
 ---
 - hosts: all
   roles:
-  - role: crowdstrike.falcon.falcon_installation
+  - role: crowdstrike.falcon.falcon_install
   vars:
     falcon_client_id: <Falcon_UI_OAUTH_client_id>
     falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
