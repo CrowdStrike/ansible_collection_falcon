@@ -76,9 +76,7 @@ falcon_sensor_update_policy_name: ""
 # Where should the sensor file be downloaded to on Linux and MacOS systems?
 # By default, this will be the temp OS filesystem
 #
-# Note: On Linux, do not forget trailing "/", e.g. "/tmp/"!
-#
-falcon_install_tmp_dir: "/tmp/"
+falcon_install_tmp_dir: "/tmp"
 
 # If the installation method is 'url', provide the url for the sensor to
 # be downloaded from.

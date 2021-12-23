@@ -17,7 +17,7 @@
       falcon_cloud: "{{ falcon_cloud_urls[falcon_api_oauth2_token.x_cs_region] }}"
   when:
     - falcon_cloud_autodiscover
-    - falcon_api_oauth2_token.x_cs_region != ""
+    - falcon_api_oauth2_token.x_cs_region|length > 0
 
 - name: CrowdStrike Falcon | Detect Target CID Based on Credentials
   ansible.builtin.uri:
