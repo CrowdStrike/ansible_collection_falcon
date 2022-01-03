@@ -2,6 +2,7 @@ name: Ansible Test
 
 on:
   push:
+    branches: [ main ]
     paths:
       - 'plugins/**'
       - '.github/workflows/ansible-test.yml'
