@@ -8,12 +8,14 @@ on:
       - '.github/workflows/ansible-test.yml'
 
   pull_request_target:
+    types: [ labeled ]
     paths:
       - 'plugins/**'
       - '.github/workflows/ansible-test.yml'
 
 jobs:
   ansible-test:
+    if: ${{ github.event.label.name == "ok-to-test" }}
     runs-on: ubuntu-18.04
     env:
       PY_COLORS: 1
