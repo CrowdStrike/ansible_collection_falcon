@@ -1,2 +1,6 @@
 ---
 # handlers file for falcon_configure
+  - name: CrowdStrike Falcon | Restart Falcon Sensor
+    ansible.builtin.service:
+      name: falcon-sensor
+      state: "{{ falcon_service_state | default('restarted') }}"

@@ -19,7 +19,7 @@ Role Variables
  * `falcon_aph` - Falcon Proxy host (by FQDN or IP) (string, default: null)
  * `falcon_app` - Falcon Proxy port (int, default: null)
  * `falcon_trace` - Configure additional traces for debugging (string, default: null)
- * `falcon_feature` - Configures additional features to the sensor (string, default: null)
+ * `falcon_feature` - Configures additional features to the sensor (list, default: null)
  * `falcon_metadata_query` - Enables additional sensor support in cloud environments (string, default: null)
  * `falcon_message_log` - Enables|Disables message logs (bool, default: null)
  * `falcon_billing` - Configure Falcon sensor with Pay-As-You-Go billing (string, default: null)
@@ -94,14 +94,13 @@ This example shows how to set some of the other options:
       falcon_message_log: yes
 ```
 
-Examples of deleting certain options:
+Examples of deleting options:
 ```yaml
 - hosts: all
   roles:
   - role: crowdstrike.falcon.falcon_configure
     vars:
       falcon_option_state: no
-      falcon_remove_aid: yes
       falcon_cid: ""
       falcon_tags: ""
 ```

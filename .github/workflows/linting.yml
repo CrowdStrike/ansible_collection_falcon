@@ -42,7 +42,7 @@ jobs:
         python -m pip install pylint
     - name: Lint with pylint
       run: |
-        pylint ./plugins/
+        find plugins/ -name "*.py" | xargs pylint
 
   bandit:
     runs-on: ubuntu-latest

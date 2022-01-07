@@ -114,7 +114,7 @@ EXAMPLES = r'''
 - name: Delete CrowdStrike Falcon CID
   crowdstrike.falcon.falconctl:
     state: absent
-    cid: 1234567890ABCDEF1234567890ABCDEF-12
+    cid: ""
 
 - name: Delete Agent ID to Prep Master Image
   crowdstrike.falcon.falconctl:

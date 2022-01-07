@@ -1,0 +1,15 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  tasks:
+  - name: Get list of Falcon Sensor Options
+    crowdstrike.falcon.falconctl_info:
+
+  - name: Debug Options
+    ansible.builtin.debug:
+      var: falconctl_info
+  # - name: Verify Falcon Sensor is installed
+  #   ansible.builtin.assert:
+  #     that: installed_sensor in ansible_facts.packages

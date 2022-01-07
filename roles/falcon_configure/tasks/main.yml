@@ -1,2 +1,21 @@
 ---
 # tasks file for falcon_configure
+- ansible.builtin.include_tasks: prelim.yml
+  # noqa unnamed-task 502
+
+- block:
+    - ansible.builtin.include_tasks: configure.yml
+      # noqa unnamed-task 502
+  when:
+    - ansible_os_family != "Windows"
+  become: true
+  become_user: root
+
+- block:
+    - ansible.builtin.include_tasks: win_configure.yml
+      # noqa unnamed-task 502
+  when:
+    - ansible_os_family == "Windows"
+  become: true
+  become_method: "{{ falcon_windows_become_method }}"
+  become_user: "{{ falcon_windows_become_user }}"
