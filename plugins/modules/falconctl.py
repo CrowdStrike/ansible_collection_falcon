@@ -175,9 +175,10 @@ class FalconCtl(object):
             "falconctl", required=True, opt_dirs=[self.cs_path])
         self.states = {"present": "s", "absent": "d"}
         self.valid_params = VALID_PARAMS
-
-        self.validate_params(self.params)
         self.state = self.params["state"]
+
+        if self.state == "present":
+            self.validate_params(self.params)
 
     @classmethod
     def __list_to_string(cls, value):
