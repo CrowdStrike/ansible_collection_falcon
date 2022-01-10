@@ -5,12 +5,12 @@
     - role: crowdstrike.falcon.falcon_configure
       vars:
         falcon_option_set: yes
-        falcon_cid: 1234567890ABCDEF1234567890ABCDEF-12
-        falcon_provisioning_token: 12345678
+        falcon_cid: "{{ lookup('env', 'FALCON_CID') }}"
+        falcon_provisioning_token: '12345678'
         falcon_tags: 'falcon,example,tags'
         falcon_metadata_query: 'enableAWS,disableGCP'
         falcon_billing: 'metered'
         falcon_message_log: yes
         falcon_feature:
           - enableLog
-          - emulateUpdate
+          - disableLogBuffer

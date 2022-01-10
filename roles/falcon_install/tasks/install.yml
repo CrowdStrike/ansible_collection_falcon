@@ -79,13 +79,13 @@
       - falcon_tmp_dir_objects is defined and falcon_tmp_dir_objects.files|length > 0
     changed_when: no
 
-  - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Daemon (Linux)
-    ansible.builtin.service:
-      name: falcon-sensor
-      state: "{{ falcon_service_state | default('started') }}"
-      enabled: yes
-    when:
-      - installed_sensor in ansible_facts.packages
+  # - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Daemon (Linux)
+  #   ansible.builtin.service:
+  #     name: falcon-sensor
+  #     state: "{{ falcon_service_state | default('started') }}"
+  #     enabled: yes
+  #   when:
+  #     - installed_sensor in ansible_facts.packages
 
   - name: CrowdStrike Falcon | Starting Falcon Sensor (macOS)
     ansible.builtin.command: "launchctl {{ falcon_service_state | default('start') }} com.crowdstrike.falcond"

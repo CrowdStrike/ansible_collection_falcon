@@ -193,8 +193,11 @@ class FalconCtl(object):
         output = self.module.run_command(
             cmd, use_unsafe_shell=False)
 
-        # return formatted stdout
-        return format_stdout(output[1])
+        # Add some error checking/reporting
+        if "ERROR" in output[2] or "not a valid" in output[2]:
+            self.module.fail_json(
+                msg="ERROR executing %s: OUTPUT = %s" % (cmd, output[2])
+            )
 
     @classmethod
     def __validate_regex(cls, string, regex, flags=re.IGNORECASE):
@@ -245,7 +248,8 @@ class FalconCtl(object):
                     return self.__list_to_string(new_list)
             return self.__list_to_string(value)
 
-        return value.lower()
+        # return value if isinstance(value, bool) else value.lower()
+        return value
 
     def check_mode(self, before):
         """Ansible check_mode with falconctl return values with pretty formatting"""
@@ -321,18 +325,18 @@ def main():  # pylint: disable=missing-function-docstring
     module_args = dict(
         state=dict(required=True, choices=[
                    "absent", "present"], type="str"),
-        cid=dict(required=False, no_log=False, type="str"),
-        provisioning_token=dict(required=False, type="str", no_log=True),
+        cid=dict(required=False, type="str"),
+        provisioning_token=dict(required=False, type="str"),
         aid=dict(required=False, type="bool"),
-        apd=dict(required=False, type="bool"),
+        apd=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
         aph=dict(required=False, type="str"),
         app=dict(required=False, type="int"),
         trace=dict(required=False, choices=[
                    "none", "err", "warn", "info", "debug"], type="str"),
         feature=dict(required=False, choices=[
-            "none", "enableLog", "disableLogBuffer", "disableOsfm", "emulateUpdate"], type="list", elements='str'),
+            "none", "enableLog", "disableLogBuffer"], type="list", elements='str'),
         metadata_query=dict(required=False, type="str"),
-        message_log=dict(required=False, type="bool"),
+        message_log=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
         billing=dict(required=False, choices=[
                      "default", "metered"], type="str"),
         tags=dict(required=False, type="str"),

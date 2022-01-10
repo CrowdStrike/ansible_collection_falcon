@@ -36,7 +36,7 @@
     crowdstrike.falcon.falconctl:
       aid: yes
       state: absent
-    when: falcon_remove_agent_id
+    when: falcon_remove_aid
 
   when: ansible_distribution != "MacOSX"
 
