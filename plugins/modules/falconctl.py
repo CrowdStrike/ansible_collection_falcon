@@ -132,7 +132,7 @@ EXAMPLES = r'''
 import re
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils import FALCONCTL_GET_OPTIONS, get_options, format_stdout
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils import FALCONCTL_GET_OPTIONS, get_options
 
 
 VALID_PARAMS = {
