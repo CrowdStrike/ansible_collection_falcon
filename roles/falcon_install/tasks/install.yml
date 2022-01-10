@@ -16,26 +16,26 @@
   - name: CrowdStrike Falcon | Transfer CrowdStrike Falcon RPM GPG key file
     ansible.builtin.copy:
       src: "{{ falcon_gpg_key }}"
-      dest: "{{ falcon_install_temp_directory.path }}{{ falcon_gpg_key }}"
+      dest: "{{ falcon_install_temp_directory.path }}/{{ falcon_gpg_key }}"
       mode: 0644
-    changed_when: false
+    changed_when: no
     when:
       - falcon_gpg_key_check
 
   - name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from file
     ansible.builtin.rpm_key:
       state: present
-      key: '{{ falcon_install_temp_directory.path }}{{ falcon_gpg_key }}'
-    changed_when: false
+      key: '{{ falcon_install_temp_directory.path }}/{{ falcon_gpg_key }}'
+    changed_when: no
     when:
       - falcon_gpg_key_check
       - ansible_pkg_mgr in rpm_packagers
 
   - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from file
     ansible.builtin.apt_key:
-      file: '{{ falcon_install_temp_directory.path }}{{ falcon_gpg_key }}'
+      file: '{{ falcon_install_temp_directory.path }}/{{ falcon_gpg_key }}'
       state: present
-    changed_when: false
+    changed_when: no
     when:
       - falcon_gpg_key_check
       - ansible_pkg_mgr in dpkg_packagers
@@ -60,55 +60,32 @@
       manager: auto
     when: ansible_distribution != "MacOSX"
 
-  - name: CrowdStrike Falcon | Remove tmp install directory
-    ansible.builtin.file:
-      path: "{{ falcon_install_tmp_dir }}/ansible*falcon"
-      state: absent
-    when: falcon_install_tmp_dir is defined
+  - name: CrowdStrike Falcon | Gather tmp install directory objects
+    ansible.builtin.find:
+      paths: "{{ falcon_install_tmp_dir }}"
+      patterns: "ansible.*falcon"
+      file_type: directory
+    register: falcon_tmp_dir_objects
+    when: falcon_install_tmp_dir|length > 0
     changed_when: no
 
-  - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (Linux)
-    crowdstrike.falcon.falconctl:
-      cid: "{{ falcon_cid }}"
-      state: present
-    notify: CrowdStrike Falcon | Restart Falcon Sensor
-    when:
-      - not falcon_provisioning_token
-      - ansible_distribution != "MacOSX"
-
-  - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (macOS)
-    ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl license {{ falcon_cid }}"
-    when:
-      - not falcon_provisioning_token
-      - ansible_distribution == "MacOSX"
-      - falcon_already_installed is defined
-      - not falcon_already_installed.stat.exists
-
-  - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) Using Provisioning Token
-    crowdstrike.falcon.falconctl:
-      cid: "{{ falcon_cid }}"
-      provisioning_token: "{{ falcon_provisioning_token }}"
-      state: present
-    notify: CrowdStrike Falcon | Restart Falcon Sensor
-    when:
-      - falcon_provisioning_token
-      - ansible_distribution != "MacOSX"
-
-  - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Daemon (Linux)
-    ansible.builtin.service:
-      name: falcon-sensor
-      state: "{{ falcon_service_state | default('started') }}"
-      enabled: yes
-    when:
-      - installed_sensor in ansible_facts.packages
-
-  - name: CrowdStrike Falcon | Remove Falcon Agent ID (AID) If Building A Primary Image
-    crowdstrike.falcon.falconctl:
-      aid: yes
+  - name: CrowdStrike Falcon | Remove tmp install directories
+    ansible.builtin.file:
+      path: "{{ item.path }}"
       state: absent
+    loop: "{{ falcon_tmp_dir_objects.files }}"
     when:
-      - falcon_remove_agent_id
-      - ansible_distribution != "MacOSX"
+      - falcon_install_tmp_dir|length > 0
+      - falcon_tmp_dir_objects is defined and falcon_tmp_dir_objects.files|length > 0
+    changed_when: no
+
+  # - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Daemon (Linux)
+  #   ansible.builtin.service:
+  #     name: falcon-sensor
+  #     state: "{{ falcon_service_state | default('started') }}"
+  #     enabled: yes
+  #   when:
+  #     - installed_sensor in ansible_facts.packages
 
   - name: CrowdStrike Falcon | Starting Falcon Sensor (macOS)
     ansible.builtin.command: "launchctl {{ falcon_service_state | default('start') }} com.crowdstrike.falcond"

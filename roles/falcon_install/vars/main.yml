@@ -1,5 +1,5 @@
 ---
-# vars file for falcon_installation
+# vars file for falcon_install
 linux_packagers: "{{ rpm_packagers + dpkg_packagers }}"
 
 rpm_packagers:

@@ -44,7 +44,8 @@ options:
     apd:
       description:
         - Whether to enable or disable the Falcon sensor to use a proxy.
-      type: bool
+      type: str
+      choices: [ 'True', 'true', 'False', 'false' ]
     aph:
       description:
         - Specifies the application proxy host to use for Falcon sensor proxy configuration.
@@ -63,7 +64,7 @@ options:
         - Configure the Falcon sensor feature flags.
       type: list
       elements: str
-      choices: [ none, enableLog, disableLogBuffer, disableOsfm, emulateUpdate ]
+      choices: [ none, enableLog, disableLogBuffer ]
     metadata_query:
       description:
         - Configure the Falcon sensor cloud provider metadata query flags.
@@ -71,7 +72,8 @@ options:
     message_log:
       description:
         - Whether or not you would like to log messages to disk.
-      type: bool
+      type: str
+      choices: [ 'True', 'true', 'False', 'false' ]
     billing:
       description:
         - Specify the (Pay-As-You-Go) billing model for Cloud Workloads.
@@ -114,7 +116,7 @@ EXAMPLES = r'''
 - name: Delete CrowdStrike Falcon CID
   crowdstrike.falcon.falconctl:
     state: absent
-    cid: 1234567890ABCDEF1234567890ABCDEF-12
+    cid: ""
 
 - name: Delete Agent ID to Prep Master Image
   crowdstrike.falcon.falconctl:
@@ -132,7 +134,7 @@ EXAMPLES = r'''
 import re
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils import FALCONCTL_GET_OPTIONS, get_options, format_stdout
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils import FALCONCTL_GET_OPTIONS, get_options
 
 
 VALID_PARAMS = {
@@ -175,9 +177,10 @@ class FalconCtl(object):
             "falconctl", required=True, opt_dirs=[self.cs_path])
         self.states = {"present": "s", "absent": "d"}
         self.valid_params = VALID_PARAMS
-
-        self.validate_params(self.params)
         self.state = self.params["state"]
+
+        if self.state == "present":
+            self.validate_params(self.params)
 
     @classmethod
     def __list_to_string(cls, value):
@@ -192,8 +195,11 @@ class FalconCtl(object):
         output = self.module.run_command(
             cmd, use_unsafe_shell=False)
 
-        # return formatted stdout
-        return format_stdout(output[1])
+        # Add some error checking/reporting
+        if "ERROR" in output[2] or "not a valid" in output[2]:
+            self.module.fail_json(
+                msg="ERROR executing %s: OUTPUT = %s" % (cmd, output[2])
+            )
 
     @classmethod
     def __validate_regex(cls, string, regex, flags=re.IGNORECASE):
@@ -244,7 +250,8 @@ class FalconCtl(object):
                     return self.__list_to_string(new_list)
             return self.__list_to_string(value)
 
-        return value.lower()
+        # return value if isinstance(value, bool) else value.lower()
+        return value
 
     def check_mode(self, before):
         """Ansible check_mode with falconctl return values with pretty formatting"""
@@ -320,18 +327,18 @@ def main():  # pylint: disable=missing-function-docstring
     module_args = dict(
         state=dict(required=True, choices=[
                    "absent", "present"], type="str"),
-        cid=dict(required=False, no_log=False, type="str"),
-        provisioning_token=dict(required=False, type="str", no_log=True),
+        cid=dict(required=False, type="str"),
+        provisioning_token=dict(required=False, no_log=True, type="str"),
         aid=dict(required=False, type="bool"),
-        apd=dict(required=False, type="bool"),
+        apd=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
         aph=dict(required=False, type="str"),
         app=dict(required=False, type="int"),
         trace=dict(required=False, choices=[
                    "none", "err", "warn", "info", "debug"], type="str"),
         feature=dict(required=False, choices=[
-            "none", "enableLog", "disableLogBuffer", "disableOsfm", "emulateUpdate"], type="list", elements='str'),
+            "none", "enableLog", "disableLogBuffer"], type="list", elements='str'),
         metadata_query=dict(required=False, type="str"),
-        message_log=dict(required=False, type="bool"),
+        message_log=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
         billing=dict(required=False, choices=[
                      "default", "metered"], type="str"),
         tags=dict(required=False, type="str"),

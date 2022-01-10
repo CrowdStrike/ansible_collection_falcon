@@ -1,4 +1,4 @@
 *.tar.gz
-
+tests/output
 *DS_Store
 *.swp

@@ -1,8 +1,6 @@
----
 galaxy_info:
-  role_name: falcon_installation
-  author: CrowdStrike Solution Architecture
-  description: Install and configure CrowdStrike's Falcon sensor using Ansible.
+  author: CrowdStrike Solution Architects
+  description: Configure CrowdStrike's Falcon sensor using Ansible.
   company: CrowdStrike
 
   # If the issue tracker for your role is not on github, uncomment the
@@ -17,7 +15,6 @@ galaxy_info:
   # - Apache-2.0
   # - CC-BY-4.0
   license: GPL-3.0-or-later
-
 
   min_ansible_version: 2.10
 

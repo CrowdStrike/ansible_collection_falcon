@@ -1,4 +1,4 @@
-Installation
+falcon_install
 =========
 
 This role will install the CrowdStrike Falcon Sensor.
@@ -13,13 +13,8 @@ Role Variables
 
 The following variables are currently supported:
 
-### Falcon Installation
-
- * `falcon_cid` - Your Falcon Customer ID (CID) (string, default: null)
- * `falcon_provisioning_token` - Falcon Installation Token (string, default: null)
  * `falcon_install_method` - The installation method for installing the sensor (string, default: api)
  * `falcon_gpg_key` - Location of the Falcon GPG Key file (string, default: null)
- * `falcon_remove_agent_id` - Remote the Falcon Agent ID (AID) (bool, default: false)
  * `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `api.crowdstrike.com`)
  * `falcon_cloud_autodiscover` - Auto-discover CrowdStrike API Cloud region (bool, default: true)
  * `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: null)
@@ -56,10 +51,10 @@ This example installs the latest Falcon Sensor:
 ---
 - hosts: all
   roles:
-  - role: crowdstrike.falcon.falcon_installation
-  vars:
-    falcon_client_id: <Falcon_UI_OAUTH_client_id>
-    falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+  - role: crowdstrike.falcon.falcon_install
+    vars:
+      falcon_client_id: <Falcon_UI_OAUTH_client_id>
+      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
 ```
 ---
 This example installs the Falcon Sensor at version N-2:
@@ -67,11 +62,11 @@ This example installs the Falcon Sensor at version N-2:
 ---
 - hosts: all
   roles:
-  - role: crowdstrike.falcon.falcon_installation
-  vars:
-    falcon_client_id: <Falcon_UI_OAUTH_client_id>
-    falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
-    falcon_sensor_version_decrement: 2
+  - role: crowdstrike.falcon.falcon_install
+    vars:
+      falcon_client_id: <Falcon_UI_OAUTH_client_id>
+      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_sensor_version_decrement: 2
 ```
 ---
 This example installs the Falcon Sensor using a sensor update policy called "ACME Policy":
@@ -79,11 +74,11 @@ This example installs the Falcon Sensor using a sensor update policy called "ACM
 ---
 - hosts: all
   roles:
-  - role: crowdstrike.falcon.falcon_installation
-  vars:
-    falcon_client_id: <Falcon_UI_OAUTH_client_id>
-    falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
-    falcon_sensor_update_policy_name: "ACME Policy"
+  - role: crowdstrike.falcon.falcon_install
+    vars:
+      falcon_client_id: <Falcon_UI_OAUTH_client_id>
+      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_sensor_update_policy_name: "ACME Policy"
 ```
 License
 -------

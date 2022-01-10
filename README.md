@@ -11,7 +11,7 @@ This collection is focused on downloading, installing, and removing CrowdStrike'
 
 | Role Name | Documentation |
 | --------- | :-----------: |
-| crowdstrike.falcon.falcon_installation | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_installation/README.md) |
+| crowdstrike.falcon.falcon_install | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_install/README.md) |
 | crowdstrike.falcon.falcon_uninstall | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_uninstall/README.md) |
 
 

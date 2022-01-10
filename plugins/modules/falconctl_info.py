@@ -37,7 +37,6 @@ options:
         'message_log',
         'billing',
         'tags',
-        'provisioning_token',
         'version'
         ]
     type: list
@@ -69,7 +68,7 @@ falconctl_info:
     returned: success
     sample: {
         'cid': '53abc1234c584115a46efc25dd831a2b',
-        'provisioning_token': '1234567',
+        'message_log': 'True',
         'tags': null
     }
 '''

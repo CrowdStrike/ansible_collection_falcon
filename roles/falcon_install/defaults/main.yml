@@ -1,17 +1,5 @@
 ---
-# defaults file for falcon_installation
-
-# Your Falcon Customer ID (CID). Optional when using 'api' as an install method.
-# Required for any other installation method.
-#
-falcon_cid:
-
-# Installation tokens prevent unauthorized hosts from being accidentally or maliciously added
-# to your Customer ID (CID). Installation tokens are an optional security
-# measure for your CID. For more details:
-# https://falcon.crowdstrike.com/support/documentation/20/falcon-sensor-for-linux#optional:-installing-to-a-cid-that-requires-installation-tokens
-#
-falcon_provisioning_token:
+# defaults file for falcon_install
 
 # This installer is capable of three different installation
 # methods:
@@ -76,9 +64,7 @@ falcon_sensor_update_policy_name: ""
 # Where should the sensor file be downloaded to on Linux and MacOS systems?
 # By default, this will be the temp OS filesystem
 #
-# Note: On Linux, do not forget trailing "/", e.g. "/tmp/"!
-#
-falcon_install_tmp_dir: "/tmp/"
+falcon_install_tmp_dir: "/tmp"
 
 # If the installation method is 'url', provide the url for the sensor to
 # be downloaded from.

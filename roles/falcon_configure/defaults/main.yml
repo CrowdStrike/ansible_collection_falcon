@@ -1,0 +1,94 @@
+---
+# defaults file for falcon_configure
+falcon_option_set: yes
+
+# Your Falcon Customer ID (CID) used to associate your sensor.
+#
+falcon_cid:
+
+# Installation tokens prevent unauthorized hosts from being accidentally or maliciously added
+# to your Customer ID (CID). Installation tokens are an optional security
+# measure for your CID. For more details:
+# https://falcon.crowdstrike.com/support/documentation/20/falcon-sensor-for-linux#optional:-installing-to-a-cid-that-requires-installation-tokens
+#
+falcon_provisioning_token:
+
+# Falcon requires that a master image remove the Falcon Agent ID (AID). This
+# ensures instances spun up from the master receive their own, unique,
+# Falcon Agent ID.
+#
+# If installing this role on a base AMI or master image, set this flag
+# to 'true|yes'.
+#
+falcon_remove_aid:
+
+######### PROXY CONFIG #########
+# Whether to enable or disable the Falcon sensor to use a proxy. Set this value to either
+# 'true|yes' or 'false|no'.
+#
+falcon_apd:
+
+# The Falcon Proxy host. Can be either the FQDN or IP.
+#
+falcon_aph:
+
+# Falcon Proxy port associated with the proxy host.
+#
+falcon_app:
+################################
+
+# Configure additional traces for debugging. Options are:
+# [none|err|warn|info|debug]
+#
+falcon_trace:
+
+# Falcon allows the configuration of additional features to the sensor. Valid values are:
+# [none,[enableLog[,disableLogBuffer[,disableOsfm[,emulateUpdate]]]]] and are passed in as
+# a list.
+#
+# Example
+#   falcon_feature:
+#     - enableLog
+#     - emulateUpdate
+#
+falcon_feature:
+
+# Falcon sensor allows additional cloud provider metadata query support. Valid values are:
+# [[dis|en]able|[dis|en]ableAWS[,[dis|en]ableAzure[,[dis|en]ableGCP]]].
+#
+# Example(s)
+#   falcon_metadata_query: 'enable'
+#   falcon_metadata_query: 'enableAWS,disableAzure,enableGCP'
+#
+falcon_metadata_query:
+
+# Whether to enable or disable the ability to log messages to disk. Set this value to either
+# 'true|yes' or 'false|no'.
+#
+falcon_message_log:
+
+# Configure Falcon sensor with Pay-As-You-Go billing. Useful for cloud environments.
+# Valid values are: [default|metered]
+#
+falcon_billing:
+
+# Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.
+# If using tags, ensure the following requirements are met:
+#   * Tags can include these characters: a-zA-Z0-9-_/
+#   * Tags can't include these characters: spaces and commas
+#   * To assign multiple tags, separate tags with commas.
+#   * The combined length of all tags for a host, including comma separators, cannot exceed 256 characters.
+#
+# Example
+#   falcon_tags: 'Washington/DC_USA,Production'
+falcon_tags:
+
+# Ansible become method for Windows systems.
+# The default is runas
+#
+falcon_windows_become_method: runas
+
+# Ansible become user for Windows systems.
+# The default is SYSTEM
+#
+falcon_windows_become_user: SYSTEM
