@@ -44,7 +44,8 @@ options:
     apd:
       description:
         - Whether to enable or disable the Falcon sensor to use a proxy.
-      type: bool
+      type: str
+      choices: [ 'True', 'true', 'False', 'false' ]
     aph:
       description:
         - Specifies the application proxy host to use for Falcon sensor proxy configuration.
@@ -63,7 +64,7 @@ options:
         - Configure the Falcon sensor feature flags.
       type: list
       elements: str
-      choices: [ none, enableLog, disableLogBuffer, disableOsfm, emulateUpdate ]
+      choices: [ none, enableLog, disableLogBuffer ]
     metadata_query:
       description:
         - Configure the Falcon sensor cloud provider metadata query flags.
@@ -71,7 +72,8 @@ options:
     message_log:
       description:
         - Whether or not you would like to log messages to disk.
-      type: bool
+      type: str
+      choices: [ 'True', 'true', 'False', 'false' ]
     billing:
       description:
         - Specify the (Pay-As-You-Go) billing model for Cloud Workloads.
@@ -326,7 +328,7 @@ def main():  # pylint: disable=missing-function-docstring
         state=dict(required=True, choices=[
                    "absent", "present"], type="str"),
         cid=dict(required=False, type="str"),
-        provisioning_token=dict(required=False, type="str"),
+        provisioning_token=dict(required=False, no_log=True, type="str"),
         aid=dict(required=False, type="bool"),
         apd=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
         aph=dict(required=False, type="str"),
