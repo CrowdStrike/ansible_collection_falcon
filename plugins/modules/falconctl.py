@@ -65,10 +65,6 @@ options:
       type: list
       elements: str
       choices: [ none, enableLog, disableLogBuffer ]
-    metadata_query:
-      description:
-        - Configure the Falcon sensor cloud provider metadata query flags.
-      type: str
     message_log:
       description:
         - Whether or not you would like to log messages to disk.
@@ -82,7 +78,6 @@ options:
         - For ephemeral workloads in these cloud environments, you pay only for the hours that hosts
           are active each month C(metered), rather than a full annual contract price per sensor C(default).
       type: str
-      choices: [ default, metered ]
     tags:
       description:
         - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.
@@ -145,7 +140,6 @@ VALID_PARAMS = {
         "app",
         "trace",
         "feature",
-        "metadata_query",
         "message_log",
         "billing",
         "tags",
@@ -213,7 +207,7 @@ class FalconCtl(object):
         args = [self.falconctl, "-%s" % fstate, "-f"]
 
         for k in self.params:
-            if self.params[k]:
+            if self.params[k] or self.params[k] == "":
                 if k in self.valid_params[fstate]:
                     key = k.replace("_", "-")
                     if state == "present":
@@ -240,7 +234,10 @@ class FalconCtl(object):
         if key == "cid":
             # Get the 32 chars in lowercase
             return value.lower()[:32]
-        # Deal with list valueions
+        # Deal with message_log
+        if key == "message_log":
+            return value.lower()
+        # Deal with list evaluations
         if isinstance(value, list):
             if key == "feature":
                 if 'none' in value and len(value) > 1:
@@ -250,7 +247,7 @@ class FalconCtl(object):
                     return self.__list_to_string(new_list)
             return self.__list_to_string(value)
 
-        # return value if isinstance(value, bool) else value.lower()
+        # return value
         return value
 
     def check_mode(self, before):
@@ -285,15 +282,6 @@ class FalconCtl(object):
 
     def validate_params(self, params):
         """Check parameters that are conditionally required"""
-        if params["metadata_query"]:
-            choices_str = ["enable", "disable"]
-            choices_list = ["enableAWS", "enableAzure", "enableGCP",
-                            "disableAWS", "disableAzure", "disableGCP"]
-            mq = params["metadata_query"]
-            if mq not in choices_str and \
-                    not all(item in choices_list for item in mq.split(",")):
-                self.module.fail_json(
-                    msg="value of %s must be one of: enable, disable, got: %s" % ("metadata_query", mq))
 
         if params["provisioning_token"]:
             # Ensure cid is also passed
@@ -307,6 +295,12 @@ class FalconCtl(object):
             if not valid_token:
                 self.module.fail_json(
                     msg="Invalid provisioning token: '%s'" % (params["provisioning_token"]))
+
+        if params["billing"]:
+            valid_choices = ["default", "metered"]
+            if params["billing"] not in valid_choices:
+                self.module.fail_json(
+                    msg="Value of billing must be one of: default|metered, got %s" % (params["billing"]))
 
         if params["cid"]:
             valid_cid = self.__validate_regex(
@@ -336,11 +330,9 @@ def main():  # pylint: disable=missing-function-docstring
         trace=dict(required=False, choices=[
                    "none", "err", "warn", "info", "debug"], type="str"),
         feature=dict(required=False, choices=[
-            "none", "enableLog", "disableLogBuffer"], type="list", elements='str'),
-        metadata_query=dict(required=False, type="str"),
+            "none", "enableLog", "disableLogBuffer"], type="list", elements="str"),
         message_log=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
-        billing=dict(required=False, choices=[
-                     "default", "metered"], type="str"),
+        billing=dict(required=False, type="str"),
         tags=dict(required=False, type="str"),
     )
 

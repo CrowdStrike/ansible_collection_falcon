@@ -8,7 +8,6 @@
         falcon_cid: "{{ lookup('env', 'FALCON_CID') }}"
         falcon_provisioning_token: '12345678'
         falcon_tags: 'falcon,example,tags'
-        falcon_metadata_query: 'enableAWS,disableGCP'
         falcon_billing: 'metered'
         falcon_message_log: yes
         falcon_feature:
