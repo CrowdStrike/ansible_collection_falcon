@@ -1,7 +1,7 @@
 ---
 # Linux block
 - block:
-  - name: CrowdStrike Falcon | Set Falcon Sensor Options (Linux)
+  - name: CrowdStrike Falcon | Configure Falcon Sensor Options (Linux)
     crowdstrike.falcon.falconctl:
       cid: "{{ falcon_cid if (falcon_cid != None) else omit }}"
       provisioning_token: "{{ falcon_provisioning_token if (falcon_provisioning_token != None) else omit }}"
@@ -10,27 +10,15 @@
       app: "{{ falcon_app if (falcon_app != None) else omit }}"
       trace: "{{ falcon_trace if (falcon_trace != None) else omit }}"
       feature: "{{ falcon_feature if (falcon_feature != None) else omit }}"
-      metadata_query: "{{ falcon_metadata_query if (falcon_metadata_query != None) else omit }}"
       message_log: "{{ falcon_message_log if (falcon_message_log != None) else omit }}"
       billing: "{{ falcon_billing if (falcon_billing != None) else omit }}"
       tags: "{{ falcon_tags if (falcon_tags != None) else omit }}"
-      state: present
+      state: "{{ 'present' if falcon_option_set else 'absent' }}"
     notify: CrowdStrike Falcon | Restart Falcon Sensor
-    when: falcon_option_set
 
-  - name: CrowdStrike Falcon | Delete Falcon Sensor Options (Linux)
-    crowdstrike.falcon.falconctl:
-      cid: "{{ falcon_cid if (falcon_cid != None) else omit }}"
-      provisioning_token: "{{ falcon_provisioning_token if (falcon_provisioning_token != None) else omit }}"
-      apd: "{{ falcon_apd if (falcon_apd != None) else omit }}"
-      aph: "{{ falcon_aph if (falcon_aph != None) else omit }}"
-      app: "{{ falcon_app if (falcon_app != None) else omit }}"
-      trace: "{{ falcon_trace if (falcon_trace != None) else omit }}"
-      billing: "{{ falcon_billing if (falcon_billing != None) else omit }}"
-      tags: "{{ falcon_tags if (falcon_tags != None) else omit }}"
-      state: absent
-    notify: CrowdStrike Falcon | Restart Falcon Sensor
-    when: not falcon_option_set
+  - name: CrowdStrike Falcon | Register Falcon Sensor Options
+    crowdstrike.falcon.falconctl_info:
+    register: info
 
   - name: CrowdStrike Falcon | Remove Falcon Agent ID (AID) If Building A Primary Image
     crowdstrike.falcon.falconctl:
