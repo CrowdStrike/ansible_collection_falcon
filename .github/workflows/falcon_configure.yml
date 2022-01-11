@@ -6,19 +6,21 @@ on:
       - 'molecule/falcon_configure/**'
       - '.github/workflows/falcon_configure.yml'
   pull_request_target:
+    types: [ labeled ]
     paths:
       - 'roles/falcon_configure/**'
       - 'molecule/falcon_configure/**'
       - '.github/workflows/falcon_configure.yml'
 jobs:
   molecule:
+    if: ${{ github.event.label.name == 'ok-to-test' }}
     runs-on: ubuntu-18.04
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
       FALCON_CLIENT_ID: ${{ secrets.FALCON_CLIENT_ID }}
       FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
-      FALCON_CID: ${{ secrets.FALCON_CLIENT_SECRET }}
+      FALCON_CID: ${{ secrets.FALCON_CID }}
     strategy:
       fail-fast: false
       matrix:
