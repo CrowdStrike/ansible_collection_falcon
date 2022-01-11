@@ -1,6 +1,12 @@
 ---
 # Linux block
 - block:
+  - name: CrowdStrike Falcon | Set service state for Primary Images
+    ansible.builtin.set_fact:
+      falcon_service_state: stopped
+    when:
+      - falcon_remove_aid
+
   - name: CrowdStrike Falcon | Set Falcon Sensor Options (Linux)
     crowdstrike.falcon.falconctl:
       cid: "{{ falcon_cid if (falcon_cid != None) else omit }}"
@@ -53,5 +59,10 @@
     when:
       - falcon_cid
       - not falcon_provisioning_token
+
+  - name: CrowdStrike Falcon | Starting Falcon Sensor (macOS)
+    ansible.builtin.command: "launchctl {{ falcon_service_state | default('start') }} com.crowdstrike.falcond"
+    when:
+      - falcon_cid
 
   when: ansible_distribution == "MacOSX"
