@@ -59,7 +59,7 @@ falcon_feature:
 falcon_message_log:
 
 # Configure Falcon sensor with Pay-As-You-Go billing. Useful for cloud environments.
-# Valid values are: [default|metered|none]
+# Valid values are: [default|metered]
 #
 falcon_billing:
 
