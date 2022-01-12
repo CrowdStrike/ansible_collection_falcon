@@ -30,6 +30,22 @@ collections:
   - crowdstrike.falcon
 ```
 
+#### Example Playbook
+Install and configure the CS Falcon Sensor at version N-2:
+```yaml
+- hosts: all
+  vars:
+    falcon_client_id: <Falcon_UI_OAUTH_client_id>
+    falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+  roles:
+  - role: crowdstrike.falcon.falcon_install
+    vars:
+      falcon_sensor_version_decrement: 2
+  - role: crowdstrike.falcon.falcon_configure
+    vars:
+      # falcon_cid is autodetected using falcon_client_id|secret vars
+      falcon_tags: 'falcon,example,tags'
+```
 
 ## Installing on MacOS
 

@@ -1,0 +1,27 @@
+---
+- name: CrowdStrike Falcon | Authenticate to CrowdStrike API
+  ansible.builtin.uri:
+    url: "https://{{ falcon_cloud }}/oauth2/token"
+    method: POST
+    body_format: json
+    body:
+      "client_id={{ falcon_client_id }}&client_secret={{ falcon_client_secret }}"
+    return_content: true
+    status_code: 201
+    headers:
+      content-type: application/x-www-form-urlencoded
+  register: falcon_api_oauth2_token
+
+- name: CrowdStrike Falcon | Detect Target CID Based on Credentials
+  ansible.builtin.uri:
+    url: https://{{ falcon_cloud }}/sensors/queries/installers/ccid/v1
+    method: GET
+    return_content: true
+    headers:
+      authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
+      Content-Type: application/json
+  register: falcon_api_target_cid
+
+- name: CrowdStrike Falcon | Set CID received from API
+  ansible.builtin.set_fact:
+    falcon_cid: "{{ falcon_api_target_cid.json.resources[0] }}"
