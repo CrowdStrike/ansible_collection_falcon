@@ -31,7 +31,7 @@ collections:
 ```
 
 #### Example Playbook
-Install and configure the CS Falcon Sensor at version N-2:
+Install and configure the CrowdStrike Falcon Sensor at version N-2:
 ```yaml
 - hosts: all
   vars:
