@@ -20,7 +20,6 @@ Role Variables
  * `falcon_app` - Falcon Proxy port (int, default: null)
  * `falcon_trace` - Configure additional traces for debugging (string, default: null)
  * `falcon_feature` - Configures additional features to the sensor (list, default: null)
- * `falcon_metadata_query` - Enables additional sensor support in cloud environments (string, default: null)
  * `falcon_message_log` - Enables|Disables message logs (string, default: null)
  * `falcon_billing` - Configure Falcon sensor with Pay-As-You-Go billing (string, default: null)
  * `falcon_tags` - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts (string, default: null)
@@ -39,7 +38,6 @@ Role Variables
 | falcon_app                | S/D   |
 | falcon_trace              | S/D   |
 | falcon_feature            | S     |
-| falcon_metadata_query     | S     |
 | falcon_message_log        | S     |
 | falcon_billing            | S/D   |
 | falcon_tags               | S/D   |
@@ -89,7 +87,6 @@ This example shows how to set some of the other options:
   - role: crowdstrike.falcon.falcon_configure
     vars:
       falcon_tags: 'falcon,example,tags'
-      falcon_metadata_query: 'enableAWS,disableGCP'
       falcon_billing: 'metered'
       falcon_message_log: yes
 ```
