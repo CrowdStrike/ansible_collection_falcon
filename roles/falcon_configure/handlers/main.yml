@@ -3,5 +3,6 @@
   - name: CrowdStrike Falcon | Restart Falcon Sensor
     ansible.builtin.service:
       name: falcon-sensor
-      state: restarted
+      state: "{{ falcon_service_state | default('restarted') }}"
+      enabled: yes
     when: info.falconctl_info.cid
