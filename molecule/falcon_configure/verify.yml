@@ -15,24 +15,30 @@
         - info.falconctl_info.cid
         - info.falconctl_info.billing
         - info.falconctl_info.tags
-        - info.falconctl_info.metadata_query
         - info.falconctl_info.message_log
         - not info.falconctl_info.apd
         - not info.falconctl_info.aph
         - not info.falconctl_info.app
         - not info.falconctl_info.trace
 
-  - name: Test removing AID
-    crowdstrike.falcon.falconctl:
-      aid: yes
-      state: absent
+  - name: Test Deleting Options
+    ansible.builtin.include_role:
+      name: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_option_set: no
+      falcon_remove_aid: yes
+      falcon_cid: ""
+      falcon_tags: ""
+      falcon_billing: ""
 
-  - name: Get AID Falcon Sensor Option
+  - name: Get Updated Falcon Sensor Option
     crowdstrike.falcon.falconctl_info:
-      name: 'aid'
-    register: aid
+    register: delete
 
   - name: Verify AID Falcon Sensor options is not set
     ansible.builtin.assert:
       that:
-        - not aid.falconctl_info.aid
+        - not delete.falconctl_info.aid
+        - not delete.falconctl_info.cid
+        - not delete.falconctl_info.tags
+        - not delete.falconctl_info.billing

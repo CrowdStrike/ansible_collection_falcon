@@ -43,24 +43,15 @@ falcon_app:
 falcon_trace:
 
 # Falcon allows the configuration of additional features to the sensor. Valid values are:
-# [none,[enableLog[,disableLogBuffer[,disableOsfm[,emulateUpdate]]]]] and are passed in as
+# [none,[enableLog[,disableLogBuffer]]] and are passed in as
 # a list.
 #
 # Example
 #   falcon_feature:
 #     - enableLog
-#     - emulateUpdate
+#     - disableLogBuffer
 #
 falcon_feature:
-
-# Falcon sensor allows additional cloud provider metadata query support. Valid values are:
-# [[dis|en]able|[dis|en]ableAWS[,[dis|en]ableAzure[,[dis|en]ableGCP]]].
-#
-# Example(s)
-#   falcon_metadata_query: 'enable'
-#   falcon_metadata_query: 'enableAWS,disableAzure,enableGCP'
-#
-falcon_metadata_query:
 
 # Whether to enable or disable the ability to log messages to disk. Set this value to either
 # 'true|yes' or 'false|no'.
