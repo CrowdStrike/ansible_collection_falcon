@@ -7,6 +7,13 @@
     - falcon_remove_aid
 
 - block:
+    - ansible.builtin.include_tasks: api.yml
+      # noqa unnamed-task 502
+  when:
+    - falcon_client_id and falcon_client_secret
+    - not falcon_cid
+
+- block:
     - ansible.builtin.include_tasks: configure.yml
       # noqa unnamed-task 502
   when:

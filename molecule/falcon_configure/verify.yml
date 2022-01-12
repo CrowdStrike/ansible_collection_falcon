@@ -33,12 +33,28 @@
 
   - name: Get Updated Falcon Sensor Option
     crowdstrike.falcon.falconctl_info:
-    register: delete
+    register: delete_info
 
   - name: Verify AID Falcon Sensor options is not set
     ansible.builtin.assert:
       that:
-        - not delete.falconctl_info.aid
-        - not delete.falconctl_info.cid
-        - not delete.falconctl_info.tags
-        - not delete.falconctl_info.billing
+        - not delete_info.falconctl_info.aid
+        - not delete_info.falconctl_info.cid
+        - not delete_info.falconctl_info.tags
+        - not delete_info.falconctl_info.billing
+
+  - name: Test auto-detecting CID
+    ansible.builtin.include_role:
+      name: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+      falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
+
+  - name: Get CID Option
+    crowdstrike.falcon.falconctl_info:
+      name: 'cid'
+    register: autodetect_info
+
+  - name: Verify CID was configured
+    ansible.builtin.assert:
+      that: autodetect_info.falconctl_info.cid

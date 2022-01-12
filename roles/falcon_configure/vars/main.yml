@@ -1,2 +1,3 @@
 ---
 # vars file for falcon_configure
+falcon_cloud: "api.crowdstrike.com"

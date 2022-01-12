@@ -6,6 +6,14 @@ falcon_option_set: yes
 #
 falcon_cid:
 
+# 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
+# API. If unknown, get it from the CrowdStrike support portal:
+#
+#   https://falcon.crowdstrike.com/support/api-clients-and-keys
+#
+falcon_client_id:
+falcon_client_secret:
+
 # Installation tokens prevent unauthorized hosts from being accidentally or maliciously added
 # to your Customer ID (CID). Installation tokens are an optional security
 # measure for your CID. For more details:

@@ -1,6 +1,10 @@
 ---
 - hosts: localhost
   remote_user: root
+  vars:
+    falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+    falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
   roles:
-    - crowdstrike.falcon.falcon_install
-    - crowdstrike.falcon.falcon_uninstall
+    - role: crowdstrike.falcon.falcon_install
+    - role: crowdstrike.falcon.falcon_configure
+    - role: crowdstrike.falcon.falcon_uninstall
