@@ -121,3 +121,9 @@
     - ansible_system == "Darwin"
     - falcon_path is defined
   register: falcon_already_installed
+
+- name: CrowdStrike Falcon | Set service state for Primary Images
+  ansible.builtin.set_fact:
+    falcon_service_state: stopped
+  when:
+    - falcon_remove_agent_id

@@ -42,9 +42,4 @@
       - falcon_cid
       - not falcon_provisioning_token
 
-  - name: CrowdStrike Falcon | Starting Falcon Sensor (macOS)
-    ansible.builtin.command: "launchctl {{ falcon_service_state | default('start') }} com.crowdstrike.falcond"
-    when:
-      - falcon_cid
-
   when: ansible_distribution == "MacOSX"

@@ -51,7 +51,7 @@ tags:
 # L(specifiers,https://python-semanticversion.readthedocs.io/en/latest/#requirement-specification). Multiple version
 # range specifiers can be set and are separated by ','
 dependencies:
-  "ansible.windows": ">=1.7.2"
+  "ansible.windows": ">=1.4.0"
 
 # The URL of the originating SCM repository
 repository: https://github.com/CrowdStrike/ansible_collection_crowdstrike

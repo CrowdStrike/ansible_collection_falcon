@@ -16,6 +16,15 @@ falcon_install_method: api
 #
 falcon_gpg_key_check: yes
 
+# Falcon requires that a master image remove the Falcon Agent ID (AID). This
+# ensures instances spun up from the master receive their own, unique,
+# Falcon Agent ID.
+#
+# If installing this role on a base AMI or master image, set this flag
+# to 'true'.
+#
+falcon_remove_agent_id: false
+
 # CrowdStrike API URL for downloading the Falcon sensor. Possible values:
 #       us-1:       api.crowdstrike.com
 #       us-2:       api.us-2.crowdstrike.com
