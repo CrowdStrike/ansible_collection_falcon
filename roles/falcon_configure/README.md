@@ -12,7 +12,9 @@ Role Variables
 --------------
 
  * `falcon_option_set` - Set True|yes to set options, False|no to delete. *See note below (bool, default: true)
- * `falcon_cid` - Your Falcon Customer ID (CID) (string, default: null)
+ * `falcon_client_id` - CrowdStrike API OAUTH Client ID (string, default: null)
+ * `falcon_client_secret` - CrowdStrike API OAUTH Client Secret (string, default: null)
+ * `falcon_cid` - Your Falcon Customer ID (CID) if not using API creds (string, default: null)
  * `falcon_provisioning_token` - Falcon Installation Token (string, default: null)
  * `falcon_remove_aid` - Remove the Falcon Agent ID (AID) (bool, default: null)
  * `falcon_apd` - Whether to enable or disable the Falcon sensor to use a proxy (string, default: null)
@@ -46,17 +48,28 @@ Dependencies
 ------------
 
 - Privilege escalation (sudo) is required for this role to function properly.
+- Falcon Sensor must be installed
 
 Example Playbook
 ----------------
 
-How to set the Falcon Customer ID (CID):
+How to set the Falcon Customer ID (CID) when CID is known:
 ```yaml
 - hosts: all
   roles:
   - role: crowdstrike.falcon.falcon_configure
     vars:
       falcon_cid: 1234567890ABCDEF1234567890ABCDEF-12
+```
+
+How to set the Falcon Customer ID (CID) using API creds:
+```yaml
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_client_id: <Falcon_UI_OAUTH_client_id>
+      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
 ```
 
 How to set the Falcon Customer ID (CID) w/ provisioning token:
