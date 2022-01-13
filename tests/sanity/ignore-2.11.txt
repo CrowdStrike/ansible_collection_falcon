@@ -1,0 +1,6 @@
+plugins/modules/falconctl.py compile-2.6!skip
+plugins/modules/falconctl_info.py compile-2.6!skip
+plugins/module_utils/falconctl_utils.py compile-2.6!skip
+plugins/modules/falconctl.py import-2.6!skip
+plugins/modules/falconctl_info.py import-2.6!skip
+plugins/module_utils/falconctl_utils.py import-2.6!skip
