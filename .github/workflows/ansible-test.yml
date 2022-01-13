@@ -49,4 +49,4 @@ jobs:
         run: >-
           cd $HOME/.ansible/collections/ansible_collections/crowdstrike/falcon/ &&
           ansible --version &&
-          ansible-test sanity
+          ansible-test sanity --docker -v

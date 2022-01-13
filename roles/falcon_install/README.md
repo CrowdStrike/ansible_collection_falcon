@@ -6,7 +6,7 @@ This role will install the CrowdStrike Falcon Sensor.
 Requirements
 ------------
 
-Ansible 2.10 or higher
+Ansible 2.11 or higher
 
 Role Variables
 --------------
