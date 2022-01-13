@@ -22,10 +22,9 @@ jobs:
         run: |
           ansible-galaxy collection build
           ansible-galaxy collection publish *.tar.gz --api-key ${{ secrets.GALAXY_API_KEY }}
-      - name: Release artifacts to Git Hub
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: ./crowdstrike-falcon*.tar.gz
-          allowUpdates: true
-          name: ${{ github.event.release.tag_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release artifacts to GitHub
+        run: |
+          gh release upload $TAG ./crowdstrike-falcon*.tar.gz
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
