@@ -29,6 +29,13 @@ falcon_cloud: "api.crowdstrike.com"
 #
 falcon_cloud_autodiscover: true
 
+# Your Falcon Customer ID (CID) used to associate your sensor.
+#
+# Note: This variable for the falcon_install role only affects and
+#       applies to Windows installations.
+#
+falcon_cid:
+
 # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
 # API. If unknown, download from the CrowdStrike support portal:
 #

@@ -17,6 +17,7 @@ The following variables are currently supported:
  * `falcon_gpg_key` - Location of the Falcon GPG Key file (string, default: null)
  * `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `api.crowdstrike.com`)
  * `falcon_cloud_autodiscover` - Auto-discover CrowdStrike API Cloud region (bool, default: true)
+ * `falcon_cid` - Manually specify CrowdStrike Customer ID for Windows installations (string, default: null)
  * `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: null)
  * `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: null)
  * `falcon_sensor_version_decrement` - Sensor N-x version to install (int, default: 0 [latest])

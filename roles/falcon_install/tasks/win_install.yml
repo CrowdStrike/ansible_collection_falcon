@@ -13,9 +13,14 @@
     delay: "{{ falcon_windows_install_delay }}"
     until: falcon_installed is success
 
+  - name: CrowdStrike Falcon | Expand tmp install directory objects path (Windows)
+    ansible.windows.win_stat:
+      path: "{{ falcon_windows_tmp_dir }}"
+    register: falcon_windows_expanded_path
+
   - name: CrowdStrike Falcon | Gather tmp install directory objects (Windows)
-    ansible.builtin.find:
-      paths: "{{ falcon_windows_tmp_dir }}"
+    ansible.windows.win_find:
+      paths: "{{ falcon_windows_expanded_path }}"
       patterns: "ansible.*falcon"
       file_type: directory
     register: falcon_tmp_dir_objects
