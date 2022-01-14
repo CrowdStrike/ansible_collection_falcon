@@ -17,6 +17,9 @@ jobs:
   ansible-test:
     if: ${{ github.event.label.name == 'ok-to-test' }}
     runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10']
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
@@ -32,6 +35,8 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
@@ -49,4 +54,4 @@ jobs:
         run: >-
           cd $HOME/.ansible/collections/ansible_collections/crowdstrike/falcon/ &&
           ansible --version &&
-          ansible-test sanity --docker -v
+          ansible-test sanity --python ${{ matrix.python-version }}
