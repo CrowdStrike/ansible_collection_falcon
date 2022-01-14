@@ -7,44 +7,30 @@ on:
       - 'plugins/**'
       - '.github/workflows/ansible-test.yml'
 
-  pull_request_target:
-    types: [ labeled ]
+  pull_request:
     paths:
       - 'plugins/**'
       - '.github/workflows/ansible-test.yml'
 
 jobs:
   ansible-test:
-    if: ${{ github.event.label.name == 'ok-to-test' }}
     runs-on: ubuntu-18.04
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9', '3.10']
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
-      FALCON_CLIENT_ID: ${{ secrets.FALCON_CLIENT_ID }}
-      FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
 
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-        with:
-          ref: ${{github.event.pull_request.head.ref}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
 
       - name: Set up Python
         uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
           sudo apt-get install -y libyaml-dev python3-venv
           python -m pip install --upgrade pip
-          pip install ansible yamllint jinja2 pylint pyyaml voluptuous pycodestyle six
-          curl -L https://raw.githubusercontent.com/crowdstrike/falcon-linux-install-bash/main/falcon-linux-deploy.sh | sudo -E bash
+          pip install ansible yamllint jinja2 pylint pyyaml voluptuous
 
       - name: Build/Install the Collection
         run: |
@@ -55,4 +41,4 @@ jobs:
         run: >-
           cd $HOME/.ansible/collections/ansible_collections/crowdstrike/falcon/ &&
           ansible --version &&
-          ansible-test sanity --python ${{ matrix.python-version }}
+          ansible-test sanity --docker -v
