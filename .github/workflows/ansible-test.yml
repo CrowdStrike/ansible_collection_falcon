@@ -43,7 +43,7 @@ jobs:
         run: |
           sudo apt-get install -y libyaml-dev python3-venv
           python -m pip install --upgrade pip
-          pip install ansible yamllint jinja2 pylint pyyaml voluptuous pycodestyle
+          pip install ansible yamllint jinja2 pylint pyyaml voluptuous pycodestyle six
           curl -L https://raw.githubusercontent.com/crowdstrike/falcon-linux-install-bash/main/falcon-linux-deploy.sh | sudo -E bash
 
       - name: Build/Install the Collection
