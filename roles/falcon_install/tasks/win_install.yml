@@ -20,7 +20,7 @@
 
   - name: CrowdStrike Falcon | Gather tmp install directory objects (Windows)
     ansible.windows.win_find:
-      paths: "{{ falcon_windows_expanded_path }}"
+      paths: "{{ falcon_windows_expanded_path.stat.path }}"
       patterns: "ansible.*falcon"
       file_type: directory
     register: falcon_tmp_dir_objects
