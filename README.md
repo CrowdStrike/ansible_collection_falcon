@@ -6,7 +6,7 @@
 
 # Ansible Collection - crowdstrike.falcon
 
-This collection is focused on downloading, installing, and removing CrowdStrike's Falcon sensor on macOS, Linux, and Windows.
+This collection is focused on installing, configuring, and removing CrowdStrike's Falcon sensor on macOS, Linux, and Windows.
 
 ## Included content
 ### Roles
@@ -21,7 +21,7 @@ This collection is focused on downloading, installing, and removing CrowdStrike'
 ## Using this collection
 Before using the collection, you need to install the collection with the `ansible-galaxy` CLI:
 
-```
+```bash
 ansible-galaxy collection install crowdstrike.falcon
 ```
 
@@ -30,6 +30,17 @@ You can also include it in a `requirements.yml` file and install it via `ansible
 ```yaml
 collections:
   - crowdstrike.falcon
+```
+
+**Note** that if you install the collection from Ansible Galaxy, it will not be upgraded automatically when you upgrade the `ansible` package. To upgrade the collection to the latest available version, run the following command:
+```bash
+ansible-galaxy collection install crowdstrike.falcon --upgrade
+```
+
+You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version `0.1.0`:
+
+```bash
+ansible-galaxy collection install crowdstrike.falcon:==0.1.0
 ```
 
 #### Example Playbook
