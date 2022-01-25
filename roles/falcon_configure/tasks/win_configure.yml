@@ -5,7 +5,7 @@
       state: "{{ falcon_service_state | default('started') }}"
       start_mode: auto
     when:
-      - falcon_cid is defined
+      - falcon_cid
 
   - name: CrowdStrike Falcon Installer | Remove any AID Key
     ansible.windows.win_regedit:

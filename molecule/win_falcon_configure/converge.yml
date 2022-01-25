@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: crowdstrike.falcon.falcon_configure
+      vars:
+        falcon_cid: "{{ lookup('env', 'FALCON_CID') }}"
