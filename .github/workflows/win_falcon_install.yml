@@ -13,7 +13,9 @@ on:
       - '.github/workflows/win_falcon_install.yml'
 jobs:
   molecule:
-    if: ${{ github.event.label.name == 'ok-to-test' }}
+    if: |
+      github.event_name == 'push' ||
+      github.event.label.name == 'ok-to-test'
     runs-on: macos-10.15
     env:
       PY_COLORS: 1
