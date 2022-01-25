@@ -1,0 +1,23 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+  - name: Test Deleting Options
+    ansible.builtin.include_role:
+      name: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_remove_aid: yes
+
+  - name: Obtain registry settings associated with AID
+    ansible.windows.win_reg_stat:
+      path: "{{ item }}"
+    register: aid_info
+    loop:
+      - HKLM:\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\{16e0423f-7058-48c9-a204-725362b67639}\Default\AG
+      - HKLM:\SYSTEM\CurrentControlSet\Services\CSAgent\Sim\AG
+
+  - name: Verify AID keys do not exist
+    ansible.builtin.assert:
+      that:
+        - not item.exists
+    loop: "{{ aid_info.results }}"

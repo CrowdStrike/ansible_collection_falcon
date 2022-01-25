@@ -1,0 +1,10 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: Install Falcon Sensor
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_install
+      vars:
+        falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+        falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
