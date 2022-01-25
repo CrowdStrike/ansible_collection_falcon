@@ -40,6 +40,14 @@ jobs:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
 
+      - name: Cache Vagrant boxes
+        uses: actions/cache@v2
+        with:
+          path: ~/.vagrant.d/boxes
+          key: ${{ runner.os }}-vagrant-${{ hashFiles('molecule/win*/molecule.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-vagrant-
+
       - name: Set up Python
         uses: actions/setup-python@v2
 
