@@ -40,6 +40,12 @@ jobs:
           ref: ${{github.event.pull_request.head.ref}}
           repository: ${{github.event.pull_request.head.repo.full_name}}
 
+      - name: Cache Vagrant boxes
+        uses: actions/cache@v2
+        with:
+          path: ~/.vagrant.d/boxes/jborean93-VAGRANTSLASH-${{ matrix.molecule_distro.distro }}
+          key: ${{ runner.os }}-${{ matrix.molecule_distro.distro }}-${{ matrix.collection_role }}-${{ hashFiles('molecule/win_falcon_uninstall/molecule.yml') }}
+
       - name: Set up Python
         uses: actions/setup-python@v2
 
