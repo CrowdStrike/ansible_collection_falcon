@@ -8,15 +8,17 @@
 
 This collection is focused on installing, configuring, and removing CrowdStrike's Falcon sensor on macOS, Linux, and Windows.
 
+## Ansible version compatibility
+This collection has been tested against and supports the following Ansible versions: **>=2.11**
+
 ## Included content
 ### Roles
 
-| Role Name | Documentation |
-| --------- | :-----------: |
-| crowdstrike.falcon.falcon_install | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_install/README.md) |
-| crowdstrike.falcon.falcon_configure | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_configure/README.md) |
-| crowdstrike.falcon.falcon_uninstall | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_uninstall/README.md) |
-
+| Role Name | Documentation | Linux Status | Windows Status |
+| --------- | :-----------: | ------------ | -------------- |
+| crowdstrike.falcon.falcon_install | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_install/README.md) | ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/CrowdStrike/ansible_collection_falcon/crowdstrike.falcon.falcon_install) | ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/CrowdStrike/ansible_collection_falcon/(Windows)%20crowdstrike.falcon.falcon_install)
+| crowdstrike.falcon.falcon_configure | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_configure/README.md) | ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/CrowdStrike/ansible_collection_falcon/crowdstrike.falcon.falcon_configure) | ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/CrowdStrike/ansible_collection_falcon/(Windows)%20crowdstrike.falcon.falcon_configure)
+| crowdstrike.falcon.falcon_uninstall | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_uninstall/README.md) | ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/CrowdStrike/ansible_collection_falcon/crowdstrike.falcon.falcon_uninstall) | ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/CrowdStrike/ansible_collection_falcon/(Windows)%20crowdstrike.falcon.falcon_uninstall)
 
 ## Using this collection
 Before using the collection, you need to install the collection with the `ansible-galaxy` CLI:
