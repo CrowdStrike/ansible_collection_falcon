@@ -1,4 +1,4 @@
-name: "crowdstrike.falcon.falcon_uninstall"
+name: "falcon_uninstall"
 on:
   push:
     paths:

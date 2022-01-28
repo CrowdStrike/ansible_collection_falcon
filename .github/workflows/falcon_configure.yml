@@ -1,4 +1,4 @@
-name: "crowdstrike.falcon.falcon_configure"
+name: "falcon_configure"
 on:
   push:
     paths:
