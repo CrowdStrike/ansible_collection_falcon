@@ -6,3 +6,4 @@
       state: "{{ falcon_service_state | default('restarted') }}"
       enabled: yes
     when: info.falconctl_info.cid
+    become: yes
