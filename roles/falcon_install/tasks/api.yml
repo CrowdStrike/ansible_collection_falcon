@@ -12,6 +12,7 @@
     headers:
       content-type: application/x-www-form-urlencoded
   register: falcon_api_oauth2_token
+  no_log: yes
 
 - name: CrowdStrike Falcon | Auto-discover CrowdStrike Cloud Region
   ansible.builtin.set_fact:
@@ -39,6 +40,7 @@
         authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
         Content-Type: application/json
     register: falcon_sensor_update_policy_info
+    no_log: yes
 
   - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
     ansible.builtin.fail:
@@ -82,6 +84,7 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
       Content-Type: application/json
   register: falcon_api_installer_list
+  no_log: yes
 
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package
   ansible.builtin.get_url:
@@ -92,6 +95,7 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
   changed_when: false
   register: falcon_sensor_download
+  no_log: yes
 
 - name: CrowdStrike Falcon | Set full file download path
   ansible.builtin.set_fact:
