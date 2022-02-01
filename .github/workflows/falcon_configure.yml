@@ -30,7 +30,7 @@ jobs:
       matrix:
         molecule_distro:
           - { "distro":"centos7" }
-          - { "distro":"centos8" }
+          - { "distro":"rockylinux8" }
           - { "distro":"amazonlinux2" }
           - { "distro":"ubuntu2004" }
           - { "distro":"debian10" }
