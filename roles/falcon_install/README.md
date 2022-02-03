@@ -13,6 +13,7 @@ Role Variables
 
 The following variables are currently supported:
 
+ * `falcon_api_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls. (bool, default: true)
  * `falcon_install_method` - The installation method for installing the sensor (string, default: api)
  * `falcon_gpg_key` - Location of the Falcon GPG Key file (string, default: null)
  * `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `api.crowdstrike.com`)

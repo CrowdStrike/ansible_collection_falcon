@@ -1,6 +1,14 @@
 ---
 # defaults file for falcon_install
 
+# Whether to enable or disable the logging of sensitive data being exposed in API calls.
+# The default is yes|true.
+#
+# Setting this to no|false can expose your falcon_client_secret and bearer token when
+# verbosity is turned up.
+#
+falcon_api_no_log: yes
+
 # This installer is capable of three different installation
 # methods:
 #
