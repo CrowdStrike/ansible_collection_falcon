@@ -62,4 +62,4 @@ jobs:
           molecule --version &&
           ansible --version &&
           MOLECULE_DISTRO=${{ matrix.molecule_distro.distro }}
-          molecule --debug test -s ${{ matrix.collection_role }} -- -v
+          molecule --debug test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"

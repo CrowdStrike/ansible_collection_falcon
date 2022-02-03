@@ -2,15 +2,14 @@
 # defaults file for falcon_configure
 
 # Whether to enable or disable the logging of sensitive data being exposed in API calls.
-# The default is `yes`.
+# By default, this is enabled.
 #
-# Setting this to `no` can expose your falcon_client_secret and bearer token when
-# verbosity is turned up.
+# Disabling this can expose your API credentials and authorization token.
 #
-falcon_api_no_log: yes
+falcon_api_enable_no_log: yes
 
 # Controls whether you would like to set or delete options associated with the Falcon Sensor.
-# The default is `yes` to set options.
+# The default is `yes` - to SET options.
 falcon_option_set: yes
 
 # Your Falcon Customer ID (CID) used to associate your sensor.

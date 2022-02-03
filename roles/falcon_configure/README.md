@@ -11,7 +11,7 @@ Ansible 2.11 or higher
 Role Variables
 --------------
 
- * `falcon_api_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls. (bool, default: true)
+ * `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls. (bool, default: true)
  * `falcon_option_set` - Set True|yes to set options, False|no to delete. *See note below (bool, default: true)
  * `falcon_client_id` - CrowdStrike API OAUTH Client ID (string, default: null)
  * `falcon_client_secret` - CrowdStrike API OAUTH Client Secret (string, default: null)

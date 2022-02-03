@@ -2,12 +2,19 @@
 # defaults file for falcon_install
 
 # Whether to enable or disable the logging of sensitive data being exposed in API calls.
-# The default is yes|true.
+# By default, this is enabled.
 #
-# Setting this to no|false can expose your falcon_client_secret and bearer token when
-# verbosity is turned up.
+# Disabling this can expose your API credentials and authorization token.
 #
-falcon_api_no_log: yes
+falcon_api_enable_no_log: yes
+
+# Whether or not to ignore errors associated with unsupported Falcon Sensor Kernel
+# configurations.
+#
+# By default, this is disabled - which will fail the play when the Falcon Sensor and Kernel
+# are unsupported.
+#
+falcon_skip_kernel_compat_check: no
 
 # This installer is capable of three different installation
 # methods:
