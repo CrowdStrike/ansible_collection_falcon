@@ -30,8 +30,8 @@ jobs:
       fail-fast: false
       matrix:
         molecule_distro:
-          - { "distro":"WindowsServer2012R2" }
-          - { "distro":"WindowsServer2016" }
+          # - { "distro":"WindowsServer2012R2" }
+          # - { "distro":"WindowsServer2016" }
           - { "distro":"WindowsServer2019" }
         collection_role:
           - falcon_configure
