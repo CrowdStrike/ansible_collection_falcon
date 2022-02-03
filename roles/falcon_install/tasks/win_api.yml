@@ -10,7 +10,7 @@
     headers:
       content-type: "application/x-www-form-urlencoded; charset=utf-8"
   register: falcon_api_oauth2_token
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
 
 - name: CrowdStrike Falcon | Configure discovered CrowdStrike Cloud Region
   ansible.builtin.set_fact:
@@ -29,7 +29,7 @@
     headers:
       content-type: "application/x-www-form-urlencoded; charset=utf-8"
   register: falcon_api_oauth2_token
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
   when:
     - falcon_cloud_autodiscover
 
@@ -42,7 +42,7 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
       Content-Type: application/json
   register: falcon_api_target_cid
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
 
 # Block when falcon_sensor_update_policy_name is supplied
 - block:
@@ -63,7 +63,7 @@
         authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
         Content-Type: application/json
     register: falcon_sensor_update_policy_info
-    no_log: yes
+    no_log: "{{ falcon_api_enable_no_log }}"
 
   - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
     ansible.builtin.fail:
@@ -94,7 +94,7 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
       Content-Type: application/json
   register: falcon_api_installer_list
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
 
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package
   ansible.windows.win_get_url:
@@ -106,7 +106,7 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
   changed_when: false
   register: falcon_sensor_download
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
 
 - name: CrowdStrike Falcon | Set CID received from API
   ansible.builtin.set_fact:

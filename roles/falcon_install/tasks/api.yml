@@ -12,7 +12,7 @@
     headers:
       content-type: application/x-www-form-urlencoded
   register: falcon_api_oauth2_token
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
 
 - name: CrowdStrike Falcon | Auto-discover CrowdStrike Cloud Region
   ansible.builtin.set_fact:
@@ -40,7 +40,7 @@
         authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
         Content-Type: application/json
     register: falcon_sensor_update_policy_info
-    no_log: yes
+    no_log: "{{ falcon_api_enable_no_log }}"
 
   - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
     ansible.builtin.fail:
@@ -84,7 +84,41 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
       Content-Type: application/json
   register: falcon_api_installer_list
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
+
+# Block for checking sensor/kernel compatibility
+- block:
+  - name: CrowdStrike Falcon | Build Sensor Update Kernels API Query
+    ansible.builtin.set_fact:
+      falcon_sensor_update_kernels_query: "{{ 'vendor:\"' + falcon_os_vendor + '\"+distro_version:\"' + ansible_distribution_version + '\"+release:\"' + ansible_kernel + '\"' }}"
+
+  - name: CrowdStrike Falcon | Get list of Supported Kernels
+    ansible.builtin.uri:
+      url: "https://{{ falcon_cloud }}/policy/combined/sensor-update-kernels/v1?filter={{ falcon_sensor_update_kernels_query | urlencode }}"
+      method: GET
+      return_content: true
+      headers:
+        authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
+        Content-Type: application/json
+    register: falcon_sensor_update_kernels_list
+    no_log: "{{ falcon_api_enable_no_log }}"
+
+  - name: CrowdStrike Falcon | Validate Kernel is Supported
+    ansible.builtin.assert:
+      that: falcon_sensor_update_kernels_list.json.resources
+      fail_msg: "The kernel version: {{ ansible_kernel }} is not supported by the Falcon Sensor!"
+    ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
+
+  - name: CrowdStrike Falcon | Validate Sensor version is compatible with Kernel
+    ansible.builtin.assert:
+      that: falcon_sensor_version in falcon_base_package_supported_sensor_versions
+      fail_msg: "The sensor version: {{ falcon_sensor_version }} is not supported with kernel: {{ ansible_kernel }}"
+    vars:
+      falcon_sensor_version: "{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].version }}"
+      falcon_base_package_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].base_package_supported_sensor_versions }}"
+    when: falcon_sensor_update_kernels_list.json.resources
+    ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
+  when: ansible_system == "Linux"
 
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package
   ansible.builtin.get_url:
@@ -95,7 +129,7 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
   changed_when: false
   register: falcon_sensor_download
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
 
 - name: CrowdStrike Falcon | Set full file download path
   ansible.builtin.set_fact:

@@ -11,7 +11,7 @@
     headers:
       content-type: application/x-www-form-urlencoded
   register: falcon_api_oauth2_token
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
 
 - name: CrowdStrike Falcon | Detect Target CID Based on Credentials
   ansible.builtin.uri:
@@ -22,7 +22,7 @@
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
       Content-Type: application/json
   register: falcon_api_target_cid
-  no_log: yes
+  no_log: "{{ falcon_api_enable_no_log }}"
 
 - name: CrowdStrike Falcon | Set CID received from API
   ansible.builtin.set_fact:
