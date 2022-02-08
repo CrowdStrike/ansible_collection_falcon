@@ -28,7 +28,9 @@ FALCONCTL_GET_OPTIONS = [
     'billing',
     'tags',
     # 'provisioning_token', # Taking it out since this does not seem to be a perm option
-    'version'
+    'version',
+    'rfm_state',
+    'rfm_reason'
 ]
 
 # Private use only. This is to ensure that the command is checked
@@ -70,6 +72,8 @@ def format_stdout(stdout):
     # Expect stdout in <option>=<value>
     if 'version' in stdout:
         output = re.sub(r"[\"\s\n]|\(.*\)", "", stdout).split("=")[1]
+    elif 'rfm-reason' in stdout:
+        output = re.sub(r"^rfm-reason=|[\"\s\n\.]|\(.*\)", "", stdout)
     else:
         output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]
     return output if output else None
