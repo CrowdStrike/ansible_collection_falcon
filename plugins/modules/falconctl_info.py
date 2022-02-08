@@ -37,7 +37,9 @@ options:
         'message_log',
         'billing',
         'tags',
-        'version'
+        'version',
+        'rfm_state',
+        'rfm_reason'
         ]
     type: list
     elements: str
