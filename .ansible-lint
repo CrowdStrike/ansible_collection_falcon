@@ -6,6 +6,7 @@ enable_list:
 
 skip_list:
   - '204'
+  - 'ignore-errors'
 
 warn_list:
   - experimental
