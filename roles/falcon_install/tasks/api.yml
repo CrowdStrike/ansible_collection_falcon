@@ -90,7 +90,7 @@
 - block:
   - name: CrowdStrike Falcon | Build Sensor Update Kernels API Query
     ansible.builtin.set_fact:
-      falcon_sensor_update_kernels_query: "{{ 'vendor:\"' + falcon_os_vendor + '\"+distro_version:\"' + ansible_distribution_version + '\"+release:\"' + ansible_kernel + '\"' }}"
+      falcon_sensor_update_kernels_query: "{{ 'vendor:\"' + falcon_os_vendor + '\"+release:\"' + ansible_kernel + '\"' }}"
 
   - name: CrowdStrike Falcon | Get list of Supported Kernels
     ansible.builtin.uri:
