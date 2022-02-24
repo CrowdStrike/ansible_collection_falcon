@@ -1,18 +1,12 @@
 {
 	"name": "Ansible",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"args": {
-			"INSTALL_AZURE_CLI": "false",
-			"INSTALL_DOCKER": "true",
-			"NODE_VERSION": "none"
-		}
-	},
-	"runArgs": ["--init"],
+	"dockerFile": "Dockerfile",
+	"runArgs": ["--init", "--privileged"],
 	"mounts": [
 		// [Optional] Anisble Collections: Uncomment if you want to mount your local .ansible/collections folder.
-		"source=${localEnv:PWD},target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon,type=bind,consistency=cached",
-		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
+		// "source=${localEnv:PWD},target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon,type=bind,consistency=cached",
+		// "target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon/.devcontainer,type=volume",
+		"source=dind-var-lib-docker,target=/var/lib/docker,type=volume"
 	],
 	"overrideCommand": false,
 
@@ -50,7 +44,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "ansible --version",
+	// "postCreateCommand": "",
 
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode"

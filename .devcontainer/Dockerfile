@@ -1,35 +1,41 @@
-# You can pick any Debian/Ubuntu-based image. 😊
-FROM mcr.microsoft.com/vscode/devcontainers/base:bullseye
-
-COPY library-scripts/*.sh /tmp/library-scripts/
+# Note: You can use any Debian/Ubuntu based image you want.
+FROM mcr.microsoft.com/vscode/devcontainers/base:buster
 
 # [Option] Install zsh
 ARG INSTALL_ZSH="true"
 # [Option] Upgrade OS packages to their latest versions
 ARG UPGRADE_PACKAGES="false"
+# [Option] Enable non-root Docker access in container
+ARG ENABLE_NONROOT_DOCKER="true"
+# [Option] Use the OSS Moby Engine instead of the licensed Docker Engine
+ARG USE_MOBY="true"
+# [Option] Engine/CLI Version
+ARG DOCKER_VERSION="latest"
 
-# Install needed packages and setup non-root user. Use a separate RUN statement to add your own dependencies.
-ARG USERNAME=vscode
+# Enable new "BUILDKIT" mode for Docker CLI
+ENV DOCKER_BUILDKIT=1
+
+# Install needed packages and setup non-root user. Use a separate RUN statement to add your
+# own dependencies. A user of "automatic" attempts to reuse an user ID if one already exists.
+ARG USERNAME=automatic
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && bash /tmp/library-scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
+COPY library-scripts/*.sh /tmp/library-scripts/
+RUN apt-get update \
+    && /bin/bash /tmp/library-scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
+    # Use Docker script from script library to set things up
+    && /bin/bash /tmp/library-scripts/docker-in-docker-debian.sh "${ENABLE_NONROOT_DOCKER}" "${USERNAME}" "${USE_MOBY}" "${DOCKER_VERSION}" \
     && apt-get install -y libssl-dev libffi-dev python3-dev python3-pip \
-    && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+    # Clean up
+    && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts/
 
-# Install Ansible
 RUN pip3 install ansible ansible-lint "molecule[docker,lint,ansible]"
 
-# [Option] Install Docker CLI
-ARG INSTALL_DOCKER="true"
+VOLUME [ "/var/lib/docker" ]
 
-RUN if [ "${INSTALL_DOCKER}" = "true" ]; then \
-        bash /tmp/library-scripts/docker-debian.sh "true" "/var/run/docker-host.sock" "/var/run/docker.sock" "${USERNAME}"; \
-    else \
-        echo '#!/bin/bash\n"$@"' > /usr/local/share/docker-init.sh && chmod +x /usr/local/share/docker-init.sh; \
-    fi \
-    && rm -rf /var/lib/apt/lists/*
-
+# Setting the ENTRYPOINT to docker-init.sh will start up the Docker Engine
+# inside the container "overrideCommand": false is set in devcontainer.json.
+# The script will also execute CMD if you need to alter startup behaviors.
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
