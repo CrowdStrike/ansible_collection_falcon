@@ -1,5 +1,5 @@
 # Note: You can use any Debian/Ubuntu based image you want.
-FROM mcr.microsoft.com/vscode/devcontainers/base:buster
+FROM willhallonline/ansible:2.12.2-ubuntu-20.04
 
 # [Option] Install zsh
 ARG INSTALL_ZSH="true"
@@ -29,7 +29,7 @@ RUN apt-get update \
     # Clean up
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts/
 
-RUN pip3 install ansible ansible-lint "molecule[docker,lint,ansible]"
+RUN pip3 install ansible ansible-lint "molecule[docker,lint,ansible]" flake8 pylint
 
 VOLUME [ "/var/lib/docker" ]
 
