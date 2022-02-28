@@ -38,12 +38,22 @@ The following variables are currently supported:
 
 See [default/main.yml](default/main.yml) for more details on these variables.
 
+Falcon API Permissions
+----------------------
+
+API clients are granted one or more API scopes. Scopes allow access to specific CrowdStrike APIs and describe the actions that an API client can perform.
+
+Ensure the following API scopes are enabled (***if applicable***) for this role:
+* When `falcon_install_method` is set to **api** (default)
+  * **Sensor Download** [read]
+  * **Sensor update policies** [read]
+* When `falcon_sensor_update_policy_name` is used
+  * **Sensor update policies** [read]
+
 Dependencies
 ------------
 
 - Privilege escalation (sudo) is required for this role to function properly.
-- Make sure that scope Sensor Download [read] is enabled in the CrowdStrike API.
-- To use `falcon_sensor_update_policy_name`, make sure that scope Sensor update policies [read] is enabled in the CrowdStrike API.
 
 Example Playbooks
 ----------------
