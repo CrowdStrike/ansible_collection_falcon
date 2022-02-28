@@ -31,9 +31,6 @@ RUN apt-get update \
 
 RUN pip3 install ansible ansible-lint "molecule[docker,lint,ansible]" flake8 pylint pre-commit
 
-# Run pre-commit commands
-RUN pre-commit install && pre-commit autoupdate
-
 VOLUME [ "/var/lib/docker" ]
 
 # Setting the ENTRYPOINT to docker-init.sh will start up the Docker Engine
