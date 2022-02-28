@@ -1,0 +1,53 @@
+{
+	"name": "Ansible DinD",
+	"dockerFile": "Dockerfile",
+	"runArgs": ["--init", "--privileged"],
+	"mounts": [
+		// [Optional] Anisble Collections: Uncomment if you want to mount your local .ansible/collections folder.
+		"source=${localEnv:PWD},target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon,type=bind,consistency=cached",
+		"target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon/.devcontainer,type=volume",
+		"source=dind-var-lib-docker,target=/var/lib/docker,type=volume"
+	],
+	"overrideCommand": false,
+
+	// Set *default* container specific settings.json values on container create.
+	"settings": {
+		"files.associations": {
+		  "**/defaults/**/*": "ansible",
+		  "**/tasks/**/*.yml": "ansible",
+		  "**/handler/*.yml": "ansible",
+		  "**/*_vars/**/*.yml": "ansible",
+		  "**/roles/**/*.yml": "ansible",
+		  "**/playbooks/**/*.yml": "ansible",
+		  "**/*ansible*/**/*.yml": "ansible",
+		  "**/vars/**/*.yml": "ansible",
+		  "**/inventory/*/*": "ansible",
+		  "*.yml": "ansible"
+		},
+		"terminal.integrated.defaultProfile.linux": "zsh",
+		"[jinja-yaml]": {
+			"editor.tabSize": 2
+		},
+		"[python]": {
+			"editor.tabSize": 4
+		}
+	  },
+
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"redhat.ansible",
+		"shd101wyy.markdown-preview-enhanced",
+		"ms-python.python",
+		"redhat.vscode-yaml",
+		"ms-azuretools.vscode-docker"
+	],
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "pre-commit install && pre-commit autoupdate",
+
+	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "vscode"
+}
