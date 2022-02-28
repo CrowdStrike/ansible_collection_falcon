@@ -45,6 +45,15 @@ Role Variables
 | falcon_billing            | S/D   |
 | falcon_tags               | S/D   |
 
+Falcon API Permissions
+----------------------
+
+API clients are granted one or more API scopes. Scopes allow access to specific CrowdStrike APIs and describe the actions that an API client can perform.
+
+Ensure the following API scopes are enabled (***if applicable***) for this role:
+* When using API credentials `falcon_client_id` and `falcon_client_secret`
+  * **Sensor Download** [read]
+
 Dependencies
 ------------
 
