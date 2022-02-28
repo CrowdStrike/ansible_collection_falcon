@@ -38,7 +38,8 @@
 		"redhat.ansible",
 		"shd101wyy.markdown-preview-enhanced",
 		"ms-python.python",
-		"redhat.vscode-yaml"
+		"redhat.vscode-yaml",
+		"ms-azuretools.vscode-docker"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
