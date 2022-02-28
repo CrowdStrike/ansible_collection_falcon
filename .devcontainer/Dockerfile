@@ -29,7 +29,10 @@ RUN apt-get update \
     # Clean up
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts/
 
-RUN pip3 install ansible ansible-lint "molecule[docker,lint,ansible]" flake8 pylint
+RUN pip3 install ansible ansible-lint "molecule[docker,lint,ansible]" flake8 pylint pre-commit
+
+# Run pre-commit commands
+RUN pre-commit install && pre-commit autoupdate
 
 VOLUME [ "/var/lib/docker" ]
 
