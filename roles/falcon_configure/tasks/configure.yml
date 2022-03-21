@@ -13,7 +13,7 @@
       message_log: "{{ falcon_message_log if (falcon_message_log != None) else omit }}"
       billing: "{{ falcon_billing if (falcon_billing != None) else omit }}"
       tags: "{{ falcon_tags if (falcon_tags != None) else omit }}"
-      state: "{{ 'present' if falcon_option_set else 'absent' }}"
+      state: "{{ 'present' if falcon_option_state else 'absent' }}"
     notify: CrowdStrike Falcon | Restart Falcon Sensor
 
   - name: CrowdStrike Falcon | Register Falcon Sensor Options
