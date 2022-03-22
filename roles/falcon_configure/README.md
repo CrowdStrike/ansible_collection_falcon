@@ -120,7 +120,7 @@ Examples of deleting options:
   roles:
   - role: crowdstrike.falcon.falcon_configure
     vars:
-      falcon_option_state: no
+      falcon_option_set: no
       falcon_cid: ""
       falcon_tags: ""
 ```
@@ -131,7 +131,7 @@ Delete Agent ID to prep Master Image:
   roles:
   - role: crowdstrike.falcon.falcon_configure
     vars:
-      falcon_option_state: no
+      falcon_option_set: no
       falcon_remove_aid: yes
 ```
 

@@ -11,6 +11,7 @@
       # noqa unnamed-task 502
   when:
     - falcon_client_id and falcon_client_secret
+    - falcon_option_set
     - not falcon_cid
 
 - block:
