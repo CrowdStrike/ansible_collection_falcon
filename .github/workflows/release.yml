@@ -1,4 +1,4 @@
-name: Release to Galaxy
+name: Release
 
 on:
   release:
@@ -8,6 +8,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -21,7 +23,6 @@ jobs:
       - name: Create release artifacts
         run: |
           ansible-galaxy collection build
-          ansible-galaxy collection publish *.tar.gz --api-key ${{ secrets.GALAXY_API_KEY }}
       - name: Release artifacts to GitHub
         run: |
           gh release upload $TAG ./crowdstrike-falcon*.tar.gz
