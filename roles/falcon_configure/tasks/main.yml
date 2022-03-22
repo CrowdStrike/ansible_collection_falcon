@@ -11,7 +11,8 @@
       # noqa unnamed-task 502
   when:
     - falcon_client_id and falcon_client_secret
-    - not falcon_cid|length == 0
+    - falcon_option_set
+    - not falcon_cid
 
 - block:
     - ansible.builtin.include_tasks: configure.yml
