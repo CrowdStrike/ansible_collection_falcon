@@ -17,7 +17,9 @@ jobs:
   molecule:
     if: |
       github.event_name == 'push' ||
-      github.event.label.name == 'ok-to-test'
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request_target' &&
+      github.event.label.name == 'ok-to-test')
     runs-on: macos-10.15
     env:
       PY_COLORS: 1
@@ -38,9 +40,13 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+        if: github.event_name != 'pull_request_target'
+
+      - name: Check out code
+        uses: actions/checkout@v2
         with:
-          ref: ${{github.event.pull_request.head.ref}}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{github.event.pull_request.head.sha}}
+        if: github.event_name == 'pull_request_target'
 
       - name: Cache Vagrant boxes
         uses: actions/cache@v2
