@@ -9,6 +9,7 @@
   ansible.builtin.package:
     name: falcon-sensor
     state: absent
+    purge: "{{ True if (ansible_pkg_mgr == 'apt') else omit }}"
   when:
     - ansible_system == "Linux"
 
