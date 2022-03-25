@@ -25,5 +25,5 @@ plugins/module_utils/falconctl_utils.py import-3.9!skip
 plugins/modules/falconctl.py import-3.10!skip
 plugins/modules/falconctl_info.py import-3.10!skip
 plugins/module_utils/falconctl_utils.py import-3.10!skip
-plugins/modules/falconctl.py validate-modules!skip
-plugins/modules/falconctl_info.py validate-modules!skip
+plugins/modules/falconctl.py validate-modules:import-error
+plugins/modules/falconctl_info.py validate-modules:import-error
