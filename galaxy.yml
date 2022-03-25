@@ -71,3 +71,5 @@ issues: https://github.com/CrowdStrike/ansible_collection_crowdstrike/issues
 # and '.git' are always filtered
 build_ignore:
   - '.devcontainer'
+  - '.git*'
+  - '.pre-commit-config.yaml'
