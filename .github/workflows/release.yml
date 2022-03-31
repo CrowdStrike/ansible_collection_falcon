@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: 3.8
       - name: Install pip
@@ -29,3 +29,17 @@ jobs:
         env:
           TAG: ${{ github.event.release.tag_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload to Ansible Automation Hub
+        run: |
+          cat << EOF > ansible.cfg
+          [galaxy]
+          server_list = automation_hub
+
+          [galaxy_server.automation_hub]
+          url=https://console.redhat.com/api/automation-hub/content/inbound-crowdstrike/
+          auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+          token=$AAP_KEY
+          EOF
+          ansible-galaxy collection publish ./crowdstrike-falcon*.tar.gz
+        env:
+          AAP_KEY: ${{ secrets.AAP_KEY }}
