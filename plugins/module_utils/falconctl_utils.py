@@ -10,6 +10,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import re
+import traceback
 from subprocess import check_output, STDOUT, CalledProcessError  # nosec
 
 from ansible.module_utils.common.process import get_bin_path
@@ -37,17 +38,25 @@ FALCONCTL_GET_OPTIONS = [
 # prior to execution, and w/o the overhead of passing in the executable
 # along with options.
 # Fake instantiation to make use of AnsibleModule funcs()
+FALCONCTL_NOT_FOUND = False
+FALCONCTL_VALUE_ERROR = None
 _cs_path = "/opt/CrowdStrike"
-_FALCONCTL = get_bin_path(
-    'falconctl', required=True, opt_dirs=[_cs_path]
-)
+try:
+    _FALCONCTL = get_bin_path(
+        'falconctl', required=True, opt_dirs=[_cs_path]
+    )
+except ValueError:
+    FALCONCTL_NOT_FOUND = True
+    FALCONCTL_VALUE_ERROR = traceback.format_exc()
 
 
 def __get(opt):
     if opt not in FALCONCTL_GET_OPTIONS:
         raise Exception("Invalid falconctl get option: %s" % opt)
-
-    cmd = [_FALCONCTL, "-g"]
+    if not FALCONCTL_NOT_FOUND:
+        cmd = [_FALCONCTL, "-g"]
+    else:
+        raise Exception(FALCONCTL_VALUE_ERROR)
     # make sure opt is translated prior to execution
     opt = opt.replace("_", "-")
     cmd.append("--%s" % opt)
