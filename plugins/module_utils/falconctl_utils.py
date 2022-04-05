@@ -38,6 +38,8 @@ FALCONCTL_GET_OPTIONS = [
 # prior to execution, and w/o the overhead of passing in the executable
 # along with options.
 # Fake instantiation to make use of AnsibleModule funcs()
+FALCONCTL_NOT_FOUND = False
+FALCONCTL_VALUE_ERROR = None
 _cs_path = "/opt/CrowdStrike"
 try:
     _FALCONCTL = get_bin_path(
@@ -46,8 +48,6 @@ try:
 except ValueError:
     FALCONCTL_NOT_FOUND = True
     FALCONCTL_VALUE_ERROR = traceback.format_exc()
-else:
-    FALCONCTL_NOT_FOUND = False
 
 
 def __get(opt):
