@@ -23,6 +23,7 @@ jobs:
       - name: Create release artifacts
         run: |
           ansible-galaxy collection build
+          ansible-galaxy collection publish *.tar.gz --api-key ${{ secrets.GALAXY_API_KEY }}
       - name: Release artifacts to GitHub
         run: |
           gh release upload $TAG ./crowdstrike-falcon*.tar.gz
