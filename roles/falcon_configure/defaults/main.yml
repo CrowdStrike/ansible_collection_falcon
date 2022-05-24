@@ -44,6 +44,8 @@ falcon_remove_aid:
 # Whether to enable or disable the Falcon sensor to use a proxy. Set this value to either
 # 'true|yes' or 'false|no'.
 #
+# NOTE: To enable the proxy - use `false|no`
+#
 falcon_apd:
 
 # The Falcon Proxy host. Can be either the FQDN or IP.

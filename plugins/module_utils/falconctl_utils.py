@@ -83,6 +83,8 @@ def format_stdout(stdout):
         output = re.sub(r"[\"\s\n]|\(.*\)", "", stdout).split("=")[1]
     elif 'rfm-reason' in stdout:
         output = re.sub(r"^rfm-reason=|[\"\s\n\.]|\(.*\)", "", stdout)
+    elif 'aph' in stdout:
+        output = re.sub(r"\.$\n", "", stdout).split("=")[1]
     else:
         output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]
     return output if output else None

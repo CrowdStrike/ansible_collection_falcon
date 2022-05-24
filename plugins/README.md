@@ -1,31 +1,5 @@
-# Collections Plugins Directory
+# CrowdStrike Falcon Plugins
 
-This directory can be used to ship various plugins inside an Ansible collection. Each plugin is placed in a folder that
-is named after the type of plugin it is in. It can also include the `module_utils` and `modules` directory that
-would contain module utils and modules respectively.
+This directory contains the [module_utils](./module_utils/) and [modules](./modules/) directories which provide the plugins needed to manage the Falcon sensor. Plugins are pieces of code that augment Ansible`'`s core functionality.
 
-Here is an example directory of the majority of plugins currently supported by Ansible:
-
-```
-└── plugins
-    ├── action
-    ├── become
-    ├── cache
-    ├── callback
-    ├── cliconf
-    ├── connection
-    ├── filter
-    ├── httpapi
-    ├── inventory
-    ├── lookup
-    ├── module_utils
-    ├── modules
-    ├── netconf
-    ├── shell
-    ├── strategy
-    ├── terminal
-    ├── test
-    └── vars
-```
-
-A full list of plugin types can be found at [Working With Plugins](https://docs.ansible.com/ansible/2.11/plugins/plugins.html).
+To learn more about plugins in Ansible, check out: [Working With Plugins](https://docs.ansible.com/ansible/latest/plugins/plugins.html).
