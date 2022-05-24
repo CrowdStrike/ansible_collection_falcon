@@ -44,6 +44,7 @@ options:
   apd:
     description:
       - Whether to enable or disable the Falcon sensor to use a proxy.
+      - NOTE: To enable, set to C(false|no).
     type: str
     choices: [ 'True', 'true', 'False', 'false' ]
   aph:
@@ -111,7 +112,7 @@ EXAMPLES = r'''
 - name: Configure Falcon Sensor Proxy
   crowdstrike.falcon.falconctl:
     state: present
-    apd: yes
+    apd: no
     aph: http://example.com
     app: 8080
 '''
@@ -227,6 +228,9 @@ class FalconCtl(object):
         # Deal with message_log
         if key == "message_log":
             return value.lower()
+        # Deal with apd
+        if key == "apd":
+            return value.upper()
         # Deal with list evaluations
         if isinstance(value, list):
             if key == "feature":
@@ -314,9 +318,9 @@ def main():  # pylint: disable=missing-function-docstring
         cid=dict(required=False, type="str"),
         provisioning_token=dict(required=False, no_log=True, type="str"),
         aid=dict(required=False, type="bool"),
-        apd=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
+        apd=dict(required=False, choices=["True", "true", "False", "false", ""], type="str"),
         aph=dict(required=False, type="str"),
-        app=dict(required=False, type="int"),
+        app=dict(required=False, type="str"),
         trace=dict(required=False, choices=[
                    "none", "err", "warn", "info", "debug"], type="str"),
         feature=dict(required=False, choices=[

@@ -21,6 +21,25 @@
         - not info.falconctl_info.app
         - not info.falconctl_info.trace
 
+  - name: Test Setting Proxy Options
+    ansible.builtin.include_role:
+      name: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_apd: no
+      falcon_aph: 'http://example.com'
+      falcon_app: 8080
+
+  - name: Get list of Falcon Sensor Proxy Options
+    crowdstrike.falcon.falconctl_info:
+    register: proxy_info
+
+  - name: Verify Falcon Sensor Proxy options are set
+    ansible.builtin.assert:
+      that:
+        - proxy_info.falconctl_info.apd == 'FALSE'
+        - proxy_info.falconctl_info.aph == 'http://example.com'
+        - proxy_info.falconctl_info.app == '8080'
+
   - name: Test Deleting Options
     ansible.builtin.include_role:
       name: crowdstrike.falcon.falcon_configure
@@ -30,18 +49,23 @@
       falcon_cid: ""
       falcon_tags: ""
       falcon_billing: ""
+      falcon_apd: ""
+      falcon_aph: ""
+      falcon_app: ""
 
   - name: Get Updated Falcon Sensor Option
     crowdstrike.falcon.falconctl_info:
     register: delete_info
 
-  - name: Verify AID Falcon Sensor options is not set
+  - name: Verify Falcon Sensor options are not set
     ansible.builtin.assert:
       that:
         - not delete_info.falconctl_info.aid
         - not delete_info.falconctl_info.cid
         - not delete_info.falconctl_info.tags
-        - not delete_info.falconctl_info.billing
+        - not delete_info.falconctl_info.apd
+        - not delete_info.falconctl_info.aph
+        - not delete_info.falconctl_info.app
 
   - name: Test auto-detecting CID
     ansible.builtin.include_role:
