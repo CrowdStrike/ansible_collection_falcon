@@ -18,12 +18,12 @@ Role Variables
  * `falcon_cid` - Your Falcon Customer ID (CID) if not using API creds (string, default: null)
  * `falcon_provisioning_token` - Falcon Installation Token (string, default: null)
  * `falcon_remove_aid` - Remove the Falcon Agent ID (AID) (bool, default: null)
- * `falcon_apd` - Whether to enable or disable the Falcon sensor to use a proxy (string, default: null)
+ * `falcon_apd` - [en|dis]ables the Falcon Proxy. **To enable proxy, set as:** `false|no` (string, default: null)
  * `falcon_aph` - Falcon Proxy host (by FQDN or IP) (string, default: null)
- * `falcon_app` - Falcon Proxy port (int, default: null)
+ * `falcon_app` - Falcon Proxy port (string, default: null)
  * `falcon_trace` - Configure additional traces for debugging (string, default: null)
  * `falcon_feature` - Configures additional features to the sensor (list, default: null)
- * `falcon_message_log` - Enables|Disables message logs (string, default: null)
+ * `falcon_message_log` - [en|dis]ables message logs (string, default: null)
  * `falcon_billing` - Configure Falcon sensor with Pay-As-You-Go billing (string, default: null)
  * `falcon_tags` - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts (string, default: null)
  * `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: `runas`)
@@ -98,7 +98,7 @@ How to configure the Falcon Sensor Proxy:
   roles:
   - role: crowdstrike.falcon.falcon_configure
     vars:
-      falcon_apd: yes
+      falcon_apd: no
       falcon_aph: 'http://example.com'
       falcon_app: 8080
 ```
