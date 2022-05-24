@@ -44,9 +44,9 @@ options:
   apd:
     description:
       - Whether to enable or disable the Falcon sensor to use a proxy.
-      - NOTE: To enable, set to C(false|no).
+      - To enable the proxy, set to C(false|no).
     type: str
-    choices: [ 'True', 'true', 'False', 'false' ]
+    choices: [ 'True', 'true', 'False', 'false', '' ]
   aph:
     description:
       - Specifies the application proxy host to use for Falcon sensor proxy configuration.
@@ -54,7 +54,7 @@ options:
   app:
     description:
       - Specifies the application proxy port to use for Falcon sensor proxy configuration.
-    type: int
+    type: str
   trace:
     description:
       - Configure the appropriate trace level.
