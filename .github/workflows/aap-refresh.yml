@@ -1,0 +1,17 @@
+name: AAP Token Refresh
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      PY_COLORS: 1
+    steps:
+    - name: Refresh offline token
+      run: |
+        curl https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token -d grant_type=refresh_token -d client_id="cloud-services" -d refresh_token="$AAP_KEY" --fail --silent --show-error --output /dev/null
+      env:
+          AAP_KEY: ${{ secrets.AAP_KEY }}
