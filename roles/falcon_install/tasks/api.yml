@@ -127,7 +127,7 @@
     url: "https://{{ falcon_cloud }}/sensors/entities/download-installer/v1?id={{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].sha256 }}"
     dest: "{{ falcon_install_temp_directory.path }}"
     checksum: "sha256:{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].sha256 }}"
-    mode: 0644
+    mode: 0640
     headers:
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
   changed_when: false

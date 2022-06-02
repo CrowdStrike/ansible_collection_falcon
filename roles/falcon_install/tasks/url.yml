@@ -4,7 +4,7 @@
   ansible.builtin.get_url:
     url: "{{ falcon_download_url }}"
     dest: "{{ falcon_install_temp_directory.path }}"
-    mode: 0644
+    mode: 0640
   when:
     - falcon_download_url
     - falcon_install_temp_directory
