@@ -1,38 +1,37 @@
 ---
-- block:
-  - name: CrowdStrike Falcon | Install Falcon Sensor .exe Package (Windows)
-    ansible.windows.win_package:
-      path: "{{ falcon_sensor_pkg }}"
-      state: present
-      creates_service: csfalconservice
-      arguments: '/install /quiet CID={{ falcon_cid }} {{ falcon_windows_install_args }}'
-    when:
-      - ansible_os_family == "Windows"
-    register: falcon_installed
-    retries: "{{ falcon_windows_install_retries }}"
-    delay: "{{ falcon_windows_install_delay }}"
-    until: falcon_installed is success
+- name: CrowdStrike Falcon | Install Falcon Sensor .exe Package (Windows)
+  ansible.windows.win_package:
+    path: "{{ falcon_sensor_pkg }}"
+    state: present
+    creates_service: csfalconservice
+    arguments: '/install /quiet CID={{ falcon_cid }} {{ falcon_windows_install_args }}'
+  when:
+    - ansible_os_family == "Windows"
+  register: falcon_installed
+  retries: "{{ falcon_windows_install_retries }}"
+  delay: "{{ falcon_windows_install_delay }}"
+  until: falcon_installed is success
 
-  - name: CrowdStrike Falcon | Expand tmp install directory objects path (Windows)
-    ansible.windows.win_stat:
-      path: "{{ falcon_windows_tmp_dir }}"
-    register: falcon_windows_expanded_path
+- name: CrowdStrike Falcon | Expand tmp install directory objects path (Windows)
+  ansible.windows.win_stat:
+    path: "{{ falcon_windows_tmp_dir }}"
+  register: falcon_windows_expanded_path
 
-  - name: CrowdStrike Falcon | Gather tmp install directory objects (Windows)
-    ansible.windows.win_find:
-      paths: "{{ falcon_windows_expanded_path.stat.path }}"
-      patterns: "ansible.*falcon"
-      file_type: directory
-    register: falcon_tmp_dir_objects
-    when: falcon_windows_tmp_dir|length > 0
-    changed_when: no
+- name: CrowdStrike Falcon | Gather tmp install directory objects (Windows)
+  ansible.windows.win_find:
+    paths: "{{ falcon_windows_expanded_path.stat.path }}"
+    patterns: "ansible.*falcon"
+    file_type: directory
+  register: falcon_tmp_dir_objects
+  when: falcon_windows_tmp_dir|length > 0
+  changed_when: no
 
-  - name: CrowdStrike Falcon | Remove tmp install directory (Windows)
-    ansible.builtin.win_file:
-      path: "{{ item.path }}"
-      state: absent
-    loop: "{{ falcon_tmp_dir_objects.files }}"
-    when:
-      - falcon_windows_tmp_dir|length > 0
-      - falcon_tmp_dir_objects is defined and falcon_tmp_dir_objects.files|length > 0
-    changed_when: no
+- name: CrowdStrike Falcon | Remove tmp install directory (Windows)
+  ansible.builtin.win_file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ falcon_tmp_dir_objects.files }}"
+  when:
+    - falcon_windows_tmp_dir|length > 0
+    - falcon_tmp_dir_objects is defined and falcon_tmp_dir_objects.files|length > 0
+  changed_when: no

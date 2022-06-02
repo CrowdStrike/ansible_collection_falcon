@@ -22,51 +22,52 @@
     - falcon_api_oauth2_token.x_cs_region|length > 0
 
 # Block when falcon_sensor_update_policy_name is supplied
-- block:
-  - name: "CrowdStrike Falcon | Override falcon_sensor_version_decrement when falcon_sensor_update_policy_name supplied"
-    ansible.builtin.set_fact:
-      falcon_sensor_version_decrement: 0
+- name: Sensor Update Policy Block
+  block:
+    - name: "CrowdStrike Falcon | Override falcon_sensor_version_decrement when falcon_sensor_update_policy_name supplied"
+      ansible.builtin.set_fact:
+        falcon_sensor_version_decrement: 0
 
-  - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query"
-    ansible.builtin.set_fact:
-      falcon_sensor_update_policy_query: "{{ 'platform_name:\"' + falcon_sensor_update_policy_platform + '\"+name.raw:\"' + falcon_sensor_update_policy_name + '\"' }}"
+    - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query"
+      ansible.builtin.set_fact:
+        falcon_sensor_update_policy_query: "{{ 'platform_name:\"' + falcon_sensor_update_policy_platform + '\"+name.raw:\"' + falcon_sensor_update_policy_name + '\"' }}"
 
-  - name: "CrowdStrike Falcon | Search for Sensor Update Policy"
-    ansible.builtin.uri:
-      url: "https://{{ falcon_cloud }}/policy/combined/sensor-update/v2?filter={{ falcon_sensor_update_policy_query | urlencode }}"
-      method: GET
-      return_content: true
-      headers:
-        authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
-        Content-Type: application/json
-    register: falcon_sensor_update_policy_info
-    no_log: "{{ falcon_api_enable_no_log }}"
+    - name: "CrowdStrike Falcon | Search for Sensor Update Policy"
+      ansible.builtin.uri:
+        url: "https://{{ falcon_cloud }}/policy/combined/sensor-update/v2?filter={{ falcon_sensor_update_policy_query | urlencode }}"
+        method: GET
+        return_content: true
+        headers:
+          authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
+          Content-Type: application/json
+      register: falcon_sensor_update_policy_info
+      no_log: "{{ falcon_api_enable_no_log }}"
 
-  - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
-    ansible.builtin.fail:
-      msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} was found!"
-    when: falcon_sensor_update_policy_info.json.resources[0] is not defined
+    - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
+      ansible.builtin.fail:
+        msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} was found!"
+      when: falcon_sensor_update_policy_info.json.resources[0] is not defined
 
-  - name: "CrowdStrike Falcon | Validate Sensor Update Policy request for aarch64 architectures"
-    ansible.builtin.fail:
-      msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} and enabled for aarch64 was found!"
-    when:
-      - falcon_sensor_update_policy_info.json.resources[0].settings.variants[0] is not defined
-      - ansible_machine == "aarch64"
+    - name: "CrowdStrike Falcon | Validate Sensor Update Policy request for aarch64 architectures"
+      ansible.builtin.fail:
+        msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} and enabled for aarch64 was found!"
+      when:
+        - falcon_sensor_update_policy_info.json.resources[0].settings.variants[0] is not defined
+        - ansible_machine == "aarch64"
 
-  - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy"
-    ansible.builtin.set_fact:
-      falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.json.resources[0].settings.sensor_version }}"
-    when: ansible_machine != "aarch64"
+    - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy"
+      ansible.builtin.set_fact:
+        falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.json.resources[0].settings.sensor_version }}"
+      when: ansible_machine != "aarch64"
 
-  - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy for aarch64 architecture"
-    ansible.builtin.set_fact:
-      falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.json.resources[0].settings.variants[0].sensor_version }}"
-    when: ansible_machine == "aarch64"
+    - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy for aarch64 architecture"
+      ansible.builtin.set_fact:
+        falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.json.resources[0].settings.variants[0].sensor_version }}"
+      when: ansible_machine == "aarch64"
 
-  - name: "CrowdStrike Falcon | Build API Sensor Query based on Sensor Update Policy"
-    ansible.builtin.set_fact:
-      falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_update_policy_package_version + '\"' }}"
+    - name: "CrowdStrike Falcon | Build API Sensor Query based on Sensor Update Policy"
+      ansible.builtin.set_fact:
+        falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_update_policy_package_version + '\"' }}"
 
   when: falcon_sensor_update_policy_name
 
@@ -87,37 +88,38 @@
   no_log: "{{ falcon_api_enable_no_log }}"
 
 # Block for checking sensor/kernel compatibility
-- block:
-  - name: CrowdStrike Falcon | Build Sensor Update Kernels API Query
-    ansible.builtin.set_fact:
-      falcon_sensor_update_kernels_query: "{{ 'vendor:\"' + falcon_os_vendor + '\"+release:\"' + ansible_kernel + '\"' }}"
+- name: Sensor Kernel Compatability Block
+  block:
+    - name: CrowdStrike Falcon | Build Sensor Update Kernels API Query
+      ansible.builtin.set_fact:
+        falcon_sensor_update_kernels_query: "{{ 'vendor:\"' + falcon_os_vendor + '\"+release:\"' + ansible_kernel + '\"' }}"
 
-  - name: CrowdStrike Falcon | Get list of Supported Kernels
-    ansible.builtin.uri:
-      url: "https://{{ falcon_cloud }}/policy/combined/sensor-update-kernels/v1?filter={{ falcon_sensor_update_kernels_query | urlencode }}"
-      method: GET
-      return_content: true
-      headers:
-        authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
-        Content-Type: application/json
-    register: falcon_sensor_update_kernels_list
-    no_log: "{{ falcon_api_enable_no_log }}"
+    - name: CrowdStrike Falcon | Get list of Supported Kernels
+      ansible.builtin.uri:
+        url: "https://{{ falcon_cloud }}/policy/combined/sensor-update-kernels/v1?filter={{ falcon_sensor_update_kernels_query | urlencode }}"
+        method: GET
+        return_content: true
+        headers:
+          authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
+          Content-Type: application/json
+      register: falcon_sensor_update_kernels_list
+      no_log: "{{ falcon_api_enable_no_log }}"
 
-  - name: CrowdStrike Falcon | Validate Kernel is Supported
-    ansible.builtin.assert:
-      that: falcon_sensor_update_kernels_list.json.resources
-      fail_msg: "The kernel version: {{ ansible_kernel }} is not supported by the Falcon Sensor!"
-    ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
+    - name: CrowdStrike Falcon | Validate Kernel is Supported
+      ansible.builtin.assert:
+        that: falcon_sensor_update_kernels_list.json.resources
+        fail_msg: "The kernel version: {{ ansible_kernel }} is not supported by the Falcon Sensor!"
+      ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
 
-  - name: CrowdStrike Falcon | Validate Sensor version is compatible with Kernel
-    ansible.builtin.assert:
-      that: falcon_sensor_version in falcon_base_package_supported_sensor_versions
-      fail_msg: "The sensor version: {{ falcon_sensor_version }} is not supported with kernel: {{ ansible_kernel }}"
-    vars:
-      falcon_sensor_version: "{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].version }}"
-      falcon_base_package_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].base_package_supported_sensor_versions }}"
-    when: falcon_sensor_update_kernels_list.json.resources
-    ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
+    - name: CrowdStrike Falcon | Validate Sensor version is compatible with Kernel
+      ansible.builtin.assert:
+        that: falcon_sensor_version in falcon_base_package_supported_sensor_versions
+        fail_msg: "The sensor version: {{ falcon_sensor_version }} is not supported with kernel: {{ ansible_kernel }}"
+      vars:
+        falcon_sensor_version: "{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].version }}"
+        falcon_base_package_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].base_package_supported_sensor_versions }}"
+      when: falcon_sensor_update_kernels_list.json.resources
+      ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
   when: ansible_system == "Linux"
 
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package

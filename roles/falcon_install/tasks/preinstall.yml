@@ -1,25 +1,25 @@
 ---
-- block:
-  - name: "CrowdStrike Falcon | Validate Required API URL Is Defined"
-    ansible.builtin.fail:
-      msg: "falcon_cloud is not configured! Please configure falcon_cloud and re-run the installation again!"
-    when: not falcon_cloud
+- name: API Install Method Block
+  block:
+    - name: "CrowdStrike Falcon | Validate Required API URL Is Defined"
+      ansible.builtin.fail:
+        msg: "falcon_cloud is not configured! Please configure falcon_cloud and re-run the installation again!"
+      when: not falcon_cloud
 
-  - name: "CrowdStrike Falcon | Validate CrowdStrike API Client ID Is Defined"
-    ansible.builtin.fail:
-      msg: "falcon_client_id is not configured! Please configure falcon_client_id and re-run the installation again!"
-    when: not falcon_client_id
+    - name: "CrowdStrike Falcon | Validate CrowdStrike API Client ID Is Defined"
+      ansible.builtin.fail:
+        msg: "falcon_client_id is not configured! Please configure falcon_client_id and re-run the installation again!"
+      when: not falcon_client_id
 
-  - name: "CrowdStrike Falcon | Validate CrowdStrike API Client Secret Is Defined"
-    ansible.builtin.fail:
-      msg: "falcon_client_secret is not configured! Please configure falcon_client_secret and re-run the installation again!"
-    when: not falcon_client_secret
+    - name: "CrowdStrike Falcon | Validate CrowdStrike API Client Secret Is Defined"
+      ansible.builtin.fail:
+        msg: "falcon_client_secret is not configured! Please configure falcon_client_secret and re-run the installation again!"
+      when: not falcon_client_secret
 
-  - name: "CrowdStrike Falcon | Validate CrowdStrike Falcon Sensor version is correctly set"
-    ansible.builtin.fail:
-      msg: "falcon_sensor_version_decrement must be an integer between 0 and 5 inclusive!"
-    when: falcon_sensor_version_decrement | int < 0 or falcon_sensor_version_decrement | int > 5
-
+    - name: "CrowdStrike Falcon | Validate CrowdStrike Falcon Sensor version is correctly set"
+      ansible.builtin.fail:
+        msg: "falcon_sensor_version_decrement must be an integer between 0 and 5 inclusive!"
+      when: falcon_sensor_version_decrement | int < 0 or falcon_sensor_version_decrement | int > 5
   when: falcon_install_method == "api"
 
 - name: "CrowdStrike Falcon | Configure Python Interpreter for older Linux OSes"

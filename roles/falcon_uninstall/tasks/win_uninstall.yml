@@ -1,18 +1,17 @@
 ---
-- block:
-  - name: CrowdStrike Falcon | Find Windows installer in Package Cache
-    ansible.windows.win_find:
-      paths: C:\ProgramData\Package Cache
-      patterns: WindowsSensor.exe
-      recurse: yes
-    register: falcon_win_sensor_cache
+- name: CrowdStrike Falcon | Find Windows installer in Package Cache
+  ansible.windows.win_find:
+    paths: C:\ProgramData\Package Cache
+    patterns: WindowsSensor.exe
+    recurse: yes
+  register: falcon_win_sensor_cache
 
-  - name: CrowdStrike Falcon | Remove Falcon Sensor (Windows)
-    ansible.windows.win_package:
-      path: "{{ falcon_win_sensor_cache.files[0].path }}"
-      state: absent
-      creates_service: csfalconservice
-      arguments: '/uninstall /quiet {{ falcon_windows_uninstall_args }}'
-    when:
-      - falcon_win_sensor_cache.files | length > 0
-      - ansible_os_family == "Windows"
+- name: CrowdStrike Falcon | Remove Falcon Sensor (Windows)
+  ansible.windows.win_package:
+    path: "{{ falcon_win_sensor_cache.files[0].path }}"
+    state: absent
+    creates_service: csfalconservice
+    arguments: '/uninstall /quiet {{ falcon_windows_uninstall_args }}'
+  when:
+    - falcon_win_sensor_cache.files | length > 0
+    - ansible_os_family == "Windows"
