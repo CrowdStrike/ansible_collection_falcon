@@ -54,7 +54,7 @@
 
 - name: "CrowdStrike Falcon | Endpoint Operating System Detected Is Debian"
   ansible.builtin.set_fact:
-    falcon_os_version: "9/10"
+    falcon_os_version: "9/10/11"
   when:
     - ansible_distribution == "Debian"
 
