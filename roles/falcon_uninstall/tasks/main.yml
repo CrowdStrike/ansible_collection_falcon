@@ -1,13 +1,15 @@
 ---
 # tasks file for falcon_uninstall
-- block:
+- name: Linux Block
+  block:
     - include_tasks: uninstall.yml
   when:
     - ansible_os_family != "Windows"
   become: true
   become_user: root
 
-- block:
+- name: Windows Block
+  block:
     - include_tasks: win_uninstall.yml
   when:
     - ansible_os_family == "Windows"
