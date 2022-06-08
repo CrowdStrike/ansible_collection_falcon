@@ -113,11 +113,13 @@
 
     - name: CrowdStrike Falcon | Validate Sensor version is compatible with Kernel
       ansible.builtin.assert:
-        that: falcon_sensor_version in falcon_base_package_supported_sensor_versions
+        that: falcon_sensor_version in falcon_base_package_supported_sensor_versions or
+              falcon_sensor_version in falcon_ztl_supported_sensor_versions
         fail_msg: "The sensor version: {{ falcon_sensor_version }} is not supported with kernel: {{ ansible_kernel }}"
       vars:
         falcon_sensor_version: "{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].version }}"
         falcon_base_package_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].base_package_supported_sensor_versions }}"
+        falcon_ztl_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].ztl_supported_sensor_versions }}"
       when: falcon_sensor_update_kernels_list.json.resources
       ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
   when: ansible_system == "Linux"
