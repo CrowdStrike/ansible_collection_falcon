@@ -16,4 +16,4 @@ jobs:
         with:
           python-version: "3.x"
       - name: Run yaml-lint
-        uses: ibiqlik/action-yamllint@v1
+        uses: ibiqlik/action-yamllint@v3
