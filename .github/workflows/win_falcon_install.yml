@@ -55,7 +55,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.molecule_distro.distro }}-${{ matrix.collection_role }}-${{ hashFiles('molecule/win_falcon_install/molecule.yml') }}
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
 
       - name: Install dependencies
         run: |
