@@ -49,7 +49,7 @@ jobs:
         if: github.event_name == 'pull_request_target'
 
       - name: Cache Vagrant boxes
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.vagrant.d/boxes/jborean93-VAGRANTSLASH-${{ matrix.molecule_distro.distro }}
           key: ${{ runner.os }}-${{ matrix.molecule_distro.distro }}-${{ matrix.collection_role }}-${{ hashFiles('molecule/win_falcon_configure/molecule.yml') }}
