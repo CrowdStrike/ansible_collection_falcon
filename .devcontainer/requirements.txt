@@ -1,0 +1,9 @@
+molecule[docker,lint]
+ansible
+yamllint
+ansible-lint==5.4.0
+python-vagrant
+molecule-vagrant
+flake8
+pylint
+pre-commit

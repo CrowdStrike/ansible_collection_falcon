@@ -21,6 +21,7 @@ ARG USERNAME=automatic
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 COPY library-scripts/*.sh /tmp/library-scripts/
+COPY requirements.txt /tmp/requirements.txt
 RUN apt-get update \
     && /bin/bash /tmp/library-scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
     # Use Docker script from script library to set things up
@@ -29,7 +30,7 @@ RUN apt-get update \
     # Clean up
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts/
 
-RUN pip3 install ansible ansible-lint "molecule[docker,lint,ansible]" flake8 pylint pre-commit
+RUN pip3 install -r /tmp/requirements.txt
 
 VOLUME [ "/var/lib/docker" ]
 
