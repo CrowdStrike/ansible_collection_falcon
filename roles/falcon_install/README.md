@@ -22,6 +22,7 @@ The following variables are currently supported:
  * `falcon_cid` - Manually specify CrowdStrike Customer ID for Windows installations (string, default: null)
  * `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: null)
  * `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: null)
+ * `falcon_sensor_version` - Sensor version to install (string, default: null)
  * `falcon_sensor_version_decrement` - Sensor N-x version to install (int, default: 0 [latest])
  * `falcon_sensor_update_policy_name` - Sensor update policy used to control sensor version (string, default: null)
  * `falcon_install_tmp_dir` - Temporary Linux and MacOS download and installation directory for the Falson Sensor (string, default: `/tmp/`)
@@ -80,6 +81,18 @@ This example installs the Falcon Sensor at version N-2:
       falcon_client_id: <Falcon_UI_OAUTH_client_id>
       falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
       falcon_sensor_version_decrement: 2
+```
+---
+This example installs the Falcon Sensor at version 6.40.13707:
+```yaml
+---
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_install
+    vars:
+      falcon_client_id: <Falcon_UI_OAUTH_client_id>
+      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_sensor_version: '6.40.13707'
 ```
 ---
 This example installs the Falcon Sensor using a sensor update policy called "ACME Policy":

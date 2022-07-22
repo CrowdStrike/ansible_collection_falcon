@@ -24,10 +24,6 @@
 # Block when falcon_sensor_update_policy_name is supplied
 - name: Sensor Update Policy Block
   block:
-    - name: "CrowdStrike Falcon | Override falcon_sensor_version_decrement when falcon_sensor_update_policy_name supplied"
-      ansible.builtin.set_fact:
-        falcon_sensor_version_decrement: 0
-
     - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query"
       ansible.builtin.set_fact:
         falcon_sensor_update_policy_query: "{{ 'platform_name:\"' + falcon_sensor_update_policy_platform + '\"+name.raw:\"' + falcon_sensor_update_policy_name + '\"' }}"
@@ -73,7 +69,8 @@
 
 - name: "CrowdStrike Falcon | Build API Sensor Query"
   ansible.builtin.set_fact:
-    falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"' }}"
+    falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_version + '\"'
+      if (falcon_sensor_version) else 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"' }}"
   when: not falcon_sensor_update_policy_name
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
@@ -86,6 +83,11 @@
       Content-Type: application/json
   register: falcon_api_installer_list
   no_log: "{{ falcon_api_enable_no_log }}"
+
+- name: CrowdStrike Falcon | Validate Sensor request
+  ansible.builtin.fail:
+    msg: "No Falcon Sensor was found! If passing in falcon_sensor_version, ensure it is correct!"
+  when: falcon_api_installer_list.json.resources[0] is not defined
 
 # Block for checking sensor/kernel compatibility
 - name: Sensor Kernel Compatability Block

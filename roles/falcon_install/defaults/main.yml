@@ -59,15 +59,24 @@ falcon_cid:
 falcon_client_id: ""
 falcon_client_secret: ""
 
-# The Falcon sensor version to install. By default, this is the latest sensor version.
+# The Falcon sensor version to install. This allows you to pin a specific sensor
+# version.
+#
+# NOTE: This variable will be overriden by falcon_sensor_update_policy_name.
+#
+falcon_sensor_version: ""
+
+# The Falcon sensor version to install by N-X. By default, this is the latest sensor version.
 # Setting the value to 1 would install the sensor at N-1.
 # The value must be an integer between 0 and 5 inclusive.
+#
+# NOTE: This variable will be overriden by falcon_sensor_update_policy_name or falcon_sensor_version.
 #
 falcon_sensor_version_decrement: 0
 
 # The name of the Falcon Sensor Update Policy to use in order to specify the Falcon sensor
 # version to install. This is optional, however, if specified, please note that this will
-# override the falcon_sensor_version_decrement variable.
+# override the falcon_sensor_version_decrement and falcon_sensor_version variables.
 #
 # Note: To use the default Falcon Sensor update policy:
 #   falcon_sensor_update_policy_name: "platform_default"
