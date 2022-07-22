@@ -16,7 +16,7 @@
         msg: "falcon_client_secret is not configured! Please configure falcon_client_secret and re-run the installation again!"
       when: not falcon_client_secret
 
-    - name: "CrowdStrike Falcon | Validate CrowdStrike Falcon Sensor version is correctly set"
+    - name: "CrowdStrike Falcon | Validate CrowdStrike Falcon Sensor version decrement is correctly set"
       ansible.builtin.fail:
         msg: "falcon_sensor_version_decrement must be an integer between 0 and 5 inclusive!"
       when: falcon_sensor_version_decrement | int < 0 or falcon_sensor_version_decrement | int > 5
@@ -124,3 +124,10 @@
     - ansible_system == "Darwin"
     - falcon_path is defined
   register: falcon_already_installed
+
+- name: "CrowdStrike Falcon | Override falcon_sensor_version_decrement when falcon_sensor_update_policy_name or falcon_sensor_version set"
+  ansible.builtin.set_fact:
+    falcon_sensor_version_decrement: 0
+  when:
+    - falcon_sensor_update_policy_name or
+      falcon_sensor_version
