@@ -6,7 +6,8 @@
     body:
       "client_id={{ falcon_client_id }}&client_secret={{ falcon_client_secret }}"
     return_content: true
-    status_code: 201,308
+    follow_redirects: all
+    status_code: 201
     headers:
       content-type: "application/x-www-form-urlencoded; charset=utf-8"
   register: falcon_api_oauth2_token
