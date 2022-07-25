@@ -13,12 +13,13 @@ This collection has been tested against and supports the following Ansible versi
 
 ## Included content
 ### Roles
+> Please read each role's README to familiarize yourself with the role variables and other requirements.
 
-| Role Name | Documentation | Build Status |
-| --------- | :-----------: | ------------ |
-| crowdstrike.falcon.falcon_install | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_install/README.md) | [![falcon_install](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_install.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_install.yml)
-| crowdstrike.falcon.falcon_configure | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_configure/README.md) | [![falcon_configure](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_configure.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_configure.yml)
-| crowdstrike.falcon.falcon_uninstall | [Readme](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_uninstall/README.md) | [![falcon_uninstall](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_uninstall.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_uninstall.yml)
+| Role Name | Documentation | Build Status Linux | Build Status Windows |
+| --------- | :-----------: | ------------------ | -------------------- |
+| crowdstrike.falcon.falcon_install | [README](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_install/README.md) | [![falcon_install](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_install.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_install.yml) | [![falcon_install](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_install.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/win_falcon_install.yml)
+| crowdstrike.falcon.falcon_configure | [README](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_configure/README.md) | [![falcon_configure](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_configure.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_configure.yml) | [![falcon_configure](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_configure.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/win_falcon_configure.yml)
+| crowdstrike.falcon.falcon_uninstall | [README](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_uninstall/README.md) | [![falcon_uninstall](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_uninstall.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_uninstall.yml) | [![falcon_uninstall](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_uninstall.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/win_falcon_uninstall.yml)
 
 ## Using this collection
 Before using the collection, you need to install the collection with the `ansible-galaxy` CLI:

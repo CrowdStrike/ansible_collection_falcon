@@ -1,7 +1,7 @@
 falcon_install
 =========
 
-This role will install the CrowdStrike Falcon Sensor.
+This role install the CrowdStrike Falcon Sensor.
 
 Requirements
 ------------
