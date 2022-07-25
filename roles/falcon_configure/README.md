@@ -1,7 +1,7 @@
 falcon_configure
 =========
 
-This role will configure the CrowdStrike Falcon Sensor.
+This role configures the CrowdStrike Falcon Sensor.
 
 Requirements
 ------------
@@ -29,7 +29,8 @@ Role Variables
  * `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: `runas`)
  * `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: `SYSTEM`)
 
-***NOTE:** Not all options can be set and deleted. View the table below for a full list of options along with their respected states:
+> :warning: **Warning:** Not all options can be set and deleted.
+> View the table below for a full list of options along with their respected states:
 
 | Option                    | State |
 |---------------------------|-------|

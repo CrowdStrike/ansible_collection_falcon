@@ -1,7 +1,7 @@
 Uninstall
 =========
 
-This role will uninstall the CrowdStrike Falcon Sensor.
+This role uninstalls the CrowdStrike Falcon Sensor.
 
 Requirements
 ------------
@@ -12,8 +12,6 @@ Role Variables
 --------------
 
 The following variables are currently supported:
-
-### Falcon Installation
 
  * `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: `/norestart`)
  * `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: `runas`)
