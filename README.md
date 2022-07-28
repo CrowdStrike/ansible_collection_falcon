@@ -79,6 +79,9 @@ Ansible is only able to run on macOS in an interactive session, which means end-
 If you want to develop new content or improve on this collection, please open an issue or create a pull request.
 All contributions are welcome!
 
+As of release > 3.2.18, we will now be following Ansible's development patterns for implementing Ansible's changelog fragments. This will require a changelog fragment to any PR that is not documentation or trivial. Most changelog entries will
+likely be `bugfixes` or `minor_changes`. Please refer to the documentation for [Ansible's changelog fragments](https://docs.ansible.com/ansible/devel/community/development_process.html#creating-changelog-fragments) to learn more.
+
 
 # License
 

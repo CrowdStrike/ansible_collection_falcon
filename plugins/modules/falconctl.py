@@ -12,12 +12,18 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: falconctl
+
 author:
   - Gabriel Alford (@redhatrises)
   - Carlos Matos (@carlosmmatos)
+
 short_description: Configure CrowdStrike Falcon Sensor
+
+version_added: "3.2.0"
+
 description:
   - Configures CrowdStrike Falcon Sensor on Linux systems
+
 options:
   state:
     description:

@@ -2,3 +2,4 @@
 tests/output
 *DS_Store
 *.swp
+changelogs/.plugin-cache.yaml

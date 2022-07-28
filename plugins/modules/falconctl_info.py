@@ -15,7 +15,7 @@ module: falconctl_info
 
 short_description: Get values associated with Falcon sensor.
 
-version_added: "1.0.0"
+version_added: "3.2.0"
 
 description:
   - Return value associated with the Falcon sensor options.
