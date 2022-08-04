@@ -52,7 +52,7 @@ options:
       - Whether to enable or disable the Falcon sensor to use a proxy.
       - To enable the proxy, set to C(false|no).
     type: str
-    choices: [ 'True', 'true', 'False', 'false', '' ]
+    choices: [ 'True', 'true', 'False', 'false' ]
   aph:
     description:
       - Specifies the application proxy host to use for Falcon sensor proxy configuration.
@@ -85,11 +85,12 @@ options:
       - For ephemeral workloads in these cloud environments, you pay only for the hours that hosts
         are active each month C(metered), rather than a full annual contract price per sensor C(default).
     type: str
+    choices: [ metered, default ]
   tags:
     description:
       - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.
       - To assign multiple tags, separate tags with commas.
-      - The combined length of all tags for a host, including comma separators, cannot exceed 256 characters.
+      - I(The combined length of all tags for a host, including comma separators, cannot exceed 256 characters).
     type: str
 '''
 
