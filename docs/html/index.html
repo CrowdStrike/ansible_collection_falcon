@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crowdstrike.Falcon &mdash; Ansible collections  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/ansible.css" type="text/css" />
+      <link rel="stylesheet" href="_static/antsibull-minimal.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/rtd-ethical-ads.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/images/Ansible-Mark-RGB_Black.svg"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor" href="falconctl_module.html" /><!-- extra head elements for Ansible beyond RTD Sphinx Theme -->
+
+
+
+
+</head>
+
+<body class="wy-body-for-nav"><!-- extra body elements for Ansible beyond RTD Sphinx Theme -->
+
+<div class="DocSite-globalNav ansibleNav">
+  <ul>
+    <li><a href="https://www.ansible.com/ansiblefest" target="_blank">AnsibleFest</a></li>
+    <li><a href="https://www.ansible.com/tower" target="_blank">Products</a></li>
+    <li><a href="https://www.ansible.com/community" target="_blank">Community</a></li>
+    <li><a href="https://www.ansible.com/webinars-training" target="_blank">Webinars & Training</a></li>
+    <li><a href="https://www.ansible.com/blog" target="_blank">Blog</a></li>
+  </ul>
+</div>
+
+<a class="DocSite-nav" href="/" style="padding-bottom: 30px;">
+
+  <img class="DocSiteNav-logo"
+    src="_static/images/Ansible-Mark-RGB_White.svg"
+    alt="Ansible Logo">
+  <div class="DocSiteNav-title">Ansible Collections Documentation</div>
+</a>
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="#" class="icon icon-home"> Ansible collections
+          </a><!--- Based on https://github.com/rtfd/sphinx_rtd_theme/pull/438/files -->
+
+<div class="version">
+
+
+
+</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" class="st-default-search-input" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_module.html">crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_info_module.html">crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor.</a></li>
+</ul>
+<!-- extra nav elements for Ansible beyond RTD Sphinx Theme -->
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Ansible collections</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li>Crowdstrike.Falcon</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+
+
+           <div itemprop="articleBody">
+
+  <section id="crowdstrike-falcon">
+<span id="plugins-in-crowdstrike-falcon"></span><h1>Crowdstrike.Falcon<a class="headerlink" href="#crowdstrike-falcon" title="Permalink to this heading"></a></h1>
+<p>Collection version 3.2.18</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#description" id="id1">Description</a></p></li>
+<li><p><a class="reference internal" href="#plugin-index" id="id2">Plugin Index</a></p></li>
+</ul>
+</div>
+<section id="description">
+<h2><a class="toc-backref" href="#id1">Description</a><a class="headerlink" href="#description" title="Permalink to this heading"></a></h2>
+<p>A collection of roles developed by CrowdStrike for the installation, configuration, and verification of CrowdStrike’s software.</p>
+<p><strong>Author:</strong></p>
+<ul class="simple">
+<li><p>CRWD Solutions Architecture &lt;<a class="reference external" href="mailto:integrations&#37;&#52;&#48;crowdstrike&#46;com">integrations<span>&#64;</span>crowdstrike<span>&#46;</span>com</a>&gt;</p></li>
+</ul>
+<p class="ansible-links">
+  <a href="https://github.com/CrowdStrike/ansible_collection_crowdstrike/issues" aria-role="button" target="_blank" rel="noopener external">Issue Tracker</a>
+  <a href="https://github.com/CrowdStrike/ansible_collection_crowdstrike" aria-role="button" target="_blank" rel="noopener external">Repository (Sources)</a>
+</p><div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="plugin-index">
+<h2><a class="toc-backref" href="#id2">Plugin Index</a><a class="headerlink" href="#plugin-index" title="Permalink to this heading"></a></h2>
+<p>These are the plugins in the crowdstrike.falcon collection:</p>
+<section id="modules">
+<h3>Modules<a class="headerlink" href="#modules" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="falconctl_module.html#ansible-collections-crowdstrike-falcon-falconctl-module"><span class="std std-ref">falconctl module</span></a> – Configure CrowdStrike Falcon Sensor</p></li>
+<li><p><a class="reference internal" href="falconctl_info_module.html#ansible-collections-crowdstrike-falcon-falconctl-info-module"><span class="std std-ref">falconctl_info module</span></a> – Get values associated with Falcon sensor.</p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>List of <a class="reference external" href="https://docs.ansible.com/ansible/devel/collections/index.html#list-of-collections" title="(in Ansible vdevel)"><span class="xref std std-ref">collections</span></a> with docs hosted here.</p>
+</div>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+
+
+<footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="falconctl_module.html" class="btn btn-neutral float-right" title="crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Ansible contributors.</p>
+  </div>
+
+
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script><!-- extra footer elements for Ansible beyond RTD Sphinx Theme -->
+
+</body>
+</html>

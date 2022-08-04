@@ -28,8 +28,8 @@ This collection has been tested against following Ansible versions: **>=2.11**.
 ### Modules
 Name | Description
 --- | ---
-[crowdstrike.falcon.falconctl](https://github.com/CrowdStrike/ansible_collection_crowdstrike/blob/main/docs/crowdstrike.falcon.falconctl_module.rst)|Configure CrowdStrike Falcon Sensor
-[crowdstrike.falcon.falconctl_info](https://github.com/CrowdStrike/ansible_collection_crowdstrike/blob/main/docs/crowdstrike.falcon.falconctl_info_module.rst)|Get values associated with Falcon sensor.
+[crowdstrike.falcon.falconctl](https://htmlpreview.github.io/?https://github.com/carlosmmatos/ansible_collection_crowdstrike/blob/test-new-plugin-docs/docs/html/falconctl_module.html)|Configure CrowdStrike Falcon Sensor
+[crowdstrike.falcon.falconctl_info](https://htmlpreview.github.io/?https://github.com/carlosmmatos/ansible_collection_crowdstrike/blob/test-new-plugin-docs/docs/htlm/falconctl_info_module.html)|Get values associated with Falcon sensor.
 
 <!--end collection content-->
 
