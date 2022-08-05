@@ -1,0 +1,35 @@
+name: Pages
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Build docs
+        uses: addnab/docker-run-action@v3
+        with:
+          registry: quay.io
+          image: matosc15/ansible-doc-builder:latest
+          options: -v ${{ github.workspace }}:/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon
+          run: /build.sh
+
+      - name: Commit files
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "Updating gh-pages docs" -a
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
