@@ -282,7 +282,7 @@ class FalconCtl(object):
         return get_options(values)
 
     def validate_params(self, params):
-        """Check parameters that are conditionally required"""
+        """Ensure paramaters are valid"""
 
         if params["provisioning_token"]:
             # Ensure cid is also passed
@@ -297,24 +297,6 @@ class FalconCtl(object):
                 self.module.fail_json(
                     msg="Invalid provisioning token: '%s'" % (params["provisioning_token"]))
 
-        if params["apd"]:
-            valid_apd = ["true", "false", ""]
-            if params["apd"].lower() not in valid_apd:
-                self.module.fail_json(
-                    msg="Value of APD must be one of: 'true'|'false'|'', got '%s'" % (params["apd"]))
-
-        if params["message_log"]:
-            valid_message_log = ["true", "false", ""]
-            if params["message_log"].lower() not in valid_message_log:
-                self.module.fail_json(
-                    msg="Value of message_log must be one of: 'true'|'false'|'', got '%s'" % (params["message_log"]))
-
-        if params["billing"]:
-            valid_choices = ["default", "metered", ""]
-            if params["billing"] not in valid_choices:
-                self.module.fail_json(
-                    msg="Value of billing must be one of: default|metered|'', got %s" % (params["billing"]))
-
         if params["cid"]:
             valid_cid = self.__validate_regex(
                 params["cid"], "^[0-9a-fA-F]{32}-[0-9a-fA-F]{2}$")
@@ -328,6 +310,20 @@ class FalconCtl(object):
             if not valid_tags:
                 self.module.fail_json(
                     msg="Value of tags must be one of: all alphanumerics, '/', '-', '_', and ',', got %s" % (params["tags"]))
+
+        self.check_param("apd", ["true", "false", ""], True)
+        self.check_param("message_log", ["true", "false", ""], True)
+        self.check_param("billing", ["default", "metered", ""])
+
+    def check_param(self, param, options, to_lower=False):
+        """Validate single paramater"""
+        if self.params[param]:
+            parameter = self.params[param].lower() if to_lower else self.params[param]
+
+            if parameter not in options:
+                str_options = '|'.join(map("'{0}'".format, options))
+                self.module.fail_json(
+                    msg="Value of %s must be one of: %s, got %s" % (param, str_options, parameter))
 
 
 def main():  # pylint: disable=missing-function-docstring
