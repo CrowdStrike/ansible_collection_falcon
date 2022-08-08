@@ -1,0 +1,2 @@
+bugfixes:
+  - falconctl - updated usage of string options and added validation for options.
