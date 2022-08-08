@@ -325,7 +325,7 @@ def main():  # pylint: disable=missing-function-docstring
         cid=dict(required=False, type="str"),
         provisioning_token=dict(required=False, no_log=True, type="str"),
         aid=dict(required=False, type="bool"),
-        apd=dict(required=False, choices=["True", "true", "False", "false", ""], type="str"),
+        apd=dict(required=False, choices=["True", "true", "False", "false", '""'], type="str"),
         aph=dict(required=False, type="str"),
         app=dict(required=False, type="str"),
         trace=dict(required=False, choices=[
@@ -333,7 +333,7 @@ def main():  # pylint: disable=missing-function-docstring
         feature=dict(required=False, choices=[
             "none", "enableLog", "disableLogBuffer"], type="list", elements="str"),
         message_log=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
-        billing=dict(required=False, choices=["metered", "default", ""], type="str"),
+        billing=dict(required=False, choices=["metered", "default", '""'], type="str"),
         tags=dict(required=False, type="str"),
     )
 

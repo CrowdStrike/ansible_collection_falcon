@@ -5,4 +5,5 @@ plugins/modules/falconctl.py import-2.6!skip
 plugins/modules/falconctl_info.py import-2.6!skip
 docs/_static/underscore-1.13.1.js no-smart-quotes!skip
 docs/falconctl_info_module.html no-smart-quotes!skip
+docs/falconctl_module.html no-smart-quotes!skip
 docs/index.html no-smart-quotes!skip
