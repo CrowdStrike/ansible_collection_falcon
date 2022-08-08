@@ -1,0 +1,5 @@
+bugfixes:
+  - falconctl - updated usage of string options and added validation for options.
+
+minor_changes:
+  - falconctl - extrapolated common param checks to function.
