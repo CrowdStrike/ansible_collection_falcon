@@ -164,15 +164,8 @@ To check whether it is installed, run <code class="code docutils literal notrans
 <a class="ansibleOptionLink" href="#parameter-apd" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
 </div></td>
 <td><div class="ansible-option-cell"><p>Whether to enable or disable the Falcon sensor to use a proxy.</p>
-<p>To enable the proxy, set to <code class="docutils literal notranslate"><span class="pre">false|no</span></code>.</p>
-<p class="ansible-option-line"><span class="ansible-option-choices">Choices:</span></p>
-<ul class="simple">
-<li><p><span class="ansible-option-choices-entry">True</span></p></li>
-<li><p><span class="ansible-option-choices-entry">true</span></p></li>
-<li><p><span class="ansible-option-choices-entry">False</span></p></li>
-<li><p><span class="ansible-option-choices-entry">false</span></p></li>
-<li><p><span class="ansible-option-choices-entry">“”</span></p></li>
-</ul>
+<p>To enable the proxy, set to <code class="docutils literal notranslate"><span class="pre">'false'</span></code>.</p>
+<p>Valid Options are: <code class="docutils literal notranslate"><span class="pre">'true'|'false'|''</span></code></p>
 </div></td>
 </tr>
 <tr class="row-even"><td><div class="ansible-option-cell">
@@ -196,12 +189,7 @@ To check whether it is installed, run <code class="code docutils literal notrans
 <td><div class="ansible-option-cell"><p>Specify the (Pay-As-You-Go) billing model for Cloud Workloads.</p>
 <p>Falcon for Cloud Workloads (Pay-As-You-Go) is a billing model for your hosts that run in Amazon Web Services (AWS), Google Cloud Platform (GCP), and Microsoft Azure.</p>
 <p>For ephemeral workloads in these cloud environments, you pay only for the hours that hosts are active each month <code class="docutils literal notranslate"><span class="pre">metered</span></code>, rather than a full annual contract price per sensor <code class="docutils literal notranslate"><span class="pre">default</span></code>.</p>
-<p class="ansible-option-line"><span class="ansible-option-choices">Choices:</span></p>
-<ul class="simple">
-<li><p><span class="ansible-option-choices-entry">metered</span></p></li>
-<li><p><span class="ansible-option-choices-entry">default</span></p></li>
-<li><p><span class="ansible-option-choices-entry">“”</span></p></li>
-</ul>
+<p>Valid Options are: <code class="docutils literal notranslate"><span class="pre">'metered'|'default'|''</span></code></p>
 </div></td>
 </tr>
 <tr class="row-odd"><td><div class="ansible-option-cell">
@@ -229,13 +217,7 @@ To check whether it is installed, run <code class="code docutils literal notrans
 <a class="ansibleOptionLink" href="#parameter-message_log" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
 </div></td>
 <td><div class="ansible-option-cell"><p>Whether or not you would like to log messages to disk.</p>
-<p class="ansible-option-line"><span class="ansible-option-choices">Choices:</span></p>
-<ul class="simple">
-<li><p><span class="ansible-option-choices-entry">True</span></p></li>
-<li><p><span class="ansible-option-choices-entry">true</span></p></li>
-<li><p><span class="ansible-option-choices-entry">False</span></p></li>
-<li><p><span class="ansible-option-choices-entry">false</span></p></li>
-</ul>
+<p>Valid Options are: <code class="docutils literal notranslate"><span class="pre">'true'|'false'|''</span></code></p>
 </div></td>
 </tr>
 <tr class="row-even"><td><div class="ansible-option-cell">
