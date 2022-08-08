@@ -50,9 +50,9 @@ options:
   apd:
     description:
       - Whether to enable or disable the Falcon sensor to use a proxy.
-      - To enable the proxy, set to C(false|no).
+      - To enable the proxy, set to C('false').
+      - "Valid Options are: C('true'|'false'|'')"
     type: str
-    choices: [ 'True', 'true', 'False', 'false', '""' ]
   aph:
     description:
       - Specifies the application proxy host to use for Falcon sensor proxy configuration.
@@ -75,8 +75,8 @@ options:
   message_log:
     description:
       - Whether or not you would like to log messages to disk.
+      - "Valid Options are: C('true'|'false'|'')"
     type: str
-    choices: [ 'True', 'true', 'False', 'false' ]
   billing:
     description:
       - Specify the (Pay-As-You-Go) billing model for Cloud Workloads.
@@ -84,8 +84,8 @@ options:
         Amazon Web Services (AWS), Google Cloud Platform (GCP), and Microsoft Azure.
       - For ephemeral workloads in these cloud environments, you pay only for the hours that hosts
         are active each month C(metered), rather than a full annual contract price per sensor C(default).
+      - "Valid Options are: C('metered'|'default'|'')"
     type: str
-    choices: [ metered, default, '""' ]
   tags:
     description:
       - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.
@@ -297,11 +297,23 @@ class FalconCtl(object):
                 self.module.fail_json(
                     msg="Invalid provisioning token: '%s'" % (params["provisioning_token"]))
 
+        if params["apd"]:
+            valid_apd = ["true", "false", ""]
+            if params["apd"].lower() not in valid_apd:
+                self.module.fail_json(
+                    msg="Value of APD must be one of: 'true'|'false'|'', got '%s'" % (params["apd"]))
+
+        if params["message_log"]:
+            valid_message_log = ["true", "false", ""]
+            if params["message_log"].lower() not in valid_message_log:
+                self.module.fail_json(
+                    msg="Value of message_log must be one of: 'true'|'false'|'', got '%s'" % (params["message_log"]))
+
         if params["billing"]:
-            valid_choices = ["default", "metered"]
+            valid_choices = ["default", "metered", ""]
             if params["billing"] not in valid_choices:
                 self.module.fail_json(
-                    msg="Value of billing must be one of: default|metered, got %s" % (params["billing"]))
+                    msg="Value of billing must be one of: default|metered|'', got %s" % (params["billing"]))
 
         if params["cid"]:
             valid_cid = self.__validate_regex(
@@ -315,7 +327,7 @@ class FalconCtl(object):
                 params["tags"], r"^[a-zA-Z0-9\/\-_\,]+$")
             if not valid_tags:
                 self.module.fail_json(
-                    msg="value of tags must be one of: all alphanumerics, '/', '-', '_', and ',', got %s" % (params["tags"]))
+                    msg="Value of tags must be one of: all alphanumerics, '/', '-', '_', and ',', got %s" % (params["tags"]))
 
 
 def main():  # pylint: disable=missing-function-docstring
@@ -325,15 +337,15 @@ def main():  # pylint: disable=missing-function-docstring
         cid=dict(required=False, type="str"),
         provisioning_token=dict(required=False, no_log=True, type="str"),
         aid=dict(required=False, type="bool"),
-        apd=dict(required=False, choices=["True", "true", "False", "false", '""'], type="str"),
+        apd=dict(required=False, type="str"),
         aph=dict(required=False, type="str"),
         app=dict(required=False, type="str"),
         trace=dict(required=False, choices=[
                    "none", "err", "warn", "info", "debug"], type="str"),
         feature=dict(required=False, choices=[
             "none", "enableLog", "disableLogBuffer"], type="list", elements="str"),
-        message_log=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
-        billing=dict(required=False, choices=["metered", "default", '""'], type="str"),
+        message_log=dict(required=False, type="str"),
+        billing=dict(required=False, type="str"),
         tags=dict(required=False, type="str"),
     )
 
