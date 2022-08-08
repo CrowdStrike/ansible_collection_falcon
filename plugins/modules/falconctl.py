@@ -52,7 +52,7 @@ options:
       - Whether to enable or disable the Falcon sensor to use a proxy.
       - To enable the proxy, set to C(false|no).
     type: str
-    choices: [ 'True', 'true', 'False', 'false' ]
+    choices: [ 'True', 'true', 'False', 'false', '""' ]
   aph:
     description:
       - Specifies the application proxy host to use for Falcon sensor proxy configuration.
@@ -85,7 +85,7 @@ options:
       - For ephemeral workloads in these cloud environments, you pay only for the hours that hosts
         are active each month C(metered), rather than a full annual contract price per sensor C(default).
     type: str
-    choices: [ metered, default ]
+    choices: [ metered, default, '""' ]
   tags:
     description:
       - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.
@@ -325,7 +325,7 @@ def main():  # pylint: disable=missing-function-docstring
         cid=dict(required=False, type="str"),
         provisioning_token=dict(required=False, no_log=True, type="str"),
         aid=dict(required=False, type="bool"),
-        apd=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
+        apd=dict(required=False, choices=["True", "true", "False", "false", '""'], type="str"),
         aph=dict(required=False, type="str"),
         app=dict(required=False, type="str"),
         trace=dict(required=False, choices=[
@@ -333,7 +333,7 @@ def main():  # pylint: disable=missing-function-docstring
         feature=dict(required=False, choices=[
             "none", "enableLog", "disableLogBuffer"], type="list", elements="str"),
         message_log=dict(required=False, choices=["True", "true", "False", "false"], type="str"),
-        billing=dict(required=False, choices=["metered", "default"], type="str"),
+        billing=dict(required=False, choices=["metered", "default", '""'], type="str"),
         tags=dict(required=False, type="str"),
     )
 
