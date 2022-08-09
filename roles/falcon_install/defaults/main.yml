@@ -93,6 +93,10 @@ falcon_install_tmp_dir: "/tmp"
 #
 falcon_download_url:
 
+# If 'url' is authenticated, provide credentials.
+falcon_download_url_username:
+falcon_download_url_password:
+
 # If using 'api' or 'url' methods, the number of retries the
 # installer should attempt.
 #
