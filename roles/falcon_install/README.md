@@ -27,6 +27,8 @@ The following variables are currently supported:
  * `falcon_sensor_update_policy_name` - Sensor update policy used to control sensor version (string, default: null)
  * `falcon_install_tmp_dir` - Temporary Linux and MacOS download and installation directory for the Falson Sensor (string, default: `/tmp/`)
  * `falcon_download_url` - URL for downloading the sensor (string, default: null)
+ * `falcon_download_url_username` - username for downloading the sensor (string, default: null)
+ * `falcon_download_url_password` - password for downloading the sensor (string, default: null)
  * `falcon_retries` - Number of attempts to download the sensor (int, default: 3)
  * `falcon_delay` - Number of seconds before trying another download attempt (int, default: 3)
  * `falcon_windows_install_retries` - Number of times to retry sensor install on windows (int, default: 10)
