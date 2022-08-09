@@ -18,18 +18,23 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           registry: quay.io
-          image: matosc15/ansible-doc-builder:latest
+          image: quay.io/matosc15/ansible-doc-builder:latest
           options: -v ${{ github.workspace }}:/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon
           run: /build.sh
 
       - name: Commit files
         run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cd docs
+          git init
+          git add -A
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -m "Updating gh-pages docs" -a
+          git commit -m "Updating gh-pages docs"
 
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages
+          force: true
+          directory: ./docs
