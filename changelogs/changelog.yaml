@@ -1,0 +1,24 @@
+ancestor: null
+releases:
+  3.2.19:
+    changes:
+      bugfixes:
+      - falconctl - updated usage of string options and added validation for options.
+      minor_changes:
+      - ansible_install - added optional credentials for package download
+      - falcon_install - Update target_os for RHEL family to support RHEL 9.
+      - falconctl - Fixed issue with APD and billing options being able to use empty
+        string as proper argument.
+      - falconctl - extrapolated common param checks to function.
+      release_summary: '| Release Date: 2022-08-09
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.19>`__
+
+        '
+    fragments:
+    - 228-fix-apd-billing-issue.yml
+    - 231-fix-falconctl-plugin-issues.yml
+    - 232-auth-in-download.yml
+    - 233-fix-rhel9-support-issue.yml
+    - 3.2.19.yml
+    release_date: '2022-08-09'

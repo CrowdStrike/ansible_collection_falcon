@@ -1,3 +1,0 @@
-minor_changes:
-  - falconctl - Fixed issue with APD and billing options being able to use empty string
-    as proper argument.

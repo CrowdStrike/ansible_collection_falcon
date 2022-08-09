@@ -1,2 +1,0 @@
-minor_changes:
-  - ansible_install: added optional credentials for package download
