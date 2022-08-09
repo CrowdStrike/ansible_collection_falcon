@@ -22,13 +22,13 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           registry: quay.io
-          image: quay.io/matosc15/ansible-doc-builder:latest
+          image: quay.io/crowdstrike/ansible-doc-builder:latest
           options: -v ${{ github.workspace }}:/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon
           run: /build.sh
 
       - name: Commit files
         run: |
-          cd docs
+          cd html
           git init
           git add -A
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -41,4 +41,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages
           force: true
-          directory: ./docs
+          directory: ./html

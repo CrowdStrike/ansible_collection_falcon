@@ -6,9 +6,6 @@ on:
       - created
 
 jobs:
-  changelog:
-    uses: ansible-network/github_actions/.github/workflows/changelog.yml@main
-
   release:
     runs-on: ubuntu-latest
     permissions:
