@@ -39,7 +39,7 @@
 
 - name: "CrowdStrike Falcon | Determine if Endpoint Operating System Is RHEL, CentOS, or Oracle Linux"
   ansible.builtin.set_fact:
-    falcon_target_os: RHEL/CentOS/Oracle
+    falcon_target_os: "*RHEL*"
   when: ansible_os_family == "RedHat"
 
 - name: "CrowdStrike Falcon | Determine if Target OS Is Amazon Linux"
