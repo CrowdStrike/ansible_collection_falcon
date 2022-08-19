@@ -65,8 +65,13 @@ jobs:
           ansible-galaxy collection install $collection_file
 
       - name: Run role tests
-        run: >-
-          molecule --version &&
-          ansible --version &&
-          MOLECULE_DISTRO=${{ matrix.molecule_distro.distro }}
-          molecule --debug test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 6
+          max_attempts: 3
+          retry_on: error
+          command: >-
+            molecule --version &&
+            ansible --version &&
+            MOLECULE_DISTRO=${{ matrix.molecule_distro.distro }}
+            molecule --debug test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
