@@ -69,7 +69,7 @@ jobs:
         with:
           timeout_minutes: 6
           max_attempts: 3
-          retry-on: error
+          retry_on: error
           command: >-
             molecule --version &&
             ansible --version &&
