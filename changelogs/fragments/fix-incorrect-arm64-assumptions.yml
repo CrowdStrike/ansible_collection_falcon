@@ -1,2 +1,0 @@
-bugfixes:
-  - falcon_install - fix-incorrect-arm64-assumptions (https://github.com/CrowdStrike/ansible_collection_falcon/issues/244)

@@ -22,3 +22,16 @@ releases:
     - 233-fix-rhel9-support-issue.yml
     - 3.2.19.yml
     release_date: '2022-08-09'
+  3.2.20:
+    changes:
+      bugfixes:
+      - falcon_install - fix-incorrect-arm64-assumptions (https://github.com/CrowdStrike/ansible_collection_falcon/issues/244)
+      release_summary: '| Release Date: 2022-08-23
+
+        | `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.19>`__
+
+        '
+    fragments:
+    - fix-incorrect-arm64-assumptions.yml
+    - v3.2.20.yml
+    release_date: '2022-08-23'
