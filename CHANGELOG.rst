@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.20
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2022-08-23
+| `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.19>`__
+
+
+Bugfixes
+--------
+
+- falcon_install - fix-incorrect-arm64-assumptions (https://github.com/CrowdStrike/ansible_collection_falcon/issues/244)
+
 v3.2.19
 =======
 
