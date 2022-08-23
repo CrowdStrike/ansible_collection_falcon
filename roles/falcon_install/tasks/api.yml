@@ -69,8 +69,8 @@
 
 - name: "CrowdStrike Falcon | Build API Sensor Query"
   ansible.builtin.set_fact:
-    falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_version + '\"'
-      if (falcon_sensor_version) else 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"' }}"
+    falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + falcon_os_arch + '+version:\"' + falcon_sensor_version + '\"'
+      if (falcon_sensor_version) else 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + falcon_os_arch }}"
   when: not falcon_sensor_update_policy_name
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
