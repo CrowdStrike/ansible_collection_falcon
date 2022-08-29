@@ -11,22 +11,22 @@ __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
-module: sensor_download
+module: example_template
 
 author:
   - Carlos Matos (@carlosmmatos)
 
-short_description: Download the Falcon sensor.
+short_description: Falcon example template module.
 
 version_added: "4.0.0"
 
 description:
-  - Downloads the Falcon sensor to a local directory.
+  - Falcon example template description.
 
 options:
   destination:
     description:
-      - The path to the directory to download the sensor to.
+      - The path to the directory.
     type: str
     required: true
 
@@ -35,10 +35,9 @@ extends_documentation_fragment:
 '''
 
 EXAMPLES = r'''
-- name: Download the latest Falcon sensor
-  crowdstrike.falcon.sensor_download:
+- name: Example template module
+  crowdstrike.falcon.example_template:
     destination: /tmp/sensor
-    version: latest
 '''
 
 RETURN = r'''
@@ -59,7 +58,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import get_falconpy_credentials
 
 
-class SensorDownload(object):
+class ExampleTemplate(object):
     def __init__(self, module):
         self.module = module
         self.params = module.params
@@ -73,19 +72,19 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             destination=dict(type='str', required=True),
-            client_id=dict(type='str', required=False, no_log=True),
-            client_secret=dict(type='str', required=False, no_log=True),
+            client_id=dict(type='str', aliases=['falcon_client_id'], required=False, no_log=True),
+            client_secret=dict(type='str', aliases=['falcon_client_secret'], required=False, no_log=True)
         ),
         supports_check_mode=True,
     )
 
-    sensor_download = SensorDownload(module)
+    example_template = ExampleTemplate(module)
 
     result = dict(
         changed=False
     )
 
-    sensor_download.download()
+    example_template.download()
 
     module.exit_json(**result)
 

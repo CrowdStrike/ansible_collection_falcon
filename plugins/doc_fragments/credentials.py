@@ -16,11 +16,13 @@ options:
   client_id:
     description: The CrowdStrike API client ID to use.
     type: str
+    aliases: [ falcon_client_id ]
     env:
       - name: FALCON_CLIENT_ID
   client_secret:
     description: The CrowdStrike API secret that corresponds to the client ID.
     type: str
+    aliases: [ falcon_client_secret ]
     env:
       - name: FALCON_CLIENT_SECRET
 '''
