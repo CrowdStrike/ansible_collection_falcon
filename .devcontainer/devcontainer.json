@@ -4,7 +4,7 @@
 	"runArgs": ["--init", "--privileged"],
 	"mounts": [
 		// [Optional] Anisble Collections: Uncomment if you want to mount your local .ansible/collections folder.
-		"source=${localEnv:PWD},target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon,type=bind,consistency=cached",
+		"source=${localWorkspaceFolder},target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon,type=bind,consistency=cached",
 		"target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon/.devcontainer,type=volume",
 		"source=dind-var-lib-docker,target=/var/lib/docker,type=volume"
 	],
