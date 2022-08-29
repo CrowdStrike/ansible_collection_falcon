@@ -59,16 +59,18 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils 
 
 
 class ExampleTemplate(object):
+    """Example template module"""
     def __init__(self, module):
         self.module = module
         self.params = module.params
         self.credentials = get_falconpy_credentials(module)
 
     def download(self):
-        pass
+        """Example module function"""
+        return "Example module function"
 
 
-def main():
+def main():  # pylint: disable=missing-function-docstring
     module = AnsibleModule(
         argument_spec=dict(
             destination=dict(type='str', required=True),

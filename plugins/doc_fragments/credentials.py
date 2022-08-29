@@ -9,6 +9,7 @@ __metaclass__ = type
 
 
 class ModuleDocFragment(object):
+    """Module doc fragment for credentials"""
 
     # Plugin options for CrowdStrike Falcon API credentials
     DOCUMENTATION = r'''
