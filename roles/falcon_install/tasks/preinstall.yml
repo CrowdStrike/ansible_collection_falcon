@@ -64,21 +64,6 @@
     falcon_sensor_update_policy_platform: "{{ ansible_os_family }}"
   when: ansible_os_family == "Windows"
 
-- name: CrowdStrike Falcon | Set default sensor name
-  ansible.builtin.set_fact:
-    installed_sensor: falcon-sensor
-  when:
-    - ansible_pkg_mgr is defined
-    - ansible_pkg_mgr in linux_packagers
-
-- name: CrowdStrike Falcon | Set default sensor name for non-Windows installations
-  ansible.builtin.set_fact:
-    falcon_sensor_pkg: "{{ installed_sensor }}"
-  when:
-    - ansible_pkg_mgr is defined
-    - ansible_pkg_mgr in linux_packagers
-    - falcon_sensor_download is not defined
-
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (non-Windows)
   ansible.builtin.tempfile:
     path: "{{ falcon_install_tmp_dir }}"

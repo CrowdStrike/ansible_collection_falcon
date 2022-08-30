@@ -1,16 +1,9 @@
 ---
 - name: CrowdStrike Falcon | Set default sensor name
   ansible.builtin.set_fact:
-    installed_sensor: falcon-sensor
+    falcon_sensor_pkg: 'falcon-sensor'
   when:
-    - ansible_pkg_mgr in linux_packagers
-
-- name: CrowdStrike Falcon | Set default sensor name for non-Windows installations
-  ansible.builtin.set_fact:
-    falcon_sensor_pkg: "{{ installed_sensor }}"
-  when:
-    - ansible_pkg_mgr in linux_packagers
-    - falcon_sensor_download is not defined
+    - falcon_sensor_pkg is not defined
 
 - name: CrowdStrike Falcon | Transfer CrowdStrike Falcon RPM GPG key file
   ansible.builtin.copy:
@@ -76,4 +69,13 @@
   when:
     - falcon_install_tmp_dir|length > 0
     - falcon_tmp_dir_objects is defined and falcon_tmp_dir_objects.files|length > 0
+  changed_when: no
+
+- name: CrowdStrike Falcon | Remove Falcon Sensor Package (local file)
+  ansible.builtin.file:
+    path: "{{ falcon_localfile_path }}"
+    state: absent
+  when:
+    - falcon_install_method == "file"
+    - falcon_localfile_cleanup
   changed_when: no

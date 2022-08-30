@@ -22,8 +22,19 @@ falcon_skip_kernel_compat_check: no
 #   api:         Default: Fetch the latest installer directly from the CrowdStrike API.
 #   url:         Fetch installer from a URL
 #   repo:        Install from a package repository like APT, DNF, or YUM
+#   file:        Install from a local file
 #
 falcon_install_method: api
+
+# If the installation method is 'file', provide the absolute path to the installer file.
+#
+falcon_localfile_path:
+
+# If the installation method is 'file', specify whether to remove the local file after installation.
+# By default, this is disabled in the event the falcon_localfile_path is set to a shared file
+# system location.
+#
+falcon_localfile_cleanup: no
 
 # Specify whether or not to verify the Falcon sensor Linux based packages.
 # By default, this is enabled - which will handle the installation and importing
