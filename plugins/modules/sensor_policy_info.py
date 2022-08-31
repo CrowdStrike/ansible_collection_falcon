@@ -216,15 +216,17 @@ meta:
     }
 '''
 
+import copy
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import AUTH_ARG_SPEC
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import get_falconpy_credentials
 
-import copy
 from falconpy import SensorUpdatePolicy
 
+
 def argspec():
+  """Define the module's argument spec."""
     args = copy.deepcopy(AUTH_ARG_SPEC)
     args.update(
         filter=dict(type='str', required=False),
@@ -234,7 +236,9 @@ def argspec():
     )
     return args
 
+
 def main():
+  """Main entry point for module execution."""
     module = AnsibleModule(
         argument_spec=argspec(),
         supports_check_mode=True,
@@ -242,9 +246,9 @@ def main():
 
     args = {}
     for key, value in module.params.items():
-      if key not in ['client_id', 'client_secret']:
-        if value is not None:
-          args[key] = value
+        if key not in ['client_id', 'client_secret']:
+            if value is not None:
+                args[key] = value
 
     falcon = SensorUpdatePolicy(**get_falconpy_credentials(module))
 
