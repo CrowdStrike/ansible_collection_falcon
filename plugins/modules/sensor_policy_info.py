@@ -182,12 +182,6 @@ policies:
         description: The settings of the policy.
         type: dict
         returned: success
-        suboptions:
-          build:
-            description: The build of the policy.
-            type: str
-            returned: success
-            sample: "n-1|tagged"
         sample: {
           "build": "n-1|tagged"
         }
@@ -217,12 +211,21 @@ meta:
 '''
 
 import copy
+import traceback
 
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.basic import missing_required_lib
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import AUTH_ARG_SPEC
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import get_falconpy_credentials
 
-from falconpy import SensorUpdatePolicy
+
+try:
+    from falconpy import SensorUpdatePolicy
+except ImportError:
+    HAS_FALCONPY = False
+    FALCONPY_IMPORT_ERROR = traceback.format_exc()
+else:
+    HAS_FALCONPY = True
 
 
 def argspec():
@@ -243,6 +246,12 @@ def main():
         argument_spec=argspec(),
         supports_check_mode=True,
     )
+
+    if not HAS_FALCONPY:
+        module.fail_json(
+            msg=missing_required_lib('falconpy'),
+            exception="test"
+        )
 
     args = {}
     for key, value in module.params.items():
