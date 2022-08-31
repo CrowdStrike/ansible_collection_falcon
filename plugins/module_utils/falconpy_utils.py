@@ -17,25 +17,23 @@ def get_falconpy_credentials(module):
     :param module: Ansible module object
     :return: Dictionary with falcon connection info
     """
-
-    # Ensure we have credentials to work with:
     client_id = module.params.get('client_id')
     client_secret = module.params.get('client_secret')
 
-    if not client_id and not client_secret:
-        module.fail_json(msg="CrowdStrike Falcon API credentials are required. See module documentation for help.")
+    missing_params = []
 
     if not client_id:
-        if 'FALCON_CLIENT_ID' in os.environ:
-            client_id = os.environ['FALCON_CLIENT_ID']
-        else:
-            module.fail_json(msg='client_id is required. Check your parameters or set FALCON_CLIENT_ID')
+        client_id = os.environ.get('FALCON_CLIENT_ID', None)
+        if not client_id:
+            missing_params.append('client_id')
 
     if not client_secret:
-        if 'FALCON_CLIENT_SECRET' in os.environ:
-            client_secret = os.environ['FALCON_CLIENT_SECRET']
-        else:
-            module.fail_json(msg='client_secret is required. Check your parameters or set FALCON_CLIENT_SECRET')
+        client_secret = os.environ.get('FALCON_CLIENT_SECRET', None)
+        if not client_secret:
+            missing_params.append('client_secret')
+
+    if missing_params:
+        module.fail_json(msg="Missing required parameters: {0}. See module documentation for help.".format(missing_params))
 
     # Return the credentials:
-    return dict(falcon_client_id=client_id, falcon_client_secret=client_secret)
+    return dict(client_id=client_id, client_secret=client_secret)
