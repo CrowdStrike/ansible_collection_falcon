@@ -27,7 +27,6 @@ def get_falconpy_credentials(module):
         if not client_id:
             missing_params.append('client_id')
 
-
     if not client_secret:
         client_secret = os.environ.get('FALCON_CLIENT_SECRET', None)
         if not client_secret:
