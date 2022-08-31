@@ -226,7 +226,7 @@ from falconpy import SensorUpdatePolicy
 
 
 def argspec():
-  """Define the module's argument spec."""
+    """Define the module's argument spec."""
     args = copy.deepcopy(AUTH_ARG_SPEC)
     args.update(
         filter=dict(type='str', required=False),
@@ -238,7 +238,7 @@ def argspec():
 
 
 def main():
-  """Main entry point for module execution."""
+    """Main entry point for module execution."""
     module = AnsibleModule(
         argument_spec=argspec(),
         supports_check_mode=True,
