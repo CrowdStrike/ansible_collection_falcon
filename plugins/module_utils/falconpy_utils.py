@@ -33,7 +33,7 @@ def get_falconpy_credentials(module):
             missing_params.append('client_secret')
 
     if missing_params:
-        module.fail_json(msg="Missing required parameters: {}. See module documentation for help.".format(missing_params))
+        module.fail_json(msg="Missing required parameters: {0}. See module documentation for help.".format(missing_params))
 
     # Return the credentials:
     return dict(client_id=client_id, client_secret=client_secret)
