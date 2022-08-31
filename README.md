@@ -33,7 +33,7 @@ Name | Description
 --- | ---
 [crowdstrike.falcon.falconctl](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_module.html#ansible-collections-crowdstrike-falcon-falconctl-module)|Configure CrowdStrike Falcon Sensor
 [crowdstrike.falcon.falconctl_info](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_info_module.html#ansible-collections-crowdstrike-falcon-falconctl-info-module)|Get values associated with Falcon sensor.
-crowdstrike.falcon.sensor_policy_info|Get information about Falcon Update Sensor Policies
+[crowdstrike.falcon.sensor_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_policy_info.html#ansible-collections-crowdstrike-falcon-sensor-policy-info-module)|Get information about Falcon Update Sensor Policies
 
 <!--end collection content-->
 
