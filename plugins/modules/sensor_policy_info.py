@@ -228,7 +228,6 @@ else:
     HAS_FALCONPY = True
 
 
-
 def argspec():
     """Define the module's argument spec."""
     args = copy.deepcopy(AUTH_ARG_SPEC)
