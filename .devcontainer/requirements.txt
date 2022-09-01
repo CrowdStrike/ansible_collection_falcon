@@ -7,3 +7,4 @@ molecule-vagrant
 flake8
 pylint
 pre-commit
+autopep8

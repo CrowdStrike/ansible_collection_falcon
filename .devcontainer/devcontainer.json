@@ -1,7 +1,10 @@
 {
 	"name": "Ansible DinD",
 	"dockerFile": "Dockerfile",
-	"runArgs": ["--init", "--privileged"],
+	"runArgs": [
+		"--init",
+		"--privileged"
+	],
 	"mounts": [
 		// [Optional] Anisble Collections: Uncomment if you want to mount your local .ansible/collections folder.
 		"source=${localWorkspaceFolder},target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon,type=bind,consistency=cached",
@@ -9,7 +12,6 @@
 		"source=dind-var-lib-docker,target=/var/lib/docker,type=volume"
 	],
 	"overrideCommand": false,
-
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
 		"files.associations": {
@@ -34,23 +36,19 @@
 		"[python]": {
 			"editor.tabSize": 4
 		}
-	  },
-
+	},
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
-		"redhat.ansible",
 		"shd101wyy.markdown-preview-enhanced",
 		"ms-python.python",
 		"redhat.vscode-yaml",
-		"ms-azuretools.vscode-docker"
+		"ms-azuretools.vscode-docker",
+		"redhat.ansible"
 	],
-
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
-
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pre-commit install",
-
+	"postCreateCommand": "pre-commit install --install-hooks",
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode"
 }
