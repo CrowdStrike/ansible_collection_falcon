@@ -23,7 +23,7 @@
     patterns: "ansible.*falcon"
     file_type: directory
   register: falcon_tmp_dir_objects
-  when: falcon_windows_tmp_dir|length > 0
+  when: falcon_windows_tmp_dir | length > 0
   changed_when: no
 
 - name: CrowdStrike Falcon | Remove tmp install directory (Windows)
@@ -32,6 +32,6 @@
     state: absent
   loop: "{{ falcon_tmp_dir_objects.files }}"
   when:
-    - falcon_windows_tmp_dir|length > 0
-    - falcon_tmp_dir_objects is defined and falcon_tmp_dir_objects.files|length > 0
+    - falcon_windows_tmp_dir | length > 0
+    - falcon_tmp_dir_objects is defined and falcon_tmp_dir_objects.files | length > 0
   changed_when: no

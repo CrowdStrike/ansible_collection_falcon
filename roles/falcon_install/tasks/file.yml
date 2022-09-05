@@ -3,4 +3,4 @@
   ansible.builtin.set_fact:
     falcon_sensor_pkg: "{{ falcon_localfile_path }}"
   when:
-    - falcon_localfile_path|length > 0
+    - falcon_localfile_path | length > 0
