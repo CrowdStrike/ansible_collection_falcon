@@ -31,6 +31,8 @@ The following variables are currently supported:
  * `falcon_download_url_password` - password for downloading the sensor (string, default: null)
  * `falcon_retries` - Number of attempts to download the sensor (int, default: 3)
  * `falcon_delay` - Number of seconds before trying another download attempt (int, default: 3)
+ * `falcon_localfile_path` - Absolute path to local falcon sensor package (string, default: null)
+ * `falcon_localfile_cleanup` - Allow removing the local file after install (bool, default: false)
  * `falcon_windows_install_retries` - Number of times to retry sensor install on windows (int, default: 10)
  * `falcon_windows_install_delay` - Number of seconds to wait to retry sensor install on windows in the event of a failure (int, default: 120)
  * `falcon_windows_tmp_dir` - Temporary Windows download and installation directory for the Falson Sensor (string, default: `%SYSTEMROOT%\\Temp`)
@@ -107,6 +109,17 @@ This example installs the Falcon Sensor using a sensor update policy called "ACM
       falcon_client_id: <Falcon_UI_OAUTH_client_id>
       falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
       falcon_sensor_update_policy_name: "ACME Policy"
+```
+This example installs the Falcon Sensor from a local file, then removes it.
+```yaml
+---
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_install
+    vars:
+      falcon_install_method: file
+      falcon_localfile_path: /tmp/falcon.deb
+      falcon_localfile_cleanup: yes
 ```
 License
 -------

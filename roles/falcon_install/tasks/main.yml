@@ -19,6 +19,12 @@
     - ansible_os_family != "Windows"
 
 - block:
+    - ansible.builtin.include_tasks: file.yml
+      # noqa unnamed-task 502
+  when:
+    - falcon_install_method == "file"
+
+- block:
     - ansible.builtin.include_tasks: win_api.yml
       # noqa unnamed-task 502
   when:
