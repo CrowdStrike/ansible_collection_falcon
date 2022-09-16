@@ -5,6 +5,27 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.21
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2022-09-06
+
+| `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.21>`__
+
+
+Minor Changes
+-------------
+
+- falcon_install - add the ability to install from a local file (https://github.com/CrowdStrike/ansible_collection_falcon/pull/242).
+
+Bugfixes
+--------
+
+- falcon_configure - fix issue with aid removal for image prep failed (https://github.com/CrowdStrike/ansible_collection_falcon/issues/254)
+
 v3.2.20
 =======
 
