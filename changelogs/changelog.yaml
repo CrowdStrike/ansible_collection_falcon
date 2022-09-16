@@ -35,3 +35,19 @@ releases:
     - fix-incorrect-arm64-assumptions.yml
     - v3.2.20.yml
     release_date: '2022-08-23'
+  3.2.21:
+    changes:
+      bugfixes:
+      - falcon_configure - fix issue with aid removal for image prep failed (https://github.com/CrowdStrike/ansible_collection_falcon/issues/254)
+      minor_changes:
+      - falcon_install - add the ability to install from a local file (https://github.com/CrowdStrike/ansible_collection_falcon/pull/242).
+      release_summary: '| Release Date: 2022-09-06
+
+        | `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.21>`__
+
+        '
+    fragments:
+    - 3-2-21-summary.yml
+    - add-local-file-install-method.yml
+    - fix-failing-aid-master-prep.yml
+    release_date: '2022-09-16'
