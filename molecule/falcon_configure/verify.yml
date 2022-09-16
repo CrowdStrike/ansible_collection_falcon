@@ -45,13 +45,19 @@
       name: crowdstrike.falcon.falcon_configure
     vars:
       falcon_option_set: no
-      falcon_remove_aid: yes
       falcon_cid: ""
       falcon_tags: ""
       falcon_billing: ""
       falcon_apd: ""
       falcon_aph: ""
       falcon_app: ""
+
+  - name: Test Deleting AID master image prep
+    ansible.builtin.include_role:
+      name: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_option_set: no
+      falcon_remove_aid: yes
 
   - name: Get Updated Falcon Sensor Option
     crowdstrike.falcon.falconctl_info:

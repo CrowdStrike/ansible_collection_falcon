@@ -1,11 +1,5 @@
 ---
 # tasks file for falcon_configure
-- name: CrowdStrike Falcon | Set service state for Primary Images
-  ansible.builtin.set_fact:
-    falcon_service_state: stopped
-  when:
-    - falcon_remove_aid
-
 - block:
     - ansible.builtin.include_tasks: api.yml
       # noqa unnamed-task 502
@@ -19,8 +13,14 @@
       # noqa unnamed-task 502
   when:
     - ansible_os_family != "Windows"
+    - not falcon_remove_aid
   become: true
   become_user: root
+
+- block:
+    - ansible.builtin.include_tasks: remove_aid.yml
+      # noqa unnamed-task 502
+  when: falcon_remove_aid
 
 - block:
     - ansible.builtin.include_tasks: win_configure.yml

@@ -14,17 +14,21 @@
         billing: "{{ falcon_billing if (falcon_billing != None) else omit }}"
         tags: "{{ falcon_tags if (falcon_tags != None) else omit }}"
         state: "{{ 'present' if falcon_option_set else 'absent' }}"
-      notify: CrowdStrike Falcon | Restart Falcon Sensor
+      register: falconctl_result
 
     - name: CrowdStrike Falcon | Register Falcon Sensor Options
       crowdstrike.falcon.falconctl_info:
       register: info
 
-    - name: CrowdStrike Falcon | Remove Falcon Agent ID (AID) If Building A Primary Image
-      crowdstrike.falcon.falconctl:
-        aid: yes
-        state: absent
-      when: falcon_remove_aid
+    - name: CrowdStrike Falcon | Restart Falcon Sensor on Changes
+      ansible.builtin.service:
+        name: falcon-sensor
+        state: "{{ falcon_service_state | default('restarted') }}"
+        enabled: yes
+      when:
+        - info.falconctl_info.cid
+        - falconctl_result.changed
+      become: yes
 
   when: ansible_distribution != "MacOSX"
 

@@ -1,0 +1,2 @@
+bugfixes:
+  - falcon_configure - fix issue with aid removal for image prep failed (https://github.com/CrowdStrike/ansible_collection_falcon/issues/254)

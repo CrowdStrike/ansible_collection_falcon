@@ -1,0 +1,5 @@
+---
+- name: CrowdStrike Falcon | Remove Falcon Agent ID (AID) If Building A Primary Image
+  crowdstrike.falcon.falconctl:
+    aid: yes
+    state: absent
