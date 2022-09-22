@@ -12,6 +12,19 @@ falcon_api_enable_no_log: yes
 # The default is `yes` - to SET options.
 falcon_option_set: yes
 
+# CrowdStrike API URL for downloading the Falcon sensor. Possible values:
+#       us-1:       api.crowdstrike.com
+#       us-2:       api.us-2.crowdstrike.com
+#       eu-1:       api.eu-1.crowdstrike.com
+#       us-gov-1:   api.laggar.gcw.crowdstrike.com
+#
+falcon_cloud: "api.crowdstrike.com"
+
+# Auto-discover the CrowdStrike Cloud API Region. When disabled,
+# 'falcon_cloud' should be changed to the appropriate cloud region.
+#
+falcon_cloud_autodiscover: true
+
 # Your Falcon Customer ID (CID) used to associate your sensor.
 #
 falcon_cid:

@@ -13,6 +13,8 @@ Role Variables
 
  * `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls. (bool, default: true)
  * `falcon_option_set` - Set True|yes to set options, False|no to delete. *See note below (bool, default: true)
+ * `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `api.crowdstrike.com`)
+ * `falcon_cloud_autodiscover` - Auto-discover CrowdStrike API Cloud region (bool, default: true)
  * `falcon_client_id` - CrowdStrike API OAUTH Client ID (string, default: null)
  * `falcon_client_secret` - CrowdStrike API OAUTH Client Secret (string, default: null)
  * `falcon_cid` - Your Falcon Customer ID (CID) if not using API creds (string, default: null)
