@@ -1,0 +1,2 @@
+bugfixes:
+  - falcon_configure - fix issue with falcon_cloud variable not being set correctly (https://github.com/CrowdStrike/ansible_collection_falcon/issues/257)
