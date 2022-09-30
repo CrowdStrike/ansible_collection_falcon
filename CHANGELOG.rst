@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.22
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2022-09-16
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.22>`__
+
+
+Bugfixes
+--------
+
+- falcon_configure - fix issue with falcon_cloud variable not being set correctly (https://github.com/CrowdStrike/ansible_collection_falcon/issues/257)
+
 v3.2.21
 =======
 
@@ -12,7 +27,6 @@ Release Summary
 ---------------
 
 | Release Date: 2022-09-06
-
 | `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.21>`__
 
 
