@@ -12,6 +12,7 @@
       content-type: "application/x-www-form-urlencoded; charset=utf-8"
   register: falcon_api_oauth2_token
   no_log: "{{ falcon_api_enable_no_log }}"
+  run_once: yes
 
 - name: CrowdStrike Falcon | Configure discovered CrowdStrike Cloud Region
   ansible.builtin.set_fact:
@@ -30,9 +31,11 @@
       Content-Type: application/json
   register: falcon_api_target_cid
   no_log: "{{ falcon_api_enable_no_log }}"
+  run_once: yes
 
 # Block when falcon_sensor_update_policy_name is supplied
 - name: Sensor Update Policy Block
+  when: falcon_sensor_update_policy_name
   block:
     - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query"
       ansible.builtin.set_fact:
@@ -48,6 +51,7 @@
           Content-Type: application/json
       register: falcon_sensor_update_policy_info
       no_log: "{{ falcon_api_enable_no_log }}"
+      run_once: yes
 
     - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
       ansible.builtin.fail:
@@ -61,7 +65,6 @@
     - name: "CrowdStrike Falcon | Build API Sensor Query based on Sensor Update Policy"
       ansible.builtin.set_fact:
         falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_update_policy_package_version + '\"' }}"
-  when: falcon_sensor_update_policy_name
 
 - name: "CrowdStrike Falcon | Build API Sensor Query"
   ansible.builtin.set_fact:
