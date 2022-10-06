@@ -32,6 +32,7 @@
       Content-Type: application/json
   register: falcon_api_target_cid
   no_log: "{{ falcon_api_enable_no_log }}"
+  run_once: yes
 
 - name: CrowdStrike Falcon | Set CID received from API
   ansible.builtin.set_fact:

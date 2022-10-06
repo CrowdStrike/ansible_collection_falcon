@@ -31,6 +31,7 @@
       Content-Type: application/json
   register: falcon_api_target_cid
   no_log: "{{ falcon_api_enable_no_log }}"
+  run_once: yes
 
 # Block when falcon_sensor_update_policy_name is supplied
 - name: Sensor Update Policy Block
@@ -50,6 +51,7 @@
           Content-Type: application/json
       register: falcon_sensor_update_policy_info
       no_log: "{{ falcon_api_enable_no_log }}"
+      run_once: yes
 
     - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
       ansible.builtin.fail:
