@@ -14,6 +14,9 @@
     - ansible_system == "Linux"
 
 - name: MacOS Block
+  when:
+    - falcon_already_installed is defined
+    - ansible_system == "Darwin"
   block:
     - name: CrowdStrike Falcon | Stopping Falcon Sensor (macOS)
       ansible.builtin.command: "launchctl stop com.crowdstrike.falcond"
@@ -22,6 +25,3 @@
     - name: CrowdStrike Falcon | Uninstalling Falcon Sensor (macOS)
       ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl uninstall"
       when: falcon_already_installed.stat.exists
-  when:
-    - falcon_already_installed is defined
-    - ansible_system == "Darwin"

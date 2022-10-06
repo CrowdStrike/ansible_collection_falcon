@@ -1,7 +1,7 @@
 molecule[docker,lint]
 ansible
 yamllint
-ansible-lint==5.4.0
+ansible-lint
 python-vagrant
 molecule-vagrant
 flake8
