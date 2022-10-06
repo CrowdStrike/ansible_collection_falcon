@@ -24,6 +24,7 @@
 
 # Block when falcon_sensor_update_policy_name is supplied
 - name: Sensor Update Policy Block
+  when: falcon_sensor_update_policy_name
   block:
     - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query"
       ansible.builtin.set_fact:
@@ -66,8 +67,6 @@
       ansible.builtin.set_fact:
         falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_update_policy_package_version + '\"' }}"
 
-  when: falcon_sensor_update_policy_name
-
 - name: "CrowdStrike Falcon | Build API Sensor Query"
   ansible.builtin.set_fact:
     falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + falcon_os_arch + '+version:\"' + falcon_sensor_version + '\"'
@@ -92,6 +91,7 @@
 
 # Block for checking sensor/kernel compatibility
 - name: Sensor Kernel Compatability Block
+  when: ansible_system == "Linux"
   block:
     - name: CrowdStrike Falcon | Build Sensor Update Kernels API Query
       ansible.builtin.set_fact:
@@ -127,7 +127,6 @@
         falcon_ztl_module_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].ztl_module_supported_sensor_versions }}"
       when: falcon_sensor_update_kernels_list.json.resources
       ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
-  when: ansible_system == "Linux"
 
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package
   ansible.builtin.get_url:
