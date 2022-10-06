@@ -12,6 +12,7 @@
       content-type: "application/x-www-form-urlencoded; charset=utf-8"
   register: falcon_api_oauth2_token
   no_log: "{{ falcon_api_enable_no_log }}"
+  run_once: yes
 
 - name: CrowdStrike Falcon | Configure discovered CrowdStrike Cloud Region
   ansible.builtin.set_fact:
