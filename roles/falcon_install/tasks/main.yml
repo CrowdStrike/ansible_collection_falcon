@@ -1,49 +1,56 @@
 ---
 # tasks file for falcon_install
-- block:
+- name: Preinstall block
+  block:
     - ansible.builtin.include_tasks: preinstall.yml
-      # noqa unnamed-task 502
+      # noqa name[missing]
 
-- block:
-    - ansible.builtin.include_tasks: url.yml
-      # noqa unnamed-task 502
+- name: URL block
   when:
     - falcon_install_method == "url"
     - ansible_os_family != "Windows"
+  block:
+    - ansible.builtin.include_tasks: url.yml
+      # noqa name[missing]
 
-- block:
-    - ansible.builtin.include_tasks: api.yml
-      # noqa unnamed-task 502
+- name: API block
   when:
     - falcon_install_method == "api"
     - ansible_os_family != "Windows"
+  block:
+    - ansible.builtin.include_tasks: api.yml
+      # noqa name[missing]
 
-- block:
-    - ansible.builtin.include_tasks: file.yml
-      # noqa unnamed-task 502
+- name: File block
   when:
     - falcon_install_method == "file"
+  block:
+    - ansible.builtin.include_tasks: file.yml
+      # noqa name[missing]
 
-- block:
-    - ansible.builtin.include_tasks: win_api.yml
-      # noqa unnamed-task 502
+- name: Windows API block
   when:
     - falcon_install_method == "api"
     - ansible_os_family == "Windows"
+  block:
+    - ansible.builtin.include_tasks: win_api.yml
+      # noqa name[missing]
 
-- block:
-    - ansible.builtin.include_tasks: install.yml
-      # noqa unnamed-task 502
+- name: Non-Windows Install block
   when:
     - ansible_os_family != "Windows"
   become: true
   become_user: root
+  block:
+    - ansible.builtin.include_tasks: install.yml
+      # noqa name[missing]
 
-- block:
-    - ansible.builtin.include_tasks: win_install.yml
-      # noqa unnamed-task 502
+- name: Windows Install block
   when:
     - ansible_os_family == "Windows"
   become: true
   become_method: "{{ falcon_windows_become_method }}"
   become_user: "{{ falcon_windows_become_user }}"
+  block:
+    - ansible.builtin.include_tasks: win_install.yml
+      # noqa name[missing]

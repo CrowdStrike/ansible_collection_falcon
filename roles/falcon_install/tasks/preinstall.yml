@@ -1,5 +1,6 @@
 ---
 - name: API Install Method Block
+  when: falcon_install_method == "api"
   block:
     - name: "CrowdStrike Falcon | Validate Required API URL Is Defined"
       ansible.builtin.fail:
@@ -20,7 +21,6 @@
       ansible.builtin.fail:
         msg: "falcon_sensor_version_decrement must be an integer between 0 and 5 inclusive!"
       when: falcon_sensor_version_decrement | int < 0 or falcon_sensor_version_decrement | int > 5
-  when: falcon_install_method == "api"
 
 - name: "CrowdStrike Falcon | Configure Python Interpreter for older Linux OSes"
   ansible.builtin.set_fact:
