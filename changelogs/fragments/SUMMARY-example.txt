@@ -1,0 +1,7 @@
+# Use the following below to create a new release_summary for ansible_collection_falcon.
+#
+# ** UPDATE the date and the target release VERSION **
+
+release_summary: |
+  | Release Date: 2022-10-10
+  | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/VERSION>`__
