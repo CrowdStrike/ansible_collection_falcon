@@ -1,2 +1,0 @@
-minor_changes:
-  - implement run_once playbook option to reduce API calls (https://github.com/CrowdStrike/ansible_collection_falcon/pull/261)
