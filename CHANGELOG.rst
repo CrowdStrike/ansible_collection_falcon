@@ -5,6 +5,22 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.23
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2022-10-10
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.23>`__
+
+
+Minor Changes
+-------------
+
+- Updates made to conform with the latest ansible-lint rules (https://github.com/CrowdStrike/ansible_collection_falcon/pull/263)
+- implement run_once playbook option to reduce API calls (https://github.com/CrowdStrike/ansible_collection_falcon/pull/261)
+
 v3.2.22
 =======
 

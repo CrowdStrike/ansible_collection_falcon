@@ -65,3 +65,18 @@ releases:
     - 3.2.22-summary.yaml
     - fix-falcon-configure-var-issue.yaml
     release_date: '2022-09-30'
+  3.2.23:
+    changes:
+      minor_changes:
+      - Updates made to conform with the latest ansible-lint rules (https://github.com/CrowdStrike/ansible_collection_falcon/pull/263)
+      - implement run_once playbook option to reduce API calls (https://github.com/CrowdStrike/ansible_collection_falcon/pull/261)
+      release_summary: '| Release Date: 2022-10-10
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.23>`__
+
+        '
+    fragments:
+    - 3.2.23-summary.yaml
+    - ansible-lint-updates.yaml
+    - run-once.yaml
+    release_date: '2022-10-10'
