@@ -11,7 +11,7 @@ This collection is focused on installing, configuring, and removing CrowdStrike'
 <!--start requires_ansible-->
 ## Ansible version compatibility
 
-This collection has been tested against following Ansible versions: **>=2.11**.
+This collection is supported and tested against the following Ansible versions: **>=2.11**.
 <!--end requires_ansible-->
 
 ## Included content
