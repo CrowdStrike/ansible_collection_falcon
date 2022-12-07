@@ -27,7 +27,7 @@
   changed_when: no
 
 - name: CrowdStrike Falcon | Remove tmp install directory (Windows)
-  ansible.builtin.win_file:
+  ansible.windows.win_file:
     path: "{{ item.path }}"
     state: absent
   loop: "{{ falcon_tmp_dir_objects.files }}"
