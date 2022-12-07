@@ -70,7 +70,7 @@ jobs:
           ansible-galaxy collection install $collection_file
 
       - name: Run role tests
-        continue-on-error: true
+        continue-on-error: false
         run: >-
           molecule --version &&
           ansible --version &&
