@@ -1,27 +1,4 @@
 ---
-- name: CrowdStrike Falcon | Authenticate to CrowdStrike API
-  ansible.builtin.uri:
-    url: "https://{{ falcon_cloud }}/oauth2/token"
-    method: POST
-    body_format: json
-    body:
-      "client_id={{ falcon_client_id }}&client_secret={{ falcon_client_secret }}"
-    return_content: true
-    follow_redirects: all
-    status_code: 201
-    headers:
-      content-type: application/x-www-form-urlencoded
-  register: falcon_api_oauth2_token
-  no_log: "{{ falcon_api_enable_no_log }}"
-  run_once: yes
-
-- name: CrowdStrike Falcon | Auto-discover CrowdStrike Cloud Region
-  ansible.builtin.set_fact:
-      falcon_cloud: "{{ falcon_cloud_urls[falcon_api_oauth2_token.x_cs_region] }}"
-  when:
-    - falcon_cloud_autodiscover
-    - falcon_api_oauth2_token.x_cs_region | length > 0
-
 # Block when falcon_sensor_update_policy_name is supplied
 - name: Build Sensor Update Policy Block (Linux)
   when:
