@@ -1,38 +1,4 @@
 ---
-- name: CrowdStrike Falcon | Authenticate to CrowdStrike Cloud to Auto-discover Region
-  ansible.windows.win_uri:
-    url: "https://{{ falcon_cloud }}/oauth2/token"
-    method: POST
-    body:
-      "client_id={{ falcon_client_id }}&client_secret={{ falcon_client_secret }}"
-    return_content: true
-    follow_redirects: all
-    status_code: 201
-    headers:
-      content-type: "application/x-www-form-urlencoded; charset=utf-8"
-  register: falcon_api_oauth2_token
-  no_log: "{{ falcon_api_enable_no_log }}"
-  run_once: yes
-
-- name: CrowdStrike Falcon | Configure discovered CrowdStrike Cloud Region
-  ansible.builtin.set_fact:
-      falcon_cloud: "{{ falcon_cloud_urls[falcon_api_oauth2_token.x_cs_region] }}"
-  when:
-    - falcon_cloud_autodiscover
-    - falcon_api_oauth2_token.x_cs_region | length > 0
-
-- name: CrowdStrike Falcon | Detect Target CID Based on Credentials
-  ansible.windows.win_uri:
-    url: https://{{ falcon_cloud }}/sensors/queries/installers/ccid/v1
-    method: GET
-    return_content: true
-    headers:
-      authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
-      Content-Type: application/json
-  register: falcon_api_target_cid
-  no_log: "{{ falcon_api_enable_no_log }}"
-  run_once: yes
-
 # Block when falcon_sensor_update_policy_name is supplied
 - name: Sensor Update Policy Block
   when: falcon_sensor_update_policy_name
@@ -99,11 +65,6 @@
   changed_when: false
   register: falcon_sensor_download
   no_log: "{{ falcon_api_enable_no_log }}"
-
-- name: CrowdStrike Falcon | Set CID received from API
-  ansible.builtin.set_fact:
-    falcon_cid: "{{ falcon_api_target_cid.json.resources[0] }}"
-  when: not falcon_cid
 
 - name: CrowdStrike Falcon | Set full file download path
   ansible.builtin.set_fact:

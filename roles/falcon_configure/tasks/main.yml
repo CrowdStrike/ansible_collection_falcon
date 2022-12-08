@@ -6,7 +6,9 @@
     - falcon_option_set
     - not falcon_cid
   block:
-    - ansible.builtin.include_tasks: api.yml
+    - ansible.builtin.include_role:
+        name: falcon_install
+        tasks_from: auth.yml
       # noqa name[missing]
 
 - name: Linux Configure block
