@@ -22,7 +22,9 @@
       # noqa name[missing]
 
 - name: Remove AID block
-  when: falcon_remove_aid
+  when:
+    - falcon_remove_aid
+    - ansible_os_family != "Windows"
   block:
     - ansible.builtin.include_tasks: remove_aid.yml
       # noqa name[missing]

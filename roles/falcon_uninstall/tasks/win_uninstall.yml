@@ -2,8 +2,9 @@
 - name: CrowdStrike Falcon | Find Windows installer in Package Cache
   ansible.windows.win_find:
     paths: C:\ProgramData\Package Cache
-    patterns: WindowsSensor.exe
+    patterns: ^(WindowsSensor.*\.)(exe)$
     recurse: yes
+    use_regex: yes
   register: falcon_win_sensor_cache
 
 - name: CrowdStrike Falcon | Remove Falcon Sensor (Windows)
