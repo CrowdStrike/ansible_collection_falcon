@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+    falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
+    falcon_sensor_update_policy_name: "platform_default"
+  roles:
+    - role: crowdstrike.falcon.falcon_install
