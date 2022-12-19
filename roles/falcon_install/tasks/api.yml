@@ -17,7 +17,7 @@
         headers:
           authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
           Content-Type: application/json
-      register: falcon_sensor_update_policy_info
+      register: falcon_sensor_update_policy_info_linux
       no_log: "{{ falcon_api_enable_no_log }}"
       run_once: yes
 
@@ -38,7 +38,7 @@
         headers:
           authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
           Content-Type: application/json
-      register: falcon_sensor_update_policy_info
+      register: falcon_sensor_update_policy_info_mac
       no_log: "{{ falcon_api_enable_no_log }}"
       run_once: yes
 
@@ -46,6 +46,11 @@
   when:
     - falcon_sensor_update_policy_name
   block:
+    # Set falcon_sensor_update_policy_info fact based on platform
+    - name: "CrowdStrike Falcon | Set falcon_sensor_update_policy_info fact based on platform"
+      ansible.builtin.set_fact:
+        falcon_sensor_update_policy_info: "{{ falcon_sensor_update_policy_info_linux if falcon_sensor_update_policy_platform == 'Linux' else falcon_sensor_update_policy_info_mac }}"
+
     - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
       ansible.builtin.fail:
         msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} was found!"
@@ -70,7 +75,7 @@
 
     - name: "CrowdStrike Falcon | Build API Sensor Query based on Sensor Update Policy"
       ansible.builtin.set_fact:
-        falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_update_policy_package_version + '\"' }}"
+        falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_update_policy_package_version + falcon_os_arch }}"
 
 - name: "CrowdStrike Falcon | Build API Sensor Query"
   ansible.builtin.set_fact:
