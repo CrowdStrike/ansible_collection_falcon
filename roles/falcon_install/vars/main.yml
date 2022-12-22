@@ -18,3 +18,9 @@ falcon_cloud_urls:
   us-2: "api.us-2.crowdstrike.com"
   eu-1: "api.eu-1.crowdstrike.com"
   us-gov-1: "api.laggar.gcw.crowdstrike.com"
+
+falcon_os_arch_dict:
+  # exclude arm64 and s390x
+  x86_64: "\"+os_version:!~\"arm64\"+os_version:!~\"zLinux\""
+  aarch64: "\"+os_version:~\"arm64\""
+  s390x: "\"+os_version:~\"zLinux\""
