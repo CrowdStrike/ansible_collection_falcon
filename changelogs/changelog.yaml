@@ -80,3 +80,19 @@ releases:
     - ansible-lint-updates.yaml
     - run-once.yaml
     release_date: '2022-10-10'
+  3.2.24:
+    changes:
+      bugfixes:
+      - falcon_install - fix issue with sensor update policies and arch support (https://github.com/CrowdStrike/ansible_collection_falcon/pull/276)
+      minor_changes:
+      - falcon_install falcon_configure - Refactored API authentication for better
+        useability (https://github.com/CrowdStrike/ansible_collection_falcon/pull/273)
+      release_summary: '| Release Date: 2022-12-22
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.24>`__
+
+        '
+    fragments:
+    - 3.2.24-summary.yml
+    - release-notes.yml
+    release_date: '2022-12-22'
