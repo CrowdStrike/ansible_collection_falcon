@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.25
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2022-12-22
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.25>`__
+
+
+Bugfixes
+--------
+
+- falcon_install - Fixed support for s390x that was causing issues for the other archs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/281)
+
 v3.2.24
 =======
 
