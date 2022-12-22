@@ -96,3 +96,17 @@ releases:
     - 3.2.24-summary.yml
     - release-notes.yml
     release_date: '2022-12-22'
+  3.2.25:
+    changes:
+      bugfixes:
+      - falcon_install - Fixed support for s390x that was causing issues for the other
+        archs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/281)
+      release_summary: '| Release Date: 2022-12-22
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.25>`__
+
+        '
+    fragments:
+    - 3.2.25.yml
+    - fixes.yml
+    release_date: '2022-12-22'
