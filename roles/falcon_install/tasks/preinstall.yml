@@ -36,7 +36,11 @@
     falcon_os_version: "*{{ ansible_distribution_major_version }}*"
     falcon_sensor_update_policy_platform: "{{ ansible_system }}"
     falcon_os_vendor: "{{ ansible_os_family | lower if (ansible_os_family == 'RedHat' and ansible_distribution != 'Amazon') else ansible_distribution | lower }}"
+
+- name: "CrowdStrike Falcon | Determine Operating System Architecture (Linux)"
+  ansible.builtin.set_fact:
     falcon_os_arch: "{{ falcon_os_arch_dict[ansible_architecture] }}"
+  when: ansible_system == "Linux"
 
 - name: "CrowdStrike Falcon | Determine if Endpoint Operating System Is RHEL, CentOS, or Oracle Linux"
   ansible.builtin.set_fact:
