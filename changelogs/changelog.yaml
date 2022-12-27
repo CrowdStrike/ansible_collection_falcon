@@ -110,3 +110,17 @@ releases:
     - 3.2.25.yml
     - fixes.yml
     release_date: '2022-12-22'
+  3.2.26:
+    changes:
+      bugfixes:
+      - falcon_install - Fix issue with non-linux systems being affected by `falcon_os_arch`
+        variable (https://github.com/CrowdStrike/ansible_collection_falcon/pull/284)
+      release_summary: '| Release Date: 2022-12-27
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.26>`__
+
+        '
+    fragments:
+    - 3.2.26-summary.yml
+    - bugfixes.yml
+    release_date: '2022-12-27'
