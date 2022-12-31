@@ -92,6 +92,13 @@ options:
       - To assign multiple tags, separate tags with commas.
       - I(The combined length of all tags for a host, including comma separators, cannot exceed 256 characters).
     type: str
+  backend:
+    description:
+      - Configure the backend for the Falcon sensor. This was introduced to support the BPF backend.
+      - C(backend) is only available in sensor versions that support the C(--backend) option (>6.46.0).
+      - "Valid Options are: C('auto'|'bpf'|'kernel')"
+    type: str
+    choices: [ auto, bpf, kernel ]
 '''
 
 EXAMPLES = r'''
@@ -142,6 +149,7 @@ VALID_PARAMS = {
         "billing",
         "tags",
         "provisioning_token",
+        "backend",
     ],
     "d": [
         "cid",
@@ -153,6 +161,7 @@ VALID_PARAMS = {
         "billing",
         "tags",
         "provisioning_token",
+        "backend",
     ],
 }
 
@@ -188,9 +197,10 @@ class FalconCtl(object):
             cmd, use_unsafe_shell=False)
 
         # Add some error checking/reporting
-        if "ERROR" in output[2] or "not a valid" in output[2]:
+        # Check if "ERROR" or "not a valid" or "unrecognized" string in output[2]
+        if "ERROR" in output[2] or "not a valid" in output[2] or "unrecognized" in output[2]:
             self.module.fail_json(
-                msg="ERROR executing %s: OUTPUT = %s" % (cmd, output[2])
+                msg="ERROR: %s" % (output[2].splitlines()[0])
             )
 
     @classmethod
@@ -314,6 +324,7 @@ class FalconCtl(object):
         self.check_param("apd", ["true", "false", ""], True)
         self.check_param("message_log", ["true", "false", ""], True)
         self.check_param("billing", ["default", "metered", ""])
+        self.check_param("backend", ["auto", "bpf", "kernel"], True)
 
     def check_param(self, param, options, to_lower=False):
         """Validate single paramater"""
@@ -343,6 +354,7 @@ def main():  # pylint: disable=missing-function-docstring
         message_log=dict(required=False, type="str"),
         billing=dict(required=False, type="str"),
         tags=dict(required=False, type="str"),
+        backend=dict(required=False, type="str"),
     )
 
     module = AnsibleModule(

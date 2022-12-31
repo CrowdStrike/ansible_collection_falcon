@@ -40,6 +40,7 @@ options:
         'version',
         'rfm_state',
         'rfm_reason'
+        'backend'
         ]
     type: list
     elements: str
