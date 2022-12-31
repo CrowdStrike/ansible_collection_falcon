@@ -31,7 +31,8 @@ FALCONCTL_GET_OPTIONS = [
     # 'provisioning_token', # Taking it out since this does not seem to be a perm option
     'version',
     'rfm_state',
-    'rfm_reason'
+    'rfm_reason',
+    'backend'
 ]
 
 # Private use only. This is to ensure that the command is checked

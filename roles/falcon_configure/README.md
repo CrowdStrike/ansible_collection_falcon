@@ -28,6 +28,7 @@ Role Variables
  * `falcon_message_log` - Enable/Disable message logs (string, default: null)
  * `falcon_billing` - Configure Falcon sensor with Pay-As-You-Go billing (string, default: null)
  * `falcon_tags` - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts (string, default: null)
+ * `falcon_backend` - The backend to use for the Falcon Sensor `[auto|bpf|kernel]` (string, default: null)
  * `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: `runas`)
  * `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: `SYSTEM`)
 
@@ -48,6 +49,7 @@ Role Variables
 | falcon_message_log        | S     |
 | falcon_billing            | S/D   |
 | falcon_tags               | S/D   |
+| falcon_backend            | S/D   |
 
 Falcon API Permissions
 ----------------------
