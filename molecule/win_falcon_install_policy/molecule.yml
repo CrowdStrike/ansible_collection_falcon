@@ -7,7 +7,7 @@ driver:
     name: virtualbox
 platforms:
   - name: falcon
-    box: "jborean93/${MOLECULE_DISTRO:-WindowsServer2016}"
+    box: "jborean93/${MOLECULE_DISTRO:-WindowsServer2019}"
     box_version: 1.0.0
     memory: 4096
     cpus: 2
@@ -44,5 +44,4 @@ scenario:
     - idempotence
     - side_effect
     - verify
-    - cleanup
     - destroy

@@ -27,13 +27,12 @@ jobs:
       FALCON_CLIENT_ID: ${{ secrets.FALCON_CLIENT_ID }}
       FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
       FALCON_CID: ${{ secrets.FALCON_CID }}
+      FALCON_PROV_TOKEN: ${{ secrets.FALCON_PROV_TOKEN }}
       OBJC_DISABLE_INITIALIZE_FORK_SAFETY: YES
     strategy:
       fail-fast: false
       matrix:
         molecule_distro:
-          # - { "distro":"WindowsServer2012R2" }
-          # - { "distro":"WindowsServer2016" }
           - { "distro":"WindowsServer2019" }
         collection_role:
           - falcon_install_policy
