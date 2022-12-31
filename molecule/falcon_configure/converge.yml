@@ -1,6 +1,7 @@
 ---
 - name: Converge
   hosts: all
+  become: yes
   vars:
     falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
     falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
@@ -13,6 +14,7 @@
         falcon_tags: 'falcon,example,tags'
         falcon_billing: 'metered'
         falcon_message_log: yes
+        falcon_backend: 'kernel'
         falcon_feature:
           - enableLog
           - disableLogBuffer
