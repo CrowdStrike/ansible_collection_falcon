@@ -57,7 +57,7 @@ jobs:
         run: |
           sudo apt install apt-transport-https ca-certificates curl software-properties-common
           python -m pip install --upgrade pip
-          pip install molecule[docker,lint,ansible] ansible yamllint ansible-lint
+          pip install molecule[lint] ansible yamllint ansible-lint
 
       - name: Build/Install the collection
         run: |
