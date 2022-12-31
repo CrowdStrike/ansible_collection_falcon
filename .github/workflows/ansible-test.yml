@@ -23,24 +23,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Perform sanity testing with ansible-test
+        uses: ansible-community/ansible-test-gh-action@release/v1
         with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get install -y libyaml-dev
-          python -m pip install --upgrade pip
-          pip install ansible yamllint jinja2 pylint pyyaml voluptuous
-
-      - name: Build/Install the Collection
-        run: |
-          collection_file=$( basename $(ansible-galaxy collection build -f | awk -F" " '{print $NF}'))
-          ansible-galaxy collection install $collection_file
-
-      - name: Run ansible tests
-        run: >-
-          cd $HOME/.ansible/collections/ansible_collections/crowdstrike/falcon/ &&
-          ansible --version &&
-          ansible-test sanity --docker -v
+          ansible-core-version: stable-2.14
+          testing-type: sanity
+          pre-test-cmd: 'rm -rf .devcontainer/ .git* .pre-commit-config.yaml'
