@@ -14,6 +14,7 @@
         message_log: "{{ falcon_message_log if (falcon_message_log != None) else omit }}"
         billing: "{{ falcon_billing if (falcon_billing != None) else omit }}"
         tags: "{{ falcon_tags if (falcon_tags != None) else omit }}"
+        backend: "{{ falcon_backend if (falcon_backend != None) else omit }}"
         state: "{{ 'present' if falcon_option_set else 'absent' }}"
       register: falconctl_result
 

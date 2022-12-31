@@ -107,6 +107,13 @@ falcon_billing:
 #   falcon_tags: 'Washington/DC_USA,Production'
 falcon_tags:
 
+# Configure the Falcon sensor to use a specific backend.
+# Valid values are: [auto|bpf|kernel]
+#
+# This is only available for Linux systems on sensors greater than 6.47.0.
+#
+falcon_backend:
+
 # Ansible become method for Windows systems.
 # The default is runas
 #
