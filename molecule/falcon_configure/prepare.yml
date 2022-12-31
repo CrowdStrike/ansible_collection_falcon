@@ -1,6 +1,7 @@
 ---
 - name: Prepare
   hosts: all
+  become: yes
   tasks:
     # Ubuntu specific
     - name: Install apt dependencies

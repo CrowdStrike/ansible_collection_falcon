@@ -27,13 +27,12 @@ jobs:
       FALCON_CLIENT_ID: ${{ secrets.FALCON_CLIENT_ID }}
       FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
       FALCON_CID: ${{ secrets.FALCON_CID }}
+      FALCON_PROV_TOKEN: ${{ secrets.FALCON_PROV_TOKEN }}
       OBJC_DISABLE_INITIALIZE_FORK_SAFETY: YES
     strategy:
       fail-fast: false
       matrix:
         molecule_distro:
-          # - { "distro":"WindowsServer2012R2" }
-          # - { "distro":"WindowsServer2016" }
           - { "distro":"WindowsServer2019" }
         collection_role:
           - falcon_uninstall
@@ -47,12 +46,6 @@ jobs:
         with:
           ref: ${{github.event.pull_request.head.sha}}
         if: github.event_name == 'pull_request_target'
-
-      - name: Cache Vagrant boxes
-        uses: actions/cache@v3
-        with:
-          path: ~/.vagrant.d/boxes/jborean93-VAGRANTSLASH-${{ matrix.molecule_distro.distro }}
-          key: ${{ runner.os }}-${{ matrix.molecule_distro.distro }}-${{ matrix.collection_role }}-${{ hashFiles('molecule/win_falcon_uninstall/molecule.yml') }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
