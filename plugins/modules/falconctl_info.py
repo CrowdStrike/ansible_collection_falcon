@@ -39,7 +39,7 @@ options:
         'tags',
         'version',
         'rfm_state',
-        'rfm_reason'
+        'rfm_reason',
         'backend'
         ]
     type: list

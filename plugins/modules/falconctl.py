@@ -98,7 +98,6 @@ options:
       - C(backend) is only available in sensor versions that support the C(--backend) option (>6.46.0).
       - "Valid Options are: C('auto'|'bpf'|'kernel')"
     type: str
-    choices: [ auto, bpf, kernel ]
 '''
 
 EXAMPLES = r'''
