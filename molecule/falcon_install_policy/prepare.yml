@@ -1,0 +1,18 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    # Ubuntu specific
+    - name: Install apt dependencies
+      apt:
+        name:
+          - gpg-agent
+        update_cache: yes
+      ignore_errors: yes
+      when: ansible_pkg_mgr == 'apt'
+
+    - name: Install dependencies
+      package:
+        name:
+          - sudo
+        state: present

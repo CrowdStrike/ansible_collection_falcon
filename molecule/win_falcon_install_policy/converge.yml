@@ -1,0 +1,17 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Set ProvToken info (if applicable)
+      set_fact:
+        windows_install_args: "/norestart ProvToken={{ lookup('env', 'FALCON_PROV_TOKEN') }}"
+      when: lookup('env', 'FALCON_PROV_TOKEN')
+
+    - name: Install Falcon Sensor
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_install
+      vars:
+        falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+        falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
+        falcon_sensor_update_policy_name: "platform_default"
+        falcon_windows_install_args: "{{ windows_install_args if windows_install_args is defined else '/norestart' }}"
