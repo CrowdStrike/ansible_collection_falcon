@@ -124,3 +124,18 @@ releases:
     - 3.2.26-summary.yml
     - bugfixes.yml
     release_date: '2022-12-27'
+  3.2.27:
+    changes:
+      minor_changes:
+      - falcon_configure - Add backend support for bpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/287)
+      - falcon_install - Fixed issue with delegation in Auth call (https://github.com/CrowdStrike/ansible_collection_falcon/pull/286)
+      - falconctl, falconctl_info - Add backend option support for bpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/287)
+      release_summary: '| Release Date: 2023-01-12
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.27>`__
+
+        '
+    fragments:
+    - 3.2.27-summary.yml
+    - changes.yml
+    release_date: '2023-01-12'
