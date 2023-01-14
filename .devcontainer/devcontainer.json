@@ -62,5 +62,8 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "ansible-galaxy collection install ansible.windows",
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode"
+	"remoteUser": "vscode",
+	"features": {
+		"ghcr.io/devcontainers/features/java:1": {}
+	}
 }

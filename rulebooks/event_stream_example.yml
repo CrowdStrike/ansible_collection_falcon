@@ -1,0 +1,14 @@
+- name: Simple Falcon Event Stream Usage Example
+  hosts: all
+  sources:
+    - crowdstrike.falcon.eventstream:
+        falcon_client_id: {{ falcon_client_id }}
+        falcon_client_secret: {{ falcon_client_secret }}
+        falcon_cloud: {{ falcon_cloud }}
+        stream_name: {{ stream_name }}
+
+  rules:
+    - name: print output
+      condition: event.falcon is defined 
+      action:
+        debug:
