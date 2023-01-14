@@ -17,6 +17,8 @@ Arguments:
   - falcon_client_secret: CrowdStrike OAUTH Client Secret
   - falcon_cloud: CrowdStrike Cloud Region (us-1, us-2, eu-1, us-gov-1) Default: us-1
   - stream_name (Optional): Label that identifies your connection. Max: 32 alphanumeric characters (a-z, A-Z, 0-9) Default: eda.
+  - include_event_types (Optional): List of event types to filter on. Default: All event types.
+  - exclude_event_types (Optional): List of event types to exclude. Default: None.
 
 
 Examples:
@@ -25,7 +27,11 @@ Examples:
         falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
         falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
         falcon_cloud: "us-1"
-        stream_name: "eda"
+        include_event_types:
+            - "UserActivityAuditEvent"
+        exclude_event_types:
+            - "AuthActivityAuditEvent"
+
 
 """
 import asyncio
@@ -104,7 +110,7 @@ class Stream():
         self.spigot.raise_for_status()
         return self.spigot
 
-    async def stream_events(self, queue: asyncio.Queue, stop_event: asyncio.Event) -> None:
+    async def stream_events(self, queue: asyncio.Queue, stop_event: asyncio.Event, include_event_types: List[str], exclude_event_types: List[str]) -> None:
         """Stream events from the CrowdStrike Falcon Event Stream API
 
         Args:
@@ -117,8 +123,19 @@ class Stream():
                 break
             if line:
                 jsonEvent = json.loads(line.decode("utf-8"))
+                eventType = jsonEvent["metadata"]["eventType"].lower()
                 self.offset = jsonEvent["metadata"]["offset"]
-                await queue.put(dict(falcon=jsonEvent))
+
+                valid: bool = True
+
+                if include_event_types and eventType not in include_event_types:
+                    valid = False
+
+                if exclude_event_types and eventType in exclude_event_types:
+                    valid = False
+
+                if valid:
+                    await queue.put(dict(falcon=jsonEvent))
             if self.token_expired():
                 await self.refresh()
                 continue
@@ -136,17 +153,6 @@ REGIONS: Dict[str, str] = {
 }
 
 
-async def sleep_close(stop_event: asyncio.Event, timeout) -> None:
-    """Close the stream
-
-    Args:
-        stream (Stream): The stream to close
-        stop_event (asyncio.Event): The stop event
-    """
-    await asyncio.sleep(timeout)
-    stop_event.set()
-
-
 async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     """Main function for the eventstream event_source plugin
 
@@ -161,6 +167,11 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     falcon_client_secret: str = str(args.get("falcon_client_secret"))
     falcon_cloud: str = str(args.get("falcon_cloud", "us-1"))
     stream_name: str = str(args.get("stream_name", "eda")).lower()
+    include_event_types: List[str] = list(args.get("include_event_types", []))
+    exclude_event_types: List[str] = list(args.get("exclude_event_types", []))
+
+    include_event_types = [x.lower() for x in include_event_types]
+    exclude_event_types = [x.lower() for x in exclude_event_types]
 
     if falcon_cloud not in REGIONS:
         raise ValueError(f"Invalid falcon_cloud: {falcon_cloud}, must be one of {list(REGIONS.keys())}")
@@ -189,8 +200,7 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
         for stream in availableStreams["body"]["resources"]:
             streams.append(Stream(falcon, stream_name, stream))
 
-        tasks = [asyncio.create_task(stream.stream_events(q, stop_event)) for stream in streams]
-        asyncio.create_task(sleep_close(stop_event, 5))
+        tasks = [asyncio.create_task(stream.stream_events(q, stop_event, include_event_types, exclude_event_types)) for stream in streams]
 
         while not stop_event.is_set():
             event = await q.get()

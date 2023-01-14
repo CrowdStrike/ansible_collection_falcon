@@ -1,3 +1,4 @@
+---
 - name: Simple Falcon Event Stream Usage Example
   hosts: all
   sources:
@@ -5,7 +6,9 @@
         falcon_client_id: {{ falcon_client_id }}
         falcon_client_secret: {{ falcon_client_secret }}
         falcon_cloud: {{ falcon_cloud }}
-        stream_name: {{ stream_name }}
+        stream_name: "{{stream_name | default('eda')}}"
+        include_event_types:
+          - "AuthActivityAuditEvent"
 
   rules:
     - name: print output
