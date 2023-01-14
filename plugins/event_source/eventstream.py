@@ -3,7 +3,7 @@ eventstream.py
 
 An ansible-rulebook event source plugin for generating events from the Falcon Event Stream API
 
-Each event is imbbded in a dict with the key "falcon" and the value is the raw event from the API.
+Each event is imbedded in a dict with the key "falcon" and the value is the raw event from the API.
 
 Example:
     {
