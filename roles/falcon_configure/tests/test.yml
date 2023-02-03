@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Configure Falcon Sensor
+  hosts: localhost
   remote_user: root
   roles:
     - falcon_configure

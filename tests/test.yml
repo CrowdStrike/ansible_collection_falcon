@@ -1,5 +1,6 @@
 ---
-- hosts: localhost
+- name: Install, configure, and uninstall the Falcon Sensor
+  hosts: localhost
   remote_user: root
   vars:
     falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
