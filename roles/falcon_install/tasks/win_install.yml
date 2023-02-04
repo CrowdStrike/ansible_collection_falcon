@@ -4,7 +4,7 @@
     path: "{{ falcon_sensor_pkg }}"
     state: present
     creates_service: csfalconservice
-    arguments: '/install /quiet CID={{ falcon_cid }} {{ falcon_windows_install_args }}'
+    arguments: '/install /quiet CID={{ falcon_client_id }} {{ falcon_windows_install_args }}'
   when:
     - ansible_os_family == "Windows"
   register: falcon_installed
