@@ -35,7 +35,7 @@ jobs:
         molecule_distro:
           - { "distro":"WindowsServer2019" }
         collection_role:
-          - falcon_configure
+          - win_falcon_configure
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -58,14 +58,23 @@ jobs:
           pip install molecule[lint] ansible yamllint ansible-lint python-vagrant molecule-vagrant "pywinrm>=0.3.0"
 
       - name: Build/Install the collection
-        run: |
-          collection_file=$( basename $(ansible-galaxy collection build -f | awk -F" " '{print $NF}'))
-          ansible-galaxy collection install $collection_file
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          retry_on: error
+          command: |
+            collection_file=$( basename $(ansible-galaxy collection build -f | awk -F" " '{print $NF}'))
+            ansible-galaxy collection install $collection_file
 
       - name: Run role tests
-        continue-on-error: false
-        run: >-
-          molecule --version &&
-          ansible --version &&
-          MOLECULE_DISTRO=${{ matrix.molecule_distro.distro }}
-          molecule --debug test -s win_${{ matrix.collection_role }} -- -v
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+          retry_on: error
+          command: >-
+            molecule --version &&
+            ansible --version &&
+            MOLECULE_DISTRO=${{ matrix.molecule_distro.distro }}
+            molecule --debug test -s ${{ matrix.collection_role }} -- -v
