@@ -36,6 +36,7 @@ jobs:
           - { "distro":"ubuntu2004" }
         collection_role:
           - falcon_install
+          - falcon_install_policy
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -59,9 +60,14 @@ jobs:
           pip install molecule[docker,lint] ansible yamllint ansible-lint
 
       - name: Build/Install the collection
-        run: |
-          collection_file=$( basename $(ansible-galaxy collection build -f | awk -F" " '{print $NF}'))
-          ansible-galaxy collection install $collection_file
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          retry_on: error
+          command: |
+            collection_file=$( basename $(ansible-galaxy collection build -f | awk -F" " '{print $NF}'))
+            ansible-galaxy collection install $collection_file
 
       - name: Run role tests
         uses: nick-fields/retry@v2
