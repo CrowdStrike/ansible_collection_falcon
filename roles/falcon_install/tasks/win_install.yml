@@ -6,7 +6,7 @@
     creates_service: csfalconservice
     arguments: '/install /quiet CID={{ falcon_cid }} {{ falcon_windows_install_args }}'
   when:
-    - ansible_os_family == "Windows"
+    - ansible_facts['os_family'] == "Windows"
   register: falcon_installed
   retries: "{{ falcon_windows_install_retries }}"
   delay: "{{ falcon_windows_install_delay }}"

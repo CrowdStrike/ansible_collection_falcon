@@ -21,7 +21,7 @@
   changed_when: no
   when:
     - falcon_gpg_key_check
-    - ansible_pkg_mgr in rpm_packagers
+    - ansible_facts['pkg_mgr'] in rpm_packagers
 
 - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from file
   ansible.builtin.apt_key:
@@ -30,27 +30,27 @@
   changed_when: no
   when:
     - falcon_gpg_key_check
-    - ansible_pkg_mgr in dpkg_packagers
+    - ansible_facts['pkg_mgr'] in dpkg_packagers
 
 - name: CrowdStrike Falcon | Install Falcon Sensor Package (Linux)
   ansible.builtin.package:
-    deb: "{{ falcon_sensor_pkg if (ansible_pkg_mgr in dpkg_packagers) else omit }}"
-    name: "{{ falcon_sensor_pkg if (ansible_pkg_mgr in rpm_packagers) else omit }}"
+    deb: "{{ falcon_sensor_pkg if (ansible_facts['pkg_mgr'] in dpkg_packagers) else omit }}"
+    name: "{{ falcon_sensor_pkg if (ansible_facts['pkg_mgr'] in rpm_packagers) else omit }}"
     state: present
   when:
-    - ansible_pkg_mgr in linux_packagers
+    - ansible_facts['pkg_mgr'] in linux_packagers
 
 - name: CrowdStrike Falcon | Install Falcon Sensor .pkg Package (macOS)
   ansible.builtin.command: "/usr/sbin/installer -pkg {{ falcon_sensor_pkg }} -target /"
   args:
     creates: "/Applications/Falcon.app/Contents/Resources/falconctl"
   when:
-    - ansible_distribution == "MacOSX"
+    - ansible_facts['distribution'] == "MacOSX"
 
 - name: CrowdStrike Falcon | Verify Falcon Package Is Installed
   ansible.builtin.package_facts:
     manager: auto
-  when: ansible_distribution != "MacOSX"
+  when: ansible_facts['distribution'] != "MacOSX"
 
 - name: CrowdStrike Falcon | Gather tmp install directory objects
   ansible.builtin.find:

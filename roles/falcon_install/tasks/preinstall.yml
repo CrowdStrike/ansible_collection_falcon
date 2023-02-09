@@ -26,31 +26,31 @@
   ansible.builtin.set_fact:
     ansible_python_interpreter: /usr/bin/python
   when:
-    - ansible_distribution == "Amazon"
-    - ansible_distribution_major_version | int < 2
+    - ansible_facts['distribution'] == "Amazon"
+    - ansible_facts['distribution_major_version'] | int < 2
 
 - name: "CrowdStrike Falcon | Default Operating System configuration"
   ansible.builtin.set_fact:
-    falcon_target_os: "{{ ansible_distribution }}"
-    falcon_os_family: "{{ ansible_system | lower }}"
-    falcon_os_version: "*{{ ansible_distribution_major_version }}*"
-    falcon_sensor_update_policy_platform: "{{ ansible_system }}"
-    falcon_os_vendor: "{{ ansible_os_family | lower if (ansible_os_family == 'RedHat' and ansible_distribution != 'Amazon') else ansible_distribution | lower }}"
+    falcon_target_os: "{{ ansible_facts['distribution'] }}"
+    falcon_os_family: "{{ ansible_facts['system'] | lower }}"
+    falcon_os_version: "*{{ ansible_facts['distribution_major_version'] }}*"
+    falcon_sensor_update_policy_platform: "{{ ansible_facts['system'] }}"
+    falcon_os_vendor: "{{ ansible_facts['os_family'] | lower if (ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution'] != 'Amazon') else ansible_facts['distribution'] | lower }}"
 
 - name: "CrowdStrike Falcon | Determine Operating System Architecture (Linux)"
   ansible.builtin.set_fact:
-    falcon_os_arch: "{{ falcon_os_arch_dict[ansible_architecture] }}"
-  when: ansible_system == "Linux"
+    falcon_os_arch: "{{ falcon_os_arch_dict[ansible_facts['architecture']] }}"
+  when: ansible_facts['system'] == "Linux"
 
 - name: "CrowdStrike Falcon | Determine if Endpoint Operating System Is RHEL, CentOS, or Oracle Linux"
   ansible.builtin.set_fact:
     falcon_target_os: "*RHEL*"
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: "CrowdStrike Falcon | Determine if Target OS Is Amazon Linux"
   ansible.builtin.set_fact:
     falcon_target_os: "Amazon Linux"
-  when: ansible_distribution == "Amazon"
+  when: ansible_facts['distribution'] == "Amazon"
 
 - name: CrowdStrike Falcon | Determine if Target OS Is MacOS
   ansible.builtin.set_fact:
@@ -59,14 +59,14 @@
     falcon_path: "/Applications/Falcon.app/Contents/Resources/"
     falcon_os_version: ""
     falcon_sensor_update_policy_platform: "{{ falcon_os_family | capitalize }}"
-  when: ansible_distribution == "MacOSX"
+  when: ansible_facts['distribution'] == "MacOSX"
 
 - name: "CrowdStrike Falcon | Endpoint Operating System Detected Is Microsoft Windows"
   ansible.builtin.set_fact:
     falcon_os_version: ""
     falcon_target_os: "Windows"
-    falcon_sensor_update_policy_platform: "{{ ansible_os_family }}"
-  when: ansible_os_family == "Windows"
+    falcon_sensor_update_policy_platform: "{{ ansible_facts['os_family'] }}"
+  when: ansible_facts['os_family'] == "Windows"
 
 - name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (non-Windows)
   ansible.builtin.tempfile:
@@ -74,7 +74,7 @@
     state: directory
     suffix: falcon
   when:
-    - ansible_system == "Linux" or ansible_system == "Darwin"
+    - ansible_facts['system'] == "Linux" or ansible_facts['system'] == "Darwin"
     - falcon_install_tmp_dir is defined
   register: falcon_install_temp_directory
   changed_when: no
@@ -85,7 +85,7 @@
     state: directory
     suffix: falcon
   when:
-    - ansible_os_family == "Windows"
+    - ansible_facts['os_family'] == "Windows"
     - falcon_windows_tmp_dir is defined
   register: falcon_install_win_temp_directory
   changed_when: no
@@ -94,7 +94,7 @@
   ansible.builtin.stat:
     path: "{{ falcon_path }}"
   when:
-    - ansible_system == "Darwin"
+    - ansible_facts['system'] == "Darwin"
     - falcon_path is defined
   register: falcon_already_installed
 

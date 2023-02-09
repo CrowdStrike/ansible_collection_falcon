@@ -15,4 +15,4 @@
     arguments: '/uninstall /quiet {{ falcon_windows_uninstall_args }}'
   when:
     - falcon_win_sensor_cache.files | length > 0
-    - ansible_os_family == "Windows"
+    - ansible_facts['os_family'] == "Windows"

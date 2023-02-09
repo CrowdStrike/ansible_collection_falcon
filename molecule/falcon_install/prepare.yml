@@ -10,7 +10,7 @@
           - gpg-agent
         update_cache: yes
       ignore_errors: yes
-      when: ansible_pkg_mgr == 'apt'
+      when: ansible_facts['pkg_mgr'] == 'apt'
 
     - name: Install dependencies
       package:

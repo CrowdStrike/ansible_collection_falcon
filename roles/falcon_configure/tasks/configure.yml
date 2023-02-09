@@ -1,6 +1,6 @@
 ---
 - name: Linux Block
-  when: ansible_distribution != "MacOSX"
+  when: ansible_facts['distribution'] != "MacOSX"
   block:
     - name: CrowdStrike Falcon | Configure Falcon Sensor Options (Linux)
       crowdstrike.falcon.falconctl:
@@ -33,7 +33,7 @@
       become: yes
 
 - name: MacOSX Block
-  when: ansible_distribution == "MacOSX"
+  when: ansible_facts['distribution'] == "MacOSX"
   block:
     - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (macOS)
       ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl license {{ falcon_cid }}"

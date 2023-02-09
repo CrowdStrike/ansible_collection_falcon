@@ -14,7 +14,7 @@
   register: falcon_api_oauth2_token
   no_log: "{{ falcon_api_enable_no_log }}"
   run_once: yes
-  delegate_to: "{{ 'localhost' if ansible_system != 'Linux' else omit }}"
+  delegate_to: "{{ 'localhost' if ansible_facts['system'] != 'Linux' else omit }}"
 
 - name: CrowdStrike Falcon | Auto-discover CrowdStrike Cloud Region
   ansible.builtin.set_fact:
@@ -37,7 +37,7 @@
     register: falcon_api_target_cid
     no_log: "{{ falcon_api_enable_no_log }}"
     run_once: yes
-    delegate_to: "{{ 'localhost' if ansible_system != 'Linux' else omit }}"
+    delegate_to: "{{ 'localhost' if ansible_facts['system'] != 'Linux' else omit }}"
 
   - name: CrowdStrike Falcon | Set CID received from API
     ansible.builtin.set_fact:
