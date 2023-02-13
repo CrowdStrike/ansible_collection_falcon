@@ -2,21 +2,21 @@
 - name: CrowdStrike Falcon | Determine if Falcon is installed (MacOS)
   ansible.builtin.stat:
     path: "/Applications/Falcon.app/Contents/Resources/falconctl"
-  when: ansible_distribution == "MacOSX"
+  when: ansible_facts['distribution'] == "MacOSX"
   register: falcon_already_installed
 
 - name: CrowdStrike Falcon | Uninstalling Falcon Sensor (Linux)
   ansible.builtin.package:
     name: falcon-sensor
     state: absent
-    purge: "{{ True if (ansible_pkg_mgr == 'apt') else omit }}"
+    purge: "{{ True if (ansible_facts['pkg_mgr'] == 'apt') else omit }}"
   when:
-    - ansible_system == "Linux"
+    - ansible_facts['system'] == "Linux"
 
 - name: MacOS Block
   when:
     - falcon_already_installed is defined
-    - ansible_system == "Darwin"
+    - ansible_facts['system'] == "Darwin"
   block:
     - name: CrowdStrike Falcon | Stopping Falcon Sensor (macOS)
       ansible.builtin.command: "launchctl stop com.crowdstrike.falcond"

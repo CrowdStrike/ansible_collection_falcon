@@ -13,7 +13,7 @@
 
 - name: Linux Configure block
   when:
-    - ansible_os_family != "Windows"
+    - ansible_facts['os_family'] != "Windows"
     - not falcon_remove_aid
   become: true
   become_user: root
@@ -24,14 +24,14 @@
 - name: Remove AID block
   when:
     - falcon_remove_aid
-    - ansible_os_family != "Windows"
+    - ansible_facts['os_family'] != "Windows"
   block:
     - ansible.builtin.include_tasks: remove_aid.yml
       # noqa name[missing]
 
 - name: Windows block
   when:
-    - ansible_os_family == "Windows"
+    - ansible_facts['os_family'] == "Windows"
   become: true
   become_method: "{{ falcon_windows_become_method }}"
   become_user: "{{ falcon_windows_become_user }}"

@@ -8,7 +8,7 @@
 - name: URL block
   when:
     - falcon_install_method == "url"
-    - ansible_os_family != "Windows"
+    - ansible_facts['os_family'] != "Windows"
   block:
     - ansible.builtin.include_tasks: url.yml
       # noqa name[missing]
@@ -16,7 +16,7 @@
 - name: API block
   when:
     - falcon_install_method == "api"
-    - ansible_os_family != "Windows"
+    - ansible_facts['os_family'] != "Windows"
   block:
     - ansible.builtin.include_tasks: auth.yml
       # noqa name[missing]
@@ -33,7 +33,7 @@
 - name: Windows API block
   when:
     - falcon_install_method == "api"
-    - ansible_os_family == "Windows"
+    - ansible_facts['os_family'] == "Windows"
   block:
     - ansible.builtin.include_tasks: auth.yml
       # noqa name[missing]
@@ -42,7 +42,7 @@
 
 - name: Non-Windows Install block
   when:
-    - ansible_os_family != "Windows"
+    - ansible_facts['os_family'] != "Windows"
   become: true
   become_user: root
   block:
@@ -51,7 +51,7 @@
 
 - name: Windows Install block
   when:
-    - ansible_os_family == "Windows"
+    - ansible_facts['os_family'] == "Windows"
   become: true
   become_method: "{{ falcon_windows_become_method }}"
   become_user: "{{ falcon_windows_become_user }}"

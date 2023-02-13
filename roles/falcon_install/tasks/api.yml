@@ -61,17 +61,17 @@
         msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} and enabled for aarch64 was found!"
       when:
         - falcon_sensor_update_policy_info.json.resources[0].settings.variants[0] is not defined
-        - ansible_machine == "aarch64"
+        - ansible_facts['machine'] == "aarch64"
 
     - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy"
       ansible.builtin.set_fact:
         falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.json.resources[0].settings.sensor_version }}"
-      when: ansible_machine != "aarch64"
+      when: ansible_facts['machine'] != "aarch64"
 
     - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy for aarch64 architecture"
       ansible.builtin.set_fact:
         falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.json.resources[0].settings.variants[0].sensor_version }}"
-      when: ansible_machine == "aarch64"
+      when: ansible_facts['machine'] == "aarch64"
 
     - name: "CrowdStrike Falcon | Build API Sensor Query based on Sensor Update Policy"
       ansible.builtin.set_fact:
@@ -101,11 +101,11 @@
 
 # Block for checking sensor/kernel compatibility
 - name: Sensor Kernel Compatability Block
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"
   block:
     - name: CrowdStrike Falcon | Build Sensor Update Kernels API Query
       ansible.builtin.set_fact:
-        falcon_sensor_update_kernels_query: "{{ 'vendor:\"' + falcon_os_vendor + '\"+release:\"' + ansible_kernel + '\"' }}"
+        falcon_sensor_update_kernels_query: "{{ 'vendor:\"' + falcon_os_vendor + '\"+release:\"' + ansible_facts['kernel'] + '\"' }}"
 
     - name: CrowdStrike Falcon | Get list of Supported Kernels
       ansible.builtin.uri:
@@ -121,7 +121,7 @@
     - name: CrowdStrike Falcon | Validate Kernel is Supported
       ansible.builtin.assert:
         that: falcon_sensor_update_kernels_list.json.resources
-        fail_msg: "The kernel version: {{ ansible_kernel }} is not supported by the Falcon Sensor!"
+        fail_msg: "The kernel version: {{ ansible_facts['kernel'] }} is not supported by the Falcon Sensor!"
       ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
 
     - name: CrowdStrike Falcon | Validate Sensor version is compatible with Kernel
@@ -129,7 +129,7 @@
         that: falcon_sensor_version in falcon_base_package_supported_sensor_versions or
               falcon_sensor_version in falcon_ztl_supported_sensor_versions or
               falcon_sensor_version in falcon_ztl_module_supported_sensor_versions
-        fail_msg: "The sensor version: {{ falcon_sensor_version }} is not supported with kernel: {{ ansible_kernel }}"
+        fail_msg: "The sensor version: {{ falcon_sensor_version }} is not supported with kernel: {{ ansible_facts['kernel'] }}"
       vars:
         falcon_sensor_version: "{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].version }}"
         falcon_base_package_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].base_package_supported_sensor_versions }}"
