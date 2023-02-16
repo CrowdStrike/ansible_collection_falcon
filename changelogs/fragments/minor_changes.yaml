@@ -1,4 +1,0 @@
-minor_changes:
-  - falcon_configure, falcon_install, falcon_uninstall - Updated to use ansible facts dictionary
-    instead of the ansible_* naming convention (https://github.com/CrowdStrike/ansible_collection_falcon/pull/299)
-  - falcon_install - Fix delegate_to issue due to omit bug in Ansible 2.12 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/306)

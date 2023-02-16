@@ -139,3 +139,18 @@ releases:
     - 3.2.27-summary.yml
     - changes.yml
     release_date: '2023-01-12'
+  3.2.28:
+    changes:
+      minor_changes:
+      - falcon_configure, falcon_install, falcon_uninstall - Updated to use ansible
+        facts dictionary instead of the ansible_* naming convention (https://github.com/CrowdStrike/ansible_collection_falcon/pull/299)
+      - falcon_install - Fix delegate_to issue due to omit bug in Ansible 2.12 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/306)
+      release_summary: '| Release Date: 2023-02-16
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.28>`__
+
+        '
+    fragments:
+    - 3.2.28.yaml
+    - minor_changes.yaml
+    release_date: '2023-02-16'
