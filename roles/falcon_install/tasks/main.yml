@@ -35,7 +35,7 @@
     - falcon_install_method == "api"
     - ansible_facts['os_family'] == "Windows"
   block:
-    - ansible.builtin.include_tasks: auth.yml
+    - ansible.builtin.include_tasks: win_auth.yml
       # noqa name[missing]
     - ansible.builtin.include_tasks: win_api.yml
       # noqa name[missing]
