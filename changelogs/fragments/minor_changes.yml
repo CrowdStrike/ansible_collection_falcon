@@ -1,0 +1,2 @@
+minor_changes:
+  - falcon_configure, falcon_install - Extract authentication logic to be more OS specific (https://github.com/CrowdStrike/ansible_collection_falcon/pull/309)
