@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.29
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2023-03-01
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.29>`__
+
+
+Minor Changes
+-------------
+
+- falcon_configure, falcon_install - Extract authentication logic to be more OS specific (https://github.com/CrowdStrike/ansible_collection_falcon/pull/309)
+
 v3.2.28
 =======
 
