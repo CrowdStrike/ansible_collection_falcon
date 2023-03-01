@@ -31,6 +31,7 @@
         - info.falconctl_info.cid
         - falconctl_result.changed
       become: yes
+      # noqa args[module]
 
 - name: MacOSX Block
   when: ansible_facts['distribution'] == "MacOSX"
@@ -40,14 +41,17 @@
       when:
         - falcon_cid
         - not falcon_provisioning_token
+      # noqa no-changed-when
 
     - name: CrowdStrike Falcon | Associate Falcon Sensor with your Provisioning Token (macOS)
       ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl license {{ falcon_cid }} {{ falcon_provisioning_token }}"
       when:
         - falcon_cid
         - not falcon_provisioning_token
+      # noqa no-changed-when
 
     - name: CrowdStrike Falcon | Starting Falcon Sensor (macOS)
       ansible.builtin.command: "launchctl {{ falcon_service_state | default('start') }} com.crowdstrike.falcond"
       when:
         - falcon_cid
+      # noqa no-changed-when
