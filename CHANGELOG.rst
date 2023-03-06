@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.30
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2023-03-06
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.30>`__
+
+
+Bugfixes
+--------
+
+- falcon_install - fix win auth (https://github.com/CrowdStrike/ansible_collection_falcon/pull/316)
+
 v3.2.29
 =======
 
