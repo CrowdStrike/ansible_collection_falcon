@@ -41,7 +41,7 @@
 
 - name: CrowdStrike Falcon | Set Appropriate API OAuth2 Token
   ansible.builtin.set_fact:
-    falcon_api_oauth2_token: "{{ falcon_api_oauth2_token_win_redirect if falcon_api_oauth2_token_win_redirect | length > 0 else falcon_api_oauth2_token_win }}"
+    falcon_api_oauth2_token: "{{ falcon_api_oauth2_token_win_redirect if falcon_api_oauth2_token_win_redirect.json is defined else falcon_api_oauth2_token_win }}"
   no_log: "{{ falcon_api_enable_no_log }}"
 
 - name: Set falcon_cid Block
