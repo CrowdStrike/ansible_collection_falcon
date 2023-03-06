@@ -168,3 +168,16 @@ releases:
     - 3.2.29.yaml
     - minor_changes.yml
     release_date: '2023-03-01'
+  3.2.30:
+    changes:
+      bugfixes:
+      - falcon_install - fix win auth (https://github.com/CrowdStrike/ansible_collection_falcon/pull/316)
+      release_summary: '| Release Date: 2023-03-06
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.30>`__
+
+        '
+    fragments:
+    - 3.2.30.yml
+    - fix-win-auth.yaml
+    release_date: '2023-03-06'
