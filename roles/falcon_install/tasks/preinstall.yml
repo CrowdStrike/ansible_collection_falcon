@@ -58,7 +58,7 @@
     falcon_os_family: "mac"
     falcon_path: "/Applications/Falcon.app/Contents/Resources/"
     falcon_os_version: ""
-    falcon_sensor_update_policy_platform: "{{ falcon_os_family | capitalize }}"
+    falcon_sensor_update_policy_platform: "Mac"
   when: ansible_facts['distribution'] == "MacOSX"
 
 - name: "CrowdStrike Falcon | Endpoint Operating System Detected Is Microsoft Windows"

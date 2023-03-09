@@ -33,25 +33,78 @@
       become: yes
       # noqa args[module]
 
+# Start of MacOSX Configuration
+- name: CrowdStrike Falcon | Stat Falcon Sensor (macOS)
+  ansible.builtin.stat:
+    path: "/Applications/Falcon.app/Contents/Resources/falconctl"
+  register: falconctl_mac
+
 - name: MacOSX Block
-  when: ansible_facts['distribution'] == "MacOSX"
+  when:
+    - ansible_facts['distribution'] == "MacOSX"
+    - falconctl_mac.stat.exists
+  become: yes
   block:
     - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (macOS)
       ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl license {{ falcon_cid }}"
       when:
-        - falcon_cid
+        - falcon_cid != None
         - not falcon_provisioning_token
-      # noqa no-changed-when
+      failed_when: falconctl_license.rc > 1
+      register: falconctl_license
+      changed_when: falconctl_license.rc == 0
 
     - name: CrowdStrike Falcon | Associate Falcon Sensor with your Provisioning Token (macOS)
       ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl license {{ falcon_cid }} {{ falcon_provisioning_token }}"
       when:
-        - falcon_cid
-        - not falcon_provisioning_token
+        - falcon_cid != None
+        - falcon_provisioning_token != None
+      failed_when: falconctl_license.rc > 1
+      register: falconctl_license_prov
+      changed_when: falconctl_license_prov.rc == 0
+
+    - name: CrowdStrike Falcon | Check status of Falcon Sensor (macOS)
+      ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl stats"
+      failed_when: falconctl_stats.rc > 1
+      register: falconctl_stats
+      changed_when: false
+
+    - name: CrowdStrike Falcon | Ensure Falcon Sensor is running (macOS)
+      ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl load"
+      when:
+        - falconctl_stats.rc != 0
       # noqa no-changed-when
 
-    - name: CrowdStrike Falcon | Starting Falcon Sensor (macOS)
-      ansible.builtin.command: "launchctl {{ falcon_service_state | default('start') }} com.crowdstrike.falcond"
+    - name: CrowdStrike Falcon | Get Grouping Tags (macOS)
+      ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl grouping-tags get"
+      register: falconctl_mac_tags_get
       when:
-        - falcon_cid
+        - falcon_tags != None
+      changed_when: falconctl_mac_tags_get.stdout != grouping_tags
+      vars:
+        grouping_tags: "Grouping tags: {{ falcon_tags }}"
+
+    - name: CrowdStrike Falcon | Set Grouping Tags (macOS)
+      ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl grouping-tags set {{ falcon_tags }}"
+      when:
+        - falcon_tags != None
+        - falconctl_mac_tags_get.changed
+        - falcon_option_set
+      register: falconctl_mac_tags_set
+      changed_when: falconctl_mac_tags_set.stdout == "Grouping tags updated successfully."
+
+    - name: CrowdStrike Falcon | Clear Grouping Tags (macOS)
+      ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl grouping-tags clear"
+      when:
+        - falcon_tags != None
+        - not falcon_option_set
+      register: falconctl_mac_tags_clear
+      changed_when: falconctl_mac_tags_clear.stdout == "Grouping tags updated successfully."
+
+    - name: CrowdStrike Falcon | Restart Falcon Sensor on Changes (macOS)
+      ansible.builtin.shell: |
+        /Applications/Falcon.app/Contents/Resources/falconctl unload
+        /Applications/Falcon.app/Contents/Resources/falconctl load
+      when:
+        - falconctl_mac_tags_set.changed or falconctl_mac_tags_clear.changed
       # noqa no-changed-when
