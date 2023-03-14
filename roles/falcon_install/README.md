@@ -14,6 +14,7 @@ Role Variables
 The following variables are currently supported:
 
  * `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls. (bool, default: true)
+ * `falcon_api_auth_run_once` - Whether to enable or disable the run_once option for API auth calls. (bool, default: true)
  * `falcon_skip_kernel_compat_check` - Whether or not to ignore errors associated with unsupported Falcon Sensor/Kernel combination. (bool, default: false)
  * `falcon_install_method` - The installation method for installing the sensor (string, default: api)
  * `falcon_gpg_key` - Location of the Falcon GPG Key file (string, default: null)
@@ -25,6 +26,7 @@ The following variables are currently supported:
  * `falcon_sensor_version` - Sensor version to install (string, default: null)
  * `falcon_sensor_version_decrement` - Sensor N-x version to install (int, default: 0 [latest])
  * `falcon_sensor_update_policy_name` - Sensor update policy used to control sensor version (string, default: null)
+ * `falcon_sensor_update_policy_run_once` - Whether to enable or disable the run_once option for Sensor update policy API calls. (bool, default: true)
  * `falcon_install_tmp_dir` - Temporary Linux and MacOS download and installation directory for the Falson Sensor (string, default: `/tmp/`)
  * `falcon_download_url` - URL for downloading the sensor (string, default: null)
  * `falcon_download_url_username` - username for downloading the sensor (string, default: null)

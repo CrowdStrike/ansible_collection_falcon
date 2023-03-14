@@ -17,7 +17,7 @@
           Content-Type: application/json
       register: falcon_sensor_update_policy_info
       no_log: "{{ falcon_api_enable_no_log }}"
-      run_once: yes
+      run_once: "{{ falcon_sensor_update_policy_run_once }}"
 
     - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
       ansible.builtin.fail:

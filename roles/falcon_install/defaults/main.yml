@@ -8,6 +8,11 @@
 #
 falcon_api_enable_no_log: yes
 
+# Whether or not to enable run_once for API calls.
+# By default, this is enabled.
+#
+falcon_api_auth_run_once: yes
+
 # Whether or not to ignore errors associated with unsupported Falcon Sensor Kernel
 # configurations.
 #
@@ -93,6 +98,11 @@ falcon_sensor_version_decrement: 0
 #   falcon_sensor_update_policy_name: "platform_default"
 #
 falcon_sensor_update_policy_name: ""
+
+# Whether or not to enable run_once for the Sensor update policy API calls.
+# By default, this is enabled.
+#
+falcon_sensor_update_policy_run_once: yes
 
 # Where should the sensor file be downloaded to on Linux and MacOS systems?
 # By default, this will be the temp OS filesystem
