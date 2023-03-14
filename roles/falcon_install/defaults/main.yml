@@ -8,6 +8,11 @@
 #
 falcon_api_enable_no_log: yes
 
+# Whether or not to enable run_once for API calls.
+# By default, this is enabled.
+#
+falcon_api_enable_run_once: yes
+
 # Whether or not to ignore errors associated with unsupported Falcon Sensor Kernel
 # configurations.
 #

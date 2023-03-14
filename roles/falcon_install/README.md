@@ -14,6 +14,7 @@ Role Variables
 The following variables are currently supported:
 
  * `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls. (bool, default: true)
+ * `falcon_api_enable_run_once` - Whether to enable or disable the run_once option for API calls. (bool, default: true)
  * `falcon_skip_kernel_compat_check` - Whether or not to ignore errors associated with unsupported Falcon Sensor/Kernel combination. (bool, default: false)
  * `falcon_install_method` - The installation method for installing the sensor (string, default: api)
  * `falcon_gpg_key` - Location of the Falcon GPG Key file (string, default: null)
