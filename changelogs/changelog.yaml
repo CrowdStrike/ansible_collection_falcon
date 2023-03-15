@@ -181,3 +181,25 @@ releases:
     - 3.2.30.yml
     - fix-win-auth.yaml
     release_date: '2023-03-06'
+  3.2.31:
+    changes:
+      bugfixes:
+      - falcon_install - fixes a bug where falcon_os_arch was affecting the falcon_install
+        module on Mac OS X (https://github.com/CrowdStrike/ansible_collection_falcon/pull/318)
+      minor_changes:
+      - falcon_configure - adds the ability to manage grouping tags for Mac OS (https://github.com/CrowdStrike/ansible_collection_falcon/pull/318)
+      - falcon_install - made the ability to toggle run_once options available to
+        the user (https://github.com/CrowdStrike/ansible_collection_falcon/pull/320)
+      - falcon_install, falcon_configure, falcon_uninstall - Enhances the roles to
+        better support Mac OS, to include changed_when and failed_when conditions
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/318/files)
+      release_summary: '| Release Date: 2023-03-15
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.31>`__
+
+        '
+    fragments:
+    - 3.2.31.yml
+    - mac-updates-318.yml
+    - run-once-320.yml
+    release_date: '2023-03-15'
