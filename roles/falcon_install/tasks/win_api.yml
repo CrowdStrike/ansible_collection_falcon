@@ -40,7 +40,7 @@
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
   ansible.windows.win_uri:
-    url: "https://{{ falcon_cloud }}/sensors/combined/installers/v1?filter={{ falcon_os_query | urlencode }}"
+    url: "https://{{ falcon_cloud }}/sensors/combined/installers/v1?sort=version|desc&filter={{ falcon_os_query | urlencode }}"
     method: GET
     return_content: true
     headers:
