@@ -108,3 +108,4 @@
       when:
         - falconctl_mac_tags_set.changed or falconctl_mac_tags_clear.changed
       # noqa no-changed-when
+      # noqa no-handler
