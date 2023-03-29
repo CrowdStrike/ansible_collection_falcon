@@ -120,7 +120,7 @@
   block:
     - name: CrowdStrike Falcon | Build Sensor Update Kernels API Query
       ansible.builtin.set_fact:
-        falcon_sensor_update_kernels_query: "{{ 'vendor:\"' + falcon_os_vendor + '\"+release:\"' + ansible_facts['kernel'] + '\"' }}"
+        falcon_sensor_update_kernels_query: "{{ 'vendor:\"' + falcon_os_vendor + '\"+release:\"' + ansible_facts['kernel'] + '\"+architecture:\"' + ansible_facts['architecture'] + '\"' }}"
 
     - name: CrowdStrike Falcon | Get list of Supported Kernels
       ansible.builtin.uri:
@@ -139,6 +139,10 @@
         fail_msg: "The kernel version: {{ ansible_facts['kernel'] }} is not supported by the Falcon Sensor!"
       ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
 
+    - name: CrowdStrike Falcon | Filter JSON Response to get Correct Subset
+      ansible.builtin.set_fact:
+        falcon_sensor_update_kernels_list_filtered: "{{ falcon_sensor_update_kernels_list.json.resources | selectattr('distro_version', 'search', ansible_facts['distribution_major_version']) | list }}"
+
     - name: CrowdStrike Falcon | Validate Sensor version is compatible with Kernel
       ansible.builtin.assert:
         that: falcon_sensor_version in falcon_base_package_supported_sensor_versions or
@@ -147,10 +151,10 @@
         fail_msg: "The sensor version: {{ falcon_sensor_version }} is not supported with kernel: {{ ansible_facts['kernel'] }}"
       vars:
         falcon_sensor_version: "{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].version }}"
-        falcon_base_package_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].base_package_supported_sensor_versions }}"
-        falcon_ztl_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].ztl_supported_sensor_versions }}"
-        falcon_ztl_module_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list.json.resources[0].ztl_module_supported_sensor_versions }}"
-      when: falcon_sensor_update_kernels_list.json.resources
+        falcon_base_package_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list_filtered[0].base_package_supported_sensor_versions }}"
+        falcon_ztl_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list_filtered[0].ztl_supported_sensor_versions }}"
+        falcon_ztl_module_supported_sensor_versions: "{{ falcon_sensor_update_kernels_list_filtered[0].ztl_module_supported_sensor_versions }}"
+      when: falcon_sensor_update_kernels_list_filtered | length > 0
       ignore_errors: "{{ falcon_skip_kernel_compat_check }}"
 
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package
