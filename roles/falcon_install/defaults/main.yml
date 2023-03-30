@@ -21,6 +21,9 @@ falcon_api_auth_run_once: yes
 #
 falcon_skip_kernel_compat_check: no
 
+# Whether or not to allow downgrading the Falcon Sensor.
+falcon_allow_downgrade: no
+
 # This installer is capable of three different installation
 # methods:
 #
