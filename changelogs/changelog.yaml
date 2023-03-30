@@ -203,3 +203,19 @@ releases:
     - mac-updates-318.yml
     - run-once-320.yml
     release_date: '2023-03-15'
+  3.2.32:
+    changes:
+      bugfixes:
+      - falcon_install - fix issue with sorting of returned versions when using falcon_sensor_version_decrement
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/325)
+      - falcon_install - fix kernel compatibility query (https://github.com/CrowdStrike/ansible_collection_falcon/pull/332)
+      release_summary: '| Release Date: 2023-03-30
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.32>`__
+
+        '
+    fragments:
+    - 3.2.32.yml
+    - fix-decrement-sorting.yml
+    - fix-kernel-compat-query.yml
+    release_date: '2023-03-30'

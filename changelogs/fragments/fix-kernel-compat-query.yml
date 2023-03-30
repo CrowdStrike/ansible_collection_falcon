@@ -1,2 +1,0 @@
-bugfixes:
-  - falcon_install - fix kernel compatibility query (https://github.com/CrowdStrike/ansible_collection_falcon/pull/332)
