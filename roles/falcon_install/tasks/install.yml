@@ -36,6 +36,7 @@
   ansible.builtin.package:
     deb: "{{ falcon_sensor_pkg if (ansible_facts['pkg_mgr'] in dpkg_packagers) else omit }}"
     name: "{{ falcon_sensor_pkg if (ansible_facts['pkg_mgr'] in rpm_packagers) else omit }}"
+    allow_downgrade: "{{ falcon_allow_downgrade }}"
     state: present
   when:
     - ansible_facts['pkg_mgr'] in linux_packagers
