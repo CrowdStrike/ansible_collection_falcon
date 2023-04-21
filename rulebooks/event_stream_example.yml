@@ -3,15 +3,15 @@
   hosts: all
   sources:
     - crowdstrike.falcon.eventstream:
-        falcon_client_id: {{ falcon_client_id }}
-        falcon_client_secret: {{ falcon_client_secret }}
-        falcon_cloud: {{ falcon_cloud }}
+        falcon_client_id: "{{ FALCON_CLIENT_ID }}"
+        falcon_client_secret: "{{ FALCON_CLIENT_SECRET }}"
+        falcon_cloud: "{{ FALCON_CLOUD }}"
         stream_name: "{{stream_name | default('eda')}}"
         include_event_types:
           - "AuthActivityAuditEvent"
 
   rules:
     - name: print output
-      condition: event.falcon is defined 
+      condition: event.falcon is defined
       action:
         debug:
