@@ -28,14 +28,9 @@ provisioner:
         ansible_winrm_transport: ntlm
         ansible_winrm_server_cert_validation: ignore
         ansible_port: 55986
-lint: |
-  set -e
-  yamllint .
-  ansible-lint
 scenario:
   test_sequence:
     - dependency
-    - lint
     - destroy
     - syntax
     - create

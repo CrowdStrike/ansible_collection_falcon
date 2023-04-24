@@ -15,14 +15,9 @@ provisioner:
   name: ansible
 verifier:
   name: ansible
-lint: |
-  set -e
-  yamllint .
-  ansible-lint .
 scenario:
   test_sequence:
     - dependency
-    - lint
     - destroy
     - syntax
     - create
