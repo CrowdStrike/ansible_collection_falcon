@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.33
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2023-04-24
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.33>`__
+
+
+Minor Changes
+-------------
+
+- falcon_install - gives the user the option to downgrade the falcon sensor to a previous version (https://github.com/CrowdStrike/ansible_collection_falcon/pull/334)
+
 v3.2.32
 =======
 

@@ -219,3 +219,17 @@ releases:
     - fix-decrement-sorting.yml
     - fix-kernel-compat-query.yml
     release_date: '2023-03-30'
+  3.2.33:
+    changes:
+      minor_changes:
+      - falcon_install - gives the user the option to downgrade the falcon sensor
+        to a previous version (https://github.com/CrowdStrike/ansible_collection_falcon/pull/334)
+      release_summary: '| Release Date: 2023-04-24
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.33>`__
+
+        '
+    fragments:
+    - 3.2.33.yml
+    - downgrade.yml
+    release_date: '2023-04-24'
