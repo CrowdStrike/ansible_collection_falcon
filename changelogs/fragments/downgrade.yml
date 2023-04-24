@@ -1,0 +1,2 @@
+minor_changes:
+  - falcon_install - gives the user the option to downgrade the falcon sensor to a previous version (https://github.com/CrowdStrike/ansible_collection_falcon/pull/334)
