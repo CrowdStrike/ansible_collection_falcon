@@ -193,7 +193,7 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
         availableStreams = falcon.command(action="listAvailableStreamsOAuth2", appId=stream_name)
 
         if not availableStreams["body"] or not availableStreams["body"]["resources"]:
-            print("No streams available")
+            print("Unable to open stream, no streams available. Ensure you are using a unique stream_name.")
             return
 
         streams: List[Stream] = []
