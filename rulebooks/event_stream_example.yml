@@ -5,7 +5,7 @@
     - crowdstrike.falcon.eventstream:
         falcon_client_id: "{{ FALCON_CLIENT_ID }}"
         falcon_client_secret: "{{ FALCON_CLIENT_SECRET }}"
-        falcon_cloud: "{{ FALCON_CLOUD }}"
+        falcon_cloud: "{{ FALCON_CLOUD | default('us-1') }}"
         stream_name: "{{stream_name | default('eda')}}"
         include_event_types:
           - "AuthActivityAuditEvent"
