@@ -32,6 +32,7 @@
         - falconctl_result.changed
       become: yes
       # noqa args[module]
+      # noqa no-handler
 
 # Start of MacOSX Configuration
 - name: CrowdStrike Falcon | Stat Falcon Sensor (macOS)
@@ -92,6 +93,7 @@
         - falcon_option_set
       register: falconctl_mac_tags_set
       changed_when: falconctl_mac_tags_set.stdout == "Grouping tags updated successfully."
+      # noqa no-handler
 
     - name: CrowdStrike Falcon | Clear Grouping Tags (macOS)
       ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl grouping-tags clear"
