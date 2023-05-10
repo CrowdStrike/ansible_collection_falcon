@@ -30,9 +30,9 @@ galaxy_info:
   # https://galaxy.ansible.com/api/v1/platforms/
   #
   platforms:
-    - name: Amazon Linux 2
+    - name: "Amazon Linux"
       versions:
-        - all
+        - "2"
     - name: Amazon
       versions:
         - "2018.03"
