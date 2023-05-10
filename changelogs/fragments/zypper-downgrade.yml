@@ -1,0 +1,2 @@
+bugfixes:
+- falcon_install - fix bug with zypper downgrade (https://github.com/CrowdStrike/ansible_collection_falcon/pull/344)
