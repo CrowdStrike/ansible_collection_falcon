@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.34
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2023-05-10
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.34>`__
+
+
+Bugfixes
+--------
+
+- falcon_install - fix bug with zypper downgrade (https://github.com/CrowdStrike/ansible_collection_falcon/pull/344)
+
 v3.2.33
 =======
 
