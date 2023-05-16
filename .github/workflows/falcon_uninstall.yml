@@ -20,20 +20,62 @@ jobs:
       github.event_name == 'schedule' ||
       (github.event_name == 'pull_request_target' &&
       github.event.label.name == 'ok-to-test')
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
       FALCON_CLIENT_ID: ${{ secrets.FALCON_CLIENT_ID }}
       FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
+      FALCON_CID: ${{ secrets.FALCON_CID }}
+      AWS_REGION: "us-west-2"
+      MOLECULE_VPC_SUBNET_ID: ${{ secrets.MOLECULE_VPC_SUBNET_ID }}
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
-        molecule_distro:
-          - { "distro":"centos7" }
-          - { "distro":"rockylinux8" }
-          - { "distro":"rockylinux9" }
-          - { "distro":"ubuntu2004" }
+        molecule:
+          - distro: ubuntu-20.04
+            image_owner: 099720109477
+            image_arch: x86_64
+            image_name: ubuntu/images/hvm-ssd/ubuntu-focal-20.04*
+            instance_type: t2.micro
+          - distro: ubuntu-22.04
+            image_owner: 099720109477
+            image_arch: x86_64
+            image_name: ubuntu/images/hvm-ssd/ubuntu-jammy-22.04*
+            instance_type: t2.micro
+          - distro: sles-15-sp4
+            image_owner: 013907871322
+            image_arch: x86_64
+            image_name: suse-sles-15-sp4-v????????-hvm*
+            instance_type: t2.micro
+          - distro: centos-7
+            image_owner: 679593333241
+            image_arch: x86_64
+            image_name: CentOS-7-*
+            instance_type: t2.micro
+          - distro: almalinux-8
+            image_owner: 679593333241
+            image_arch: x86_64
+            image_name: AlmaLinux OS 8*
+            instance_type: t2.micro
+          - distro: rhel-9
+            image_owner: 309956199498
+            image_arch: x86_64
+            image_name: RHEL-9.?.?_HVM-*
+            instance_type: t2.micro
+          - distro: rhel-9-arm
+            image_owner: 309956199498
+            image_arch: arm64
+            image_name: RHEL-9.?.?_HVM-*
+            instance_type: t4g.micro
+          - distro: debian-11
+            image_owner: 136693071363
+            image_arch: x86_64
+            image_name: debian-11-amd64-*
+            instance_type: t2.micro
         collection_role:
           - falcon_uninstall
     steps:
@@ -47,6 +89,13 @@ jobs:
           ref: ${{github.event.pull_request.head.sha}}
         if: github.event_name == 'pull_request_target'
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::861305338103:role/github-actions-oidc-role
+          role-session-name: github-actions-molecule-ansible
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -56,7 +105,7 @@ jobs:
         run: |
           sudo apt install apt-transport-https ca-certificates curl software-properties-common libssl-dev
           python -m pip install --upgrade pip
-          pip install molecule "molecule-plugins[docker]" ansible ansible-core ansible-lint "requests<2.30.0"
+          pip install molecule "molecule-plugins[ec2]" ansible ansible-core ansible-lint boto3 botocore
 
       - name: Build/Install the collection
         uses: nick-fields/retry@v2
@@ -71,11 +120,16 @@ jobs:
       - name: Run role tests
         uses: nick-fields/retry@v2
         with:
-          timeout_minutes: 10
+          timeout_minutes: 15
           max_attempts: 3
           retry_on: error
           command: >-
             molecule --version &&
             ansible --version &&
-            MOLECULE_DISTRO=${{ matrix.molecule_distro.distro }}
+            MOLECULE_INSTANCE_NAME=${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
+            MOLECULE_IMAGE_OWNER=${{ matrix.molecule.image_owner }}
+            MOLECULE_IMAGE_ARCH=${{ matrix.molecule.image_arch }}
+            MOLECULE_IMAGE_NAME=${{ matrix.molecule.image_name }}
+            MOLECULE_INSTANCE_TYPE=${{ matrix.molecule.instance_type }}
+            MOLECULE_REGION=${{ env.AWS_REGION}}
             molecule --debug test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
