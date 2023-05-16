@@ -32,6 +32,8 @@
 
     default_security_group_name: "molecule-{{ run_config.run_id }}"
     default_security_group_description: Ephemeral security group for Molecule instances
+    # This restricts the cidr_ip to the IP address of the host running Molecule
+    default_security_group_restrict_cidr_ip: false
     default_security_group_rules:
       - proto: tcp
         from_port: "{{ default_ssh_port }}"
@@ -60,6 +62,7 @@
       security_group_description: "{{ default_security_group_description }}"
       security_group_rules: "{{ default_security_group_rules }}"
       security_group_rules_egress: "{{ default_security_group_rules_egress }}"
+      security_group_restrict_cidr_ip: "{{ default_security_group_restrict_cidr_ip }}"
       ssh_user: "{{ default_ssh_user }}"
       ssh_port: "{{ default_ssh_port }}"
       cloud_config: {}
@@ -183,22 +186,41 @@
       when: item.key_inject_method == "ec2"
       register: ec2_keys
 
-    - name: Create ephemeral security groups (if needed)
-      ec2_group:
-        profile: "{{ item.aws_profile | default(omit) }}"
-        region: "{{ item.region | default(omit) }}"
-        vpc_id: "{{ item.vpc_id or vpc_subnet.vpc_id }}"
-        name: "{{ item.security_group_name }}"
-        description: "{{ item.security_group_description }}"
-        rules: "{{ item.security_group_rules }}"
-        rules_egress: "{{ item.security_group_rules_egress }}"
-      vars:
-        vpc_subnet: "{{ subnet_info.results[index].subnets[0] }}"
-      loop: "{{ platforms }}"
-      loop_control:
-        index_var: index
-        label: "{{ item.name }}"
+    - name: Block for Ephemeral security groups
       when: item.security_groups | length == 0
+      block:
+        - name: Get the public IP of the host
+          community.general.ipify_facts:
+          loop: "{{ platforms }}"
+          loop_control:
+            index_var: index
+            label: "{{ item.name }}"
+          when: item.security_group_restrict_cidr_ip
+
+        - name: Override the cidr_ip
+          ansible.builtin.set_fact:
+            default_security_group_rules: "{{ default_security_group_rules | map('combine', {'cidr_ip': ansible_facts['ipify_public_ip'] + '/32'}) | list }}"
+          loop: "{{ platforms }}"
+          loop_control:
+            index_var: index
+            label: "{{ item.name }}"
+          when: item.security_group_restrict_cidr_ip
+
+        - name: Create ephemeral security groups (if needed)
+          ec2_group:
+            profile: "{{ item.aws_profile | default(omit) }}"
+            region: "{{ item.region | default(omit) }}"
+            vpc_id: "{{ item.vpc_id or vpc_subnet.vpc_id }}"
+            name: "{{ item.security_group_name }}"
+            description: "{{ item.security_group_description }}"
+            rules: "{{ item.security_group_rules }}"
+            rules_egress: "{{ item.security_group_rules_egress }}"
+          vars:
+            vpc_subnet: "{{ subnet_info.results[index].subnets[0] }}"
+          loop: "{{ platforms }}"
+          loop_control:
+            index_var: index
+            label: "{{ item.name }}"
 
     - name: Create ephemeral EC2 instance(s)
       ec2_instance:

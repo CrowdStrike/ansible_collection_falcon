@@ -27,6 +27,7 @@ provisioner:
   playbooks:
     create: ../shared/playbooks/win_create.yml
     destroy: ../shared/playbooks/destroy.yml
+    verify: ../shared/playbooks/win_verify.yml
 scenario:
   test_sequence:
     - dependency
