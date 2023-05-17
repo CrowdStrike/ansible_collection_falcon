@@ -37,42 +37,42 @@ jobs:
       matrix:
         molecule:
           - distro: ubuntu-20.04
-            image_owner: 099720109477
+            image_owner: '099720109477'
             image_arch: x86_64
             image_name: ubuntu/images/hvm-ssd/ubuntu-focal-20.04*
             instance_type: t2.micro
           - distro: ubuntu-22.04
-            image_owner: 099720109477
+            image_owner: '099720109477'
             image_arch: x86_64
             image_name: ubuntu/images/hvm-ssd/ubuntu-jammy-22.04*
             instance_type: t2.micro
           - distro: sles-15-sp4
-            image_owner: 013907871322
+            image_owner: '013907871322'
             image_arch: x86_64
             image_name: suse-sles-15-sp4-v????????-hvm*
             instance_type: t2.micro
           - distro: centos-7
-            image_owner: 679593333241
+            image_owner: '679593333241'
             image_arch: x86_64
             image_name: CentOS-7-*
             instance_type: t2.micro
           - distro: almalinux-8
-            image_owner: 679593333241
+            image_owner: '679593333241'
             image_arch: x86_64
             image_name: AlmaLinux OS 8*
             instance_type: t2.micro
           - distro: rhel-9
-            image_owner: 309956199498
+            image_owner: '309956199498'
             image_arch: x86_64
             image_name: RHEL-9.?.?_HVM-*
             instance_type: t2.micro
           - distro: rhel-9-arm
-            image_owner: 309956199498
+            image_owner: '309956199498'
             image_arch: arm64
             image_name: RHEL-9.?.?_HVM-*
             instance_type: t4g.micro
           - distro: debian-11
-            image_owner: 136693071363
+            image_owner: '136693071363'
             image_arch: x86_64
             image_name: debian-11-amd64-*
             instance_type: t2.micro
@@ -126,6 +126,7 @@ jobs:
           MOLECULE_IMAGE_NAME: '${{ matrix.molecule.image_name }}'
           MOLECULE_INSTANCE_TYPE: ${{ matrix.molecule.instance_type }}
           MOLECULE_REGION: ${{ env.AWS_REGION}}
+          MOLECULE_SECURITY_GROUP_RESTRICT_CIDR_IP: false
         with:
           timeout_minutes: 15
           max_attempts: 1
@@ -133,4 +134,4 @@ jobs:
           command: >-
             molecule --version &&
             ansible --version &&
-            molecule -vvvv test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
+            molecule --debug test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
