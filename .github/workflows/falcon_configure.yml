@@ -129,7 +129,7 @@ jobs:
           MOLECULE_SECURITY_GROUP_RESTRICT_CIDR_IP: false
         with:
           timeout_minutes: 15
-          max_attempts: 1
+          max_attempts: 3
           retry_on: error
           command: >-
             molecule --version &&
