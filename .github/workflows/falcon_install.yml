@@ -20,6 +20,7 @@ jobs:
       github.event_name == 'schedule' ||
       (github.event_name == 'pull_request_target' &&
       github.event.label.name == 'ok-to-test')
+    name: ${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
     runs-on: ubuntu-latest
     env:
       PY_COLORS: 1
@@ -94,7 +95,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::861305338103:role/github-actions-oidc-role
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
           role-session-name: github-actions-molecule-ansible
           aws-region: ${{ env.AWS_REGION }}
 
@@ -121,6 +122,13 @@ jobs:
 
       - name: Run role tests
         uses: nick-fields/retry@v2
+        env:
+          MOLECULE_INSTANCE_NAME: ${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
+          MOLECULE_IMAGE_OWNER: ${{ matrix.molecule.image_owner }}
+          MOLECULE_IMAGE_ARCH: ${{ matrix.molecule.image_arch }}
+          MOLECULE_IMAGE_NAME: '${{ matrix.molecule.image_name }}'
+          MOLECULE_INSTANCE_TYPE: ${{ matrix.molecule.instance_type }}
+          MOLECULE_REGION: ${{ env.AWS_REGION}}
         with:
           timeout_minutes: 15
           max_attempts: 3
@@ -128,10 +136,4 @@ jobs:
           command: >-
             molecule --version &&
             ansible --version &&
-            MOLECULE_INSTANCE_NAME=${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
-            MOLECULE_IMAGE_OWNER=${{ matrix.molecule.image_owner }}
-            MOLECULE_IMAGE_ARCH=${{ matrix.molecule.image_arch }}
-            MOLECULE_IMAGE_NAME=${{ matrix.molecule.image_name }}
-            MOLECULE_INSTANCE_TYPE=${{ matrix.molecule.instance_type }}
-            MOLECULE_REGION=${{ env.AWS_REGION}}
             molecule --debug test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
