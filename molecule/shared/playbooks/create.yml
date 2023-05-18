@@ -335,7 +335,7 @@
             label: "{{ platforms[index].name }}"
           register: ssh_wait
           until: ssh_wait is finished
-          retries: 30
+          retries: 300
           delay: 1
 
         - name: Wait for boot process to finish

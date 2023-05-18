@@ -309,31 +309,31 @@
                    | from_json
                    | to_yaml }}
 
-        - name: Start SSH pollers
-          wait_for:
-            host: "{{ item.address }}"
-            port: "{{ item.port }}"
-            search_regex: SSH
-            delay: 10
-            timeout: 320
-          loop: "{{ instance_configs.results | map(attribute='ansible_facts.instance_config') | list }}"
-          loop_control:
-            label: "{{ item.instance }}"
-          register: ssh_wait_async
-          async: 300
-          poll: 0
+        # - name: Start SSH pollers
+        #   wait_for:
+        #     host: "{{ item.address }}"
+        #     port: "{{ item.port }}"
+        #     search_regex: SSH
+        #     delay: 10
+        #     timeout: 320
+        #   loop: "{{ instance_configs.results | map(attribute='ansible_facts.instance_config') | list }}"
+        #   loop_control:
+        #     label: "{{ item.instance }}"
+        #   register: ssh_wait_async
+        #   async: 300
+        #   poll: 0
 
-        - name: Wait for SSH
-          async_status:
-            jid: "{{ item.ansible_job_id }}"
-          loop: "{{ ssh_wait_async.results }}"
-          loop_control:
-            index_var: index
-            label: "{{ platforms[index].name }}"
-          register: ssh_wait
-          until: ssh_wait_async is finished
-          retries: 300
-          delay: 1
+        # - name: Wait for SSH
+        #   async_status:
+        #     jid: "{{ item.ansible_job_id }}"
+        #   loop: "{{ ssh_wait_async.results }}"
+        #   loop_control:
+        #     index_var: index
+        #     label: "{{ platforms[index].name }}"
+        #   register: ssh_wait
+        #   until: ssh_wait_async is finished
+        #   retries: 300
+        #   delay: 1
 
         - name: Wait for boot process to finish
           pause:
