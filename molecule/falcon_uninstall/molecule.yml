@@ -13,7 +13,7 @@ platforms:
     instance_type: "${MOLECULE_INSTANCE_TYPE:-t2.micro}"
     region: "${MOLECULE_REGION:-us-west-2}"
     vpc_subnet_id: "${MOLECULE_VPC_SUBNET_ID}"
-    security_group_restrict_cidr_ip: true
+    security_group_restrict_cidr_ip: false
 provisioner:
   name: ansible
   playbooks:
@@ -33,4 +33,3 @@ scenario:
     - side_effect
     - verify
     - destroy
-
