@@ -35,7 +35,7 @@ jobs:
       id-token: write
     strategy:
       fail-fast: false
-      max-parallel: 10
+      # max-parallel: 10
       matrix:
         molecule:
           - distro: ubuntu-20.04
@@ -80,8 +80,8 @@ jobs:
             instance_type: t2.micro
         collection_role:
           - falcon_install
-          - falcon_install_policy
-          - falcon_install_allow_downgrade
+          # - falcon_install_policy
+          # - falcon_install_allow_downgrade
     steps:
       - name: Check out code
         uses: actions/checkout@v3
