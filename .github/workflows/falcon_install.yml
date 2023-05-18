@@ -35,6 +35,7 @@ jobs:
       id-token: write
     strategy:
       fail-fast: false
+      max-parallel: 10
       matrix:
         molecule:
           - distro: ubuntu-20.04
@@ -131,9 +132,9 @@ jobs:
           MOLECULE_REGION: ${{ env.AWS_REGION}}
         with:
           timeout_minutes: 15
-          max_attempts: 1
+          max_attempts: 2
           retry_on: error
           command: >-
             molecule --version &&
             ansible --version &&
-            molecule test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
+            molecule --debug test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
