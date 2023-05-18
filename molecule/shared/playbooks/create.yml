@@ -9,7 +9,7 @@
     - community.crypto
   vars:
     # Run config handling
-    default_run_id: "{{ lookup('password', '/dev/null chars=ascii_lowercase length=5') }}"
+    default_run_id: "{{ lookup('password', '/dev/null chars=ascii_lowercase length=6') }}"
     default_run_config:
       run_id: "{{ default_run_id }}"
 

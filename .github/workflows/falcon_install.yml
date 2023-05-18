@@ -131,7 +131,7 @@ jobs:
           MOLECULE_REGION: ${{ env.AWS_REGION}}
         with:
           timeout_minutes: 15
-          max_attempts: 3
+          max_attempts: 1
           retry_on: error
           command: >-
             molecule --version &&
