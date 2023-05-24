@@ -25,7 +25,6 @@ verifier:
 scenario:
   test_sequence:
     - dependency
-    - destroy
     - syntax
     - create
     - prepare
@@ -33,4 +32,3 @@ scenario:
     - idempotence
     - side_effect
     - verify
-    - destroy
