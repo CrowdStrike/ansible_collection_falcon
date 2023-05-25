@@ -31,7 +31,6 @@ provisioner:
 scenario:
   test_sequence:
     - dependency
-    - destroy
     - syntax
     - create
     - prepare

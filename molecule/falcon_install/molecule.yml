@@ -32,3 +32,4 @@ scenario:
     - idempotence
     - side_effect
     - verify
+    - destroy

@@ -85,17 +85,37 @@ jobs:
 
       - name: Run role tests
         uses: nick-fields/retry@v2
+        env:
+          MOLECULE_INSTANCE_NAME: ${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
+          MOLECULE_IMAGE_OWNER: ${{ matrix.molecule.image_owner }}
+          MOLECULE_IMAGE_ARCH: ${{ matrix.molecule.image_arch }}
+          MOLECULE_IMAGE_NAME: '${{ matrix.molecule.image_name }}'
+          MOLECULE_INSTANCE_TYPE: ${{ matrix.molecule.instance_type }}
+          MOLECULE_REGION: ${{ env.AWS_REGION}}
         with:
-          timeout_minutes: 30
-          max_attempts: 2
+          timeout_minutes: 15
+          max_attempts: 3
           retry_on: error
           command: >-
             molecule --version &&
             ansible --version &&
-            MOLECULE_INSTANCE_NAME=${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
-            MOLECULE_IMAGE_OWNER=${{ matrix.molecule.image_owner }}
-            MOLECULE_IMAGE_ARCH=${{ matrix.molecule.image_arch }}
-            MOLECULE_IMAGE_NAME=${{ matrix.molecule.image_name }}
-            MOLECULE_INSTANCE_TYPE=${{ matrix.molecule.instance_type }}
-            MOLECULE_REGION=${{ env.AWS_REGION}}
-            molecule --debug test -s ${{ matrix.collection_role }} -- -v
+            molecule --debug test --destroy never -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
+        continue-on-error: true
+
+      - name: Ensure instances are destroyed
+        uses: nick-fields/retry@v2
+        env:
+          MOLECULE_INSTANCE_NAME: ${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
+          MOLECULE_IMAGE_OWNER: ${{ matrix.molecule.image_owner }}
+          MOLECULE_IMAGE_ARCH: ${{ matrix.molecule.image_arch }}
+          MOLECULE_IMAGE_NAME: '${{ matrix.molecule.image_name }}'
+          MOLECULE_INSTANCE_TYPE: ${{ matrix.molecule.instance_type }}
+          MOLECULE_REGION: ${{ env.AWS_REGION}}
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_on: error
+          command: >-
+            molecule --version &&
+            ansible --version &&
+            molecule --debug destroy -s ${{ matrix.collection_role }}

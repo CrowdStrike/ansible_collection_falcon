@@ -35,7 +35,6 @@ jobs:
       id-token: write
     strategy:
       fail-fast: false
-      # max-parallel: 10
       matrix:
         molecule:
           - distro: ubuntu-20.04
@@ -137,10 +136,10 @@ jobs:
           command: >-
             molecule --version &&
             ansible --version &&
-            molecule --debug test -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
+            molecule --debug test --destroy never -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
         continue-on-error: true
 
-      - name: Clean up molecule instances
+      - name: Ensure instances are destroyed
         uses: nick-fields/retry@v2
         env:
           MOLECULE_INSTANCE_NAME: ${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
