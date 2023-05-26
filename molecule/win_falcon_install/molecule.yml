@@ -2,35 +2,35 @@
 dependency:
   name: galaxy
 driver:
-  name: vagrant
-  provider:
-    name: virtualbox
+  name: ec2
+# The Default Platform is Windows Server 2022 | T2.Medium | us-west-2
 platforms:
-  - name: falcon
-    box: "jborean93/${MOLECULE_DISTRO:-WindowsServer2019}"
-    memory: 4096
-    cpus: 2
-    # interfaces:
-    #   - network_name: private_network
-    #     ip: 192.168.50.20
-    # config_options:
-    #   vm.communicator: "'winrm'"
+  - name: "${MOLECULE_INSTANCE_NAME:-default-win-falcon-install}"
+    image_owner: "${MOLECULE_IMAGE_OWNER:-801119661308}"
+    image_filters:
+      - architecture: "${MOLECULE_IMAGE_ARCH:-x86_64}"
+      - name: "${MOLECULE_IMAGE_NAME:-Windows_Server-2022-English-Full-Base-*}"
+    instance_type: "${MOLECULE_INSTANCE_TYPE:-t3a.medium}"
+    region: "${MOLECULE_REGION:-us-west-2}"
+    vpc_subnet_id: "${MOLECULE_VPC_SUBNET_ID}"
+    key_inject_method: ec2
+    security_group_restrict_cidr_ip: true
+    connection_options:
+      sudo: False
+      ansible_user: Administrator
+      ansible_port: 5986
+      ansible_connection: winrm
+      ansible_winrm_scheme: https
+      ansible_winrm_server_cert_validation: ignore
 provisioner:
   name: ansible
-  inventory:
-    host_vars:
-      falcon:
-        ansible_become: False
-        ansible_user: vagrant
-        ansible_password: vagrant
-        ansible_connection: winrm
-        ansible_winrm_transport: ntlm
-        ansible_winrm_server_cert_validation: ignore
-        ansible_port: 55986
+  playbooks:
+    create: ../shared/playbooks/win_create.yml
+    destroy: ../shared/playbooks/destroy.yml
+    verify: ../shared/playbooks/win_verify.yml
 scenario:
   test_sequence:
     - dependency
-    - destroy
     - syntax
     - create
     - prepare

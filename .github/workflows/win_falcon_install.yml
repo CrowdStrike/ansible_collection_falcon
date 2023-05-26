@@ -20,7 +20,7 @@ jobs:
       github.event_name == 'schedule' ||
       (github.event_name == 'pull_request_target' &&
       github.event.label.name == 'ok-to-test')
-    runs-on: macos-12
+    runs-on: ubuntu-latest
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
@@ -28,15 +28,22 @@ jobs:
       FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
       FALCON_CID: ${{ secrets.FALCON_CID }}
       FALCON_PROV_TOKEN: ${{ secrets.FALCON_PROV_TOKEN }}
-      OBJC_DISABLE_INITIALIZE_FORK_SAFETY: YES
+      AWS_REGION: "us-west-2"
+      MOLECULE_VPC_SUBNET_ID: ${{ secrets.MOLECULE_VPC_SUBNET_ID }}
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
-        molecule_distro:
-          - { "distro":"WindowsServer2019" }
+        molecule:
+          - distro: WindowsServer2022
+            image_owner: 801119661308
+            image_arch: x86_64
+            image_name: Windows_Server-2022-English-Full-Base-*
+            instance_type: t3a.medium
         collection_role:
-          - win_falcon_install
-          - win_falcon_install_policy
+            - win_falcon_install
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -48,6 +55,13 @@ jobs:
           ref: ${{github.event.pull_request.head.sha}}
         if: github.event_name == 'pull_request_target'
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          role-session-name: github-actions-molecule-ansible
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -55,8 +69,9 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt install apt-transport-https ca-certificates curl software-properties-common libssl-dev
           python -m pip install --upgrade pip
-          pip install molecule molecule-plugins ansible ansible-core ansible-lint pywinrm python-vagrant
+          pip install molecule "molecule-plugins[ec2]" ansible ansible-core ansible-lint boto3 botocore pywinrm
 
       - name: Build/Install the collection
         uses: nick-fields/retry@v2
@@ -69,13 +84,45 @@ jobs:
             ansible-galaxy collection install $collection_file
 
       - name: Run role tests
+        id: molecule-role-test
         uses: nick-fields/retry@v2
+        env:
+          MOLECULE_INSTANCE_NAME: ${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
+          MOLECULE_IMAGE_OWNER: ${{ matrix.molecule.image_owner }}
+          MOLECULE_IMAGE_ARCH: ${{ matrix.molecule.image_arch }}
+          MOLECULE_IMAGE_NAME: '${{ matrix.molecule.image_name }}'
+          MOLECULE_INSTANCE_TYPE: ${{ matrix.molecule.instance_type }}
+          MOLECULE_REGION: ${{ env.AWS_REGION}}
         with:
-          timeout_minutes: 30
-          max_attempts: 2
+          timeout_minutes: 15
+          max_attempts: 3
           retry_on: error
           command: >-
             molecule --version &&
             ansible --version &&
-            MOLECULE_DISTRO=${{ matrix.molecule_distro.distro }}
-            molecule --debug test -s ${{ matrix.collection_role }} -- -v
+            molecule --debug test --destroy never -s ${{ matrix.collection_role }} -- -v -e "falcon_skip_kernel_compat_check=yes"
+        continue-on-error: true
+
+      - name: Ensure instances are destroyed
+        uses: nick-fields/retry@v2
+        env:
+          MOLECULE_INSTANCE_NAME: ${{ matrix.molecule.distro }}-${{ matrix.collection_role }}
+          MOLECULE_IMAGE_OWNER: ${{ matrix.molecule.image_owner }}
+          MOLECULE_IMAGE_ARCH: ${{ matrix.molecule.image_arch }}
+          MOLECULE_IMAGE_NAME: '${{ matrix.molecule.image_name }}'
+          MOLECULE_INSTANCE_TYPE: ${{ matrix.molecule.instance_type }}
+          MOLECULE_REGION: ${{ env.AWS_REGION}}
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_on: error
+          command: >-
+            molecule --version &&
+            ansible --version &&
+            molecule --debug destroy -s ${{ matrix.collection_role }}
+
+      - name: Assert molecule tests passed
+        uses: nick-fields/assert-action@v1
+        with:
+          expected: success
+          actual: ${{ steps.molecule-role-test.outcome }}
