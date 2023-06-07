@@ -62,7 +62,7 @@ def __get(opt):
     opt = opt.replace("_", "-")
     cmd.append("--%s" % opt)
     try:
-        stdout = check_output(cmd, universal_newlines=True, stderr=STDOUT, shell=False)
+        stdout = check_output(cmd, universal_newlines=True, stderr=STDOUT, shell=False)  # nosec
     except CalledProcessError:
         stdout = ""
 
