@@ -1,7 +1,7 @@
 name: "falcon_uninstall"
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '0 5 * * *'
   push:
     paths:
       - 'roles/falcon_uninstall/**'
@@ -51,6 +51,11 @@ jobs:
             image_owner: '137112412989'
             image_arch: x86_64
             image_name: al2023-ami-2023*
+            instance_type: t2.micro
+          - distro: amazon-2
+            image_owner: '137112412989'
+            image_arch: x86_64
+            image_name: amzn2-ami-hvm-2.0*gp2
             instance_type: t2.micro
           - distro: sles-15-sp4
             image_owner: '013907871322'
