@@ -246,3 +246,16 @@ releases:
     - 3.2.34.yml
     - zypper-downgrade.yml
     release_date: '2023-05-10'
+  3.2.35:
+    changes:
+      bugfixes:
+      - falcon_install - fix issue with expired gpg key (https://github.com/CrowdStrike/ansible_collection_falcon/pull/361)
+      release_summary: '| Release Date: 2023-06-30
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.35>`__
+
+        '
+    fragments:
+    - 3.2.35.yml
+    - gpg-key.yml
+    release_date: '2023-06-30'

@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.35
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2023-06-30
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.35>`__
+
+
+Bugfixes
+--------
+
+- falcon_install - fix issue with expired gpg key (https://github.com/CrowdStrike/ansible_collection_falcon/pull/361)
+
 v3.2.34
 =======
 
