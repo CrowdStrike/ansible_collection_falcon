@@ -11,7 +11,9 @@ rpm_packagers:
 dpkg_packagers:
   - apt
 
-falcon_gpg_key: falcon-sensor.gpg
+falcon_gpg_keys:
+  - falcon-sensor.gpg
+  - falcon-sensor2.gpg
 
 falcon_cloud_urls:
   us-1: "api.crowdstrike.com"

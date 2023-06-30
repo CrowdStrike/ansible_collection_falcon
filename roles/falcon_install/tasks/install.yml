@@ -5,29 +5,32 @@
   when:
     - falcon_sensor_pkg is not defined
 
-- name: CrowdStrike Falcon | Transfer CrowdStrike Falcon RPM GPG key file
+- name: CrowdStrike Falcon | Transfer CrowdStrike Falcon RPM GPG key files
   ansible.builtin.copy:
-    src: "{{ falcon_gpg_key }}"
-    dest: "{{ falcon_install_temp_directory.path }}/{{ falcon_gpg_key }}"
+    src: "{{ item }}"
+    dest: "{{ falcon_install_temp_directory.path }}/{{ item }}"
     mode: 0640
   changed_when: no
+  loop: "{{ falcon_gpg_keys }}"
   when:
     - falcon_gpg_key_check
 
-- name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from file
+- name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from files
   ansible.builtin.rpm_key:
     state: present
-    key: '{{ falcon_install_temp_directory.path }}/{{ falcon_gpg_key }}'
+    key: '{{ falcon_install_temp_directory.path }}/{{ item }}'
   changed_when: no
+  loop: "{{ falcon_gpg_keys }}"
   when:
     - falcon_gpg_key_check
     - ansible_facts['pkg_mgr'] in rpm_packagers
 
-- name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from file
+- name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from files
   ansible.builtin.apt_key:
-    file: '{{ falcon_install_temp_directory.path }}/{{ falcon_gpg_key }}'
+    file: '{{ falcon_install_temp_directory.path }}/{{ item }}'
     state: present
   changed_when: no
+  loop: "{{ falcon_gpg_keys }}"
   when:
     - falcon_gpg_key_check
     - ansible_facts['pkg_mgr'] in dpkg_packagers
