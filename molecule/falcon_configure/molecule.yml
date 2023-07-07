@@ -13,7 +13,8 @@ platforms:
     instance_type: "${MOLECULE_INSTANCE_TYPE:-t2.micro}"
     region: "${MOLECULE_REGION:-us-west-2}"
     vpc_subnet_id: "${MOLECULE_VPC_SUBNET_ID}"
-    security_group_restrict_cidr_ip: false
+    security_group_restrict_cidr_ip: "${MOLECULE_SECURITY_GROUP_RESTRICT_CIDR_IP:-true}"
+    boot_wait_seconds: "${MOLECULE_BOOT_WAIT_SECONDS:-60}"
 provisioner:
   name: ansible
   playbooks:
