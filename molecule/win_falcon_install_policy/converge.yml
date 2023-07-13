@@ -3,7 +3,7 @@
   hosts: all
   tasks:
     - name: Set ProvToken info (if applicable)
-      set_fact:
+      ansible.builtin.set_fact:
         windows_install_args: "/norestart ProvToken={{ lookup('env', 'FALCON_PROV_TOKEN') }}"
       when: lookup('env', 'FALCON_PROV_TOKEN')
 
