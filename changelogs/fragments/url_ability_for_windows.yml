@@ -1,0 +1,2 @@
+minor_changes:
+- falcon_install - add the ability to install from an URL for windows (https://github.com/CrowdStrike/ansible_collection_falcon/pull/363)

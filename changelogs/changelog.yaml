@@ -259,16 +259,3 @@ releases:
     - 3.2.35.yml
     - gpg-key.yml
     release_date: '2023-06-30'
-  3.2.36:
-    changes:
-      bugfixes:
-      - falcon_install - add the ability to install from an URL for windows (https://github.com/CrowdStrike/ansible_collection_falcon/pull/363)
-      release_summary: '| Release Date: 2023-06-30
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.36>`__
-
-        '
-    fragments:
-    - 3.2.36.yml
-    - url_ability_for_windows.yml
-    release_date: '2023-06-30'
