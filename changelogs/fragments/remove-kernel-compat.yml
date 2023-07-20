@@ -1,0 +1,2 @@
+minor_changes:
+- falcon_install - removing kernel compat check due to prevelance of ebpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/367)
