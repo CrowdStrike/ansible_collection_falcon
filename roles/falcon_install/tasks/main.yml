@@ -30,6 +30,14 @@
     - ansible.builtin.include_tasks: file.yml
       # noqa name[missing]
 
+- name: Windows URL block
+  when:
+    - falcon_install_method == "url"
+    - ansible_facts['os_family'] == "Windows"
+  block:
+    - ansible.builtin.include_tasks: win_url.yml
+      # noqa name[missing]
+
 - name: Windows API block
   when:
     - falcon_install_method == "api"

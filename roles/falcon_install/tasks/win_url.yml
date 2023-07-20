@@ -1,0 +1,18 @@
+# Tasks for Installing CrowdStrike's Falcon Sensor via URL
+- name: CrowdStrike Falcon | Downloading Installation Package from URL (Windows)
+  ansible.windows.win_get_url:
+    url: "{{ falcon_download_url }}"
+    dest: "{{ falcon_windows_tmp_dir }}\\falcon-sensor.exe"
+    url_username: "{{ falcon_download_url_username | default(omit) }}"
+    url_password: "{{ falcon_download_url_password | default(omit) }}"
+  when:
+    - falcon_download_url
+    - falcon_windows_tmp_dir
+  register: falcon_sensor_download
+  retries: "{{ falcon_retries }}"
+  delay: "{{ falcon_delay }}"
+  until: falcon_sensor_download is success
+
+- name: CrowdStrike Falcon | Set full file download path
+  ansible.builtin.set_fact:
+    falcon_sensor_pkg: "{{ falcon_sensor_download.dest }}"
