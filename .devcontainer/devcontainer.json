@@ -1,54 +1,66 @@
 {
-	"name": "Ansible DinD",
-	"dockerFile": "Dockerfile",
-	"runArgs": [
-		"--init",
-		"--privileged"
-	],
-	"mounts": [
-		// [Optional] Anisble Collections: Uncomment if you want to mount your local .ansible/collections folder.
-		"source=${localWorkspaceFolder},target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon,type=bind,consistency=cached",
-		"target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon/.devcontainer,type=volume",
-		"source=dind-var-lib-docker,target=/var/lib/docker,type=volume"
-	],
-	"overrideCommand": false,
-	// Set *default* container specific settings.json values on container create.
-	"settings": {
-		"files.associations": {
-			// Ansible
-			"**/defaults/**/*.yml": "jinja-yaml",
-			"**/group_vars/**/*": "jinja-yaml",
-			"**/host_vars/**/*": "jinja-yaml",
-			"**/vars/**/*.yml": "jinja-yaml",
-			"**/tasks/**/*.yml": "ansible",
-			"**/handlers/*.yml": "ansible",
-			"**/meta/*.yml": "ansible",
-			"**/roles/**/*.yml": "ansible",
-			"**/playbooks/**/*.yml": "ansible",
-			"**/ansible/**/hosts": "ini",
-			"**/ansible/**/inventory": "ini",
-			"ansible.cfg": "ini"
-		},
-		"terminal.integrated.defaultProfile.linux": "zsh",
-		"[jinja-yaml]": {
-			"editor.tabSize": 2
-		},
-		"[python]": {
-			"editor.tabSize": 4
+	"name": "Ansible Development Container",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"INSTALL_ZSH": "true",
+			"UPGRADE_PACKAGES": "false",
+			"INSTALL_AZURE_CLI": "false",
+			"INSTALL_DOCKER": "false",
+			"NODE_VERSION": "none"
 		}
 	},
-	// Add the IDs of extensions you want installed when the container is created.
-	"extensions": [
-		"shd101wyy.markdown-preview-enhanced",
-		"ms-python.python",
-		"redhat.vscode-yaml",
-		"ms-azuretools.vscode-docker",
-		"redhat.ansible"
+	"runArgs": ["--init"],
+	"mounts": [
+		// [Optional] Anisble Collections: Uncomment if you want to mount your local .ansible/collections folder.
+		"source=${localWorkspaceFolder},target=/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon,type=bind,consistency=cached"
 	],
+	"overrideCommand": false,
+
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"shd101wyy.markdown-preview-enhanced",
+				"ms-python.python",
+				"redhat.vscode-yaml",
+				"redhat.ansible",
+				"GitHub.copilot",
+				"bierner.github-markdown-preview",
+				"GitHub.vscode-pull-request-github"
+			]
+		},
+		"settings": {
+			"files.associations": {
+				// Ansible
+				"**/defaults/**/*.yml": "jinja-yaml",
+				"**/group_vars/**/*": "jinja-yaml",
+				"**/host_vars/**/*": "jinja-yaml",
+				"**/vars/**/*.yml": "jinja-yaml",
+				"**/tasks/**/*.yml": "ansible",
+				"**/handlers/*.yml": "ansible",
+				"**/meta/*.yml": "ansible",
+				"**/roles/**/*.yml": "ansible",
+				"**/playbooks/**/*.yml": "ansible",
+				"**/ansible/**/hosts": "ini",
+				"**/ansible/**/inventory": "ini",
+				"ansible.cfg": "ini"
+			},
+			"terminal.integrated.defaultProfile.linux": "zsh",
+			"[jinja-yaml]": {
+				"editor.tabSize": 2
+			},
+			"[python]": {
+				"editor.tabSize": 4
+			}
+		}
+	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pre-commit install --install-hooks",
+	"postCreateCommand": "ansible-galaxy collection install ansible.windows",
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode"
 }
