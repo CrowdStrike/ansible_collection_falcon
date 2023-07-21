@@ -11,5 +11,6 @@ ansible-lint
 boto3
 botocore
 pywinrm
+wheel
 ansible-rulebook
 ansible-runner
