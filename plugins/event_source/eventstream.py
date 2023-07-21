@@ -49,7 +49,7 @@ class Stream():
     """Stream class for the CrowdStrike Falcon Event Stream API
     """
 
-    def __init__(self, client: APIHarness, stream_name: str, stream: dict) -> None:
+    def __init__(self, client: APIHarness, stream_name: str, offset: int, include_event_types: list[str], stream: dict) -> None:
         print(f"Initializing Stream: {stream_name}")
         self.client: APIHarness = client
         self.stream_name: str = stream_name
@@ -58,7 +58,8 @@ class Stream():
         self.token_expires: str = stream["sessionToken"]["expiration"]
         self.refresh_url: str = stream['refreshActiveSessionURL']
         self.partition: str = re.findall(r'v1/(\d+)', self.refresh_url)[0]
-        self.offset: str = ""
+        self.offset: int = offset
+        self.include_event_types: list[str] = include_event_types
         self.epoch: int = int(time.time())
         self.refresh_interval: int = int(stream["refreshActiveSessionInterval"])
         self.token_expired: Callable[[], bool] = lambda: ((self.refresh_interval) - 60) + self.epoch < int(time.time())
@@ -95,8 +96,12 @@ class Stream():
         Returns:
             requests.Response: The open stream
         """
+
+        eventTypeFilter = '' if self.include_event_types is None else '&eventType=' + ','.join(self.include_event_types)
+        # url = self.stream.url + '&offset={}'.format(self.last_seen_offset + 1 if self.last_seen_offset != 0 else 0) + eventTypeFilter
+
         kwargs = {
-            "url": self.data_feed,
+            "url": self.data_feed + '&offset={}'.format(self.offset) + eventTypeFilter,
             "headers": {
                 "Authorization": f"Token {self.token}",
                 'Date': datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S +0000'),
@@ -123,7 +128,7 @@ class Stream():
                 break
             if line:
                 jsonEvent = json.loads(line.decode("utf-8"))
-                eventType = jsonEvent["metadata"]["eventType"].lower()
+                eventType = jsonEvent["metadata"]["eventType"]
                 self.offset = jsonEvent["metadata"]["offset"]
 
                 valid: bool = True
@@ -167,11 +172,9 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     falcon_client_secret: str = str(args.get("falcon_client_secret"))
     falcon_cloud: str = str(args.get("falcon_cloud", "us-1"))
     stream_name: str = str(args.get("stream_name", "eda")).lower()
+    offset: int = int(args.get("offset", 0))
     include_event_types: List[str] = list(args.get("include_event_types", []))
     exclude_event_types: List[str] = list(args.get("exclude_event_types", []))
-
-    include_event_types = [x.lower() for x in include_event_types]
-    exclude_event_types = [x.lower() for x in exclude_event_types]
 
     if falcon_cloud not in REGIONS:
         raise ValueError(f"Invalid falcon_cloud: {falcon_cloud}, must be one of {list(REGIONS.keys())}")
@@ -188,7 +191,7 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     stop_event: asyncio.Event = asyncio.Event()
 
     try:
-        q: asyncio.Queue = asyncio.Queue(10)
+        q: asyncio.Queue = asyncio.Queue(1)
 
         availableStreams = falcon.command(action="listAvailableStreamsOAuth2", appId=stream_name)
 
@@ -198,7 +201,7 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
 
         streams: List[Stream] = []
         for stream in availableStreams["body"]["resources"]:
-            streams.append(Stream(falcon, stream_name, stream))
+            streams.append(Stream(falcon, stream_name, offset, include_event_types, stream))
 
         tasks = [asyncio.create_task(stream.stream_events(q, stop_event, include_event_types, exclude_event_types)) for stream in streams]
 

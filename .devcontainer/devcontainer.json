@@ -54,7 +54,8 @@
 			},
 			"[python]": {
 				"editor.tabSize": 4
-			}
+			},
+			"ansible.python.interpreterPath": "/usr/bin/python3"
 		}
 	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
