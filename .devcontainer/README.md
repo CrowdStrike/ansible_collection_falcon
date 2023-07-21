@@ -1,43 +1,60 @@
-# CS Ansible Docker in Docker
+# Ansible Development Container
 
-*Create child containers _inside_ a container, independent from the host's docker instance. Installs Docker extension in the container along with needed CLIs.*
+This is a development container for working with Ansible. It provides an environment for running Ansible playbooks and managing infrastructure.
 
-## Description
+## Getting Started
 
-This container provides a solid foundation for developing and testing Ansible content using the DinD approach to facilitate molecule testing via Docker. More information relating to DinD in regards to VScode devcontainers can be found [here](https://github.com/microsoft/vscode-dev-containers/tree/main/containers/docker-in-docker).
+To get started, follow these steps:
 
-The main purpose of this container is to provide the necessary bits needed to develop and test Ansible content. What's included:
-* Container is based on: `willhallonline/ansible:2.12.2-ubuntu-20.04`
-> You can substitute the version of Ansible if needed. You can view more tags [here](https://github.com/willhallonline/docker-ansible#immutable-images).
-* The following mount provides a location for the Ansible Collection:
-  * `/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon`
-* The following VScode extensions are installed:
-  * redhat.ansible
-  * shd101wyy.markdown-preview-enhanced
-  * ms-python.python
-  * redhat.vscode-yaml
-  * ms-azuretools.vscode-docker
-* Oh-my-zsh is installed and enabled by default
-> View the [devcontainer.json](./devcontainer.json) file for more details
+1. Install [Visual Studio Code](https://code.visualstudio.com/)
+2. Install the [Remote - Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension for Visual Studio Code.
+3. Clone this repository to your local machine.
+4. Open the repository in Visual Studio Code.
+5. When prompted, click on the green "Open in Container" button in the lower right corner of Visual Studio Code.
 
-### Usage and Caveats
+## Container Configuration
 
-When opening up a folder with a `.devcontainer` directory, VScode should prompt you if you would like to open the workspace in the remote container. Otherwise you can also do the following:
+The container is based on the `mcr.microsoft.com/devcontainers/base:bullseye` image. It has the following configuration:
 
-* press <kbd>F1</kbd> or <kbd>shift+command+p</kbd> and run **Remote-Containers: Reopen Folder in Container** or **Remote-Containers: Rebuild Container** to start using the definition.
+- Installs zsh (if enabled in devcontainer.json)
+- Upgrades OS packages to their latest versions (if enabled in devcontainer.json)
+- Enables non-root Docker access in the container (if enabled in devcontainer.json)
+- Uses the OSS Moby Engine instead of the licensed Docker Engine (if enabled in devcontainer.json)
+- Uses the specified Docker version (if specified in devcontainer.json)
+- Installs the required packages and sets up the non-root user
+- Installs Ansible and its dependencies from the `requirements.txt` file
+- Mounts the local workspace folder to `/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon` in the container
 
->When openinig up for the first time, it might take a few minutes for the container to be built.
+## Shell Customization
 
-##### Caveats
-* After the container is built, some extensions and settings might not take effect right away. Restart the remote-connection:
-  * Click the bottom left <kbd>Dev Container: Ansible DinD</kbd> and select `Reopen Folder Locally`
-  * The reopen again in the remote-container.
+The container is configured to use zsh as the default shell. It includes the following customizations:
 
-* Molecule testing only supports using the Docker provider. If you need to test against Windows systems, you will need to use your localhost + vagrant.
-* If you need to run tests with `ansible-test` suite:
-  1. Navigate to `/usr/share/ansible/collections/ansible_collections/crowdstrike/falcon`
-  2. Execute the following for a sanity test:
-      ```bash
-      $ ansible-test sanity -v
-      ```
-      > Do not use --docker as it will not work in this configuration.
+- Files with the extension `.yml` in the `defaults`, `group_vars`, `host_vars`, `vars`, `tasks`, `handlers`, `meta`, `roles`, and `playbooks` folders are associated with the `jinja-yaml` language mode.
+- Files named `hosts` or `inventory` in the `ansible` folder are associated with the `ini` language mode.
+- The default profile for the integrated terminal is set to `zsh` for Linux.
+
+## Extensions
+
+The following extensions are installed in the container:
+
+- shd101wyy.markdown-preview-enhanced
+- ms-python.python
+- redhat.vscode-yaml
+- redhat.ansible
+- GitHub.copilot
+- bierner.github-markdown-preview
+- GitHub.vscode-pull-request-github
+
+## Port Forwarding
+
+Port forwarding is not enabled by default in the container. If you need to forward ports, you can add them to the `forwardPorts` section in the devcontainer.json file.
+
+## Post-Create Command
+
+You can run additional commands after the container is created by adding them to the `postCreateCommand` section in the devcontainer.json file.
+
+Currently, the following commands are run after the container is created:
+
+```bash
+pre-commit install --install-hooks
+```

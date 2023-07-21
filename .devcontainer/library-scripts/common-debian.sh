@@ -102,7 +102,7 @@ if [ "${PACKAGES_ALREADY_INSTALLED}" != "true" ]; then
         libkrb5-3 \
         libgssapi-krb5-2 \
         libicu[0-9][0-9] \
-        liblttng-ust0 \
+        liblttng-ust[0-9] \
         libstdc++6 \
         zlib1g \
         locales \
@@ -205,7 +205,7 @@ else
     fi
 fi
 
-# Add add sudo support for non-root user
+# Add sudo support for non-root user
 if [ "${USERNAME}" != "root" ] && [ "${EXISTING_NON_ROOT_USER}" != "${USERNAME}" ]; then
     echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME
     chmod 0440 /etc/sudoers.d/$USERNAME
@@ -258,6 +258,9 @@ if [ -z "$(git config --get core.editor)" ] && [ -z "${GIT_EDITOR}" ]; then
     fi
 fi
 
+# Ansible EDA
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+
 EOF
 )"
 
@@ -287,7 +290,7 @@ cat << 'EOF' > /usr/local/bin/systemctl
 #!/bin/sh
 set -e
 if [ -d "/run/systemd/system" ]; then
-    exec /bin/systemctl/systemctl "$@"
+    exec /bin/systemctl "$@"
 else
     echo '\n"systemd" is not running in this container due to its overhead.\nUse the "service" command to start services instead. e.g.: \n\nservice --status-all'
 fi
@@ -389,6 +392,7 @@ if [ "${INSTALL_ZSH}" = "true" ]; then
             -c receive.fsck.zeroPaddedFilemode=ignore \
             "https://github.com/ohmyzsh/ohmyzsh" "${oh_my_install_dir}" 2>&1
         echo -e "$(cat "${template_path}")\nDISABLE_AUTO_UPDATE=true\nDISABLE_UPDATE_PROMPT=true" > ${user_rc_file}
+        echo -e "# Ansible EDA\nexport JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> ${user_rc_file}
         sed -i -e 's/ZSH_THEME=.*/ZSH_THEME="codespaces"/g' ${user_rc_file}
 
         mkdir -p ${oh_my_install_dir}/custom/themes
