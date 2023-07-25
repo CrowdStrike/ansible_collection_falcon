@@ -5,9 +5,9 @@
     - crowdstrike.falcon.eventstream:
         falcon_client_id: "{{ FALCON_CLIENT_ID }}"
         falcon_client_secret: "{{ FALCON_CLIENT_SECRET }}"
-        falcon_cloud: "{{ FALCON_CLOUD | default('us-2') }}"
-        stream_name: "{{ stream_name | default('eda-test') }}"
-        # offset: "{{offset | default('now')}}"
+        falcon_cloud: "us-2"
+        stream_name: "eda-example"
+        # delay: 0
         include_event_types:
           - "DetectionSummaryEvent"
 

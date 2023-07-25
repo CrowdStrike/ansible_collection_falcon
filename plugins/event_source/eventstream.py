@@ -19,19 +19,29 @@ Arguments:
   - stream_name (Optional): Label that identifies your connection. Max: 32 alphanumeric characters (a-z, A-Z, 0-9) Default: eda.
   - include_event_types (Optional): List of event types to filter on. Default: All event types.
   - exclude_event_types (Optional): List of event types to exclude. Default: None.
+  - offset (Optional): The offset to start streaming from. Default: 0.
+  - delay (Optional): The delay between each event. Helps to reduce overflowing the queue. Default: 0.1 seconds.
 
 
 Examples:
+  # Stream all events except AuthActivityAuditEvent from Falcon Event Stream API
   sources:
     - crowdstrike.falcon.eventstream:
-        falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
-        falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
+        falcon_client_id: "{{ FALCON_CLIENT_ID }}"
+        falcon_client_secret: "{{ FALCON_CLIENT_SECRET }}"
         falcon_cloud: "us-1"
-        include_event_types:
-            - "UserActivityAuditEvent"
         exclude_event_types:
-            - "AuthActivityAuditEvent"
+          - "AuthActivityAuditEvent"
 
+  # Stream only DetectionSummaryEvent from Falcon Event Stream API
+  sources:
+    - crowdstrike.falcon.eventstream:
+        falcon_client_id: "{{ FALCON_CLIENT_ID }}"
+        falcon_client_secret: "{{ FALCON_CLIENT_SECRET }}"
+        falcon_cloud: "us-2"
+        stream_name: "eda-example"
+        include_event_types:
+          - "DetectionSummaryEvent"
 
 """
 import asyncio
@@ -39,17 +49,40 @@ import time
 import datetime
 import re
 import json
+import logging
 
 from typing import Any, Callable, Dict, Optional, List
 from falconpy import APIHarness
 import requests
 
+logger = logging.getLogger()
+
+# Region Mapping
+REGIONS: Dict[str, str] = {
+    "us-1": "https://api.crowdstrike.com",
+    "us-2": "https://api.us-2.crowdstrike.com",
+    "eu-1": "https://api.eu-1.crowdstrike.com",
+    "us-gov-1": "https://api.laggar.gcw.crowdstrike.com",
+}
+
 
 class Stream():
-    """Stream class for the CrowdStrike Falcon Event Stream API
-    """
+    """Stream class for the CrowdStrike Falcon Event Stream API"""
+    def __init__(self, client: APIHarness, stream_name: str, offset: int, delay: float, include_event_types: list[str], stream: dict) -> None:
+        """
+        Initializes a new Stream object.
 
-    def __init__(self, client: APIHarness, stream_name: str, offset: int, include_event_types: list[str], stream: dict) -> None:
+        Args:
+            client (APIHarness): An instance of the Falcon APIHarness client.
+            stream_name (str): A label identifying the connection.
+            offset (int): The offset to start streaming from.
+            delay (float): The delay between each event to help reduce overflowing the queue.
+            include_event_types (List[str]): A list of event types to filter on.
+            stream (Dict): A dictionary containing the details of the stream.
+
+        Raises:
+            ValueError: If the 'refreshActiveSessionURL' in the stream dictionary does not contain a numeric partition value.
+        """
         print(f"Initializing Stream: {stream_name}")
         self.client: APIHarness = client
         self.stream_name: str = stream_name
@@ -59,6 +92,7 @@ class Stream():
         self.refresh_url: str = stream['refreshActiveSessionURL']
         self.partition: str = re.findall(r'v1/(\d+)', self.refresh_url)[0]
         self.offset: int = offset
+        self.delay: float = delay
         self.include_event_types: list[str] = include_event_types
         self.epoch: int = int(time.time())
         self.refresh_interval: int = int(stream["refreshActiveSessionInterval"])
@@ -66,7 +100,19 @@ class Stream():
         self.spigot: Optional[requests.Response] = None  # type: ignore
 
     async def refresh(self) -> bool:
-        """Refresh the stream and client token
+        """
+        Refreshes the stream and client token.
+
+        This method authenticates the client, and if authentication is successful, it refreshes the active stream
+        session. The partition, token, token expiration time, refresh URL, and refresh interval are all updated based on
+        the response from the server.
+
+        Raises:
+            ValueError: If client authentication fails.
+
+        Returns:
+            bool: True if the refresh was successful (i.e., the server responded with a status code of 200); False
+            otherwise.
         """
         refreshed: bool = False
 
@@ -91,14 +137,19 @@ class Stream():
         return refreshed
 
     async def open_stream(self) -> requests.Response:
-        """Open the event stream
+        """
+        Opens a long lived HTTP connection to the CrowdStrike Falcon Event Stream.
+
+        Constructs the URL for the event stream using the data feed URL, offset, and event type filter. This URL is used
+        to send a GET request to the server.
 
         Returns:
-            requests.Response: The open stream
-        """
+            requests.Response: The server's response to the GET request.
 
+        Raises:
+            requests.HTTPError: If the server responds with an HTTP status code that indicates an error.
+        """
         eventTypeFilter = '' if self.include_event_types is None else '&eventType=' + ','.join(self.include_event_types)
-        # url = self.stream.url + '&offset={}'.format(self.last_seen_offset + 1 if self.last_seen_offset != 0 else 0) + eventTypeFilter
 
         kwargs = {
             "url": self.data_feed + '&offset={}'.format(self.offset) + eventTypeFilter,
@@ -115,11 +166,26 @@ class Stream():
         self.spigot.raise_for_status()
         return self.spigot
 
-    async def stream_events(self, queue: asyncio.Queue, stop_event: asyncio.Event, include_event_types: List[str], exclude_event_types: List[str]) -> None:
-        """Stream events from the CrowdStrike Falcon Event Stream API
+    async def stream_events(self, queue: asyncio.Queue, stop_event: asyncio.Event, exclude_event_types: List[str]) -> None:
+        """
+        Stream events from the CrowdStrike Falcon Event Stream API to a queue.
+
+        This method opens the event stream, then continually reads from it. For each line read from the stream:
+        - If the `stop_event` is set, the method immediately stops reading from the stream and returns.
+        - If the line is not empty, the method decodes the line into a JSON object and extracts the event type and offset.
+        - If the event type is valid and not in the exclude list, the JSON object is added to the queue.
+        - The method then sleeps for a short time to allow for other tasks to run.
+        - If the API token has expired, it is refreshed.
+
+        If at any point the stream becomes unreadable, the method stops reading from the stream and returns.
 
         Args:
-            queue (asyncio.Queue): The queue to send events to
+            queue (asyncio.Queue): The queue to which JSON objects representing valid events will be added.
+            stop_event (asyncio.Event): An event that, if set, will cause the method to stop reading from the stream.
+            exclude_event_types (List[str]): A list of event types to exclude. Events of these types will not be added to the queue.
+
+        Returns:
+            None
         """
         stream: requests.Response = await self.open_stream()
 
@@ -131,35 +197,34 @@ class Stream():
                 eventType = jsonEvent["metadata"]["eventType"]
                 self.offset = jsonEvent["metadata"]["offset"]
 
-                valid: bool = True
-
-                if include_event_types and eventType not in include_event_types:
-                    valid = False
-
-                if exclude_event_types and eventType in exclude_event_types:
-                    valid = False
-
-                if valid:
+                if self.is_valid_event(eventType, exclude_event_types):
                     await queue.put(dict(falcon=jsonEvent))
+                    await asyncio.sleep(self.delay)
             if self.token_expired():
                 await self.refresh()
                 continue
             if not stream.raw.readable():
                 break
 
+    def is_valid_event(self, event_type: str, exclude_event_types: List[str]) -> bool:
+            """
+            This function checks if a given event type is valid or not.
 
-# Region Mapping
-# TODO: Should Region be "cloud" and should falcon_cloud be falcon_region?
-REGIONS: Dict[str, str] = {
-    "us-1": "https://api.crowdstrike.com",
-    "us-2": "https://api.us-2.crowdstrike.com",
-    "eu-1": "https://api.eu-1.crowdstrike.com",
-    "us-gov-1": "https://api.laggar.gcw.crowdstrike.com",
-}
+            Args:
+                event_type (str): The type of the event to be checked.
+                exclude_event_types (List[str]): A list of event types to be excluded.
+
+            Returns:
+                bool: Returns False if the event_type is in the exclude_event_types list, otherwise returns True.
+            """
+            if event_type in exclude_event_types:
+                return False
+            return True
 
 
 async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
-    """Main function for the eventstream event_source plugin
+    """
+    Main function for the eventstream event_source plugin
 
     Args:
         queue (asyncio.Queue): The queue to send events to
@@ -173,6 +238,7 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     falcon_cloud: str = str(args.get("falcon_cloud", "us-1"))
     stream_name: str = str(args.get("stream_name", "eda")).lower()
     offset: int = int(args.get("offset", 0))
+    delay: float = float(args.get("delay", 0.1))
     include_event_types: List[str] = list(args.get("include_event_types", []))
     exclude_event_types: List[str] = list(args.get("exclude_event_types", []))
 
@@ -191,8 +257,6 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     stop_event: asyncio.Event = asyncio.Event()
 
     try:
-        q: asyncio.Queue = asyncio.Queue(1)
-
         availableStreams = falcon.command(action="listAvailableStreamsOAuth2", appId=stream_name)
 
         if not availableStreams["body"] or not availableStreams["body"]["resources"]:
@@ -201,24 +265,31 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
 
         streams: List[Stream] = []
         for stream in availableStreams["body"]["resources"]:
-            streams.append(Stream(falcon, stream_name, offset, include_event_types, stream))
+            streams.append(Stream(falcon, stream_name, offset, delay, include_event_types, stream))
 
-        tasks = [asyncio.create_task(stream.stream_events(q, stop_event, include_event_types, exclude_event_types)) for stream in streams]
+        # Create an asyncio Queue with a size equal to the number of streams
+        q: asyncio.Queue = asyncio.Queue(len(streams))
 
+        # Create a list of tasks. Each task is responsible for streaming events from a stream
+        # and putting them into the queue.
+        tasks = [asyncio.create_task(stream.stream_events(q, stop_event, exclude_event_types)) for stream in streams]
+
+        # Keep taking events from the queue and putting them into another queue as long as the stop_event is not set
         while not stop_event.is_set():
             event = await q.get()
             await queue.put(event)
 
+        # After the while loop, then you can await the tasks
         await asyncio.gather(*tasks)
 
     except asyncio.CancelledError:
-        print("Plugin Task Cancelled")
+        logger.error("Plugin Task Cancelled")
     except Exception as e:
-        print(f"Uncaught Plugin Task Error: {e}")
+        logger.error(f"Uncaught Plugin Task Error: {e}")
         raise
     finally:
         stop_event.set()
-        print("Plugin Task Finished")
+        logger.info("Plugin Task Finished")
 
 
 if __name__ == "__main__":
