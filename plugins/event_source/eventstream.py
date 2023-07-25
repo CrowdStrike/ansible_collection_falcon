@@ -68,6 +68,7 @@ REGIONS: Dict[str, str] = {
 
 class Stream():
     """Stream class for the CrowdStrike Falcon Event Stream API"""
+
     def __init__(self, client: APIHarness, stream_name: str, offset: int, delay: float, include_event_types: list[str], stream: dict) -> None:
         """
         Initializes a new Stream object.
@@ -207,19 +208,19 @@ class Stream():
                 break
 
     def is_valid_event(self, event_type: str, exclude_event_types: List[str]) -> bool:
-            """
-            This function checks if a given event type is valid or not.
+        """
+        This function checks if a given event type is valid or not.
 
-            Args:
-                event_type (str): The type of the event to be checked.
-                exclude_event_types (List[str]): A list of event types to be excluded.
+        Args:
+            event_type (str): The type of the event to be checked.
+            exclude_event_types (List[str]): A list of event types to be excluded.
 
-            Returns:
-                bool: Returns False if the event_type is in the exclude_event_types list, otherwise returns True.
-            """
-            if event_type in exclude_event_types:
-                return False
-            return True
+        Returns:
+            bool: Returns False if the event_type is in the exclude_event_types list, otherwise returns True.
+        """
+        if event_type in exclude_event_types:
+            return False
+        return True
 
 
 async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
@@ -285,7 +286,7 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     except asyncio.CancelledError:
         logger.error("Plugin Task Cancelled")
     except Exception as e:
-        logger.error(f"Uncaught Plugin Task Error: {e}")
+        logger.error("Uncaught Plugin Task Error: %s", e)
         raise
     finally:
         stop_event.set()

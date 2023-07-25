@@ -266,7 +266,7 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
                 # Introduce a delay before processing the next event
                 await asyncio.sleep(delay)
         except Exception as e:
-            logger.error(f"Uncaught Plugin Task Error: {e}")
+            logger.error("Uncaught Plugin Task Error: %s", e)
             continue
         finally:
             logger.info("Plugin Task Finished")
