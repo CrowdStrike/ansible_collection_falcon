@@ -259,3 +259,20 @@ releases:
     - 3.2.35.yml
     - gpg-key.yml
     release_date: '2023-06-30'
+  3.2.36:
+    changes:
+      bugfixes:
+      - falcon_install - use tmp path instead of hardcoding sensor name (https://github.com/CrowdStrike/ansible_collection_falcon/pull/368)
+      minor_changes:
+      - falcon_install - add the ability to install from an URL for windows (https://github.com/CrowdStrike/ansible_collection_falcon/pull/363)
+      - falcon_install - removing kernel compat check due to prevelance of ebpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/367)
+      release_summary: '| Release Date: 2023-07-28
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.36>`__
+
+        '
+    fragments:
+    - 3.2.36.yml
+    - remove-kernel-compat.yml
+    - url_ability_for_windows.yml
+    release_date: '2023-07-28'
