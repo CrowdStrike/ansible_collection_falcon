@@ -5,6 +5,27 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.2.36
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2023-07-28
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.36>`__
+
+
+Minor Changes
+-------------
+
+- falcon_install - add the ability to install from an URL for windows (https://github.com/CrowdStrike/ansible_collection_falcon/pull/363)
+- falcon_install - removing kernel compat check due to prevelance of ebpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/367)
+
+Bugfixes
+--------
+
+- falcon_install - use tmp path instead of hardcoding sensor name (https://github.com/CrowdStrike/ansible_collection_falcon/pull/368)
+
 v3.2.35
 =======
 
