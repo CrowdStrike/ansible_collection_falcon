@@ -186,6 +186,9 @@ class Stream():
         """
         stream: requests.Response = await self.open_stream()
 
+        # Create a way to keep track of the eventType's by count for debugging purposes
+        eventTypeCount = dict()
+
         for line in stream.iter_lines():
             if stop_event.is_set():
                 break
@@ -195,6 +198,8 @@ class Stream():
                 self.offset = jsonEvent["metadata"]["offset"]
 
                 if self.is_valid_event(eventType, exclude_event_types):
+                    eventTypeCount[eventType] = eventTypeCount.get(eventType, 0) + 1
+                    logger.info("EventType(s) by count: %s", eventTypeCount)
                     await queue.put(dict(falcon=jsonEvent))
                     await asyncio.sleep(self.delay)
             if self.token_expired():
