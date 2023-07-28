@@ -102,8 +102,7 @@ class Stream():
         Refreshes the stream and client token.
 
         This method authenticates the client, and if authentication is successful, it refreshes the active stream
-        session. The partition, token, token expiration time, refresh URL, and refresh interval are all updated based on
-        the response from the server.
+        session.
 
         Raises:
             ValueError: If client authentication fails.
@@ -125,11 +124,8 @@ class Stream():
         })
 
         if "status_code" in refreshed_partition and refreshed_partition["status_code"] == 200:
-            self.token = refreshed_partition["body"]["sessionToken"]["token"]
-            self.token_expires = refreshed_partition["body"]["sessionToken"]["expiration"]
-            self.refresh_url = refreshed_partition["body"]["refreshActiveSessionURL"]
-            self.refresh_interval = int(refreshed_partition["body"]["refreshActiveSessionInterval"])
-            self.partition = re.findall(r'v1/(\d+)', self.refresh_url)[0]
+            self.epoch = int(time.time())
+            logger.info("Successfully refreshed stream %s:%s", self.stream_name, self.partition)
             refreshed = True
 
         return refreshed
