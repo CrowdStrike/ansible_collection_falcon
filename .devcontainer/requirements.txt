@@ -14,4 +14,5 @@ pywinrm
 wheel
 ansible-rulebook
 ansible-runner
-crowdstrike-falconpy
+crowdstrike-falconpy==1.2.16
+aiohttp==3.8.5
