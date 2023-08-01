@@ -151,10 +151,11 @@ class Stream():
             aiohttp.ClientConnectionError: If there is a problem with the underlying TCP connection.
             aiohttp.ClientTimeoutError: If the connection times out.
         """
-        eventTypeFilter = '' if self.include_event_types is None else '&eventType=' + ','.join(self.include_event_types)
+        event_type_filter = "" if not self.include_event_types else f"&eventType={','.join(self.include_event_types)}"
+        offset_filter = f"&offset={self.offset}"
 
         kwargs = {
-            "url": "{}&offset={}&{}".format(self.data_feed, self.offset, eventTypeFilter),
+            "url": f"{self.data_feed}{offset_filter}{event_type_filter}",
             "headers": {
                 "Authorization": f"Token {self.token}",
             },
