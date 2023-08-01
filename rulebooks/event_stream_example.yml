@@ -6,13 +6,13 @@
         falcon_client_id: "{{ FALCON_CLIENT_ID }}"
         falcon_client_secret: "{{ FALCON_CLIENT_SECRET }}"
         falcon_cloud: "us-2"
+        # offset: 12345
         stream_name: "eda-example"
-        # delay: 0
         include_event_types:
           - "DetectionSummaryEvent"
 
   rules:
-    - name: print output
-      condition: event.falcon is defined
+    - name: Print High and Critical Severity Detection Events
+      condition: event.falcon.event.Severity > 3
       action:
         debug:
