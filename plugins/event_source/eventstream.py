@@ -94,7 +94,7 @@ class Stream():
         self.refresh_interval: int = int(stream["refreshActiveSessionInterval"])
         self.token_expired: Callable[[], bool] = lambda: ((self.refresh_interval) - 60) + self.epoch < int(time.time())
         self.spigot: Optional[aiohttp.ClientResponse] = None  # type: ignore
-        self.eventTypeCount: Dict[str, int] = dict()
+        self.event_type_count: Dict[str, int] = dict()
 
     async def refresh(self) -> bool:
         """
@@ -193,17 +193,17 @@ class Stream():
             line = line.decode().rstrip()
             if line:
                 # Load the event as a JSON object
-                jsonEvent = json.loads(line)
-                eventType = jsonEvent["metadata"]["eventType"]
-                self.offset = jsonEvent["metadata"]["offset"]
+                json_event = json.loads(line)
+                event_type = json_event["metadata"]["eventType"]
+                self.offset = json_event["metadata"]["offset"]
                 # If the event is valid, yield it
-                if self.is_valid_event(eventType, exclude_event_types):
-                    # If logger is set to INFO or DEBUG, update the eventTypeCount
+                if self.is_valid_event(event_type, exclude_event_types):
+                    # If INFO or DEBUG, update the event_type_count dict and yield it
                     if logger.level <= logging.INFO:
-                        self.eventTypeCount[eventType] = self.eventTypeCount.get(eventType, 0) + 1
-                        yield dict(falcon=jsonEvent, eventTypeCount=self.eventTypeCount)
+                        self.event_type_count[event_type] = self.event_type_count.get(event_type, 0) + 1
+                        yield dict(falcon=json_event, eventTypeCount=self.event_type_count)
                     else:
-                        yield dict(falcon=jsonEvent)
+                        yield dict(falcon=json_event)
             # If the token has expired, refresh it and reopen the stream
             if self.token_expired():
                 await self.refresh()
@@ -260,13 +260,13 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     if not authenticated:
         raise ValueError("Failed to authenticate to CrowdStrike Falcon API. Check credentials/falcon_cloud and try again.")
 
-    availableStreams = await loop.run_in_executor(None, lambda: falcon.command(action="listAvailableStreamsOAuth2", appId=stream_name))
+    available_streams = await loop.run_in_executor(None, lambda: falcon.command(action="listAvailableStreamsOAuth2", appId=stream_name))
 
-    if not availableStreams["body"] or not availableStreams["body"]["resources"]:
+    if not available_streams["body"] or not available_streams["body"]["resources"]:
         print("Unable to open stream, no streams available. Ensure you are using a unique stream_name.")
         return
 
-    streams: List[Stream] = [Stream(falcon, stream_name, offset, include_event_types, stream) for stream in availableStreams["body"]["resources"]]
+    streams: List[Stream] = [Stream(falcon, stream_name, offset, include_event_types, stream) for stream in available_streams["body"]["resources"]]
 
     # Iterate over each stream in the streams list
     for stream in streams:
