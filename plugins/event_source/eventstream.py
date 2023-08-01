@@ -93,7 +93,7 @@ class Stream():
         self.epoch: int = int(time.time())
         self.refresh_interval: int = int(stream["refreshActiveSessionInterval"])
         self.token_expired: Callable[[], bool] = lambda: ((self.refresh_interval) - 60) + self.epoch < int(time.time())
-        self.spigot: Optional[aiohttp.ClientResponse] = None # type: ignore
+        self.spigot: Optional[aiohttp.ClientResponse] = None  # type: ignore
         self.eventTypeCount: Dict[str, int] = dict()
 
     async def refresh(self) -> bool:
@@ -208,7 +208,6 @@ class Stream():
                 await self.refresh()
                 continue
 
-
     def is_valid_event(self, event_type: str, exclude_event_types: List[str]) -> bool:
         """
         This function checks if a given event type is valid or not.
@@ -274,7 +273,7 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
             async for event in stream.stream_events(exclude_event_types):
                 await queue.put(event)
                 await asyncio.sleep(delay)
-        except Exception as e: # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Uncaught Plugin Task Error: %s", e)
             continue
         finally:
