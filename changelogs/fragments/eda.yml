@@ -1,0 +1,2 @@
+major_changes:
+  - evenstream-eda - Introducing new EvenStream EDA module (https://github.com/CrowdStrike/ansible_collection_falcon/pull/322)
