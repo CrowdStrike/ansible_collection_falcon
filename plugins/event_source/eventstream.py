@@ -154,7 +154,7 @@ class Stream():
         eventTypeFilter = '' if self.include_event_types is None else '&eventType=' + ','.join(self.include_event_types)
 
         kwargs = {
-            "url": self.data_feed + '&offset={}'.format(self.offset) + eventTypeFilter,
+            "url": "{}&offset={}&{}".format(self.data_feed, self.offset, eventTypeFilter),
             "headers": {
                 "Authorization": f"Token {self.token}",
             },
