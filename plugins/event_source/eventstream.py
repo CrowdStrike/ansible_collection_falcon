@@ -162,7 +162,7 @@ class AIOFalconAPI:
         headers = {
             "Authorization": "Bearer " + token,
             "Content-Type": "application/json",
-            }
+        }
         async with self.session.post(url, headers=headers, params=params) as resp:
             return resp.status == 200
 
@@ -195,7 +195,7 @@ class Stream():
         self.include_event_types: list[str] = include_event_types
         self.epoch: int = int(time.time())
         self.refresh_interval: int = int(stream["refreshActiveSessionInterval"])
-        self.token_expired: Callable[[], bool] = lambda: ((self.refresh_interval) - 29*60) + self.epoch < int(time.time())
+        self.token_expired: Callable[[], bool] = lambda: ((self.refresh_interval) - 60) + self.epoch < int(time.time())
         self.spigot: Optional[aiohttp.ClientResponse] = None  # type: ignore
 
     async def refresh(self) -> bool:
