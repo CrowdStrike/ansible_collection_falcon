@@ -51,7 +51,6 @@ import json
 import logging
 from typing import Any, Callable, Dict, Optional, List, AsyncGenerator
 import aiohttp
-from falconpy import APIHarness
 
 logger = logging.getLogger()
 
@@ -64,9 +63,113 @@ REGIONS: Dict[str, str] = {
 }
 
 
+class AIOFalconAPI:
+    """
+    An asynchronous API client for the CrowdStrike Falcon Event Stream API.
+
+    This client uses the aiohttp library to make asynchronous HTTP requests to the Falcon API. It includes methods for
+    authenticating to the API, listing available streams, and refreshing a stream.
+
+    Attributes:
+        BASE_URL (str): The base URL for the Falcon API.
+        TOKEN_URL (str): The endpoint for obtaining an access token.
+        LIST_STREAMS_URL (str): The endpoint for listing available streams.
+        REFRESH_STREAM_URL (str): The endpoint for refreshing a stream.
+        client_id (str): The client ID for authenticating to the Falcon API.
+        client_secret (str): The client secret for authenticating to the Falcon API.
+        base_url (str, optional): The base URL for the Falcon API. Defaults to BASE_URL.
+        session (aiohttp.ClientSession): The aiohttp client session for making HTTP requests.
+
+    Methods:
+        close: Close the aiohttp client session.
+        authenticate: Authenticate to the Falcon API and return the access token.
+        list_available_streams: List available streams from the Falcon API.
+        refresh_stream: Refresh a stream from the Falcon API.
+    """
+    BASE_URL = "https://api.crowdstrike.com"
+    TOKEN_URL = "/oauth2/token"
+    LIST_STREAMS_URL = "/sensors/entities/datafeed/v2"
+    REFRESH_STREAM_URL = "/sensors/entities/datafeed-actions/v1/{partition}"
+
+    def __init__(self, client_id: str, client_secret: str, base_url: Optional[str] = None):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.base_url = base_url or self.BASE_URL
+        self.session = aiohttp.ClientSession()
+
+    async def close(self):
+        """Close the aiohttp session"""
+        await self.session.close()
+
+    async def authenticate(self) -> str:
+        """
+        Authenticate to the CrowdStrike Falcon API and return the access token.
+
+        This method sends a POST request to the Falcon API's authentication endpoint, passing the client ID and
+        secret in the request body. If authentication is successful, it returns the access token provided by the API.
+
+        Returns:
+            str: The access token provided by the Falcon API.
+        """
+        url = self.base_url + self.TOKEN_URL
+        data = {"client_id": self.client_id, "client_secret": self.client_secret}
+        async with self.session.post(url, data=data) as resp:
+            result = await resp.json()
+            if not result.get("access_token"):
+                raise ValueError("Failed to authenticate to CrowdStrike Falcon API. Check credentials/falcon_cloud and try again.")
+            return result["access_token"]
+
+    async def list_available_streams(self, token: str, app_id: str) -> Dict:
+        """
+        List available streams from Event Stream API.
+
+        This method sends a GET request to the Falcon API's endpoint for listing available streams, passing the
+        app_id as a parameter in the request.
+
+        Args:
+            token (str): The access token for the Falcon API.
+            app_id (str): The ID of the app for which to list available streams.
+
+        Returns:
+            dict: The JSON response from the Falcon API, which includes details about the available streams.
+        """
+        params = {"appId": app_id}
+        url = self.base_url + self.LIST_STREAMS_URL
+        headers = {"Authorization": "Bearer " + token}
+        async with self.session.get(url, headers=headers, params=params) as resp:
+            return await resp.json()
+
+    async def refresh_stream(self, token: str, partition: str, app_id: str) -> bool:
+        """
+        Refresh a stream from Event Stream API.
+
+        This method sends a POST request to the Falcon API's endpoint for refreshing a stream, passing the
+        action_name and app_id as parameters in the request.
+
+        Args:
+            token (str): The access token for the Falcon API.
+            partition (str): The partition ID of the stream to refresh.
+            app_id (str): The ID of the app for which to refresh the stream.
+
+        Returns:
+            bool: True if the refresh was successful (i.e., the server responded with a status code of 200); False
+        """
+        params = {
+            "action_name": "refresh_active_stream_session",
+            "appId": app_id,
+        }
+        url = self.base_url + self.REFRESH_STREAM_URL.format(partition=partition)
+        headers = {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json",
+            }
+        async with self.session.post(url, headers=headers, params=params) as resp:
+            return resp.status == 200
+
+
 class Stream():
     """Stream class for the CrowdStrike Falcon Event Stream API"""
-    def __init__(self, client: APIHarness, stream_name: str, offset: int, include_event_types: list[str], stream: dict) -> None:
+    def __init__(self, client: AIOFalconAPI, stream_name: str, offset: int, include_event_types: list[str], stream: dict) -> None:
         """
         Initializes a new Stream object.
 
@@ -81,7 +184,7 @@ class Stream():
             ValueError: If the 'refreshActiveSessionURL' in the stream dictionary does not contain a numeric partition value.
         """
         print(f"Initializing Stream: {stream_name}")
-        self.client: APIHarness = client
+        self.client: AIOFalconAPI = client
         self.stream_name: str = stream_name
         self.data_feed: str = stream["dataFeedURL"]
         self.token: str = stream["sessionToken"]["token"]
@@ -92,9 +195,8 @@ class Stream():
         self.include_event_types: list[str] = include_event_types
         self.epoch: int = int(time.time())
         self.refresh_interval: int = int(stream["refreshActiveSessionInterval"])
-        self.token_expired: Callable[[], bool] = lambda: ((self.refresh_interval) - 60) + self.epoch < int(time.time())
+        self.token_expired: Callable[[], bool] = lambda: ((self.refresh_interval) - 29*60) + self.epoch < int(time.time())
         self.spigot: Optional[aiohttp.ClientResponse] = None  # type: ignore
-        self.event_type_count: Dict[str, int] = dict()
 
     async def refresh(self) -> bool:
         """
@@ -112,23 +214,10 @@ class Stream():
         """
         refreshed: bool = False
 
-        loop = asyncio.get_running_loop()
+        token = await self.client.authenticate()
+        refreshed_partition: bool = await self.client.refresh_stream(token, self.partition, self.stream_name)
 
-        authenticated = await loop.run_in_executor(None, self.client.authenticate)
-
-        if not authenticated:
-            raise ValueError("Failed to refresh tokens. Check credentials/falcon_cloud and try again.")
-
-        refreshed_partition = await loop.run_in_executor(
-            None,
-            lambda: self.client.command(
-                action="refreshActiveStreamSession",
-                partition=self.partition,
-                parameters={"action_name": "refresh_active_stream_session", "appId": self.stream_name},
-            ),
-        )
-
-        if "status_code" in refreshed_partition and refreshed_partition["status_code"] == 200:
+        if refreshed_partition:
             self.epoch = int(time.time())
             logger.info("Successfully refreshed stream %s:%s", self.stream_name, self.partition)
             refreshed = True
@@ -198,12 +287,7 @@ class Stream():
                 self.offset = json_event["metadata"]["offset"]
                 # If the event is valid, yield it
                 if self.is_valid_event(event_type, exclude_event_types):
-                    # If INFO or DEBUG, update the event_type_count dict and yield it
-                    if logger.level <= logging.INFO:
-                        self.event_type_count[event_type] = self.event_type_count.get(event_type, 0) + 1
-                        yield dict(falcon=json_event, eventTypeCount=self.event_type_count)
-                    else:
-                        yield dict(falcon=json_event)
+                    yield dict(falcon=json_event)
             # If the token has expired, refresh it and reopen the stream
             if self.token_expired():
                 await self.refresh()
@@ -248,25 +332,16 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     if falcon_cloud not in REGIONS:
         raise ValueError(f"Invalid falcon_cloud: {falcon_cloud}, must be one of {list(REGIONS.keys())}")
 
-    falcon: APIHarness = APIHarness(client_id=falcon_client_id,
-                                    client_secret=falcon_client_secret,
-                                    base_url=REGIONS[falcon_cloud],
-                                    ssl_verify=True
-                                    )
+    falcon = AIOFalconAPI(client_id=falcon_client_id, client_secret=falcon_client_secret, base_url=REGIONS[falcon_cloud])
 
-    loop = asyncio.get_running_loop()
-    authenticated = await loop.run_in_executor(None, falcon.authenticate)
+    token = await falcon.authenticate()
+    available_streams = await falcon.list_available_streams(token, stream_name)
 
-    if not authenticated:
-        raise ValueError("Failed to authenticate to CrowdStrike Falcon API. Check credentials/falcon_cloud and try again.")
-
-    available_streams = await loop.run_in_executor(None, lambda: falcon.command(action="listAvailableStreamsOAuth2", appId=stream_name))
-
-    if not available_streams["body"] or not available_streams["body"]["resources"]:
+    if not available_streams["resources"]:
         print("Unable to open stream, no streams available. Ensure you are using a unique stream_name.")
         return
 
-    streams: List[Stream] = [Stream(falcon, stream_name, offset, include_event_types, stream) for stream in available_streams["body"]["resources"]]
+    streams: List[Stream] = [Stream(falcon, stream_name, offset, include_event_types, stream) for stream in available_streams["resources"]]
 
     # Iterate over each stream in the streams list
     for stream in streams:
@@ -281,6 +356,8 @@ async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
             logger.info("Plugin Task Finished..cleaning up")
             # Close the stream
             await stream.spigot.close()
+            # Close the API session
+            await falcon.close()
 
 if __name__ == "__main__":
     class MockQueue:
