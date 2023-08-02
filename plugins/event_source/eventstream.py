@@ -290,8 +290,11 @@ class Stream():
                     yield dict(falcon=json_event)
             # If the token has expired, refresh it and reopen the stream
             if self.token_expired():
-                await self.refresh()
-                continue
+                refresh = await self.refresh()
+                if refresh:
+                    continue
+                else:
+                    raise ValueError("Failed to refresh token.")
 
     def is_valid_event(self, event_type: str, exclude_event_types: List[str]) -> bool:
         """
