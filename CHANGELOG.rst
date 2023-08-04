@@ -5,6 +5,26 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.3.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-08-04
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.0>`__
+
+
+Minor Changes
+-------------
+
+- evenstream-eda - Introducing new EvenStream EDA plugin (https://github.com/CrowdStrike/ansible_collection_falcon/pull/322)
+
+Bugfixes
+--------
+
+- falcon_install - Fix Windows destination URL (https://github.com/CrowdStrike/ansible_collection_falcon/pull/375)
+
 v3.2.36
 =======
 
