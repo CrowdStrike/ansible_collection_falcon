@@ -1,2 +1,0 @@
-bugfixes:
-  - falcon_install - Fix Windows destination URL (https://github.com/CrowdStrike/ansible_collection_falcon/pull/375)

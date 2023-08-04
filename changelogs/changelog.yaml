@@ -276,3 +276,19 @@ releases:
     - remove-kernel-compat.yml
     - url_ability_for_windows.yml
     release_date: '2023-07-28'
+  3.3.0:
+    changes:
+      bugfixes:
+      - falcon_install - Fix Windows destination URL (https://github.com/CrowdStrike/ansible_collection_falcon/pull/375)
+      minor_changes:
+      - evenstream-eda - Introducing new EvenStream EDA plugin (https://github.com/CrowdStrike/ansible_collection_falcon/pull/322)
+      release_summary: '| Release Date: 2023-08-04
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.0>`__
+
+        '
+    fragments:
+    - 3.3.0.yml
+    - eda.yml
+    - fix-windows-dest-url.yml
+    release_date: '2023-08-04'
