@@ -74,7 +74,7 @@ You can also install a specific version of the collection, for example, if you n
 ansible-galaxy collection install crowdstrike.falcon:==0.1.0
 ```
 
-#### Example Playbook
+### Example Playbook
 
 Install and configure the CrowdStrike Falcon Sensor at version N-2:
 
@@ -91,6 +91,14 @@ Install and configure the CrowdStrike Falcon Sensor at version N-2:
     vars:
       # falcon_cid is autodetected using falcon_client_id|secret vars
       falcon_tags: 'falcon,example,tags'
+```
+
+### Example Using the Event Stream EDA Source via Ansible Rulebook
+
+> This example requires Ansible EDA to be installed. See the [Ansible Rulebook documentation](https://ansible.readthedocs.io/projects/rulebook/en/latest/getting_started.html) for more information.
+
+```shell
+ansible-rulebook -i inventory -r crowdstrike.falcon.event_stream_example -E FALCON_CLIENT_ID,FALCON_CLIENT_SECRET
 ```
 
 ## Installing on MacOS
