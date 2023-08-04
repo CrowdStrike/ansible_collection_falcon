@@ -15,7 +15,9 @@ This collection is supported and tested against the following Ansible versions: 
 <!--end requires_ansible-->
 
 ## Included content
+
 ### Roles
+
 > Please read each role's README to familiarize yourself with the role variables and other requirements.
 
 | Role Name | Documentation | Build Status Linux | Build Status Windows |
@@ -26,6 +28,7 @@ This collection is supported and tested against the following Ansible versions: 
 
 <!--start collection content-->
 ### Modules
+
 Name | Description
 --- | ---
 [crowdstrike.falcon.falconctl](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_module.html#ansible-collections-crowdstrike-falcon-falconctl-module)|Configure CrowdStrike Falcon Sensor
@@ -33,7 +36,19 @@ Name | Description
 
 <!--end collection content-->
 
+<!--start eda content-->
+### Event Sources
+
+> Ansible EDA (Event Driven Ansible) is a new way to connect to sources of events and act on those events using rulebooks. For more information, see the [EDA documentation](https://ansible.readthedocs.io/projects/rulebook/en/latest/introduction.html).
+
+Name | Description
+--- | ---
+[crowdstrike.falcon.eventstream](./docs/crowdstrike.falcon.eventstream.md) | Receive events from CrowdStrike Falcon Event Stream.
+
+<!--end eda content-->
+
 ## Using this collection
+
 Before using the collection, you need to install the collection with the `ansible-galaxy` CLI:
 
 ```bash
@@ -48,6 +63,7 @@ collections:
 ```
 
 **Note** that if you install the collection from Ansible Galaxy, it will not be upgraded automatically when you upgrade the `ansible` package. To upgrade the collection to the latest available version, run the following command:
+
 ```bash
 ansible-galaxy collection install crowdstrike.falcon --upgrade
 ```
@@ -58,8 +74,10 @@ You can also install a specific version of the collection, for example, if you n
 ansible-galaxy collection install crowdstrike.falcon:==0.1.0
 ```
 
-#### Example Playbook
+### Example Playbook
+
 Install and configure the CrowdStrike Falcon Sensor at version N-2:
+
 ```yaml
 - hosts: all
   vars:
@@ -75,25 +93,40 @@ Install and configure the CrowdStrike Falcon Sensor at version N-2:
       falcon_tags: 'falcon,example,tags'
 ```
 
+### Example Using the Event Stream EDA Source via Ansible Rulebook
+
+> This example requires Ansible EDA to be installed. See the [Ansible Rulebook documentation](https://ansible.readthedocs.io/projects/rulebook/en/latest/getting_started.html) for more information.
+
+```shell
+ansible-rulebook -i inventory -r crowdstrike.falcon.event_stream_example -E FALCON_CLIENT_ID,FALCON_CLIENT_SECRET
+```
+
 ## Installing on MacOS
 
 Apple platforms require Mobile Device Management (MDM) software to install kernel extensions without user prompting.
 Ansible is only able to run on macOS in an interactive session, which means end-users will receive prompts to accept the CrowdStrike kernel modules.
 
+## Release Notes
 
-## More information on Ansible and Ansible Collections
+See the [changelog](./CHANGELOG.rst) for a history of notable changes to this collection.
+
+## More information
+
 - [Ansible Collection Overview](https://github.com/ansible-collections/overview)
-- [Ansible Using Collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html)
 - [Ansible User Guide](https://docs.ansible.com/ansible/latest/user_guide/index.html)
-
+- [Ansible Using Collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html)
+- [Ansible Community Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html)
+- [Ansible Community Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html)
+- [Ansible Rulebook Introduction](https://ansible.readthedocs.io/projects/rulebook/en/latest/getting_started.html)
+- [Event Driven Ansible Introduction](https://www.ansible.com/blog/getting-started-with-event-driven-ansible)
 
 ## Contributing
+
 If you want to develop new content or improve on this collection, please open an issue or create a pull request.
 All contributions are welcome!
 
 As of release > 3.2.18, we will now be following Ansible's development patterns for implementing Ansible's changelog fragments. This will require a changelog fragment to any PR that is not documentation or trivial. Most changelog entries will
 likely be `bugfixes` or `minor_changes`. Please refer to the documentation for [Ansible's changelog fragments](https://docs.ansible.com/ansible/devel/community/development_process.html#creating-changelog-fragments) to learn more.
-
 
 # License
 
