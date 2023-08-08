@@ -259,9 +259,19 @@ def main():
             if value is not None:
                 args[key] = value
 
+    # Object Authentication.
+    # if module.params.get('access_token') or module.params.get('cached_token'):
+    #   # passed in token takes precedence over cached token
+    #   token = module.params['access_token'] if module.params['access_token'] else module.params['cached_token']
+    # else:
+    #   auth_object = authenticate(module)
+
     falcon = SensorUpdatePolicy(**get_falconpy_credentials(module))
 
-    query_result = falcon.query_combined_policies(**args)
+    cached_token = falcon.token
+    cached_url = falcon.base_url
+
+    query_result = falcon.query_combined_policies_v2(**args)
 
     result = dict(
         changed=False,
@@ -282,7 +292,7 @@ def main():
             msg = 'An unknown error occurred.'
         module.fail_json(msg=msg, **result)
 
-    module.exit_json(**result)
+    module.exit_json(**result, cached_token=cached_token, cached_url=cached_url)
 
 
 if __name__ == '__main__':

@@ -7,7 +7,50 @@
 
 from __future__ import (absolute_import, division, print_function)
 import os
+import traceback
+try:
+    from falconpy import OAuth2
+except ImportError:
+    HAS_FALCONPY = False
+    FALCONPY_IMPORT_ERROR = traceback.format_exc()
+else:
+    HAS_FALCONPY = True
+
 __metaclass__ = type
+
+
+def authenticate(module):
+    """
+    Authenticate to the CrowdStrike Falcon API.
+
+    :param module: Ansible module object
+    :return: Falcon OAuth2 object
+    """
+    falcon_credentials = get_falconpy_credentials(module)
+    falcon_config = environ_configuration(module)
+
+    if falcon_config:
+        falcon_credentials.update(falcon_config)
+
+    # module.fail_json(msg=falcon_credentials)
+
+    falcon = OAuth2(**falcon_credentials)
+
+    return falcon
+
+    # # Debug falcon object
+    # module.fail_json(msg=falcon.token())
+
+    # try:
+    #     token = falcon.token()['body']['access_token']
+    #     # We need to set the right base_url for the API
+    #     # based on the "X-Cs-Region" header returned by the auth call
+
+    # except KeyError:
+    #     error_message = falcon.token()['body']['errors']
+    #     module.fail_json(msg=f"Failed to authenticate to CrowdStrike Falcon API: {error_message}")
+
+    # return token
 
 
 def get_falconpy_credentials(module):
@@ -17,23 +60,52 @@ def get_falconpy_credentials(module):
     :param module: Ansible module object
     :return: Dictionary with falcon connection info
     """
-    client_id = module.params.get('client_id')
-    client_secret = module.params.get('client_secret')
+    cred_env_map = {
+        'client_id': 'FALCON_CLIENT_ID',
+        'client_secret': 'FALCON_CLIENT_SECRET',
+        'member_cid': 'FALCON_MEMBER_CID',
+    }
 
-    missing_params = []
+    creds = {}
 
-    if not client_id:
-        client_id = os.environ.get('FALCON_CLIENT_ID', None)
-        if not client_id:
-            missing_params.append('client_id')
+    for param, env_var in cred_env_map.items():
+        value = module.params.get(param)
+        if not value:
+            value = os.environ.get(env_var)
+            # If we still don't have a value, fail, except for member_cid (which is optional)
+            if not value and param != 'member_cid':
+                module.fail_json(msg=f"Missing required parameter: {param} or environment variable: {env_var}. See module documentation for help.")
+        # If we have a value, add it to the creds dict
+        if value:
+            creds[param] = value
 
-    if not client_secret:
-        client_secret = os.environ.get('FALCON_CLIENT_SECRET', None)
-        if not client_secret:
-            missing_params.append('client_secret')
+    return creds
 
-    if missing_params:
-        module.fail_json(msg="Missing required parameters: {0}. See module documentation for help.".format(missing_params))
+def environ_configuration(module):
+    """
+    Check module args for common envrionment configurations used with FalconPy.
 
-    # Return the credentials:
-    return dict(client_id=client_id, client_secret=client_secret)
+    :param module: Ansible module object
+    :return: Dictionary with falcon connection info
+    """
+    environ_config_map = {
+        'base_url': 'FALCON_BASE_URL',
+        'proxy': 'FALCON_PROXY',
+        'ssl_verify': 'FALCON_SSL_VERIFY',
+        'timeout': 'FALCON_TIMEOUT',
+        'user_agent': 'FALCON_USER_AGENT',
+        'renew_window': 'FALCON_RENEW_WINDOW',
+        'ext_headers': 'FALCON_EXT_HEADERS'
+    }
+
+    config = {}
+
+    for param, env_var in environ_config_map.items():
+        value = module.params.get(param)
+        if not value:
+            value = os.environ.get(env_var)
+        # If we have a value, add it to the config dict
+        if value:
+            config[param] = value
+
+    return config

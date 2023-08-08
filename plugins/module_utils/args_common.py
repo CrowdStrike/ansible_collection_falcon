@@ -12,4 +12,6 @@ __metaclass__ = type
 AUTH_ARG_SPEC = {
     "client_id": {"type": "str", "aliases": ["falcon_client_id"], "required": False, "no_log": False},
     "client_secret": {"type": "str", "aliases": ["falcon_client_secret"], "required": False, "no_log": False},
+    "member_cid": {"type": "str", "required": False, "no_log": False},
+    "base_url": {"type": "str", "default": 'US-1' ,"required": False, "no_log": False},
 }

@@ -1,0 +1,16 @@
+---
+- name: Example of what modules would look like in this collection
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+  - name: Get enabled windows Sensor Policies
+    crowdstrike.falcon.sensor_policy_info:
+      filter: "platform_name:'Windows'+enabled:'true'"
+    # register: sensor_policies
+
+  # - name: Get enabled windows Sensor Policies
+  #   crowdstrike.falcon.sensor_policy_info:
+  #     access_token: sensor_policies.access_token
+  #     filter: "platform_name:'Linux'+enabled:'true'"
