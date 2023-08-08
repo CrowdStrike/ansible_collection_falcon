@@ -16,3 +16,4 @@ ansible-rulebook
 ansible-runner
 crowdstrike-falconpy==1.2.16
 aiohttp==3.8.5
+tox

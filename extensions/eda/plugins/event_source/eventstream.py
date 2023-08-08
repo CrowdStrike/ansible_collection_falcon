@@ -1,29 +1,25 @@
-"""
-eventstream.py
+"""eventstream.py.
 
-An ansible-rulebook event source plugin for generating events from the Falcon Event Stream API
+An ansible-rulebook event source plugin for generating events from the Falcon
+Event Stream API.
 
-Each event is imbedded in a dict with the key "falcon" and the value is the raw event from the API.
-
-Example:
-    {
-        "falcon": {
-            ...api event...
-        }
-    }
+Each event is imbedded in a dict with the key "falcon" and the value is the raw
+event from the API.
 
 Arguments:
-  - falcon_client_id: CrowdStrike OAUTH Client ID
-  - falcon_client_secret: CrowdStrike OAUTH Client Secret
-  - falcon_cloud: CrowdStrike Cloud Region (us-1, us-2, eu-1, us-gov-1) Default: us-1
-  - stream_name (Optional): Label that identifies your connection. Max: 32 alphanumeric characters (a-z, A-Z, 0-9) Default: eda.
-  - include_event_types (Optional): List of event types to filter on. Default: All event types.
-  - exclude_event_types (Optional): List of event types to exclude. Default: None.
-  - offset (Optional): The offset to start streaming from. Default: 0.
-  - delay (Optional): Introduce a delay between each event. Default: float(0).
+---------
+    falcon_client_id: CrowdStrike OAUTH Client ID
+    falcon_client_secret: CrowdStrike OAUTH Client Secret
+    falcon_cloud: CrowdStrike Cloud Region (us-1, us-2, eu-1, us-gov-1) Default: us-1
+    stream_name (Optional): Label that identifies your connection. Max: 32 alphanumeric characters (a-z, A-Z, 0-9) Default: eda.
+    include_event_types (Optional): List of event types to filter on. Default: All event types.
+    exclude_event_types (Optional): List of event types to exclude. Default: None.
+    offset (Optional): The offset to start streaming from. Default: 0.
+    delay (Optional): Introduce a delay between each event. Default: float(0).
 
 
 Examples:
+--------
   # Stream all events except AuthActivityAuditEvent from Falcon Event Stream API
   sources:
     - crowdstrike.falcon.eventstream:
@@ -108,8 +104,15 @@ class AIOFalconAPI:
         This method sends a POST request to the Falcon API's authentication endpoint, passing the client ID and
         secret in the request body. If authentication is successful, it returns the access token provided by the API.
 
-        Returns:
-            str: The access token provided by the Falcon API.
+        Returns
+        -------
+        str
+            The access token provided by the Falcon API.
+
+        Raises
+        ------
+        ValueError
+            If the credentials passed fail to authenticate.
         """
         url = self.base_url + self.TOKEN_URL
         data = {"client_id": self.client_id, "client_secret": self.client_secret}
@@ -126,12 +129,17 @@ class AIOFalconAPI:
         This method sends a GET request to the Falcon API's endpoint for listing available streams, passing the
         app_id as a parameter in the request.
 
-        Args:
-            token (str): The access token for the Falcon API.
-            app_id (str): The ID of the app for which to list available streams.
+        Parameters
+        ----------
+        token: str
+            The access token for the Falcon API.
+        app_id: str
+            The ID of the app for which to list available streams.
 
-        Returns:
-            dict: The JSON response from the Falcon API, which includes details about the available streams.
+        Returns
+        -------
+        Dict
+            The JSON response from the Falcon API, which includes details about the available streams.
         """
         params = {"appId": app_id}
         url = self.base_url + self.LIST_STREAMS_URL
@@ -146,13 +154,19 @@ class AIOFalconAPI:
         This method sends a POST request to the Falcon API's endpoint for refreshing a stream, passing the
         action_name and app_id as parameters in the request.
 
-        Args:
-            token (str): The access token for the Falcon API.
-            partition (str): The partition ID of the stream to refresh.
-            app_id (str): The ID of the app for which to refresh the stream.
+        Parameters
+        ----------
+        token: str
+            The access token for the Falcon API.
+        partition: str
+            The partition ID of the stream to refresh.
+        app_id: str
+            The ID of the app for which to refresh the stream.
 
-        Returns:
-            bool: True if the refresh was successful (i.e., the server responded with a status code of 200); False
+        Returns
+        -------
+        bool
+            True if the refresh was successful (i.e., the server responded with a status code of 200); False
         """
         params = {
             "action_name": "refresh_active_stream_session",
@@ -169,19 +183,23 @@ class AIOFalconAPI:
 
 class Stream():
     """Stream class for the CrowdStrike Falcon Event Stream API"""
+    # pylint: disable=too-many-arguments
     def __init__(self, client: AIOFalconAPI, stream_name: str, offset: int, include_event_types: list[str], stream: dict) -> None:
         """
         Initializes a new Stream object.
 
-        Args:
-            client (APIHarness): An instance of the Falcon APIHarness client.
-            stream_name (str): A label identifying the connection.
-            offset (int): The offset to start streaming from.
-            include_event_types (List[str]): A list of event types to filter on.
-            stream (Dict): A dictionary containing the details of the stream.
-
-        Raises:
-            ValueError: If the 'refreshActiveSessionURL' in the stream dictionary does not contain a numeric partition value.
+        Parameters
+        ----------
+        client: AIOFalconAPI
+            An instance of the Falcon APIHarness client.
+        stream_name: str
+            A label identifying the connection.
+        offset: int
+            The offset to start streaming from.
+        include_event_types: List[str]
+            A list of event types to filter on.
+        stream: dict
+            A dictionary containing the details of the stream.
         """
         print(f"Initializing Stream: {stream_name}")
         self.client: AIOFalconAPI = client
@@ -202,15 +220,14 @@ class Stream():
         """
         Refreshes the stream and client token.
 
-        This method authenticates the client, and if authentication is successful, it refreshes the active stream
-        session.
+        This method authenticates the client, and if authentication is successful,
+        it refreshes the active stream session.
 
-        Raises:
-            ValueError: If client authentication fails.
-
-        Returns:
-            bool: True if the refresh was successful (i.e., the server responded with a status code of 200); False
-            otherwise.
+        Returns
+        -------
+        bool
+            True if the refresh was successful (i.e., the server responded with a
+            status code of 200); False otherwise.
         """
         refreshed: bool = False
 
@@ -232,13 +249,10 @@ class Stream():
         to send a GET request to the server. The aiohttp.ClientSession is not managed within this function, so the caller
         must ensure that the session is properly closed after usage.
 
-        Returns:
-            aiohttp.ClientResponse: The server's response to the GET request, which is an open streaming connection.
-
-        Raises:
-            aiohttp.ClientResponseError: If the server responds with an HTTP status code that indicates an error.
-            aiohttp.ClientConnectionError: If there is a problem with the underlying TCP connection.
-            aiohttp.ClientTimeoutError: If the connection times out.
+        Returns
+        -------
+        aiohttp.ClientResponse
+            The server's response to the GET request, which is an open streaming connection.
         """
         event_type_filter = "" if not self.include_event_types else f"&eventType={','.join(self.include_event_types)}"
         offset_filter = f"&offset={self.offset}"
@@ -264,15 +278,21 @@ class Stream():
         This method opens a stream to the Falcon API, iterates over the lines in the stream, and decodes and yields each event.
         It automatically refreshes the client token and reopens the stream if the token has expired.
 
-        Args:
-            exclude_event_types (List[str]): A list of event types to be excluded from the stream.
+        Parameters
+        ----------
+        exclude_event_types: List[str]
+            A list of event types to be excluded from the stream.
 
-        Yields:
-            Dict[str, Any]: A dictionary containing the event data from the Falcon API and a count of event types seen so far.
+        Yields
+        ------
+        Dict[str, Any]
+            A dictionary containing the event data from the Falcon API and a
+            count of event types seen so far.
 
-        Raises:
-            aiohttp.ClientResponseError: If the server responds with an HTTP status code that indicates an error.
-            ValueError: If client authentication fails during the token refresh process.
+        Raises
+        ------
+        ValueError
+            If client authentication fails during the token refresh process.
         """
         # Open the stream
         await self.open_stream()
@@ -287,41 +307,52 @@ class Stream():
                 self.offset = json_event["metadata"]["offset"]
                 # If the event is valid, yield it
                 if self.is_valid_event(event_type, exclude_event_types):
-                    yield dict(falcon=json_event)
+                    yield {"falcon": json_event}
             # If the token has expired, refresh it and reopen the stream
             if self.token_expired():
                 refresh = await self.refresh()
                 if refresh:
                     continue
-                else:
-                    raise ValueError("Failed to refresh token.")
+                raise ValueError("Failed to refresh token.")
 
     def is_valid_event(self, event_type: str, exclude_event_types: List[str]) -> bool:
         """
         This function checks if a given event type is valid or not.
 
-        Parameters:
-            event_type (str): The type of the event to be checked.
-            exclude_event_types (List[str]): A list of event types to be excluded.
+        Parameters
+        ----------
+        event_type: str
+            The type of the event to be checked.
+        exclude_event_types: (List[str]
+            A list of event types to be excluded.
 
-        Returns:
-            bool: Returns False if the event_type is in the exclude_event_types list, otherwise returns True.
+        Returns
+        -------
+        bool
+            Returns False if the event_type is in the exclude_event_types list,
+            otherwise returns True.
         """
         if event_type in exclude_event_types:
             return False
         return True
 
 
+# pylint: disable=too-many-locals
 async def main(queue: asyncio.Queue, args: Dict[str, Any]) -> None:
     """
     Main function for the eventstream event_source plugin
 
-    Args:
-        queue (asyncio.Queue): The queue to send events to
-        args (Dict[str, Any]): The event_source arguments
+    Parameters
+    ----------
+    queue: asyncio.Queue
+        The queue to send events to
+    args: Dict[str, Any]
+        The event_source arguments
 
-    Raises:
-        ValueError: If a argument is invalid
+    Raises
+    ------
+    ValueError
+        If a argument is invalid
     """
     falcon_client_id: str = str(args.get("falcon_client_id"))
     falcon_client_secret: str = str(args.get("falcon_client_secret"))
@@ -366,8 +397,10 @@ if __name__ == "__main__":
     class MockQueue:
         """Mock Queue for testing purposes"""
         async def put(self, event) -> None:
-            """Mock put method"""
+            """Mock put method
+            # noqa: DAR101
+            """
             print(event)
 
-    mock_arguments = dict()
+    mock_arguments = {}
     asyncio.run(main(MockQueue(), mock_arguments))  # type: ignore
