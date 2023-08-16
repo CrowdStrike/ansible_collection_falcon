@@ -6,16 +6,17 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
 ---
 module: sensor_policy_info
 
 short_description: Get information about Falcon Update Sensor Policies
 
-version_added: "3.2.0"
+version_added: "4.0.0"
 
 description:
   - Returns a set of Sensor Update Policies which match the filter criteria.
@@ -24,7 +25,8 @@ options:
   filter:
     description:
       - The filter expression that should be used to limit the results using FQL (Falcon Query Language) syntax.
-      - See L(Avaiable filters,https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#available-filters-2).
+      - See the FalconPy documentation for more information about the available filters.
+      - U(https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#available-filters-2).
     type: str
   limit:
     description:
@@ -44,9 +46,10 @@ extends_documentation_fragment:
 
 author:
   - Frank Falor (@ffalor)
-'''
+  - Carlos Matos (@carlosmmatos)
+"""
 
-EXAMPLES = r'''
+EXAMPLES = r"""
 - name: Get all Sensor Policies
   crowdstrike.falcon.sensor_policy_info:
 
@@ -61,9 +64,9 @@ EXAMPLES = r'''
 - name: Get Sensor Policies and sort assending by platform_name
   crowdstike.falcon.sensor_policy_info:
     sort: "platform_name.asc"
-'''
+"""
 
-RETURN = r'''
+RETURN = r"""
 status_code:
   description: The HTTP status code returned by the request.
   returned: always
@@ -208,15 +211,18 @@ meta:
         },
         "query_time": 0.012
     }
-'''
+"""
 
-import copy
 import traceback
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.basic import missing_required_lib
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import AUTH_ARG_SPEC
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import get_falconpy_credentials
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import (
+    falconpy_arg_spec,
+)
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
+    get_falconpy_credentials,
+)
 
 
 try:
@@ -227,49 +233,54 @@ except ImportError:
 else:
     HAS_FALCONPY = True
 
+POLICY_ARGS = {
+    "filter": {"type": "str", "required": False},
+    "limit": {"type": "int", "required": False},
+    "offset": {"type": "int", "required": False},
+    "sort": {"type": "str", "required": False},
+}
+
 
 def argspec():
     """Define the module's argument spec."""
-    args = copy.deepcopy(AUTH_ARG_SPEC)
-    args.update(
-        filter=dict(type='str', required=False),
-        limit=dict(type='int', required=False),
-        offset=dict(type='int', required=False),
-        sort=dict(type='str', required=False)
-    )
+    args = falconpy_arg_spec()
+    args.update(POLICY_ARGS)
+
     return args
 
 
 def main():
-    """Main entry point for module execution."""
+    """Entry point for module execution."""
     module = AnsibleModule(
         argument_spec=argspec(),
         supports_check_mode=True,
     )
 
     if not HAS_FALCONPY:
-        module.fail_json(
-            msg=missing_required_lib('falconpy'),
-            exception="test"
-        )
+        module.fail_json(msg=missing_required_lib("falconpy"), exception="test")
 
     args = {}
     for key, value in module.params.items():
-        if key not in ['client_id', 'client_secret']:
-            if value is not None:
-                args[key] = value
+        if key in POLICY_ARGS:
+            args[key] = value
 
-    # Object Authentication.
-    # if module.params.get('access_token') or module.params.get('cached_token'):
-    #   # passed in token takes precedence over cached token
-    #   token = module.params['access_token'] if module.params['access_token'] else module.params['cached_token']
-    # else:
-    #   auth_object = authenticate(module)
+    # Manage Authentication
+    cached_token = None
+    cached_url = None
 
-    falcon = SensorUpdatePolicy(**get_falconpy_credentials(module))
-
-    cached_token = falcon.token
-    cached_url = falcon.base_url
+    if module.params["access_token"] is not None:
+        if module.params["base_url"] is not None:
+            falcon = SensorUpdatePolicy(
+                token=module.params["access_token"], base_url=module.params["base_url"]
+            )
+        else:
+            module.fail_json(
+                msg="If you specify an access_token, you must also specify a base_url."
+            )
+    else:
+        falcon = SensorUpdatePolicy(**get_falconpy_credentials(module))
+        cached_token = falcon.token
+        cached_url = falcon.base_url
 
     query_result = falcon.query_combined_policies_v2(**args)
 
@@ -277,23 +288,29 @@ def main():
         changed=False,
     )
 
-    result['status_code'] = query_result['status_code']
-    result['meta'] = query_result['body']['meta']
-    result['headers'] = query_result['headers']
+    if cached_token is not None:
+        result["access_token"] = cached_token
 
-    if query_result['status_code'] == 200:
-        result['policies'] = query_result['body']['resources']
+    if cached_url is not None:
+        result["base_url"] = cached_url
+
+    result["status_code"] = query_result["status_code"]
+    result["meta"] = query_result["body"]["meta"]
+    result["headers"] = query_result["headers"]
+
+    if query_result["status_code"] == 200:
+        result["policies"] = query_result["body"]["resources"]
     else:
-        result['errors'] = query_result['body']['errors']
+        result["errors"] = query_result["body"]["errors"]
 
-        if len(result['errors']) > 0:
-            msg = result['errors'][0]['message']
+        if len(result["errors"]) > 0:
+            msg = result["errors"][0]["message"]
         else:
-            msg = 'An unknown error occurred.'
+            msg = "An unknown error occurred."
         module.fail_json(msg=msg, **result)
 
-    module.exit_json(**result, cached_token=cached_token, cached_url=cached_url)
+    module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
