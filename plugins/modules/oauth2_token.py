@@ -12,5 +12,5 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: oauth2
+module: oauth2_token
 """

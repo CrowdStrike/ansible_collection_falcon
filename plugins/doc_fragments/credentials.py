@@ -68,4 +68,7 @@ options:
       - See the L(FalconPy documentation,https://www.falconpy.io/Usage/Environment-Configuration.html#extended-headers)
         for more information about extended headers
       - The C(FALCON_EXT_HEADERS) environment variable can also be used.
+requirements:
+  - python >= 3.6
+  - crowdstrike-falconpy >= 1.3.0
 """

@@ -12,7 +12,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: sensor_policy_info
+module: sensor_update_policy_info
 
 short_description: Get information about Falcon Update Sensor Policies
 
@@ -20,13 +20,15 @@ version_added: "4.0.0"
 
 description:
   - Returns a set of Sensor Update Policies which match the filter criteria.
+  - See the L(FalconPy documentation,https://falconpy.io/Service-Collections/Sensor-Update-Policy.html#queryCombinedSensorUpdatePoliciesV2)
+    for more information about the available filters and sort options.
 
 options:
   filter:
     description:
       - The filter expression that should be used to limit the results using FQL (Falcon Query Language) syntax.
-      - See the FalconPy documentation for more information about the available filters.
-      - U(https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#available-filters-2).
+      - See the L(FalconPy documentation,https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#available-filters-2)
+        for more information about the available filters.
     type: str
   limit:
     description:
@@ -39,6 +41,8 @@ options:
   sort:
     description:
       - The property to sort by in FQL (Falcon Query Language) syntax.
+      - See the L(FalconPy documentation,https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#querycombinedsensorupdatepoliciesv2)
+        keyword arguments table for more information about the available sort options.
     type: str
 
 extends_documentation_fragment:
@@ -51,27 +55,22 @@ author:
 
 EXAMPLES = r"""
 - name: Get all Sensor Policies
-  crowdstrike.falcon.sensor_policy_info:
+  crowdstrike.falcon.sensor_update_policy_info:
 
 - name: Get enabled windows Sensor Policies
-  crowdstike.falcon.sensor_policy_info:
+  crowdstike.falcon.sensor_update_policy_info:
     filter: "platform_name:'Windows'+enabled:'true'"
 
 - name: Get Sensor Policies with a limit of 10
-  crowdstike.falcon.sensor_policy_info:
+  crowdstike.falcon.sensor_update_policy_info:
     limit: 10
 
 - name: Get Sensor Policies and sort assending by platform_name
-  crowdstike.falcon.sensor_policy_info:
+  crowdstike.falcon.sensor_update_policy_info:
     sort: "platform_name.asc"
 """
 
 RETURN = r"""
-status_code:
-  description: The HTTP status code returned by the request.
-  returned: always
-  type: int
-  sample: 200
 policies:
     description:
       - Array of Sensor Update Policies matching the filter criteria.
@@ -188,38 +187,19 @@ policies:
         sample: {
           "build": "n-1|tagged"
         }
-headers:
-    description:
-      - The HTTP headers returned from the API.
-    type: dict
-    returned: always
-    sample: {
-        "X-Ratelimit-Limit": "6000",
-        "X-Ratelimit-Remaining": "5999"
-    }
-meta:
-    description:
-      - The metadata returned from the API.
-      - Contains pagination information.
-    type: dict
-    returned: always
-    sample: {
-        "pagination": {
-            "limit": 5000,
-            "offset": 0,
-            "total": 1
-        },
-        "query_time": 0.012
-    }
 """
 
 import traceback
 
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import \
-    falconpy_arg_spec
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import \
-    get_falconpy_credentials
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import (
+    falconpy_arg_spec,
+    auth_required_by,
+)
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
+    authenticate,
+    handle_return_errors,
+)
 
 try:
     from falconpy import SensorUpdatePolicy
@@ -250,6 +230,7 @@ def main():
     module = AnsibleModule(
         argument_spec=argspec(),
         supports_check_mode=True,
+        required_by=auth_required_by(),
     )
 
     if not HAS_FALCONPY:
@@ -260,23 +241,7 @@ def main():
         if key in POLICY_ARGS:
             args[key] = value
 
-    # Manage Authentication
-    cached_token = None
-    cached_url = None
-
-    if module.params["access_token"] is not None:
-        if module.params["base_url"] is not None:
-            falcon = SensorUpdatePolicy(
-                token=module.params["access_token"], base_url=module.params["base_url"]
-            )
-        else:
-            module.fail_json(
-                msg="If you specify an access_token, you must also specify a base_url."
-            )
-    else:
-        falcon = SensorUpdatePolicy(**get_falconpy_credentials(module))
-        cached_token = falcon.token
-        cached_url = falcon.base_url
+    falcon = authenticate(module, SensorUpdatePolicy)
 
     query_result = falcon.query_combined_policies_v2(**args)
 
@@ -284,26 +249,10 @@ def main():
         changed=False,
     )
 
-    if cached_token is not None:
-        result["access_token"] = cached_token
-
-    if cached_url is not None:
-        result["base_url"] = cached_url
-
-    result["status_code"] = query_result["status_code"]
-    result["meta"] = query_result["body"]["meta"]
-    result["headers"] = query_result["headers"]
-
     if query_result["status_code"] == 200:
         result["policies"] = query_result["body"]["resources"]
     else:
-        result["errors"] = query_result["body"]["errors"]
-
-        if len(result["errors"]) > 0:
-            msg = result["errors"][0]["message"]
-        else:
-            msg = "An unknown error occurred."
-        module.fail_json(msg=msg, **result)
+        handle_return_errors(module, result, query_result)
 
     module.exit_json(**result)
 

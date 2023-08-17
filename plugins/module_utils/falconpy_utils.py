@@ -68,3 +68,32 @@ def environ_configuration(module):
             config[param] = value
 
     return config
+
+
+def authenticate(module, service_class):
+    """Authenticate to the CrowdStrike Falcon API."""
+    if module.params.get("access_token"):
+        if module.params.get("base_url"):
+            service = service_class(
+                access_token=module.params["access_token"],
+                base_url=module.params["base_url"],
+            )
+        else:
+            module.fail_json(
+                msg="If you specify an access_token, you must also specify a base_url."
+            )
+    else:
+        service = service_class(**get_falconpy_credentials(module))
+
+    return service
+
+
+def handle_return_errors(module, result, query_result):
+    """Handle errors returned from the Falcon API."""
+    result["errors"] = query_result["body"]["errors"]
+
+    if len(result["errors"]) > 0:
+        msg = result["errors"][0]["message"]
+    else:
+        msg = "An unknown error occurred."
+    module.fail_json(msg=msg, **result)
