@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.3.1
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-08-17
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.1>`__
+
+
+Bugfixes
+--------
+
+- eda - fix EDA partner requirements using tox (https://github.com/CrowdStrike/ansible_collection_falcon/pull/381)
+
 v3.3.0
 ======
 

@@ -292,3 +292,16 @@ releases:
     - eda.yml
     - fix-windows-dest-url.yml
     release_date: '2023-08-04'
+  3.3.1:
+    changes:
+      bugfixes:
+      - eda - fix EDA partner requirements using tox (https://github.com/CrowdStrike/ansible_collection_falcon/pull/381)
+      release_summary: '| Release Date: 2023-08-17
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.1>`__
+
+        '
+    fragments:
+    - 3.3.1.yml
+    - eda-tox.yml
+    release_date: '2023-08-17'
