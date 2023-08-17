@@ -215,15 +215,11 @@ meta:
 
 import traceback
 
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.basic import missing_required_lib
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import (
-    falconpy_arg_spec,
-)
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
-    get_falconpy_credentials,
-)
-
+from ansible.module_utils.basic import AnsibleModule, missing_required_lib
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import \
+    falconpy_arg_spec
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import \
+    get_falconpy_credentials
 
 try:
     from falconpy import SensorUpdatePolicy

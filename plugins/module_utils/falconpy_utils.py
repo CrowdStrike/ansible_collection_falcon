@@ -6,7 +6,11 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
+
 import os
+
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.version import \
+    __version__
 
 __metaclass__ = type
 
@@ -46,14 +50,11 @@ def environ_configuration(module):
     """Check module args for common envrionment configurations used with FalconPy."""
     environ_config_map = {
         "base_url": "FALCON_BASE_URL",
-        "proxy": "FALCON_PROXY",
-        "ssl_verify": "FALCON_SSL_VERIFY",
-        "timeout": "FALCON_TIMEOUT",
         "user_agent": "FALCON_USER_AGENT",
-        "renew_window": "FALCON_RENEW_WINDOW",
         "ext_headers": "FALCON_EXT_HEADERS",
     }
 
+    default_user_agent = f"crowdstrike-ansible/{__version__}"
     config = {}
 
     for param, env_var in environ_config_map.items():
@@ -62,6 +63,8 @@ def environ_configuration(module):
             value = os.environ.get(env_var)
         # If we have a value, add it to the config dict
         if value:
+            if param == "user_agent":
+                value = f"{value} {default_user_agent}"
             config[param] = value
 
     return config
