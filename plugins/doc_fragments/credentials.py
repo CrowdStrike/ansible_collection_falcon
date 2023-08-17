@@ -17,16 +17,16 @@ options:
   client_id:
     description:
       - The CrowdStrike API client ID to use.
-      - See the L(Falcon Docs,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#api-clients)
-        for more information about creating API clients.
+      - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
+        for more information about API clients.
       - The C(FALCON_CLIENT_ID) environment variable can also be used.
     type: str
     aliases: [ falcon_client_id ]
   client_secret:
     description:
       - The CrowdStrike API secret that corresponds to the client ID.
-      - See the L(Falcon Docs,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#api-clients)
-        for more information about creating API clients.
+      - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
+        for more information about API clients.
       - The C(FALCON_CLIENT_SECRET) environment variable can also be used.
     type: str
     aliases: [ falcon_client_secret ]
@@ -34,8 +34,8 @@ options:
     type: str
     description:
       - The CrowdStrike member CID for MSSP authentication.
-      - See the L(Falcon Docs,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#api-clients)
-        for more information about creating API clients.
+      - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
+        for more information about API clients.
       - The C(FALCON_MEMBER_CID) environment variable can also be used.
   access_token:
     type: str
