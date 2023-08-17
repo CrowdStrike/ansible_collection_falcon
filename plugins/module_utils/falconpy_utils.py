@@ -9,8 +9,9 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.version import \
-    __version__
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.version import (
+    __version__,
+)
 
 __metaclass__ = type
 
@@ -73,15 +74,10 @@ def environ_configuration(module):
 def authenticate(module, service_class):
     """Authenticate to the CrowdStrike Falcon API."""
     if module.params.get("access_token"):
-        if module.params.get("base_url"):
-            service = service_class(
-                access_token=module.params["access_token"],
-                base_url=module.params["base_url"],
-            )
-        else:
-            module.fail_json(
-                msg="If you specify an access_token, you must also specify a base_url."
-            )
+        service = service_class(
+            access_token=module.params["access_token"],
+            base_url=module.params["base_url"],
+        )
     else:
         service = service_class(**get_falconpy_credentials(module))
 
