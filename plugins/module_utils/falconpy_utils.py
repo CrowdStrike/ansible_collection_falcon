@@ -7,8 +7,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
-
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.version import (
     __version__,
 )
@@ -18,26 +16,22 @@ __metaclass__ = type
 
 def get_falconpy_credentials(module):
     """Check module args for credentials, if not then check for env variables."""
-    cred_env_map = {
-        "client_id": "FALCON_CLIENT_ID",
-        "client_secret": "FALCON_CLIENT_SECRET",
-        "member_cid": "FALCON_MEMBER_CID",
-    }
+    cred_vars = [
+        "client_id",
+        "client_secret",
+        "member_cid",
+    ]
 
     creds = {}
 
-    for param, env_var in cred_env_map.items():
-        value = module.params.get(param)
-        if not value:
-            value = os.environ.get(env_var)
-            # If we still don't have a value, fail, except for member_cid (which is optional)
-            if not value and param != "member_cid":
-                module.fail_json(
-                    msg=f"Missing required parameter: {param} or environment variable: {env_var}. See module documentation for help."
-                )
-        # If we have a value, add it to the creds dict
+    for var in cred_vars:
+        value = module.params.get(var)
+        if not value and var != "member_cid":
+            module.fail_json(
+                msg=f"Missing required parameter: {var}. See module documentation for help."
+            )
         if value:
-            creds[param] = value
+            creds[var] = value
 
     config = environ_configuration(module)
 
@@ -48,25 +42,27 @@ def get_falconpy_credentials(module):
 
 
 def environ_configuration(module):
-    """Check module args for common envrionment configurations used with FalconPy."""
-    environ_config_map = {
-        "base_url": "FALCON_BASE_URL",
-        "user_agent": "FALCON_USER_AGENT",
-        "ext_headers": "FALCON_EXT_HEADERS",
-    }
+    """Check module args for environment configurations used with FalconPy."""
+    environ_vars = [
+        "base_url",
+        "ext_headers",
+    ]
 
     default_user_agent = f"crowdstrike-ansible/{__version__}"
     config = {}
 
-    for param, env_var in environ_config_map.items():
-        value = module.params.get(param)
-        if not value:
-            value = os.environ.get(env_var)
-        # If we have a value, add it to the config dict
+    # Handle the user_agent parameter specially
+    user_agent = module.params.get("user_agent")
+    if user_agent:
+        config["user_agent"] = f"{user_agent} {default_user_agent}"
+    else:
+        config["user_agent"] = default_user_agent
+
+    # Handle the other environment variables normally
+    for var in environ_vars:
+        value = module.params.get(var)
         if value:
-            if param == "user_agent":
-                value = f"{value} {default_user_agent}"
-            config[param] = value
+            config[var] = value
 
     return config
 

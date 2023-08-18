@@ -201,13 +201,14 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils 
     handle_return_errors,
 )
 
+FALCONPY_IMPORT_ERROR = None
 try:
     from falconpy import SensorUpdatePolicy
+
+    HAS_FALCONPY = True
 except ImportError:
     HAS_FALCONPY = False
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
-else:
-    HAS_FALCONPY = True
 
 POLICY_ARGS = {
     "filter": {"type": "str", "required": False},
@@ -234,7 +235,9 @@ def main():
     )
 
     if not HAS_FALCONPY:
-        module.fail_json(msg=missing_required_lib("falconpy"), exception="test")
+        module.fail_json(
+            msg=missing_required_lib("falconpy"), exception=FALCONPY_IMPORT_ERROR
+        )
 
     args = {}
     for key, value in module.params.items():
