@@ -65,7 +65,7 @@ requirements:
   - crowdstrike-falconpy >= 1.3.0
 """
 
-    AUTH="""
+    AUTH = r"""
 options:
   auth:
     description:
@@ -73,4 +73,14 @@ options:
       - If provided, the C(client_id), C(client_secret), and C(member_cid) options are ignored.
       - Useful when needing to make multiple API calls to avoid rate limiting issues.
     type: dict
+    suboptions:
+      access_token:
+        description:
+          - The OAuth2 access token to use for authentication.
+        type: str
+      base_url:
+        description:
+          - The base URL to use for authentication.
+          - This can differ from the module's C(cloud) argument due to autodiscovery.
+        type: str
 """
