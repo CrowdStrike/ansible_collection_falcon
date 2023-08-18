@@ -37,40 +37,40 @@ options:
         for more information about API clients.
       - The C(FALCON_MEMBER_CID) environment variable can also be used.
     type: str
-  access_token:
+  cloud:
     description:
-      - The CrowdStrike API access token to use instead of client ID and secret.
-      - This must also be used with I(base_url).
-    type: str
-  base_url:
-    description:
-      - The CrowdStrike base address target for API operations performed using this class.
-      - You can use either the short name or the full URL.
-      - The C(FALCON_BASE_URL) environment variable can also be used.
-    type: str
+      - The CrowdStrike cloud environment to use.
+      - The C(FALCON_CLOUD) environment variable can also be used.
     choices:
       - us-1
-      - https://api.crowdstrike.com
       - us-2
-      - https://api.us-2.crowdstrike.com
       - us-gov-1
-      - https://api.laggar.gcw.crowdstrike.com
       - eu-1
-      - https://api.eu-1.crowdstrike.com
+    default: us-1
+    type: str
   user_agent:
     description:
       - Custom User-Agent string to use for requests to the API.
-        The user agent string is prepended to the default user agent string
+      - The user agent string is prepended to the default user agent string
         (C(crowdstrike-ansible/<version>)).
       - See L(RFC 7231,https://tools.ietf.org/html/rfc7231#section-5.5.3) for more information.
       - The C(FALCON_USER_AGENT) environment variable can also be used.
     type: str
   ext_headers:
     description:
-      - Extended headers that are prepended to the default headers dictionary for
-        the newly created Service Class.
+      - Extended headers that are prepended to the default headers dictionary.
     type: dict
 requirements:
   - python >= 3.6
   - crowdstrike-falconpy >= 1.3.0
+"""
+
+    AUTH="""
+options:
+  auth:
+    description:
+      - The registered result of the M(crowdstrike.falcon.auth) module.
+      - If provided, the C(client_id), C(client_secret), and C(member_cid) options are ignored.
+      - Useful when needing to make multiple API calls to avoid rate limiting issues.
+    type: dict
 """

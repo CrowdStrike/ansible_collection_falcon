@@ -12,7 +12,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: oauth2_token
+module: auth
 
 short_description: Manage OAuth2 tokens
 
@@ -22,8 +22,7 @@ description:
   - Generate or revoke OAuth2 tokens for use with the CrowdStrike Falcon API.
   - Access tokens can be useful when needing to make multiple API calls against multiple hosts.
     Helps to avoid rate limiting issues.
-  - B(This module is not idempotent). It will always generate a new token or revoke an
-    existing one. Please handle the state accordingly.
+  - This module never reports changed.
   - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis)
     for more information about OAuth2 authentication.
 
@@ -40,6 +39,7 @@ options:
     description:
       - The OAuth2 access token to revoke.
       - Required when I(action) is C(revoke).
+    type: str
 
 extends_documentation_fragment:
   - crowdstrike.falcon.credentials
@@ -50,29 +50,34 @@ author:
 
 EXAMPLES = r"""
 - name: Get OAuth2 token
-  crowdstrike.falcon.oauth2_token:
+  crowdstrike.falcon.auth:
 
 - name: Get OAuth2 token with member CID
-  crowdstrike.falcon.oauth2_token:
+  crowdstrike.falcon.auth:
     member_cid: 1234567890abcdef12345678
 
 - name: Revoke OAuth2 token
-  crowdstrike.falcon.oauth2_token:
+  crowdstrike.falcon.auth:
     action: revoke
     access_token: "{{ access_token }}"
 """
 
 RETURN = r"""
-access_token:
-  description: The OAuth2 access token.
+auth:
+  description: The OAuth2 authentication information.
   returned: success
-  type: str
-base_url:
-  description:
-    - The base URL used for authentication. This can differ from the module's
-      C(base_url) argument due to autodiscovery.
-  returned: success
-  type: str
+  type: dict
+  contains:
+    access_token:
+      description: The OAuth2 access token.
+      returned: success
+      type: str
+    base_url:
+      description:
+        - The base URL used for authentication. This can differ from the module's
+          C(cloud) argument due to autodiscovery.
+      returned: success
+      type: str
 """
 
 import traceback
@@ -99,11 +104,17 @@ except ImportError:
 def argspec():
     """Define the modules's argument spec."""
     args = falconpy_arg_spec()
+    args.pop("auth")
     args.update(
         action=dict(
             type="str",
             choices=["generate", "revoke"],
             default="generate",
+        ),
+        access_token=dict(
+            type="str",
+            required=False,
+            no_log=True,
         ),
     )
 
@@ -117,8 +128,12 @@ def generate(falcon):
 
 def revoke(falcon, access_token):
     """Revoke an OAuth2 token."""
+    # Bug reported: TBD
     falcon.token()  # Needs to authenticate first
-    return falcon.revoke(token=access_token)
+    tmp_token = falcon.token_value
+    revoked = falcon.revoke(token=access_token)
+    falcon.revoke(token=tmp_token)
+    return revoked
 
 
 def main():
@@ -138,8 +153,10 @@ def main():
 
     result = dict(
         changed=False,
-        access_token=None,
-        base_url=None,
+        auth=dict(
+            access_token=None,
+            base_url=None,
+        ),
     )
 
     falcon = OAuth2(**get_falconpy_credentials(module))
@@ -148,16 +165,13 @@ def main():
         query_result = generate(falcon)
         if query_result["status_code"] == 201:
             result.update(
-                access_token=falcon.token_value,
-                base_url=falcon.base_url,
-                changed=True,
+                auth=dict(
+                    access_token=falcon.token_value,
+                    base_url=falcon.base_url,
+                )
             )
     else:
         query_result = revoke(falcon, module.params["access_token"])
-        if query_result["status_code"] == 200:
-            result.update(
-                changed=True,
-            )
 
     handle_return_errors(module, result, query_result)
 

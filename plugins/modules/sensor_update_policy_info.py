@@ -47,6 +47,7 @@ options:
 
 extends_documentation_fragment:
     - crowdstrike.falcon.credentials
+    - crowdstrike.falcon.credentials.auth
 
 author:
   - Frank Falor (@ffalor)
@@ -188,7 +189,7 @@ policies:
           "build": "n-1|tagged"
         }
 pagination:
-  descritpion: Pagination details for the query.
+  description: Pagination details for the query.
   type: dict
   returned: success
   sample: {
@@ -203,7 +204,6 @@ import traceback
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import (
     falconpy_arg_spec,
-    auth_required_by,
 )
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     authenticate,
@@ -240,7 +240,6 @@ def main():
     module = AnsibleModule(
         argument_spec=argspec(),
         supports_check_mode=True,
-        required_by=auth_required_by(),
     )
 
     if not HAS_FALCONPY:

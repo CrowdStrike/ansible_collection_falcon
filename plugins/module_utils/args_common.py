@@ -31,28 +31,28 @@ AUTH_ARG_SPEC = dict(
         type="str",
         required=False,
     ),
-    access_token=dict(
-        type="str",
+    auth=dict(
+        type="dict",
         required=False,
-        no_log=True,
+        options=dict(
+            access_token=dict(
+                type="str",
+                no_log=True,
+            ),
+            base_url=dict(
+                type="str",
+            ),
+        ),
     ),
 )
 
 ENV_CONFIG_SPEC = dict(
-    base_url=dict(
-        fallback=(env_fallback, ["FALCON_BASE_URL"]),
+    cloud=dict(
+        fallback=(env_fallback, ["FALCON_CLOUD"]),
         type="str",
+        choices=["us-1", "us-2", "us-gov-1", "eu-1"],
+        default="us-1",
         required=False,
-        choices=[
-            "us-1",
-            "us-2",
-            "us-gov-1",
-            "eu-1",
-            "https://api.crowdstrike.com",
-            "https://api.us-2.crowdstrike.com",
-            "https://api.laggar.gcw.crowdstrike.com",
-            "https://api.eu-1.crowdstrike.com",
-        ],
     ),
     user_agent=dict(
         fallback=(env_fallback, ["FALCON_USER_AGENT"]),
@@ -71,10 +71,3 @@ def falconpy_arg_spec():
     arg_spec = AUTH_ARG_SPEC.copy()
     arg_spec.update(ENV_CONFIG_SPEC)
     return arg_spec
-
-
-def auth_required_by():
-    """Returns the dict of mappings for access_token and base_url."""
-    return {
-        "access_token": ["base_url"],
-    }

@@ -43,8 +43,8 @@ def get_falconpy_credentials(module):
 
 def environ_configuration(module):
     """Check module args for environment configurations used with FalconPy."""
-    environ_vars = [
-        "base_url",
+    environ_config = [
+        "cloud",
         "ext_headers",
     ]
 
@@ -59,20 +59,23 @@ def environ_configuration(module):
         config["user_agent"] = default_user_agent
 
     # Handle the other environment variables normally
-    for var in environ_vars:
+    for var in environ_config:
         value = module.params.get(var)
         if value:
-            config[var] = value
+            if var == "cloud":
+                config["base_url"] = value
+            else:
+                config[var] = value
 
     return config
 
 
 def authenticate(module, service_class):
     """Authenticate to the CrowdStrike Falcon API."""
-    if module.params.get("access_token"):
+    if module.params.get("auth"):
         service = service_class(
-            access_token=module.params["access_token"],
-            base_url=module.params["base_url"],
+            access_token=module.params["auth"]["access_token"],
+            base_url=module.params["auth"]["base_url"],
         )
     else:
         service = service_class(**get_falconpy_credentials(module))
