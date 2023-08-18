@@ -49,10 +49,10 @@ author:
 """
 
 EXAMPLES = r"""
-- name: Get OAuth2 token
+- name: Get auth information
   crowdstrike.falcon.auth:
 
-- name: Get OAuth2 token with member CID
+- name: Get auth information with member CID
   crowdstrike.falcon.auth:
     member_cid: 1234567890abcdef12345678
 

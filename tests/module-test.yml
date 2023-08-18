@@ -5,12 +5,11 @@
   gather_facts: no
 
   tasks:
-  - name: Get enabled windows Sensor Policies
-    crowdstrike.falcon.sensor_policy_info:
-      filter: "platform_name:'Windows'+enabled:'true'"
-    # register: sensor_policies
+  - name: Get auth information
+    crowdstrike.falcon.auth:
+    register: falcon
 
-  # - name: Get enabled windows Sensor Policies
-  #   crowdstrike.falcon.sensor_policy_info:
-  #     access_token: sensor_policies.access_token
-  #     filter: "platform_name:'Linux'+enabled:'true'"
+  - name: Get enabled windows sensor policies
+    crowdstrike.falcon.sensor_update_policy_info:
+      auth: "{{ falcon.auth }}"
+      filter: "platform_name:'Windows'+enabled:'true'"
