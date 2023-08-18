@@ -82,10 +82,11 @@ def authenticate(module, service_class):
 
 def handle_return_errors(module, result, query_result):
     """Handle errors returned from the Falcon API."""
-    result["errors"] = query_result["body"]["errors"]
+    if "errors" in query_result["body"]:
+        result["errors"] = query_result["body"]["errors"]
 
-    if len(result["errors"]) > 0:
-        msg = result["errors"][0]["message"]
-    else:
-        msg = "An unknown error occurred."
-    module.fail_json(msg=msg, **result)
+        if len(result["errors"]) > 0:
+            msg = result["errors"][0]["message"]
+            if not msg:
+                msg = "An unknown error occurred."
+            module.fail_json(msg=msg, **result)

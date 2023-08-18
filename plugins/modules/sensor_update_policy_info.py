@@ -187,6 +187,15 @@ policies:
         sample: {
           "build": "n-1|tagged"
         }
+pagination:
+  descritpion: Pagination details for the query.
+  type: dict
+  returned: success
+  sample: {
+    "limit": 5000,
+    "offset": 0,
+    "total": 1
+  }
 """
 
 import traceback
@@ -253,9 +262,13 @@ def main():
     )
 
     if query_result["status_code"] == 200:
-        result["policies"] = query_result["body"]["resources"]
-    else:
-        handle_return_errors(module, result, query_result)
+        # result["policies"] = query_result["body"]["resources"]
+        result.update(
+            policies=query_result["body"]["resources"],
+            pagination=query_result["body"]["meta"]["pagination"],
+        )
+
+    handle_return_errors(module, result, query_result)
 
     module.exit_json(**result)
 

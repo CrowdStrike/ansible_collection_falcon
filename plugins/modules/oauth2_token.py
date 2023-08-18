@@ -14,75 +14,35 @@ DOCUMENTATION = r"""
 ---
 module: oauth2_token
 
-short_description: Get OAuth2 token
+short_description: Manage OAuth2 tokens
 
 version_added: "4.0.0"
 
 description:
-  - Get an OAuth2 token for use with CrowdStrike Falcon API calls.
-  - Useful when needing to make multiple API calls against multiple hosts. Helps to avoid
-    rate limiting issues.
+  - Generate or revoke OAuth2 tokens for use with the CrowdStrike Falcon API.
+  - Access tokens can be useful when needing to make multiple API calls against multiple hosts.
+    Helps to avoid rate limiting issues.
+  - B(This module is not idempotent). It will always generate a new token or revoke an
+    existing one. Please handle the state accordingly.
   - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis)
     for more information about OAuth2 authentication.
 
 options:
-  client_id:
+  action:
     description:
-      - The CrowdStrike API client ID to use.
-      - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
-        for more information about API clients.
-      - The C(FALCON_CLIENT_ID) environment variable can also be used.
+      - The action to perform.
     type: str
-    aliases: [ falcon_client_id ]
-  client_secret:
-    description:
-      - The CrowdStrike API secret that corresponds to the client ID.
-      - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
-        for more information about API clients.
-      - The C(FALCON_CLIENT_SECRET) environment variable can also be used.
-    type: str
-    aliases: [ falcon_client_secret ]
-  member_cid:
-    type: str
-    description:
-      - The CrowdStrike member CID for MSSP authentication.
-      - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
-        for more information about API clients.
-      - The C(FALCON_MEMBER_CID) environment variable can also be used.
-  base_url:
-    type: str
-    description:
-      - The CrowdStrike base address target for API operations performed using this class.
-      - You can use either the short name or the full URL.
-      - The C(FALCON_BASE_URL) environment variable can also be used.
     choices:
-      - us-1
-      - https://api.crowdstrike.com
-      - us-2
-      - https://api.us-2.crowdstrike.com
-      - us-gov-1
-      - https://api.laggar.gcw.crowdstrike.com
-      - eu-1
-      - https://api.eu-1.crowdstrike.com
-  user_agent:
-    type: str
+      - generate
+      - revoke
+    default: generate
+  access_token:
     description:
-      - Custom User-Agent string to use for requests to the API.
-        The user agent string is prepended to the default user agent string
-        (C(crowdstrike-ansible/<version>)).
-      - See L(RFC 7231,https://tools.ietf.org/html/rfc7231#section-5.5.3) for more information.
-      - The C(FALCON_USER_AGENT) environment variable can also be used.
-  ext_headers:
-    type: dict
-    description:
-      - Extended headers that are prepended to the default headers dictionary for
-        the newly created Service Class.
-      - See the L(FalconPy documentation,https://www.falconpy.io/Usage/Environment-Configuration.html#extended-headers)
-        for more information about extended headers
+      - The OAuth2 access token to revoke.
+      - Required when I(action) is C(revoke).
 
-requirements:
-  - python >= 3.6
-  - crowdstrike-falconpy >= 1.3.0
+extends_documentation_fragment:
+  - crowdstrike.falcon.credentials
 
 author:
   - Carlos Matos (@carlosmmatos)
@@ -91,14 +51,15 @@ author:
 EXAMPLES = r"""
 - name: Get OAuth2 token
   crowdstrike.falcon.oauth2_token:
-    client_id: 1234567890abcdef12345678
-    client_secret: 1234567890abcdef1234567890abcdef12345678
 
 - name: Get OAuth2 token with member CID
   crowdstrike.falcon.oauth2_token:
-    client_id: 1234567890abcdef12345678
-    client_secret: 1234567890abcdef1234567890abcdef12345678
     member_cid: 1234567890abcdef12345678
+
+- name: Revoke OAuth2 token
+  crowdstrike.falcon.oauth2_token:
+    action: revoke
+    access_token: "{{ access_token }}"
 """
 
 RETURN = r"""
@@ -121,7 +82,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common imp
     falconpy_arg_spec,
 )
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
-    authenticate,
+    get_falconpy_credentials,
     handle_return_errors,
 )
 
@@ -138,10 +99,26 @@ except ImportError:
 def argspec():
     """Define the modules's argument spec."""
     args = falconpy_arg_spec()
-    # Remove the "access_token" argument from the spec
-    args.pop("access_token")
+    args.update(
+        action=dict(
+            type="str",
+            choices=["generate", "revoke"],
+            default="generate",
+        ),
+    )
 
     return args
+
+
+def generate(falcon):
+    """Generate a new OAuth2 token."""
+    return falcon.token()
+
+
+def revoke(falcon, access_token):
+    """Revoke an OAuth2 token."""
+    falcon.token()  # Needs to authenticate first
+    return falcon.revoke(token=access_token)
 
 
 def main():
@@ -149,6 +126,9 @@ def main():
     module = AnsibleModule(
         argument_spec=argspec(),
         supports_check_mode=True,
+        required_if=[
+            ("action", "revoke", ("access_token",)),
+        ],
     )
 
     if not HAS_FALCONPY:
@@ -156,21 +136,30 @@ def main():
             msg=missing_required_lib("falconpy"), exception=FALCONPY_IMPORT_ERROR
         )
 
-    falcon = authenticate(module, OAuth2)
-
-    query_result = falcon.token()
-
     result = dict(
         changed=False,
+        access_token=None,
+        base_url=None,
     )
 
-    if query_result["status_code"] == 201:
-        result.update(
-            access_token=falcon.token_value,
-            base_url=falcon.base_url,
-        )
+    falcon = OAuth2(**get_falconpy_credentials(module))
+
+    if module.params.get("action") == "generate":
+        query_result = generate(falcon)
+        if query_result["status_code"] == 201:
+            result.update(
+                access_token=falcon.token_value,
+                base_url=falcon.base_url,
+                changed=True,
+            )
     else:
-        handle_return_errors(module, result, query_result)
+        query_result = revoke(falcon, module.params["access_token"])
+        if query_result["status_code"] == 200:
+            result.update(
+                changed=True,
+            )
+
+    handle_return_errors(module, result, query_result)
 
     module.exit_json(**result)
 
