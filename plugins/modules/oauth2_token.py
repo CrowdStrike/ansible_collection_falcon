@@ -53,20 +53,25 @@ options:
     type: str
     description:
       - The CrowdStrike base address target for API operations performed using this class.
+      - You can use either the short name or the full URL.
       - The C(FALCON_BASE_URL) environment variable can also be used.
     choices:
-      - us-1 | https://api.crowdstrike.com
-      - us-2 | https://api.us-2.crowdstrike.com
-      - us-gov-1 | https://api.laggar.gcw.crowdstrike.com
-      - eu-1 | https://api.eu-1.crowdstrike.com
+      - us-1
+      - https://api.crowdstrike.com
+      - us-2
+      - https://api.us-2.crowdstrike.com
+      - us-gov-1
+      - https://api.laggar.gcw.crowdstrike.com
+      - eu-1
+      - https://api.eu-1.crowdstrike.com
   user_agent:
     type: str
     description:
       - Custom User-Agent string to use for requests to the API.
-        The user agent string is prepended to the default user agent string.
+        The user agent string is prepended to the default user agent string
+        (C(crowdstrike-ansible/<version>)).
       - See L(RFC 7231,https://tools.ietf.org/html/rfc7231#section-5.5.3) for more information.
       - The C(FALCON_USER_AGENT) environment variable can also be used.
-    default: crowdstrike-ansible/VERSION
   ext_headers:
     type: dict
     description:
@@ -74,7 +79,6 @@ options:
         the newly created Service Class.
       - See the L(FalconPy documentation,https://www.falconpy.io/Usage/Environment-Configuration.html#extended-headers)
         for more information about extended headers
-      - The C(FALCON_EXT_HEADERS) environment variable can also be used.
 
 requirements:
   - python >= 3.6
@@ -89,14 +93,12 @@ EXAMPLES = r"""
   crowdstrike.falcon.oauth2_token:
     client_id: 1234567890abcdef12345678
     client_secret: 1234567890abcdef1234567890abcdef12345678
-  register: token
 
 - name: Get OAuth2 token with member CID
   crowdstrike.falcon.oauth2_token:
     client_id: 1234567890abcdef12345678
     client_secret: 1234567890abcdef1234567890abcdef12345678
     member_cid: 1234567890abcdef12345678
-  register: token
 """
 
 RETURN = r"""
@@ -116,7 +118,6 @@ import traceback
 
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import (
-    auth_required_by,
     falconpy_arg_spec,
 )
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
@@ -146,7 +147,6 @@ def main():
     """Entry point for module execution."""
     module = AnsibleModule(
         argument_spec=argspec(),
-        required_by=auth_required_by(),
         supports_check_mode=True,
     )
 

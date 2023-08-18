@@ -46,20 +46,25 @@ options:
     type: str
     description:
       - The CrowdStrike base address target for API operations performed using this class.
+      - You can use either the short name or the full URL.
       - The C(FALCON_BASE_URL) environment variable can also be used.
     choices:
-      - us-1 | https://api.crowdstrike.com
-      - us-2 | https://api.us-2.crowdstrike.com
-      - us-gov-1 | https://api.laggar.gcw.crowdstrike.com
-      - eu-1 | https://api.eu-1.crowdstrike.com
+      - us-1
+      - https://api.crowdstrike.com
+      - us-2
+      - https://api.us-2.crowdstrike.com
+      - us-gov-1
+      - https://api.laggar.gcw.crowdstrike.com
+      - eu-1
+      - https://api.eu-1.crowdstrike.com
   user_agent:
     type: str
     description:
       - Custom User-Agent string to use for requests to the API.
-        The user agent string is prepended to the default user agent string.
+        The user agent string is prepended to the default user agent string
+        (C(crowdstrike-ansible/<version>)).
       - See L(RFC 7231,https://tools.ietf.org/html/rfc7231#section-5.5.3) for more information.
       - The C(FALCON_USER_AGENT) environment variable can also be used.
-    default: crowdstrike-ansible/VERSION
   ext_headers:
     type: dict
     description:
@@ -67,7 +72,6 @@ options:
         the newly created Service Class.
       - See the L(FalconPy documentation,https://www.falconpy.io/Usage/Environment-Configuration.html#extended-headers)
         for more information about extended headers
-      - The C(FALCON_EXT_HEADERS) environment variable can also be used.
 requirements:
   - python >= 3.6
   - crowdstrike-falconpy >= 1.3.0

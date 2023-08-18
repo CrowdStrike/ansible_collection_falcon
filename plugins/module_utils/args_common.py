@@ -51,7 +51,6 @@ ENV_CONFIG_SPEC = {
     },
     "ext_headers": {
         "type": "dict",
-        "default": {},
         "required": False,
     },
 }
