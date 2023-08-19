@@ -123,16 +123,21 @@ def argspec():
 
 def generate(falcon):
     """Generate a new OAuth2 token."""
-    return falcon.token()
+    return falcon.login()
 
 
 def revoke(falcon, access_token):
-    """Revoke an OAuth2 token."""
-    # Bug reported: TBD
-    falcon.token()  # Needs to authenticate first
-    tmp_token = falcon.token_value
+    """Revoke an OAuth2 token.
+
+    This method currently has to login first, in order to properly
+    revoke a token. It then logs out after the token is revoked to
+    revoke the session token as well.
+
+    @jshcodes: This is a workaround for the Falcon API.
+    """
+    falcon.login()  # Needs to authenticate first
     revoked = falcon.revoke(token=access_token)
-    falcon.revoke(token=tmp_token)
+    falcon.logout()
     return revoked
 
 
