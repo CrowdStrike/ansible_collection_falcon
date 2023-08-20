@@ -69,7 +69,8 @@ requirements:
 options:
   auth:
     description:
-      - The registered result of the M(crowdstrike.falcon.auth) module.
+      - The registered result of the M(crowdstrike.falcon.auth) module, or a dictionary containing
+        the following keys: C(access_token), C(base_url).
       - If provided, the C(client_id), C(client_secret), and C(member_cid) options are ignored.
       - Useful when needing to make multiple API calls to avoid rate limiting issues.
     type: dict

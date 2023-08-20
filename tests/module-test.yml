@@ -5,7 +5,7 @@
   gather_facts: no
 
   tasks:
-  - name: Get auth information
+  - name: Generate Authentication Credentials (access token and base URL)
     crowdstrike.falcon.auth:
     register: falcon
 
