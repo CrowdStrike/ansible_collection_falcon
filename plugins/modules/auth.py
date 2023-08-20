@@ -14,22 +14,26 @@ DOCUMENTATION = r"""
 ---
 module: auth
 
-short_description: Manage OAuth2 tokens
+short_description: Manage authentication
 
 version_added: "4.0.0"
 
 description:
-  - Generate or revoke OAuth2 tokens for use with the CrowdStrike Falcon API.
-  - Access tokens can be useful when needing to make multiple API calls against multiple hosts.
-    Helps to avoid rate limiting issues.
-  - This module never reports changed.
-  - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis)
-    for more information about OAuth2 authentication.
+  - This module allows you to generate or revoke OAuth2 tokens for interacting with
+    the CrowdStrike Falcon API.
+  - When the action is set to C(generate), this module returns authentication credentials,
+    including the OAuth2 access token and base URL.
+  - Utilizing access tokens can enhance efficiency when making multiple API calls
+    helping to circumvent rate-limiting constraints.
+  - The module will not report changes.
+  - Refer to the
+    L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis)
+    for detailed information on OAuth2 authentication with CrowdStrike Falcon.
 
 options:
   action:
     description:
-      - The action to perform.
+      - Specifies the action to be performed, either generating or revoking an OAuth2 token.
     type: str
     choices:
       - generate
@@ -37,7 +41,7 @@ options:
     default: generate
   access_token:
     description:
-      - The OAuth2 access token to revoke.
+      - The OAuth2 access token to be revoked.
       - Required when I(action) is C(revoke).
     type: str
 
@@ -49,36 +53,40 @@ author:
 """
 
 EXAMPLES = r"""
-- name: Get auth information
+- name: Generate Authentication Credentials (access token and base URL)
   crowdstrike.falcon.auth:
 
-- name: Get auth information with member CID
+- name: Generate Authentication Credentials with specific member CID
   crowdstrike.falcon.auth:
-    member_cid: 1234567890abcdef12345678
+    member_cid: "{{ member_cid_var }}"
 
-- name: Revoke OAuth2 token
+- name: Revoke an OAuth2 token
   crowdstrike.falcon.auth:
     action: revoke
-    access_token: "{{ access_token }}"
+    access_token: "{{ access_token_var }}"
 """
 
 RETURN = r"""
 auth:
-  description: The OAuth2 authentication information.
+  description: The authentication credentials (OAuth2 access token and base URL)
   returned: success
   type: dict
   contains:
     access_token:
-      description: The OAuth2 access token.
+      description:
+        - The generated OAuth2 access token.
+        - Returned when action is set to C(generate).
       returned: success
       type: str
     base_url:
       description:
-        - The base URL used for authentication. This can differ from the module's
-          C(cloud) argument due to autodiscovery.
+        - The base URL utilized for authentication. This may differ from the module's
+          C(cloud) argument due to the autodiscovery process.
+        - Returned when action is set to C(generate).
       returned: success
       type: str
 """
+
 
 import traceback
 
