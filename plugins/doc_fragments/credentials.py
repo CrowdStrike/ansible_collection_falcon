@@ -39,7 +39,8 @@ options:
     type: str
   cloud:
     description:
-      - The CrowdStrike cloud environment to use.
+      - The CrowdStrike cloud region to use.
+      - All clouds are automatically discovered if not specified, except for the C(us-gov-1) cloud.
       - The C(FALCON_CLOUD) environment variable can also be used.
     choices:
       - us-1
@@ -70,8 +71,8 @@ options:
   auth:
     description:
       - The registered result of the M(crowdstrike.falcon.auth) module, or a dictionary containing
-        the following keys - C(access_token), C(base_url).
-      - If provided, the C(client_id), C(client_secret), and C(member_cid) options are ignored.
+        the I(access_token) and I(cloud) keys.
+      - If provided, the I(client_id), I(client_secret), I(member_cid), and I(cloud) options are ignored.
       - Useful when needing to make multiple API calls to avoid rate limiting issues.
     type: dict
     suboptions:
@@ -79,9 +80,9 @@ options:
         description:
           - The OAuth2 access token to use for authentication.
         type: str
-      base_url:
+      cloud:
         description:
-          - The base URL to use for authentication.
-          - This can differ from the module's C(cloud) argument due to autodiscovery.
+          - The CrowdStrike cloud region to use.
+          - This can differ from the module's I(cloud) argument due to autodiscovery.
         type: str
 """

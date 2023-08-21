@@ -19,10 +19,7 @@ short_description: Manage authentication
 version_added: "4.0.0"
 
 description:
-  - This module allows you to generate or revoke OAuth2 tokens for interacting with
-    the CrowdStrike Falcon API.
-  - When the action is set to C(generate), this module returns authentication credentials,
-    including the OAuth2 access token and base URL.
+  - Manage token authentication with CrowdStrike Falcon API.
   - Utilizing access tokens can enhance efficiency when making multiple API calls
     helping to circumvent rate-limiting constraints.
   - The module will not report changes.
@@ -33,7 +30,11 @@ description:
 options:
   action:
     description:
-      - Specifies the action to be performed, either generating or revoking an OAuth2 token.
+      - Define the action to be performed.
+      - When I(action=generate), this module returns authentication credentials,
+        which include the OAuth2 access token and cloud region.
+      - When I(action=revoke), this module revokes the OAuth2 token specified in
+        the I(access_token) parameter.
     type: str
     choices:
       - generate
@@ -42,7 +43,7 @@ options:
   access_token:
     description:
       - The OAuth2 access token to be revoked.
-      - Required when I(action) is C(revoke).
+      - Required if I(action=revoke).
     type: str
 
 extends_documentation_fragment:
@@ -53,7 +54,7 @@ author:
 """
 
 EXAMPLES = r"""
-- name: Generate Authentication Credentials (access token and base URL)
+- name: Generate Authentication Credentials (access token and cloud region)
   crowdstrike.falcon.auth:
 
 - name: Generate Authentication Credentials with specific member CID
@@ -68,7 +69,7 @@ EXAMPLES = r"""
 
 RETURN = r"""
 auth:
-  description: The authentication credentials (OAuth2 access token and base URL)
+  description: The authentication credentials (OAuth2 access token and cloud region).
   returned: success
   type: dict
   contains:
@@ -78,10 +79,10 @@ auth:
         - Returned when action is set to C(generate).
       returned: success
       type: str
-    base_url:
+    cloud:
       description:
-        - The base URL utilized for authentication. This may differ from the module's
-          C(cloud) argument due to the autodiscovery process.
+        - The CrowdStrike cloud region to use. This may differ from the module's
+          I(cloud) argument due to the autodiscovery process.
         - Returned when action is set to C(generate).
       returned: success
       type: str
@@ -97,6 +98,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common imp
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     get_falconpy_credentials,
     handle_return_errors,
+    get_cloud_from_url,
 )
 
 FALCONPY_IMPORT_ERROR = None
@@ -168,7 +170,7 @@ def main():
         changed=False,
         auth=dict(
             access_token=None,
-            base_url=None,
+            cloud=None,
         ),
     )
 
@@ -180,7 +182,7 @@ def main():
             result.update(
                 auth=dict(
                     access_token=falcon.token_value,
-                    base_url=falcon.base_url,
+                    cloud=get_cloud_from_url(module, falcon.base_url),
                 )
             )
     else:

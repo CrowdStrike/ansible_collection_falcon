@@ -75,7 +75,7 @@ def authenticate(module, service_class):
     if module.params.get("auth"):
         service = service_class(
             access_token=module.params["auth"]["access_token"],
-            base_url=module.params["auth"]["base_url"],
+            base_url=module.params["auth"]["cloud"],
         )
     else:
         service = service_class(**get_falconpy_credentials(module))
@@ -93,3 +93,23 @@ def handle_return_errors(module, result, query_result):
             if not msg:
                 msg = "An unknown error occurred."
             module.fail_json(msg=msg, **result)
+
+
+def get_cloud_from_url(module, base_url):
+    """Return the cloud name from a base URL."""
+    mapping = {
+        "https://api.crowdstrike.com": "us-1",
+        "https://api.us-2.crowdstrike.com": "us-2",
+        "https://api.crowdstrike.eu": "eu-1",
+        "https://api.laggar.gcw.crowdstrike.com": "us-gov-1",
+    }
+
+    # fail if the base_url is not in the mapping
+    cloud = mapping[base_url]
+
+    if not cloud:
+        module.fail_json(
+            msg=f"Unknown cloud: {base_url}. See module documentation for help."
+        )
+
+    return cloud

@@ -39,7 +39,7 @@ AUTH_ARG_SPEC = dict(
                 type="str",
                 no_log=True,
             ),
-            base_url=dict(
+            cloud=dict(
                 type="str",
             ),
         ),
