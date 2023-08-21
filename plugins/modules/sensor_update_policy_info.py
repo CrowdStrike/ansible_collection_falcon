@@ -6,25 +6,29 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
 ---
-module: sensor_policy_info
+module: sensor_update_policy_info
 
 short_description: Get information about Falcon Update Sensor Policies
 
-version_added: "3.2.0"
+version_added: "4.0.0"
 
 description:
   - Returns a set of Sensor Update Policies which match the filter criteria.
+  - See the L(FalconPy documentation,https://falconpy.io/Service-Collections/Sensor-Update-Policy.html#queryCombinedSensorUpdatePoliciesV2)
+    for more information about the available filters and sort options.
 
 options:
   filter:
     description:
       - The filter expression that should be used to limit the results using FQL (Falcon Query Language) syntax.
-      - See L(Avaiable filters,https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#available-filters-2).
+      - See the L(FalconPy documentation,https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#available-filters-2)
+        for more information about the available filters.
     type: str
   limit:
     description:
@@ -37,38 +41,37 @@ options:
   sort:
     description:
       - The property to sort by in FQL (Falcon Query Language) syntax.
+      - See the L(FalconPy documentation,https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#querycombinedsensorupdatepoliciesv2)
+        keyword arguments table for more information about the available sort options.
     type: str
 
 extends_documentation_fragment:
     - crowdstrike.falcon.credentials
+    - crowdstrike.falcon.credentials.auth
 
 author:
   - Frank Falor (@ffalor)
-'''
+  - Carlos Matos (@carlosmmatos)
+"""
 
-EXAMPLES = r'''
+EXAMPLES = r"""
 - name: Get all Sensor Policies
-  crowdstrike.falcon.sensor_policy_info:
+  crowdstrike.falcon.sensor_update_policy_info:
 
 - name: Get enabled windows Sensor Policies
-  crowdstike.falcon.sensor_policy_info:
+  crowdstike.falcon.sensor_update_policy_info:
     filter: "platform_name:'Windows'+enabled:'true'"
 
 - name: Get Sensor Policies with a limit of 10
-  crowdstike.falcon.sensor_policy_info:
+  crowdstike.falcon.sensor_update_policy_info:
     limit: 10
 
 - name: Get Sensor Policies and sort assending by platform_name
-  crowdstike.falcon.sensor_policy_info:
+  crowdstike.falcon.sensor_update_policy_info:
     sort: "platform_name.asc"
-'''
+"""
 
-RETURN = r'''
-status_code:
-  description: The HTTP status code returned by the request.
-  returned: always
-  type: int
-  sample: 200
+RETURN = r"""
 policies:
     description:
       - Array of Sensor Update Policies matching the filter criteria.
@@ -185,63 +188,55 @@ policies:
         sample: {
           "build": "n-1|tagged"
         }
-headers:
-    description:
-      - The HTTP headers returned from the API.
-    type: dict
-    returned: always
-    sample: {
-        "X-Ratelimit-Limit": "6000",
-        "X-Ratelimit-Remaining": "5999"
-    }
-meta:
-    description:
-      - The metadata returned from the API.
-      - Contains pagination information.
-    type: dict
-    returned: always
-    sample: {
-        "pagination": {
-            "limit": 5000,
-            "offset": 0,
-            "total": 1
-        },
-        "query_time": 0.012
-    }
-'''
+pagination:
+  description: Pagination details for the query.
+  type: dict
+  returned: success
+  sample: {
+    "limit": 5000,
+    "offset": 0,
+    "total": 1
+  }
+"""
 
-import copy
 import traceback
 
-from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.basic import missing_required_lib
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import AUTH_ARG_SPEC
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import get_falconpy_credentials
+from ansible.module_utils.basic import AnsibleModule, missing_required_lib
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import (
+    falconpy_arg_spec,
+)
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
+    authenticate,
+    handle_return_errors,
+)
 
-
+FALCONPY_IMPORT_ERROR = None
 try:
     from falconpy import SensorUpdatePolicy
+
+    HAS_FALCONPY = True
 except ImportError:
     HAS_FALCONPY = False
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
-else:
-    HAS_FALCONPY = True
+
+POLICY_ARGS = {
+    "filter": {"type": "str", "required": False},
+    "limit": {"type": "int", "required": False},
+    "offset": {"type": "int", "required": False},
+    "sort": {"type": "str", "required": False},
+}
 
 
 def argspec():
     """Define the module's argument spec."""
-    args = copy.deepcopy(AUTH_ARG_SPEC)
-    args.update(
-        filter=dict(type='str', required=False),
-        limit=dict(type='int', required=False),
-        offset=dict(type='int', required=False),
-        sort=dict(type='str', required=False)
-    )
+    args = falconpy_arg_spec()
+    args.update(POLICY_ARGS)
+
     return args
 
 
 def main():
-    """Main entry point for module execution."""
+    """Entry point for module execution."""
     module = AnsibleModule(
         argument_spec=argspec(),
         supports_check_mode=True,
@@ -249,41 +244,33 @@ def main():
 
     if not HAS_FALCONPY:
         module.fail_json(
-            msg=missing_required_lib('falconpy'),
-            exception="test"
+            msg=missing_required_lib("falconpy"), exception=FALCONPY_IMPORT_ERROR
         )
 
     args = {}
     for key, value in module.params.items():
-        if key not in ['client_id', 'client_secret']:
-            if value is not None:
-                args[key] = value
+        if key in POLICY_ARGS:
+            args[key] = value
 
-    falcon = SensorUpdatePolicy(**get_falconpy_credentials(module))
+    falcon = authenticate(module, SensorUpdatePolicy)
 
-    query_result = falcon.query_combined_policies(**args)
+    query_result = falcon.query_combined_policies_v2(**args)
 
     result = dict(
         changed=False,
     )
 
-    result['status_code'] = query_result['status_code']
-    result['meta'] = query_result['body']['meta']
-    result['headers'] = query_result['headers']
+    if query_result["status_code"] == 200:
+        # result["policies"] = query_result["body"]["resources"]
+        result.update(
+            policies=query_result["body"]["resources"],
+            pagination=query_result["body"]["meta"]["pagination"],
+        )
 
-    if query_result['status_code'] == 200:
-        result['policies'] = query_result['body']['resources']
-    else:
-        result['errors'] = query_result['body']['errors']
-
-        if len(result['errors']) > 0:
-            msg = result['errors'][0]['message']
-        else:
-            msg = 'An unknown error occurred.'
-        module.fail_json(msg=msg, **result)
+    handle_return_errors(module, result, query_result)
 
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

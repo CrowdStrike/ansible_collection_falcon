@@ -5,35 +5,111 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import (absolute_import, division, print_function)
-import os
+from __future__ import absolute_import, division, print_function
+
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.version import (
+    __version__,
+)
+
 __metaclass__ = type
 
 
 def get_falconpy_credentials(module):
-    """
-    Check module args for credentials, if not then check for env variables.
+    """Check module args for credentials, if not then check for env variables."""
+    cred_vars = [
+        "client_id",
+        "client_secret",
+        "member_cid",
+    ]
 
-    :param module: Ansible module object
-    :return: Dictionary with falcon connection info
-    """
-    client_id = module.params.get('client_id')
-    client_secret = module.params.get('client_secret')
+    creds = {}
 
-    missing_params = []
+    for var in cred_vars:
+        value = module.params.get(var)
+        if not value and var != "member_cid":
+            module.fail_json(
+                msg=f"Missing required parameter: {var}. See module documentation for help."
+            )
+        if value:
+            creds[var] = value
 
-    if not client_id:
-        client_id = os.environ.get('FALCON_CLIENT_ID', None)
-        if not client_id:
-            missing_params.append('client_id')
+    config = environ_configuration(module)
 
-    if not client_secret:
-        client_secret = os.environ.get('FALCON_CLIENT_SECRET', None)
-        if not client_secret:
-            missing_params.append('client_secret')
+    if config:
+        creds.update(config)
 
-    if missing_params:
-        module.fail_json(msg="Missing required parameters: {0}. See module documentation for help.".format(missing_params))
+    return creds
 
-    # Return the credentials:
-    return dict(client_id=client_id, client_secret=client_secret)
+
+def environ_configuration(module):
+    """Check module args for environment configurations used with FalconPy."""
+    environ_config = [
+        "cloud",
+        "ext_headers",
+    ]
+
+    default_user_agent = f"crowdstrike-ansible/{__version__}"
+    config = {}
+
+    # Handle the user_agent parameter specially
+    user_agent = module.params.get("user_agent")
+    if user_agent:
+        config["user_agent"] = f"{user_agent} {default_user_agent}"
+    else:
+        config["user_agent"] = default_user_agent
+
+    # Handle the other environment variables normally
+    for var in environ_config:
+        value = module.params.get(var)
+        if value:
+            if var == "cloud":
+                config["base_url"] = value
+            else:
+                config[var] = value
+
+    return config
+
+
+def authenticate(module, service_class):
+    """Authenticate to the CrowdStrike Falcon API."""
+    if module.params.get("auth"):
+        service = service_class(
+            access_token=module.params["auth"]["access_token"],
+            base_url=module.params["auth"]["cloud"],
+        )
+    else:
+        service = service_class(**get_falconpy_credentials(module))
+
+    return service
+
+
+def handle_return_errors(module, result, query_result):
+    """Handle errors returned from the Falcon API."""
+    if "errors" in query_result["body"]:
+        result["errors"] = query_result["body"]["errors"]
+
+        if len(result["errors"]) > 0:
+            msg = result["errors"][0]["message"]
+            if not msg:
+                msg = "An unknown error occurred."
+            module.fail_json(msg=msg, **result)
+
+
+def get_cloud_from_url(module, base_url):
+    """Return the cloud name from a base URL."""
+    mapping = {
+        "https://api.crowdstrike.com": "us-1",
+        "https://api.us-2.crowdstrike.com": "us-2",
+        "https://api.crowdstrike.eu": "eu-1",
+        "https://api.laggar.gcw.crowdstrike.com": "us-gov-1",
+    }
+
+    # fail if the base_url is not in the mapping
+    cloud = mapping[base_url]
+
+    if not cloud:
+        module.fail_json(
+            msg=f"Unknown cloud: {base_url}. See module documentation for help."
+        )
+
+    return cloud
