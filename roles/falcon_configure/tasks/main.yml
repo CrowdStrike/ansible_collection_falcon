@@ -25,6 +25,8 @@
   when:
     - falcon_remove_aid
     - ansible_facts['os_family'] != "Windows"
+  become: true
+  become_user: root
   block:
     - ansible.builtin.include_tasks: remove_aid.yml
       # noqa name[missing]
