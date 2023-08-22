@@ -1,0 +1,88 @@
+---
+# Linux block
+- name: "CrowdStrike Falcon | Linux AID Block"
+  when: ansible_facts['system'] == 'Linux'
+  block:
+    - name: "CrowdStrike Falcon | Grab existing AID (Linux)"
+      crowdstrike.falcon.falconctl_info:
+        name: aid
+      register: falcon_uninstall_linux_aid_info
+
+    - name: "CrowdStrike Falcon | Set AID (Linux)"
+      ansible.builtin.set_fact:
+        falcon_uninstall_linux_aid: "{{ falcon_uninstall_linux_aid_info.aid }}"
+
+    - name: "CrowdStrike Falcon | Assert AID found (Linux)"
+      ansible.builtin.assert:
+        that:
+          - falcon_uninstall_linux_aid | length > 0
+        fail_msg: "AID was not found!"
+        success_msg: "Found AID."
+
+# Windows block
+- name: "CrowdStrike Falcon | Windows AID Block"
+  when: ansible_facts['system'] == 'Windows'
+  block:
+    - name: "CrowdStrike Falcon | Grab existing AID (Windows)"
+      ansible.windows.win_reg_stat:
+        path: "{{ item }}"
+        name: AG
+      register: falcon_uninstall_windows_aid_stat
+      loop:
+        - 'HKLM:\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\{16e0423f-7058-48c9-a204-725362b67639}\Default'
+        - 'HKLM:\SYSTEM\CurrentControlSet\Services\CSAgent\Sim'
+
+    - name: "CrowdStrike Falcon | Set unique value (Windows)"
+      ansible.builtin.set_fact:
+        aid_win_value: "{{ falcon_uninstall_windows_aid.results | selectattr('value', 'defined') | first }}"
+
+    - name: "CrowdStrike Falcon | Convert Value to AID (Windows) "
+      ansible.windows.win_shell: |
+        $bytes = @( {{ aid_win_value.value | join(',') }} )
+        $aid = [System.BitConverter]::ToString($bytes).ToLower() -replace '-', ''
+        Write-Host -NoNewline $aid
+      register: falcon_uninstall_windows_aid_value
+
+    - name: "CrowdStrike Falcon | Set AID (Windows)"
+      ansible.builtin.set_fact:
+        falcon_uninstall_windows_aid: "{{ falcon_uninstall_windows_aid_value.stdout }}"
+
+    - name: "CrowdStrike Falcon | Assert AID found (Windows)"
+      ansible.builtin.assert:
+        that:
+          - falcon_uninstall_windows_aid | length > 0
+        fail_msg: "AID was not found!"
+        success_msg: "Found AID."
+
+# Mac Block
+- name: CrowdStrike Falcon | Stat Falcon Sensor (macOS)
+  ansible.builtin.stat:
+    path: "/Applications/Falcon.app/Contents/Resources/falconctl"
+  register: falconctl_mac
+  when: ansible_facts['distribution'] == "MacOSX"
+
+- name: "CrowdStrike Falcon | macOS AID Block"
+  when:
+    - ansible_facts['distribution'] == "MacOSX"
+    - falconctl_mac.stat.exists
+  block:
+    - name: CrowdStrike Falcon | Get AID Value from Stats (macOS)
+      ansible.builtin.command: |
+        /Applications/Falcon.app/Contents/Resources/falconctl stats agent_info | grep agentID | awk '{print $2}'
+      register: falcon_uninstall_mac_aid_stat
+      changed_when: false
+
+    - name: "CrowdStrike Falcon | Set AID (macOS)"
+      ansible.builtin.set_fact:
+        falcon_uninstall_mac_aid: "{{ falcon_uninstall_mac_aid_stat.stdout | regex_replace('^.*: ', '') | lower | replace('-', '') }}"
+
+    - name: "CrowdStrike Falcon | Assert AID found (macOS)"
+      ansible.builtin.assert:
+        that:
+          - falcon_uninstall_mac_aid | length > 0
+        fail_msg: "AID was not found!"
+        success_msg: "Found AID."
+
+- name: "CrowdStrike Falcon | Set AID for Uninstall"
+  ansible.builtin.set_fact:
+    falcon_uninstall_remove_aid: "{{ falcon_uninstall_linux_aid | default(falcon_uninstall_windows_aid | default(falcon_uninstall_mac_aid)) }}"

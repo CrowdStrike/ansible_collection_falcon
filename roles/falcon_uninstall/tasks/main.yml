@@ -1,5 +1,18 @@
 ---
 # tasks file for falcon_uninstall
+- name: API block
+  when:
+    - falcon_client_id and falcon_client_secret
+  block:
+    - ansible.builtin.include_role:
+        name: falcon_install
+        tasks_from: "{{ 'win_auth.yml' if ansible_facts['os_family'] == 'Windows' else 'auth.yml' }}"
+      # noqa name[missing]
+
+# pretasks playbook
+- name: Uninstall pretasks
+  ansible.builtin.include_tasks: pretasks.yml
+
 - name: Linux Block
   when:
     - ansible_facts['os_family'] != "Windows"
