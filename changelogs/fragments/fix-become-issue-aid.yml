@@ -1,0 +1,2 @@
+bugfixes:
+  - falcon_configure - add become clause to remove_aid tasks ()
