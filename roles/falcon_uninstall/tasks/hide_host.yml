@@ -1,6 +1,6 @@
 ---
 # This playbook will hide the host from the falcon console
-- name: "CrowdStrike Falcon | Remove/Hide Host from Console"
+- name: "CrowdStrike Falcon | Remove/Hide Host from Console (Linux)"
   ansible.builtin.uri:
     url: "https://{{ falcon_cloud }}/devices/entities/devices-actions/v2?action_name=hide_host"
     method: POST
@@ -12,6 +12,21 @@
     headers:
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
       Content-Type: application/json
-  register: falcon_sensor_update_policy_info_linux
+    status_code: 202
   no_log: "{{ falcon_api_enable_no_log }}"
-  run_once: "{{ falcon_sensor_update_policy_run_once }}"
+  when: ansible_facts['os_family'] != "Windows"
+
+- name: "CrowdStrike Falcon | Remove/Hide Host from Console (Windows)"
+  ansible.windows.win_uri:
+    url: "https://{{ falcon_cloud }}/devices/entities/devices-actions/v2?action_name=hide_host"
+    method: POST
+    body:
+      ids:
+        - "{{ falcon_uninstall_remove_aid }}"
+    return_content: true
+    headers:
+      authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
+      Content-Type: application/json
+    status_code: 202
+  no_log: "{{ falcon_api_enable_no_log }}"
+  when: ansible_facts['os_family'] == "Windows"

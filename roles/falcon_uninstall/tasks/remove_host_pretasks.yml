@@ -1,9 +1,9 @@
 ---
+### AID remove_host
 # Linux block
 - name: "CrowdStrike Falcon | Linux AID Block"
   when:
     - ansible_facts['system'] == 'Linux'
-    - falcon_api_oauth2_token | length > 0
   block:
     - name: "CrowdStrike Falcon | Grab existing AID (Linux)"
       crowdstrike.falcon.falconctl_info:
@@ -12,7 +12,7 @@
 
     - name: "CrowdStrike Falcon | Set AID (Linux)"
       ansible.builtin.set_fact:
-        falcon_uninstall_linux_aid: "{{ falcon_uninstall_linux_aid_info.aid }}"
+        falcon_uninstall_linux_aid: "{{ falcon_uninstall_linux_aid_info.falconctl_info.aid }}"
 
     - name: "CrowdStrike Falcon | Assert AID found (Linux)"
       ansible.builtin.assert:
@@ -24,8 +24,7 @@
 # Windows block
 - name: "CrowdStrike Falcon | Windows AID Block"
   when:
-    - ansible_facts['system'] == 'Windows'
-    - falcon_api_oauth2_token | length > 0
+    - ansible_facts['os_family'] == "Windows"
   block:
     - name: "CrowdStrike Falcon | Grab existing AID (Windows)"
       ansible.windows.win_reg_stat:
@@ -38,7 +37,7 @@
 
     - name: "CrowdStrike Falcon | Set unique value (Windows)"
       ansible.builtin.set_fact:
-        aid_win_value: "{{ falcon_uninstall_windows_aid.results | selectattr('value', 'defined') | first }}"
+        aid_win_value: "{{ falcon_uninstall_windows_aid_stat.results | selectattr('value', 'defined') | first }}"
 
     - name: "CrowdStrike Falcon | Convert Value to AID (Windows) "
       ansible.windows.win_shell: |
@@ -65,13 +64,11 @@
   register: falconctl_mac
   when:
     - ansible_facts['distribution'] == "MacOSX"
-    - falcon_api_oauth2_token | length > 0
 
 - name: "CrowdStrike Falcon | macOS AID Block"
   when:
     - ansible_facts['distribution'] == "MacOSX"
     - falconctl_mac.stat.exists
-    - falcon_api_oauth2_token | length > 0
   block:
     - name: CrowdStrike Falcon | Get AID Value from Stats (macOS)
       ansible.builtin.command: |
