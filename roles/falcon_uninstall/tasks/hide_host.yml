@@ -1,2 +1,17 @@
 ---
 # This playbook will hide the host from the falcon console
+- name: "CrowdStrike Falcon | Remove/Hide Host from Console"
+  ansible.builtin.uri:
+    url: "https://{{ falcon_cloud }}/devices/entities/devices-actions/v2?action_name=hide_host"
+    method: POST
+    body_format: json
+    body:
+      ids:
+        - "{{ falcon_uninstall_remove_aid }}"
+    return_content: true
+    headers:
+      authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
+      Content-Type: application/json
+  register: falcon_sensor_update_policy_info_linux
+  no_log: "{{ falcon_api_enable_no_log }}"
+  run_once: "{{ falcon_sensor_update_policy_run_once }}"

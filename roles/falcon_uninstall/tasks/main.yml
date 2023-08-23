@@ -31,3 +31,12 @@
   block:
     - ansible.builtin.include_tasks: win_uninstall.yml
       # noqa name[missing]
+
+# Hide host
+- name: Hide host
+  when:
+    - falcon_client_id and falcon_client_secret
+    - falcon_uninstall_remove_aid | length > 0
+  block:
+    - ansible.builtin.include_tasks: hide_host.yml
+      # noqa name[missing]

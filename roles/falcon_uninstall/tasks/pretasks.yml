@@ -1,7 +1,9 @@
 ---
 # Linux block
 - name: "CrowdStrike Falcon | Linux AID Block"
-  when: ansible_facts['system'] == 'Linux'
+  when:
+    - ansible_facts['system'] == 'Linux'
+    - falcon_api_oauth2_token | length > 0
   block:
     - name: "CrowdStrike Falcon | Grab existing AID (Linux)"
       crowdstrike.falcon.falconctl_info:
@@ -21,7 +23,9 @@
 
 # Windows block
 - name: "CrowdStrike Falcon | Windows AID Block"
-  when: ansible_facts['system'] == 'Windows'
+  when:
+    - ansible_facts['system'] == 'Windows'
+    - falcon_api_oauth2_token | length > 0
   block:
     - name: "CrowdStrike Falcon | Grab existing AID (Windows)"
       ansible.windows.win_reg_stat:
@@ -59,16 +63,19 @@
   ansible.builtin.stat:
     path: "/Applications/Falcon.app/Contents/Resources/falconctl"
   register: falconctl_mac
-  when: ansible_facts['distribution'] == "MacOSX"
+  when:
+    - ansible_facts['distribution'] == "MacOSX"
+    - falcon_api_oauth2_token | length > 0
 
 - name: "CrowdStrike Falcon | macOS AID Block"
   when:
     - ansible_facts['distribution'] == "MacOSX"
     - falconctl_mac.stat.exists
+    - falcon_api_oauth2_token | length > 0
   block:
     - name: CrowdStrike Falcon | Get AID Value from Stats (macOS)
       ansible.builtin.command: |
-        /Applications/Falcon.app/Contents/Resources/falconctl stats agent_info | grep agentID | awk '{print $2}'
+        /Applications/Falcon.app/Contents/Resources/falconctl stats agent_info | grep agentID
       register: falcon_uninstall_mac_aid_stat
       changed_when: false
 
