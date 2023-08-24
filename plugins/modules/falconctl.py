@@ -7,9 +7,10 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
 ---
 module: falconctl
 
@@ -98,9 +99,9 @@ options:
       - C(backend) is only available in sensor versions that support the C(--backend) option (>6.46.0).
       - "Valid Options are: C('auto'|'bpf'|'kernel')"
     type: str
-'''
+"""
 
-EXAMPLES = r'''
+EXAMPLES = r"""
 - name: Set CrowdStrike Falcon CID
   crowdstrike.falcon.falconctl:
     state: present
@@ -128,13 +129,15 @@ EXAMPLES = r'''
     apd: no
     aph: http://example.com
     app: 8080
-'''
+"""
 
 import re
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils import FALCONCTL_GET_OPTIONS, get_options
-
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils import (
+    FALCONCTL_GET_OPTIONS,
+    get_options,
+)
 
 VALID_PARAMS = {
     "s": [
@@ -174,7 +177,8 @@ class FalconCtl(object):
 
         self.cs_path = "/opt/CrowdStrike"
         self.falconctl = self.module.get_bin_path(
-            "falconctl", required=True, opt_dirs=[self.cs_path])
+            "falconctl", required=True, opt_dirs=[self.cs_path]
+        )
         self.states = {"present": "s", "absent": "d"}
         self.valid_params = VALID_PARAMS
         self.state = self.params["state"]
@@ -188,25 +192,23 @@ class FalconCtl(object):
         if isinstance(value, list):
             # Make a copy and return it
             new_value = value[:]
-            return ','.join(new_value)
+            return ",".join(new_value)
         return value
 
     def __run_command(self, cmd):
-        output = self.module.run_command(
-            cmd, use_unsafe_shell=False)
+        output = self.module.run_command(cmd, use_unsafe_shell=False)
 
-        # Add some error checking/reporting
-        # Check if "ERROR" or "not a valid" or "unrecognized" string in output[2]
-        if "ERROR" in output[2] or "not a valid" in output[2] or "unrecognized" in output[2]:
-            self.module.fail_json(
-                msg="ERROR: %s" % (output[2].splitlines()[0])
-            )
+        # List of error keywords to check
+        error_keywords = ["ERROR", "not a valid", "unrecognized"]
+
+        # Check if any error keyword is found in output[2]
+        if any(keyword in output[2] for keyword in error_keywords):
+            self.module.fail_json(msg="ERROR: %s" % (output[2].splitlines()[0]))
 
     @classmethod
     def __validate_regex(cls, string, regex, flags=re.IGNORECASE):
         """Validate whether option matches specified format"""
-        return re.match(
-            regex, string, flags=flags)
+        return re.match(regex, string, flags=flags)
 
     def add_args(self, state):
         """Add correct falconctl args for valid states"""
@@ -218,15 +220,19 @@ class FalconCtl(object):
                 if k in self.valid_params[fstate]:
                     key = k.replace("_", "-")
                     if state == "present":
-                        args.append("--%s=%s" %
-                                    (key, self.__list_to_string(self.params[k])))
+                        args.append(
+                            "--%s=%s" % (key, self.__list_to_string(self.params[k]))
+                        )
                     else:
                         args.append("--%s" % (key))
                 else:
                     if k != "state":
                         self.module.fail_json(
-                            msg=("Cannot use '%s' with state '%s'. Valid options for "
-                                 "state '%s' are: %s." % (k, state, state, ', '.join(VALID_PARAMS[fstate])))
+                            msg=(
+                                "Cannot use '%s' with state '%s'. Valid options for "
+                                "state '%s' are: %s."
+                                % (k, state, state, ", ".join(VALID_PARAMS[fstate]))
+                            )
                         )
         return args
 
@@ -250,10 +256,10 @@ class FalconCtl(object):
         # Deal with list evaluations
         if isinstance(value, list):
             if key == "feature":
-                if 'none' in value and len(value) > 1:
+                if "none" in value and len(value) > 1:
                     # remove none from list by making copy, to keep orig intact
                     new_list = value[:]
-                    new_list.remove('none')
+                    new_list.remove("none")
                     return self.__list_to_string(new_list)
             return self.__list_to_string(value)
 
@@ -265,8 +271,7 @@ class FalconCtl(object):
         values = {}
         # Use before to validate keys
         if self.state == "present":
-            values.update({k: self.sanitize_opt(
-                k, self.params[k]) for k in before})
+            values.update({k: self.sanitize_opt(k, self.params[k]) for k in before})
         else:
             values.update({k: None for k in before})
 
@@ -296,29 +301,33 @@ class FalconCtl(object):
         if params["provisioning_token"]:
             # Ensure cid is also passed
             if not params["cid"]:
-                self.module.fail_json(
-                    msg="provisioning_token requires cid!"
-                )
+                self.module.fail_json(msg="provisioning_token requires cid!")
 
             valid_token = self.__validate_regex(
-                params["provisioning_token"], "^[0-9a-fA-F]{8}$")
+                params["provisioning_token"], "^[0-9a-fA-F]{8}$"
+            )
             if not valid_token:
                 self.module.fail_json(
-                    msg="Invalid provisioning token: '%s'" % (params["provisioning_token"]))
+                    msg="Invalid provisioning token: '%s'"
+                    % (params["provisioning_token"])
+                )
 
         if params["cid"]:
             valid_cid = self.__validate_regex(
-                params["cid"], "^[0-9a-fA-F]{32}-[0-9a-fA-F]{2}$")
+                params["cid"], "^[0-9a-fA-F]{32}-[0-9a-fA-F]{2}$"
+            )
             if not valid_cid:
                 self.module.fail_json(
-                    msg="Invalid CrowdStrike CID: '%s'" % (params["cid"]))
+                    msg="Invalid CrowdStrike CID: '%s'" % (params["cid"])
+                )
 
         if params["tags"]:
-            valid_tags = self.__validate_regex(
-                params["tags"], r"^[a-zA-Z0-9\/\-_\,]+$")
+            valid_tags = self.__validate_regex(params["tags"], r"^[a-zA-Z0-9\/\-_\,]+$")
             if not valid_tags:
                 self.module.fail_json(
-                    msg="Value of tags must be one of: all alphanumerics, '/', '-', '_', and ',', got %s" % (params["tags"]))
+                    msg="Value of tags must be one of: all alphanumerics, '/', '-', '_', and ',', got %s"
+                    % (params["tags"])
+                )
 
         self.check_param("apd", ["true", "false", ""], True)
         self.check_param("message_log", ["true", "false", ""], True)
@@ -331,42 +340,43 @@ class FalconCtl(object):
             parameter = self.params[param].lower() if to_lower else self.params[param]
 
             if parameter not in options:
-                str_options = '|'.join(map("'{0}'".format, options))
+                str_options = "|".join(map("'{0}'".format, options))
                 self.module.fail_json(
-                    msg="Value of %s must be one of: %s, got %s" % (param, str_options, parameter))
+                    msg="Value of %s must be one of: %s, got %s"
+                    % (param, str_options, parameter)
+                )
 
 
 def main():  # pylint: disable=missing-function-docstring
     module_args = dict(
-        state=dict(required=True, choices=[
-                   "absent", "present"], type="str"),
+        state=dict(required=True, choices=["absent", "present"], type="str"),
         cid=dict(required=False, type="str"),
         provisioning_token=dict(required=False, no_log=True, type="str"),
         aid=dict(required=False, type="bool"),
         apd=dict(required=False, type="str"),
         aph=dict(required=False, type="str"),
         app=dict(required=False, type="str"),
-        trace=dict(required=False, choices=[
-                   "none", "err", "warn", "info", "debug"], type="str"),
-        feature=dict(required=False, choices=[
-            "none", "enableLog", "disableLogBuffer"], type="list", elements="str"),
+        trace=dict(
+            required=False, choices=["none", "err", "warn", "info", "debug"], type="str"
+        ),
+        feature=dict(
+            required=False,
+            choices=["none", "enableLog", "disableLogBuffer"],
+            type="list",
+            elements="str",
+        ),
         message_log=dict(required=False, type="str"),
         billing=dict(required=False, type="str"),
         tags=dict(required=False, type="str"),
         backend=dict(required=False, type="str"),
     )
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     # Instantiate class
     falcon = FalconCtl(module)
 
-    result = dict(
-        changed=False
-    )
+    result = dict(changed=False)
 
     before = falcon.get_values()
 
@@ -382,10 +392,7 @@ def main():  # pylint: disable=missing-function-docstring
 
     if before != after:
         result["changed"] = True
-        result["diff"] = dict(
-            before=before,
-            after=after
-        )
+        result["diff"] = dict(before=before, after=after)
 
     module.exit_json(**result)
 
