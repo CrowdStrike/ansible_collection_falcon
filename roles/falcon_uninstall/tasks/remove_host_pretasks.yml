@@ -44,6 +44,7 @@
         $bytes = @( {{ aid_win_value.value | join(',') }} )
         $aid = [System.BitConverter]::ToString($bytes).ToLower() -replace '-', ''
         Write-Host -NoNewline $aid
+      changed_when: false
       register: falcon_uninstall_windows_aid_value
 
     - name: "CrowdStrike Falcon | Set AID (Windows)"

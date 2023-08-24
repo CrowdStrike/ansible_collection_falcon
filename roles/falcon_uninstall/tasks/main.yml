@@ -7,6 +7,7 @@
 - name: API block
   when:
     - falcon_client_id and falcon_client_secret
+    - falcon_sensor_installed
   block:
     - ansible.builtin.include_role:
         name: falcon_install
@@ -15,7 +16,7 @@
 
 - name: Remove/Hide Host pretasks
   when:
-    - falcon_api_oauth2_token | length > 0
+    - falcon_api_oauth2_token is defined
     - falcon_remove_host
     - falcon_sensor_installed
   block:

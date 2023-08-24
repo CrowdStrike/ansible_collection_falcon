@@ -23,8 +23,8 @@
   block:
     - name: "CrowdStrike Falcon | Check status of Falcon Sensor (Windows)"
       ansible.windows.win_command: sc.exe query csagent
-      failed_when: no
-      changed_when: no
+      failed_when: false
+      changed_when: false
       register: win_status
 
     - name: "CrowdStrike Falcon | Check if Sensor is Installed (Windows)"
