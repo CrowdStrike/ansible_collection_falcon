@@ -32,8 +32,9 @@ This collection is supported and tested against the following Ansible versions: 
 Name | Description
 --- | ---
 [crowdstrike.falcon.falconctl](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_module.html#ansible-collections-crowdstrike-falcon-falconctl-module)|Configure CrowdStrike Falcon Sensor
-[crowdstrike.falcon.falconctl_info](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_info_module.html#ansible-collections-crowdstrike-falcon-falconctl-info-module)|Get values associated with Falcon sensor.
-[crowdstrike.falcon.sensor_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_policy_info.html#ansible-collections-crowdstrike-falcon-sensor-policy-info-module)|Get information about Falcon Update Sensor Policies
+[crowdstrike.falcon.falconctl_info](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_info_module.html#ansible-collections-crowdstrike-falcon-falconctl-info-module)|Get Values Associated with Falcon Sensor
+[crowdstrike.falcon.auth](https://crowdstrike.github.io/ansible_collection_falcon/auth.html#ansible-collections-crowdstrike-falcon-auth-module)|Manage Authentication with Falcon API
+[crowdstrike.falcon.sensor_update_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_policy_info.html#ansible-collections-crowdstrike-falcon-sensor-update-policy-info-module)|Get information about Falcon Update Sensor Policies
 
 <!--end collection content-->
 
