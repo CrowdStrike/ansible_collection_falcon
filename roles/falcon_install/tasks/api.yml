@@ -1,102 +1,55 @@
 ---
-# Block when falcon_sensor_update_policy_name is supplied
-- name: Build Sensor Update Policy Block (Linux)
-  when:
-    - falcon_sensor_update_policy_name
-    - falcon_sensor_update_policy_platform == 'Linux'
-  block:
-    - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query (Linux)"
-      ansible.builtin.set_fact:
-        falcon_sensor_update_policy_query: "{{ 'platform_name:\"' + falcon_sensor_update_policy_platform + '\"+name.raw:\"' + falcon_sensor_update_policy_name + '\"' }}"
-
-    - name: "CrowdStrike Falcon | Search for Sensor Update Policy (Linux)"
-      ansible.builtin.uri:
-        url: "https://{{ falcon_cloud }}/policy/combined/sensor-update/v2?filter={{ falcon_sensor_update_policy_query | urlencode }}"
-        method: GET
-        return_content: true
-        headers:
-          authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
-          Content-Type: application/json
-      register: falcon_sensor_update_policy_info_linux
-      no_log: "{{ falcon_api_enable_no_log }}"
-      run_once: "{{ falcon_sensor_update_policy_run_once }}"
-
-- name: Build Sensor Update Policy Block (MacOS)
-  when:
-    - falcon_sensor_update_policy_name
-    - falcon_sensor_update_policy_platform == 'Mac'
-  block:
-    - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query (MacOS)"
-      ansible.builtin.set_fact:
-        falcon_sensor_update_policy_query: "{{ 'platform_name:\"' + falcon_sensor_update_policy_platform + '\"+name.raw:\"' + falcon_sensor_update_policy_name + '\"' }}"
-
-    - name: "CrowdStrike Falcon | Search for Sensor Update Policy (MacOS)"
-      ansible.builtin.uri:
-        url: "https://{{ falcon_cloud }}/policy/combined/sensor-update/v2?filter={{ falcon_sensor_update_policy_query | urlencode }}"
-        method: GET
-        return_content: true
-        headers:
-          authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
-          Content-Type: application/json
-      register: falcon_sensor_update_policy_info_mac
-      no_log: "{{ falcon_api_enable_no_log }}"
-      run_once: "{{ falcon_sensor_update_policy_run_once }}"
-
 - name: Sensor Update Policy Block
   when:
     - falcon_sensor_update_policy_name
   block:
     # Set falcon_sensor_update_policy_info fact based on platform
-    - name: "CrowdStrike Falcon | Set falcon_sensor_update_policy_info fact based on platform"
+    # - name: "CrowdStrike Falcon | Set falcon_sensor_update_policy_info fact based on platform"
+    #   ansible.builtin.set_fact:
+    #     falcon_sensor_update_policy_info: "{{ falcon_sensor_update_policy_info_linux if falcon_sensor_update_policy_platform == 'Linux' else falcon_sensor_update_policy_info_mac }}"
+    - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query"
       ansible.builtin.set_fact:
-        falcon_sensor_update_policy_info: "{{ falcon_sensor_update_policy_info_linux if falcon_sensor_update_policy_platform == 'Linux' else falcon_sensor_update_policy_info_mac }}"
+        falcon_sensor_update_policy_filter: "platform_name:'{{ falcon_sensor_update_policy_platform }}'+name.raw:'{{ falcon_sensor_update_policy_name }}'"
+
+    - name: CrowdStrike Falcon | Search for Sensor Update Policy
+      crowdstrike.falcon.sensor_update_policy_info:
+        auth: "{{ falcon.auth }}"
+        filter: "{{ falcon_sensor_update_policy_filter }}"
+      register: falcon_sensor_update_policy_info
+      delegate_to: localhost
 
     - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
       ansible.builtin.fail:
         msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} was found!"
-      when: falcon_sensor_update_policy_info.json.resources[0] is not defined
+      when: falcon_sensor_update_policy_info.policies is not defined
 
     - name: "CrowdStrike Falcon | Validate Sensor Update Policy request for aarch64 architectures"
       ansible.builtin.fail:
         msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} and enabled for aarch64 was found!"
       when:
-        - falcon_sensor_update_policy_info.json.resources[0].settings.variants[0] is not defined
+        - falcon_sensor_update_policy_info.policies[0].settings.variants[0] is not defined
         - ansible_facts['machine'] == "aarch64"
 
     - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy"
       ansible.builtin.set_fact:
-        falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.json.resources[0].settings.sensor_version }}"
+        falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.policies[0].settings.sensor_version }}"
       when: ansible_facts['machine'] != "aarch64"
 
     - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy for aarch64 architecture"
       ansible.builtin.set_fact:
-        falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.json.resources[0].settings.variants[0].sensor_version }}"
+        falcon_sensor_update_policy_package_version: "{{ falcon_sensor_update_policy_info.policies[0].settings.variants[0].sensor_version }}"
       when: ansible_facts['machine'] == "aarch64"
 
-    - name: "CrowdStrike Falcon | Build API Sensor Query based on Sensor Update Policy (Linux)"
+    - name: CrowdStrike Falcon | Override falcon_sensor_version with version from Sensor Update Policy
       ansible.builtin.set_fact:
-        falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_update_policy_package_version + falcon_os_arch }}"
-      when: ansible_facts['system'] == "Linux"
+        falcon_sensor_version: "+version:'{{ falcon_sensor_update_policy_package_version }}'"
 
-    - name: "CrowdStrike Falcon | Build API Sensor Query based on Sensor Update Policy (MacOS)"
-      ansible.builtin.set_fact:
-        falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_update_policy_package_version + '\"' }}"
-      when: ansible_facts['system'] == "Darwin"
 
-- name: "Build API Sensor Block"
-  when: not falcon_sensor_update_policy_name
-  block:
-    - name: "CrowdStrike Falcon | Build API Sensor Query (Linux)"
-      ansible.builtin.set_fact:
-        falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + falcon_os_arch + '+version:\"' + falcon_sensor_version + '\"'
-          if (falcon_sensor_version) else 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + falcon_os_arch }}"
-      when: ansible_facts['system'] == "Linux"
+- name: "CrowdStrike Falcon | Build API Sensor Query"
+  ansible.builtin.set_fact:
+    falcon_os_query: "os:'{{ falcon_target_os }}'+os_version:'{{ falcon_os_version }}'\
+      {{ falcon_os_arch | default('') }}{{ falcon_sensor_version | default('') }}"
 
-    - name: "CrowdStrike Falcon | Build API Sensor Query (MacOS)"
-      ansible.builtin.set_fact:
-        falcon_os_query: "{{ 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"+version:\"' + falcon_sensor_version + '\"'
-          if (falcon_sensor_version) else 'os:\"' + falcon_target_os + '\"+os_version:\"' + falcon_os_version + '\"' }}"
-      when: ansible_facts['system'] == "Darwin"
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
   ansible.builtin.uri:

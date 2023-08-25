@@ -104,3 +104,8 @@
   when:
     - falcon_sensor_update_policy_name or
       falcon_sensor_version
+
+- name: CrowdStrike Falcon | Override falcon_sensor_version when set
+  ansible.builtin.set_fact:
+    falcon_sensor_version: "+version:'{{ falcon_sensor_version }}'"
+  when: falcon_sensor_version | length > 0
