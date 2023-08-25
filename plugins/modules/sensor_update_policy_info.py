@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Ansible info module used to query options for the CrowdStrike Falcon Sensor on Linux systems.
-# Copyright: (c) 2021, CrowdStrike Inc.
-#
+# Copyright: (c) 2023, CrowdStrike Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
@@ -202,7 +200,7 @@ pagination:
 import traceback
 
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
-from ansible_collections.crowdstrike.falcon.plugins.module_utils.args_common import (
+from ansible_collections.crowdstrike.falcon.plugins.module_utils.common_args import (
     falconpy_arg_spec,
 )
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
@@ -261,7 +259,6 @@ def main():
     )
 
     if query_result["status_code"] == 200:
-        # result["policies"] = query_result["body"]["resources"]
         result.update(
             policies=query_result["body"]["resources"],
             pagination=query_result["body"]["meta"]["pagination"],
