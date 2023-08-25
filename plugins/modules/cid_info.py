@@ -88,7 +88,7 @@ def main():
 
     if query_result["status_code"] == 200:
         result.update(
-            cid=query_result["body"]["resources"],
+            cid=query_result["body"]["resources"][0],
         )
 
     handle_return_errors(module, result, query_result)
