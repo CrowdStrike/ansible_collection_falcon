@@ -57,48 +57,11 @@ installers:
   type: list
   elements: dict
   contains:
-    name:
-      description: The name of the Sensor Installer.
-      returned: success
-      type: str
-      sample: falcon-sensor-X.YY.Z-11404.el7.x86_64.rpm
     description:
       description: The description of the Sensor Installer.
       returned: success
       type: str
       sample: Falcon Sensor for Ubuntu 18.04
-    platform:
-      description: The platform associated with the Sensor Installer.
-      returned: success
-      type: str
-      sample: linux
-    os:
-      description: The operating system associated with the Sensor Installer.
-      returned: success
-      type: str
-      sample: Ubuntu
-    os_version:
-      description: The operating system version associated with the Sensor Installer.
-      returned: success
-      type: str
-      sample: 16/18/20/22
-    sha256:
-      description:
-        - The SHA256 checksum of the Sensor Installer.
-        - This value is generally used to download the Sensor Installer.
-      returned: success
-      type: str
-      sample: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
-    release_date:
-      description: The release date of the Sensor Installer.
-      returned: success
-      type: str
-      sample: 2021-01-01T00:00:00Z
-    version:
-      description: The version of the Sensor Installer.
-      returned: success
-      type: str
-      sample: 6.22.11404
     file_size:
       description: The size of the Sensor Installer in bytes.
       returned: success
@@ -109,6 +72,43 @@ installers:
       returned: success
       type: str
       sample: rpm
+    name:
+      description: The name of the Sensor Installer.
+      returned: success
+      type: str
+      sample: falcon-sensor-X.YY.Z-11404.el7.x86_64.rpm
+    os:
+      description: The operating system associated with the Sensor Installer.
+      returned: success
+      type: str
+      sample: Ubuntu
+    os_version:
+      description: The operating system version associated with the Sensor Installer.
+      returned: success
+      type: str
+      sample: 16/18/20/22
+    platform:
+      description: The platform associated with the Sensor Installer.
+      returned: success
+      type: str
+      sample: linux
+    release_date:
+      description: The release date of the Sensor Installer.
+      returned: success
+      type: str
+      sample: 2021-01-01T00:00:00Z
+    sha256:
+      description:
+        - The SHA256 checksum of the Sensor Installer.
+        - This value is generally used to download the Sensor Installer.
+      returned: success
+      type: str
+      sample: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    version:
+      description: The version of the Sensor Installer.
+      returned: success
+      type: str
+      sample: 6.22.11404
 """
 
 import traceback

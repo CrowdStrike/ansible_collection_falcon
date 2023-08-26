@@ -3,10 +3,6 @@
   when:
     - falcon_sensor_update_policy_name
   block:
-    # Set falcon_sensor_update_policy_info fact based on platform
-    # - name: "CrowdStrike Falcon | Set falcon_sensor_update_policy_info fact based on platform"
-    #   ansible.builtin.set_fact:
-    #     falcon_sensor_update_policy_info: "{{ falcon_sensor_update_policy_info_linux if falcon_sensor_update_policy_platform == 'Linux' else falcon_sensor_update_policy_info_mac }}"
     - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query"
       ansible.builtin.set_fact:
         falcon_sensor_update_policy_filter: "platform_name:'{{ falcon_sensor_update_policy_platform }}'+name.raw:'{{ falcon_sensor_update_policy_name }}'"
@@ -52,26 +48,22 @@
 
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
-  ansible.builtin.uri:
-    url: "https://{{ falcon_cloud }}/sensors/combined/installers/v1?sort=version|desc&filter={{ falcon_os_query | urlencode }}"
-    method: GET
-    return_content: true
-    headers:
-      authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
-      Content-Type: application/json
+  crowdstrike.falcon.sensor_download_info:
+    auth: "{{ falcon.auth }}"
+    filter: "{{ falcon_os_query }}"
+    sort: "version|desc"
   register: falcon_api_installer_list
-  no_log: "{{ falcon_api_enable_no_log }}"
 
 - name: CrowdStrike Falcon | Validate Sensor request
   ansible.builtin.fail:
     msg: "No Falcon Sensor was found! If passing in falcon_sensor_version, ensure it is correct!"
-  when: falcon_api_installer_list.json.resources[0] is not defined
+  when: falcon_api_installer_list.installers[0] is not defined
 
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package
   ansible.builtin.get_url:
-    url: "https://{{ falcon_cloud }}/sensors/entities/download-installer/v1?id={{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].sha256 }}"
+    url: "https://{{ falcon_cloud }}/sensors/entities/download-installer/v1?id={{ falcon_api_installer_list.installers[falcon_sensor_version_decrement | int].sha256 }}"
     dest: "{{ falcon_install_temp_directory.path }}"
-    checksum: "sha256:{{ falcon_api_installer_list.json.resources[falcon_sensor_version_decrement | int].sha256 }}"
+    checksum: "sha256:{{ falcon_api_installer_list.installers[falcon_sensor_version_decrement | int].sha256 }}"
     mode: 0640
     headers:
       authorization: "Bearer {{ falcon_api_oauth2_token.json.access_token }}"
