@@ -17,7 +17,9 @@ short_description: Download Falcon Sensor Installer
 version_added: "4.0.0"
 
 description:
-  - Download the Falcon Sensor Installer by SHA256 ID.
+  - Downloads the Falcon Sensor Installer by SHA256 ID to the specified path.
+  - This module does not copy the sensor installer to the target host. For that,
+    use the M(ansible.builtin.copy) or M(ansible.windows.win_copy) module.
 
 options:
   id:
@@ -28,7 +30,8 @@ options:
   path:
     description:
       - The directory path to save the Falcon Sensor Installer.
-      - If path is not specified, the default system temporary directory will be used.
+      - If path is not specified, a temporary directory will be created using
+        the system's default temporary directory.
     type: path
     required: false
   name:
