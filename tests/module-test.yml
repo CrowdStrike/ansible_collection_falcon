@@ -9,17 +9,7 @@
     crowdstrike.falcon.auth:
     register: falcon
 
-  - name: Get Latest Linux sensor installer
-    crowdstrike.falcon.sensor_download_info:
+  - name: Get enabled windows sensor policies
+    crowdstrike.falcon.sensor_update_policy_info:
       auth: "{{ falcon.auth }}"
-      limit: 1
-      sort: "os_version|desc"
-      filter: "platform:'linux'"
-    register: sensor
-
-  - name: Download Linux sensor installer
-    crowdstrike.falcon.sensor_download:
-      auth: "{{ falcon.auth }}"
-      id: "{{ sensor.installers[0].sha256 }}"
-      path: "/tmp"
-      # name: "falcon-sensor.rpm"
+      filter: "platform_name:'Windows'+enabled:'true'"
