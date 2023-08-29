@@ -53,6 +53,7 @@
     filter: "{{ falcon_os_query }}"
     sort: "version|desc"
   register: falcon_api_installer_list
+  delegate_to: localhost
 
 - name: CrowdStrike Falcon | Validate Sensor request
   ansible.builtin.fail:
