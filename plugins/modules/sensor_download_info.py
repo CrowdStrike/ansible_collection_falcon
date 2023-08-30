@@ -96,7 +96,7 @@ installers:
       description: The release date of the Sensor Installer.
       returned: success
       type: str
-      sample: 2021-01-01T00:00:00Z
+      sample: "2021-01-01T00:00:00Z"
     sha256:
       description:
         - The SHA256 checksum of the Sensor Installer.
