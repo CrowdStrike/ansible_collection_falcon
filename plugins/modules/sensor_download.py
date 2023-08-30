@@ -22,9 +22,9 @@ description:
     use the M(ansible.builtin.copy) or M(ansible.windows.win_copy) module.
 
 options:
-  id:
+  hash:
     description:
-      - The SHA256 ID of the Falcon Sensor Installer.
+      - The SHA256 hash of the Falcon Sensor Installer.
     type: str
     required: true
   path:
@@ -56,11 +56,11 @@ author:
 EXAMPLES = r"""
 - name: Download the Falcon Sensor Installer
   crowdstrike.falcon.sensor_download:
-    id: "1234567890123456789012345678901234567890123456789012345678901234"
+    hash: "1234567890123456789012345678901234567890123456789012345678901234"
 
 - name: Download Windows Sensor Installer with custom name
   crowdstrike.falcon.sensor_download:
-    id: "1234567890123456789012345678901234567890123456789012345678901234"
+    hash: "1234567890123456789012345678901234567890123456789012345678901234"
     dest: "/tmp/windows"
     name: falcon-sensor.exe
 """
@@ -83,6 +83,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.common_args imp
 )
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     authenticate,
+    check_falconpy_version,
     handle_return_errors,
 )
 
@@ -101,7 +102,7 @@ def argspec():
     args = falconpy_arg_spec()
 
     args.update(
-        id=dict(type="str", required=True),
+        hash=dict(type="str", required=True),
         path=dict(type="path", required=False),
         name=dict(type="str", required=False),
     )
@@ -121,13 +122,16 @@ def main():
             msg=missing_required_lib("falconpy"), exception=FALCONPY_IMPORT_ERROR
         )
 
-    sensor_id = module.params["id"]
+    check_falconpy_version(module)
+
+    sensor_hash = module.params["hash"]
     path = module.params["path"]
     name = module.params["name"]
     tmp_dir = False
 
     if not path:
         path = mkdtemp()
+        os.chmod(path, 0o755)
         tmp_dir = True
 
     # Make sure path exists and is a directory
@@ -144,7 +148,7 @@ def main():
         changed=False,
     )
     # First, ensure the sensor installer exists
-    sensor_check = falcon.get_sensor_installer_entities(ids=[sensor_id])
+    sensor_check = falcon.get_sensor_installer_entities(ids=[sensor_hash])
     handle_return_errors(module, result, sensor_check)
 
     if sensor_check["status_code"] == 200:
@@ -157,11 +161,12 @@ def main():
         # Check if the file already exists
         if not tmp_dir and os.path.isfile(dest_dir):
             # Compare sha256 hashes to see if any changes have been made
-            dest_sha256 = module.sha256(dest_dir)
-            if dest_sha256 == sensor_id:
+            dest_hash = module.sha256(dest_dir)
+            if dest_hash == sensor_hash:
                 # File already exists and is the same
                 module.exit_json(
-                    msg=f"File already exists and content is the same: {dest_dir}",
+                    msg="File already exists and content is the same.",
+                    dest=dest_dir,
                     **result,
                 )
 
@@ -177,7 +182,7 @@ def main():
 
         # Download the sensor installer
         # Because this returns a binary, we need to handle errors differently
-        download = falcon.download_sensor_installer(id=sensor_id)
+        download = falcon.download_sensor_installer(id=sensor_hash)
 
         if isinstance(download, dict):
             # Error as download should not be a dict (from FalconPy)
@@ -190,7 +195,9 @@ def main():
         module.exit_json(**result)
     else:
         # Should be caught by handle_return_errors, but just in case.
-        module.fail_json(msg=f"Could not find sensor with id: {sensor_id}", **result)
+        module.fail_json(
+            msg=f"Could not find installer with hash: {sensor_hash}", **result
+        )
 
 
 if __name__ == "__main__":
