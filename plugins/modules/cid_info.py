@@ -53,6 +53,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.common_args imp
 )
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     authenticate,
+    check_falconpy_version,
     handle_return_errors,
 )
 
@@ -77,6 +78,8 @@ def main():
         module.fail_json(
             msg=missing_required_lib("falconpy"), exception=FALCONPY_IMPORT_ERROR
         )
+
+    check_falconpy_version(module)
 
     falcon = authenticate(module, SensorDownload)
 
