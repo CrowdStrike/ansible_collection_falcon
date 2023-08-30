@@ -5,7 +5,7 @@
     client_secret: "{{ falcon_client_secret }}"
     cloud: "{{ falcon_cloud }}"
   register: falcon
-  run_once: "{{ falcon_api_auth_run_once }}"
+  run_once: yes
   no_log: "{{ falcon_api_enable_no_log }}"
   delegate_to: localhost
 
@@ -16,7 +16,7 @@
     crowdstrike.falcon.cid_info:
       auth: "{{ falcon.auth }}"
     register: falcon_api_cid_info
-    run_once: "{{ falcon_api_auth_run_once }}"
+    run_once: yes
     delegate_to: localhost
 
   - name: CrowdStrike Falcon | Set CID received from API

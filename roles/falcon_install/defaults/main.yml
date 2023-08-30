@@ -8,11 +8,6 @@
 #
 falcon_api_enable_no_log: yes
 
-# Whether or not to enable run_once for API calls.
-# By default, this is enabled.
-#
-falcon_api_auth_run_once: yes
-
 # Whether or not to allow downgrading the Falcon Sensor.
 falcon_allow_downgrade: no
 
@@ -21,10 +16,29 @@ falcon_allow_downgrade: no
 #
 #   api:         Default: Fetch the latest installer directly from the CrowdStrike API.
 #   url:         Fetch installer from a URL
-#   repo:        Install from a package repository like APT, DNF, or YUM
 #   file:        Install from a local file
 #
 falcon_install_method: api
+
+# The local directory path to download the sensor to.
+# This is in relation to the localhost running the role.
+#
+# If path is not specified, a temporary directory will be created using the system's
+# default temporary directory.
+#
+falcon_api_sensor_download_path:
+
+# The name to save the sensor file as.
+#
+# If not specified, the file will be saved as the same name from the API.
+#
+falcon_api_sensor_download_filename:
+
+# Whether or not to delete the downloaded sensor after transfer to remote host.
+#
+# By default, this is enabled.
+#
+falcon_api_sensor_download_cleanup: yes
 
 # If the installation method is 'file', provide the absolute path to the installer file.
 #
@@ -89,12 +103,7 @@ falcon_sensor_version_decrement: 0
 #
 falcon_sensor_update_policy_name: ""
 
-# Whether or not to enable run_once for the Sensor update policy API calls.
-# By default, this is enabled.
-#
-falcon_sensor_update_policy_run_once: yes
-
-# Where should the sensor file be downloaded to on Linux and MacOS systems?
+# Where should the sensor file be copied to on Linux and MacOS systems?
 # By default, this will be the temp OS filesystem
 #
 falcon_install_tmp_dir: "/tmp"
