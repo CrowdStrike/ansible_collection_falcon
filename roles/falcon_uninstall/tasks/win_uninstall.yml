@@ -13,6 +13,13 @@
     state: absent
     creates_service: csfalconservice
     arguments: '/uninstall /quiet {{ falcon_windows_uninstall_args }}'
+  register: falcon_win_sensor_uninstall
   when:
     - falcon_win_sensor_cache.files | length > 0
     - ansible_facts['os_family'] == "Windows"
+
+- name: CrowdStrike Falcon | Wait for Falcon Sensor to be removed (Windows)
+  ansible.windows.win_wait_for:
+    path: C:\Windows\System32\drivers\CrowdStrike
+    state: absent
+  when: falcon_win_sensor_uninstall.changed  # noqa: no-handler

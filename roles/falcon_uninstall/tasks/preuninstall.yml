@@ -1,0 +1,51 @@
+---
+# Linux Block
+- name: "CrowdStrike Falcon | Linux Install State Block"
+  when:
+    - ansible_facts['system'] == 'Linux'
+  block:
+    - name: "CrowdStrike Falcon | Get List of Installed Packages (Linux)"
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: "CrowdStrike Falcon | Set Sensor Name (Linux)"
+      ansible.builtin.set_fact:
+        installed_sensor: falcon-sensor
+
+    - name: "CrowdStrike Falcon | Check if Sensor is Installed (Linux)"
+      ansible.builtin.set_fact:
+        falcon_sensor_installed_linux: "{{ installed_sensor in ansible_facts.packages }}"
+
+# Windows block
+- name: "CrowdStrike Falcon | Windows Install State Block"
+  when:
+    - ansible_facts['os_family'] == "Windows"
+  block:
+    - name: "CrowdStrike Falcon | Check status of Falcon Sensor (Windows)"
+      ansible.windows.win_command: sc.exe query csagent
+      failed_when: false
+      changed_when: false
+      register: win_status
+
+    - name: "CrowdStrike Falcon | Check if Sensor is Installed (Windows)"
+      ansible.builtin.set_fact:
+        falcon_sensor_installed_windows: "{{ true if ('RUNNING' in win_status.stdout) else false }}"
+
+# macOS block
+- name: "CrowdStrike Falcon | macOS Install State Block"
+  when:
+    - ansible_facts['distribution'] == "MacOSX"
+  block:
+    - name: CrowdStrike Falcon | Stat Falcon Sensor (macOS)
+      ansible.builtin.stat:
+        path: "/Applications/Falcon.app/Contents/Resources/falconctl"
+      register: falconctl_mac
+
+    - name: CrowdStrike Falcon | Check if Sensor is Installed (macOS)
+      ansible.builtin.set_fact:
+        falcon_sensor_installed_mac: "{{ falconctl_mac.stat.exists }}"
+
+# Check if sensor is installed
+- name: "CrowdStrike Falcon | Check if Sensor is Installed"
+  ansible.builtin.set_fact:
+    falcon_sensor_installed: "{{ falcon_sensor_installed_linux | default(falcon_sensor_installed_windows | default(falcon_sensor_installed_mac)) }}"

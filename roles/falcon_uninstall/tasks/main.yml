@@ -1,5 +1,28 @@
 ---
 # tasks file for falcon_uninstall
+- name: Uninstall pretasks
+  ansible.builtin.include_tasks: preuninstall.yml
+  # noqa name[missing]
+
+- name: API block
+  when:
+    - falcon_client_id and falcon_client_secret
+    - falcon_sensor_installed
+  block:
+    - ansible.builtin.include_role:
+        name: falcon_install
+        tasks_from: "{{ 'win_auth.yml' if ansible_facts['os_family'] == 'Windows' else 'auth.yml' }}"
+      # noqa name[missing]
+
+- name: Remove/Hide Host pretasks
+  when:
+    - falcon_api_oauth2_token is defined
+    - falcon_remove_host
+    - falcon_sensor_installed
+  block:
+    - ansible.builtin.include_tasks: remove_host_pretasks.yml
+      # noqa name[missing]
+
 - name: Linux Block
   when:
     - ansible_facts['os_family'] != "Windows"
@@ -17,4 +40,13 @@
   become_user: "{{ falcon_windows_become_user }}"
   block:
     - ansible.builtin.include_tasks: win_uninstall.yml
+      # noqa name[missing]
+
+# Hide host
+- name: Hide host
+  when:
+    - falcon_client_id and falcon_client_secret
+    - falcon_uninstall_remove_aid is defined
+  block:
+    - ansible.builtin.include_tasks: hide_host.yml
       # noqa name[missing]

@@ -1,4 +1,39 @@
 ---
+# defaults for falcon_uninstall
+
+# Whether to enable or disable the logging of sensitive data being exposed in API calls.
+# By default, this is enabled.
+#
+# Disabling this can expose your API credentials and authorization token.
+#
+falcon_api_enable_no_log: yes
+
+# CrowdStrike API URL for downloading the Falcon sensor. Possible values:
+#       us-1:       api.crowdstrike.com
+#       us-2:       api.us-2.crowdstrike.com
+#       eu-1:       api.eu-1.crowdstrike.com
+#       us-gov-1:   api.laggar.gcw.crowdstrike.com
+#
+falcon_cloud: "api.crowdstrike.com"
+
+# Auto-discover the CrowdStrike Cloud API Region. When disabled,
+# 'falcon_cloud' should be changed to the appropriate cloud region.
+#
+falcon_cloud_autodiscover: true
+
+# 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
+# API. If unknown, get it from the CrowdStrike support portal:
+#
+#   https://falcon.crowdstrike.com/support/api-clients-and-keys
+#
+falcon_client_id:
+falcon_client_secret:
+
+# Whether to hide/remove the host from the CrowdStrike console.
+# The default is false
+#
+falcon_remove_host: false
+
 # Additional arugments to uninstall the sensor.
 # You can add your maintenance token here by adding MAINTENANCE_TOKEN=<token>
 #
