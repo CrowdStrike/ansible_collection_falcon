@@ -64,7 +64,7 @@
   crowdstrike.falcon.sensor_download:
     auth: "{{ falcon.auth }}"
     hash: "{{ falcon_api_installer_list.installers[falcon_sensor_version_decrement | int].sha256 }}"
-    path: "{{ falcon_api_sensor_download_path if falcon_api_sensor_download_path else omit }}"
+    dest: "{{ falcon_api_sensor_download_path if falcon_api_sensor_download_path else omit }}"
     name: "{{ falcon_api_sensor_download_filename if falcon_api_sensor_download_filename else omit }}"
   changed_when: false
   register: falcon_sensor_download
@@ -72,7 +72,7 @@
 
 - name: CrowdStrike Falcon | Copy Sensor Installation Package to remote host (non-windows)
   ansible.builtin.copy:
-    src: "{{ falcon_sensor_download.dest }}"
+    src: "{{ falcon_sensor_download.path }}"
     dest: "{{ falcon_install_temp_directory.path }}"
     mode: 0640
   changed_when: false
@@ -81,7 +81,7 @@
 
 - name: CrowdStrike Falcon | Copy Sensor Installation Package to remote host (windows)
   ansible.windows.win_copy:
-    src: "{{ falcon_sensor_download.dest }}"
+    src: "{{ falcon_sensor_download.path }}"
     dest: "{{ falcon_install_win_temp_directory.path }}"
     mode: 0640
   changed_when: false
@@ -90,7 +90,7 @@
 
 - name: CrowdStrike Falcon | Remove Downloaded Sensor Installation Package (local)
   ansible.builtin.file:
-    path: "{{ falcon_sensor_download.dest }}"
+    path: "{{ falcon_sensor_download.path }}"
     state: absent
   changed_when: false
   delegate_to: localhost

@@ -24,13 +24,15 @@ description:
 options:
   hash:
     description:
-      - The SHA256 hash of the Falcon Sensor Installer.
+      - The SHA256 hash of the Falcon Sensor Installer to download.
+      - This can be obtained from the C(sha256) return value of the
+        M(crowdstrike.falcon.sensor_download_info) module.
     type: str
     required: true
-  path:
+  dest:
     description:
       - The directory path to save the Falcon Sensor Installer.
-      - If path is not specified, a temporary directory will be created using
+      - If not specified, a temporary directory will be created using
         the system's default temporary directory.
     type: path
     required: false
@@ -66,8 +68,8 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-dest:
-  description: The destination path of the downloaded Falcon Sensor Installer.
+path:
+  description: The full path of the downloaded Falcon Sensor Installer.
   returned: success
   type: str
   sample: /tmp/tmpzy7hn29t/falcon-sensor.deb
@@ -103,7 +105,7 @@ def argspec():
 
     args.update(
         hash=dict(type="str", required=True),
-        path=dict(type="path", required=False),
+        dest=dict(type="path", required=False),
         name=dict(type="str", required=False),
     )
 
@@ -125,22 +127,22 @@ def main():
     check_falconpy_version(module)
 
     sensor_hash = module.params["hash"]
-    path = module.params["path"]
+    dest = module.params["dest"]
     name = module.params["name"]
     tmp_dir = False
 
-    if not path:
-        path = mkdtemp()
-        os.chmod(path, 0o755)
+    if not dest:
+        dest = mkdtemp()
+        os.chmod(dest, 0o755)
         tmp_dir = True
 
     # Make sure path exists and is a directory
-    if not os.path.isdir(path):
-        module.fail_json(msg=f"Path does not exist or is not a directory: {path}")
+    if not os.path.isdir(dest):
+        module.fail_json(msg=f"Destination path does not exist or is not a directory: {dest}")
 
     # Make sure path is writable
-    if not os.access(path, os.W_OK):
-        module.fail_json(msg=f"Path is not writable: {path}")
+    if not os.access(dest, os.W_OK):
+        module.fail_json(msg=f"Destination path is not writable: {dest}")
 
     falcon = authenticate(module, SensorDownload)
 
@@ -156,17 +158,17 @@ def main():
         if not name:
             name = sensor_check["body"]["resources"][0]["name"]
 
-        dest_dir = os.path.join(path, name)
+        path = os.path.join(dest, name)
 
         # Check if the file already exists
-        if not tmp_dir and os.path.isfile(dest_dir):
+        if not tmp_dir and os.path.isfile(path):
             # Compare sha256 hashes to see if any changes have been made
-            dest_hash = module.sha256(dest_dir)
+            dest_hash = module.sha256(path)
             if dest_hash == sensor_hash:
                 # File already exists and is the same
                 module.exit_json(
                     msg="File already exists and content is the same.",
-                    dest=dest_dir,
+                    path=path,
                     **result,
                 )
 
@@ -175,8 +177,8 @@ def main():
 
         if module.check_mode:
             module.exit_json(
-                msg=f"File would have been downloaded: {dest_dir}",
-                dest=dest_dir,
+                msg=f"File would have been downloaded: {path}",
+                path=path,
                 **result,
             )
 
@@ -188,10 +190,10 @@ def main():
             # Error as download should not be a dict (from FalconPy)
             module.fail_json(msg="Unable to download sensor installer", **result)
 
-        with open(dest_dir, "wb") as save_file:
+        with open(path, "wb") as save_file:
             save_file.write(download)
 
-        result.update(dest=dest_dir)
+        result.update(path=path)
         module.exit_json(**result)
     else:
         # Should be caught by handle_return_errors, but just in case.
