@@ -18,6 +18,9 @@
           - sudo
         state: present
 
+- name: Install CrowdStrike Falcon Sensor
+  hosts: all
+  tasks:
     - name: Install Falcon Sensor
       ansible.builtin.include_role:
         name: crowdstrike.falcon.falcon_install

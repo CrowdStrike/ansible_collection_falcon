@@ -2,13 +2,10 @@
 - name: Prepare
   hosts: all
   become: yes
-  vars:
-    falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
-    falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
-  pre_tasks:
+  tasks:
     # Ubuntu specific
     - name: Install apt dependencies
-      apt:
+      ansible.builtin.apt:
         name:
           - gpg-agent
         update_cache: yes
@@ -16,11 +13,28 @@
       when: ansible_facts['pkg_mgr'] == 'apt'
 
     - name: Install dependencies
-      package:
+      ansible.builtin.package:
         name:
           - sudo
         state: present
 
-  roles:
-    - role: crowdstrike.falcon.falcon_install
-    - role: crowdstrike.falcon.falcon_configure
+- name: Install CrowdStrike Falcon Sensor (prepare)
+  hosts: all
+  tasks:
+    - name: Install Falcon Sensor
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_install
+      vars:
+        falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+        falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
+
+- name: Configure CrowdStrike Falcon Sensor (prepare)
+  hosts: all
+  become: yes
+  tasks:
+    - name: Configure Falcon Sensor
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_configure
+      vars:
+        falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+        falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"

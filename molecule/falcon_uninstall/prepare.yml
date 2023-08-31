@@ -2,9 +2,6 @@
 - name: Prepare
   hosts: all
   become: yes
-  vars:
-    falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
-    falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
   tasks:
     # Ubuntu specific
     - name: Install apt dependencies
@@ -21,10 +18,23 @@
           - sudo
         state: present
 
-    - name: Run falcon_install role
+- name: Install CrowdStrike Falcon Sensor (prepare)
+  hosts: all
+  tasks:
+    - name: Install Falcon Sensor
       ansible.builtin.include_role:
         name: crowdstrike.falcon.falcon_install
+      vars:
+        falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+        falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
 
+- name: Configure CrowdStrike Falcon Sensor (prepare)
+  hosts: all
+  become: yes
+  tasks:
     - name: Configure Falcon Sensor
       ansible.builtin.include_role:
         name: crowdstrike.falcon.falcon_configure
+      vars:
+        falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+        falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
