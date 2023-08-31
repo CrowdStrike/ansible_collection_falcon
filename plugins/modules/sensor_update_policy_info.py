@@ -28,24 +28,14 @@ options:
       - See the L(FalconPy documentation,https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#available-filters-2)
         for more information about the available filters.
     type: str
-  limit:
-    description:
-      - The maximum number of records to return. [1-5000]
-    type: int
-  offset:
-    description:
-      - The offset to start retrieving records from.
-    type: int
-  sort:
-    description:
-      - The property to sort by in FQL (Falcon Query Language) syntax.
-      - See the L(FalconPy documentation,https://www.falconpy.io/Service-Collections/Sensor-Update-Policy.html#querycombinedsensorupdatepoliciesv2)
-        keyword arguments table for more information about the available sort options.
-    type: str
 
 extends_documentation_fragment:
     - crowdstrike.falcon.credentials
     - crowdstrike.falcon.credentials.auth
+    - crowdstrike.falcon.info
+
+requirements:
+  - Sensor update policies [B(READ)] API scope
 
 author:
   - Frank Falor (@ffalor)
@@ -205,6 +195,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.common_args imp
 )
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     authenticate,
+    check_falconpy_version,
     handle_return_errors,
 )
 
@@ -244,6 +235,8 @@ def main():
         module.fail_json(
             msg=missing_required_lib("falconpy"), exception=FALCONPY_IMPORT_ERROR
         )
+
+    check_falconpy_version(module)
 
     args = {}
     for key, value in module.params.items():

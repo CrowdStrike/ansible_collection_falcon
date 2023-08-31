@@ -11,7 +11,29 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.version import 
     __version__,
 )
 
+FALCONPY_IMPORT_ERROR = None
+
+try:
+    from falconpy._version import _VERSION
+except (ImportError, ModuleNotFoundError) as e:
+    FALCONPY_IMPORT_ERROR = e
+
 __metaclass__ = type
+
+
+def check_falconpy_version(module):
+    """Ensure FalconPy version is compatible."""
+    minumum_version = "1.3.0"
+
+    if FALCONPY_IMPORT_ERROR:
+        module.fail_json(
+            msg=f"Unable to import FalconPy: {FALCONPY_IMPORT_ERROR}. See module documentation for help."
+        )
+
+    if _VERSION < minumum_version:
+        module.fail_json(
+            msg=f"Unsupported FalconPy version: {_VERSION}. Upgrade to {minumum_version} or higher."
+        )
 
 
 def get_falconpy_credentials(module):

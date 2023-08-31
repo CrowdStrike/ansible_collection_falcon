@@ -97,6 +97,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils 
     get_falconpy_credentials,
     handle_return_errors,
     get_cloud_from_url,
+    check_falconpy_version,
 )
 
 FALCONPY_IMPORT_ERROR = None
@@ -163,6 +164,8 @@ def main():
         module.fail_json(
             msg=missing_required_lib("falconpy"), exception=FALCONPY_IMPORT_ERROR
         )
+
+    check_falconpy_version(module)
 
     result = dict(
         changed=False,

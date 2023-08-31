@@ -53,6 +53,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.common_args imp
 )
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     authenticate,
+    check_falconpy_version,
     handle_return_errors,
 )
 
@@ -78,6 +79,8 @@ def main():
             msg=missing_required_lib("falconpy"), exception=FALCONPY_IMPORT_ERROR
         )
 
+    check_falconpy_version(module)
+
     falcon = authenticate(module, SensorDownload)
 
     query_result = falcon.get_sensor_installer_ccid()
@@ -88,7 +91,7 @@ def main():
 
     if query_result["status_code"] == 200:
         result.update(
-            cid=query_result["body"]["resources"],
+            cid=query_result["body"]["resources"][0],
         )
 
     handle_return_errors(module, result, query_result)

@@ -8,11 +8,6 @@
 #
 falcon_api_enable_no_log: yes
 
-# Whether or not to enable run_once for API calls.
-# By default, this is enabled.
-#
-falcon_api_auth_run_once: yes
-
 # Whether or not to allow downgrading the Falcon Sensor.
 falcon_allow_downgrade: no
 
@@ -21,10 +16,29 @@ falcon_allow_downgrade: no
 #
 #   api:         Default: Fetch the latest installer directly from the CrowdStrike API.
 #   url:         Fetch installer from a URL
-#   repo:        Install from a package repository like APT, DNF, or YUM
 #   file:        Install from a local file
 #
 falcon_install_method: api
+
+# The local directory path to download the sensor to.
+# This is in relation to the localhost running the role.
+#
+# If path is not specified, a temporary directory will be created using the system's
+# default temporary directory.
+#
+falcon_api_sensor_download_path:
+
+# The name to save the sensor file as.
+#
+# If not specified, the file will be saved as the same name from the API.
+#
+falcon_api_sensor_download_filename:
+
+# Whether or not to delete the downloaded sensor after transfer to remote host.
+#
+# By default, this is enabled.
+#
+falcon_api_sensor_download_cleanup: yes
 
 # If the installation method is 'file', provide the absolute path to the installer file.
 #
@@ -42,18 +56,13 @@ falcon_localfile_cleanup: no
 #
 falcon_gpg_key_check: yes
 
-# CrowdStrike API URL for downloading the Falcon sensor. Possible values:
+# CrowdStrike API Cloud region for downloading the Falcon sensor. Possible values:
 #       us-1:       api.crowdstrike.com
 #       us-2:       api.us-2.crowdstrike.com
 #       eu-1:       api.eu-1.crowdstrike.com
 #       us-gov-1:   api.laggar.gcw.crowdstrike.com
 #
-falcon_cloud: "api.crowdstrike.com"
-
-# Auto-discover the CrowdStrike Cloud API Region. When disabled,
-# 'falcon_cloud' should be changed to the appropriate cloud region.
-#
-falcon_cloud_autodiscover: true
+falcon_cloud: "us-1"
 
 # Your Falcon Customer ID (CID) used to associate your sensor.
 #
@@ -94,12 +103,7 @@ falcon_sensor_version_decrement: 0
 #
 falcon_sensor_update_policy_name: ""
 
-# Whether or not to enable run_once for the Sensor update policy API calls.
-# By default, this is enabled.
-#
-falcon_sensor_update_policy_run_once: yes
-
-# Where should the sensor file be downloaded to on Linux and MacOS systems?
+# Where should the sensor file be copied to on Linux and MacOS systems?
 # By default, this will be the temp OS filesystem
 #
 falcon_install_tmp_dir: "/tmp"

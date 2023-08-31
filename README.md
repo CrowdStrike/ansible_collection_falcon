@@ -35,6 +35,8 @@ Name | Description
 [crowdstrike.falcon.falconctl_info](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_info_module.html#ansible-collections-crowdstrike-falcon-falconctl-info-module)|Get Values Associated with Falcon Sensor
 [crowdstrike.falcon.auth](https://crowdstrike.github.io/ansible_collection_falcon/auth.html#ansible-collections-crowdstrike-falcon-auth-module)|Manage Authentication with Falcon API
 [crowdstrike.falcon.cid_info](https://crowdstrike.github.io/ansible_collection_falcon/cid_info.html#ansible-collections-crowdstrike-falcon-cid-info-module)|Get CID with checksum
+[crowdstrike.falcon.sensor_download](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download.html#ansible-collections-crowdstrike-falcon-sensor-download-module)|Download Falcon Sensor Installer
+[crowdstrike.falcon.sensor_download_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_info.html#ansible-collections-crowdstrike-falcon-sensor-download-info-module)|Get information about Falcon Sensor Installers
 [crowdstrike.falcon.sensor_update_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_policy_info.html#ansible-collections-crowdstrike-falcon-sensor-update-policy-info-module)|Get information about Falcon Update Sensor Policies
 
 <!--end collection content-->
