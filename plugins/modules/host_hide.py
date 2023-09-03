@@ -81,14 +81,17 @@ failed_hosts:
       description:
         - The host ID that failed to be hidden or unhidden.
       type: str
+      returned: when a host ID fails
     code:
       description:
         - The error code returned by the API.
       type: int
+      returned: when a host ID fails
     message:
       description:
         - The error message returned by the API.
       type: str
+      returned: when a host ID fails
 """
 
 import traceback
