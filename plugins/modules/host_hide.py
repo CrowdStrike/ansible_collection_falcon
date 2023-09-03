@@ -53,7 +53,6 @@ author:
 EXAMPLES = r"""
 - name: Hide hosts from the Falcon console
   crowdstrike.falcon.host_hide:
-    action: hide
     host_ids: "12345678901234567890"
 
 - name: Unhide hosts from the Falcon console

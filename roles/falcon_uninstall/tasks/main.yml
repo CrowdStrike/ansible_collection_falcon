@@ -11,12 +11,12 @@
   block:
     - ansible.builtin.include_role:
         name: falcon_install
-        tasks_from: "{{ 'win_auth.yml' if ansible_facts['os_family'] == 'Windows' else 'auth.yml' }}"
+        tasks_from: auth
       # noqa name[missing]
 
 - name: Remove/Hide Host pretasks
   when:
-    - falcon_api_oauth2_token is defined
+    - falcon.auth is defined
     - falcon_remove_host
     - falcon_sensor_installed
   block:
@@ -45,7 +45,7 @@
 # Hide host
 - name: Hide host
   when:
-    - falcon_client_id and falcon_client_secret
+    - falcon.auth is defined
     - falcon_uninstall_remove_aid is defined
   block:
     - ansible.builtin.include_tasks: hide_host.yml
