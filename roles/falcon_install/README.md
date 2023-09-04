@@ -1,13 +1,14 @@
-# falcon_install
+# crowdstrike.falcon.falcon_install
 
-This role installs the CrowdStrike Falcon Sensor. As of version 4.0.0, this role takes full advantage
-of the FalconPy SDK for installing the sensor via the CrowdStrike API. This role also supports installing
+This role installs the CrowdStrike Falcon Sensor. This role also supports installing
 the sensor from a local file or remote URL.
 
 ## Requirements
 
 - Ansible 2.12 or higher
 - FalconPy 1.3.0 or higher on Ansible control node
+
+> As of version 4.0.0, this role takes full advantage of the FalconPy SDK for interacting with the CrowdStrike API.
 
 ## Role Variables
 
