@@ -62,6 +62,18 @@ author:
   - Carlos Matos (@carlosmmatos)
 """
 
+EXAMPLES = r"""
+# Minimal example - Get all hosts (assume credentials are provided via environment variables)
+plugin: crowdstrike.falcon.falcon_discover
+
+# Get unmanaged hosts within the past day(passing credentials)
+plugin: crowdstrike.falcon.falcon_discover
+client_id: 1234567890abcdef12345678
+client_secret: 1234567890abcdef1234567890abcdef12345
+cloud: us-1
+filter: "entity_type:'unmanaged'+first_seen_timestamp:>'now-1d'"
+"""
+
 import os
 import re
 import traceback
@@ -121,10 +133,11 @@ class InventoryModule(BaseInventoryPlugin):
         return Discover(**creds)
 
 
-    def _query_hosts(self, falcon, fql):
+    def _get_host_details(self, falcon, fql):
         """Query hosts from Falcon Discover."""
         max_limit = 100  # Maximum limit allowed by Falcon Discover
         host_ids = []
+        host_details = []
         running = True
         offset = None
         while running:
@@ -135,13 +148,87 @@ class InventoryModule(BaseInventoryPlugin):
                 )
 
             if host_lookup["body"]["resources"]:
-                host_ids.extend(host_lookup["body"]["resources"])
+                host_ids = host_lookup["body"]["resources"]
+            else:
+                raise SystemExit(
+                    "No hosts were identified by the filter expression."
+                )
 
+            # Get host details
+            details = falcon.get_hosts(ids=host_ids)["body"]["resources"]
+            host_details.extend(details)
+
+            # Check if we need to continue
             offset = host_lookup["body"]["meta"]["pagination"]["offset"] + max_limit
-            if host_lookup["body"]["meta"]["pagination"]["total"] <= len(host_ids):
+            if host_lookup["body"]["meta"]["pagination"]["total"] <= len(host_details):
                 running = False
 
-        return host_ids
+        return host_details
+
+
+    def _hostvars(self, host):
+        """Return host variables."""
+        # todo: this is a common list of fields that are returned by the FalconPy API
+        hostvar_mapping = {
+            "id": "id",
+            "cid": "cid",
+            "aid": "aid",
+            "hostname": "hostname",
+            "asset_type": "entity_type",
+            "first_seen": "first_seen_timestamp",
+            "last_seen": "last_seen_timestamp",
+            "country": "country",
+            "city": "city",
+            "os_name": "platform_name",
+            "os_version": "os_version",
+            "kernel_version": "kernel_version",
+            "tags": "tags",
+            "groups": "groups",
+            "sensor_version": "agent_version",
+            "public_ip": "external_ip",
+            "private_ip": "current_local_ip",
+            "rfm": "reduced_functionality_mode",
+            "mac_address": "mac_address",
+            "fqdn": "fqdn",
+            "location": "location",
+            "state": "state",
+            "confidence": "confidence",
+            "managed_by": "managed_by",
+            "owned_by": "owned_by",
+            "used_for": "used_for",
+            "department": "department",
+            "cloud_provider": "cloud_provider",
+            "cloud_account_id": "cloud_account_id",
+            "cloud_region": "cloud_region",
+            "cloud_resource_id": "cloud_resource_id",
+            "cloud_registered": "cloud_registered",
+            "cloud_instance_id": "cloud_instance_id",
+        }
+
+        hostvars = {}
+        for key, value in hostvar_mapping.items():
+            if value in host:
+                hostvars[key] = host[value]
+
+        return hostvars
+
+
+    def _get_ip_address(self, hostvars):
+        """Return the IP address for a host."""
+        ip_address = None
+        if "public_ip" in hostvars:
+            ip_address = hostvars["public_ip"]
+        elif "private_ip" in hostvars:
+            ip_address = hostvars["private_ip"][0]
+
+        return ip_address
+
+
+    def _get_hostname(self, hostvars):
+        """Return the hostname for a host."""
+        hostname = hostvars.get("hostname", "unknown")
+
+        return hostname
 
 
     def parse(self, inventory, loader, path, cache=True):
@@ -167,5 +254,24 @@ class InventoryModule(BaseInventoryPlugin):
         # Get the filter expression
         fql = self.get_option("filter")
 
-        # Get asset id's from Falcon Discover
-        host_ids = self._query_hosts(falcon, fql)
+        # Get host details
+        host_details = self._get_host_details(falcon, fql)
+
+        # Add hosts to inventory
+        for host in host_details:
+            hostvars = self._hostvars(host)
+            # Only process hosts that have an IP address (reachable)?
+            ip_address = self._get_ip_address(hostvars)
+            if not ip_address:
+                continue
+
+            # Get the hostname
+            hostname = self._get_hostname(hostvars)
+
+            # Add the host to the inventory
+            self.inventory.add_host(hostname)
+            self.inventory.set_variable(hostname, "ansible_host", ip_address)
+
+            # Add host variables
+            for key, value in hostvars.items():
+                self.inventory.set_variable(hostname, key, value)
