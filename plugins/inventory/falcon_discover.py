@@ -12,6 +12,10 @@ description:
     L(Falcon documentation,https://falcon.crowdstrike.com/documentation/page/f2197af5/asset-management-overview-discover)
   - The inventory file is a YAML configuration and must end with C(falcon_discover.{yml|yaml}).
   - "Example: C(my_inventory.falcon_discover.yml)"
+version_added: "4.0.0"
+extends_documentation_fragment:
+  - constructed
+  - inventory_cache
 options:
   client_id:
     description:
@@ -52,6 +56,8 @@ options:
     description:
       - The filter expression that should be used to limit the results using FQL
         (Falcon Query Language) syntax.
+      - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/page/a9df69ec/asset-management-apis#t0e123bd)
+        for more information about what filters are available for this inventory.
     type: str
 requirements:
   - python >= 3.6
@@ -63,42 +69,152 @@ author:
 """
 
 EXAMPLES = r"""
-# Minimal example - Get all hosts (assume credentials are provided via environment variables)
+# sample file: my_inventory.falcon_discover.yml
+
+# required for all falcon_discover inventory configs
 plugin: crowdstrike.falcon.falcon_discover
 
-# Get unmanaged hosts within the past day(passing credentials)
-plugin: crowdstrike.falcon.falcon_discover
-client_id: 1234567890abcdef12345678
-client_secret: 1234567890abcdef1234567890abcdef12345
-cloud: us-1
-filter: "entity_type:'unmanaged'+first_seen_timestamp:>'now-1d'"
+# authentication credentials (required if not using environment variables)
+#client_id: 1234567890abcdef12345678
+#client_secret: 1234567890abcdef1234567890abcdef12345
+#cloud: us-1
+
+# fql filter expression to limit results (by default all assets are returned)
+# examples below:
+
+# return unmanaged assets discovered in the past day
+#filter: "entity_type:'unmanaged'+first_seen_timestamp:>'now-1d'"
+
+# return all new assets within the past week
+#filter: "first_seen_timestamp:>'now-1w'"
+
+# return all assets that have been seen in the past 3 days
+#filter: "last_seen_timestamp:>'now-3d'"
+
+# return all assets seen in the last 12 hours that are in RFM mode
+#filter: "reduced_functionality_mode:Yes+last_seen_timestamp:>'now-12h'"
+
+# return all AWS assets
+#filter: "cloud_provider:AWS"
+
+# place hosts into dynamically created groups based on variable values
+keyed_groups:
+  # places host in a group named cloud_(cloud_provider) (e.g. cloud_AWS) if the asset is a cloud asset
+  - prefix: cloud
+    key: cloud_provider
+  # places host in a group named platform_(platform_name) based on the platform name (Linux, Windows, etc.)
+  - prefix: platform
+    key: platform_name
+  # places host in a group named tag_(tags) for each tag on a host
+  - prefix: tag
+    key: tags
+  # places host in a group named rfm_(Yes|No) to see if the host is in reduced functionality mode
+  - prefix: rfm
+    key: reduced_functionality_mode
+  # places host in a group named location_(city) based on the city the host is located in
+  - prefix: location
+    key: city
+
+# place hosts in named groups based on conditional statements (evaluated as true)
+groups:
+  # places host in a group named unmanaged_assets if the entity_type is unmanaged
+  unmanaged_assets: "entity_type == 'unmanaged'"
+  # places host in a group named cloud_assets if the entity_type is cloud
+  cloud_assets: "cloud_provider != None"
+
+# create and modify host variables from Jinja2 expressions
+# compose:
+#   # this sets the ansible_host variable to the external_ip address
+#   ansible_host: external_ip
+#   # this defines combinations of host servers, IP addresses, and related SSH private keys.
+#   ansible_host: external_ip
+#   ansible_user: root
+#   ansible_ssh_private_key_file: /path/to/private_key_file
+
+# caching is supported for this inventory plugin.
+# caching can be configured in the ansible.cfg file or in the inventory file.
+cache: true
+cache_plugin: jsonfile
+cache_connection: /tmp/falcon_inventory
+cache_timeout: 1800
+cache_prefix: falcon_discover
 """
 
 import os
 import re
 import traceback
 
-from ansible.plugins.inventory import BaseInventoryPlugin
+from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
 
 FALCONPY_IMPORT_ERROR = None
 try:
     from falconpy import Discover
     from falconpy._version import _VERSION
+
     HAS_FALCONPY = True
 except ImportError:
     HAS_FALCONPY = False
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
 
-class InventoryModule(BaseInventoryPlugin):
+
+class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     """CrowdStrike Falcon Discover dynamic inventory plugin for Ansible."""
 
     NAME = "crowdstrike.falcon.falcon_discover"
 
     def verify_file(self, path):
         if super(InventoryModule, self).verify_file(path):
-            if re.match(r'.{0,}falcon_discover\.(yml|yaml)$', path):
+            if re.match(r".{0,}falcon_discover\.(yml|yaml)$", path):
                 return True
         return False
+
+    def parse(self, inventory, loader, path, cache=True):
+        """Parse the inventory file and return JSON data structure."""
+        super(InventoryModule, self).parse(inventory, loader, path)
+
+        self._read_config_data(path)
+        cache_key = self.get_cache_key(path)
+
+        # Check if FalconPy is installed
+        if not HAS_FALCONPY:
+            raise ImportError(
+                "The crowdstrike.falcon.falcon_discover plugin requires falconpy to be installed."
+            )
+
+        # Check FalconPy version
+        if _VERSION < "1.3.0":
+            raise ImportError(
+                "The crowdstrike.falcon.falcon_discover plugin requires falconpy 1.3.0 or higher."
+            )
+
+        # cache may be True or False at this point to indicate if the inventory is being refreshed
+        # get the user's cache option too to see if we should save the cache if it is changing
+        user_cache_setting = self.get_option("cache")
+
+        # read if the user has caching enabled and the cache isn't being refreshed
+        attempt_to_read_cache = user_cache_setting and cache
+        # update if the user has caching enabled and the cache is being refreshed; update this value to True if the cache has expired below
+        cache_needs_update = user_cache_setting and not cache
+
+        # attempt to read the cache if inventory isn't being refreshed and the user has caching enabled
+        if attempt_to_read_cache:
+            try:
+                host_details = self._cache[cache_key]
+            except KeyError:
+                # This occurs if the cache_key is not in the cache or if the cache_key expired, so the cache needs to be updated
+                cache_needs_update = True
+        if not attempt_to_read_cache or cache_needs_update:
+            # parse the provided inventory source
+            falcon = self._authenticate()
+            # Get the filter expression
+            fql = self.get_option("filter")
+            # Get host details
+            host_details = self._get_host_details(falcon, fql)
+        if cache_needs_update:
+            self._cache[cache_key] = host_details
+
+        # Add hosts to inventory
+        self._add_host_to_inventory(host_details)
 
     def _credential_setup(self):
         """Setup credentials for FalconPy."""
@@ -118,10 +234,10 @@ class InventoryModule(BaseInventoryPlugin):
                 else:
                     creds[key] = value
 
-        if not creds["client_id"] or not creds["client_secret"]:
-            # Fail if no credentials are provided
+        # Make sure we have client_id and client_secret
+        if "client_id" not in creds or "client_secret" not in creds:
             raise ValueError(
-                "Missing required parameters: client_id, client_secret. See module documentation for help."
+                "You must provide a client_id and client_secret to authenticate to the Falcon API."
             )
 
         return creds
@@ -131,7 +247,6 @@ class InventoryModule(BaseInventoryPlugin):
         creds = self._credential_setup()
 
         return Discover(**creds)
-
 
     def _get_host_details(self, falcon, fql):
         """Query hosts from Falcon Discover."""
@@ -144,14 +259,14 @@ class InventoryModule(BaseInventoryPlugin):
             host_lookup = falcon.query_hosts(filter=fql, offset=offset, limit=max_limit)
             if host_lookup["status_code"] != 200:
                 raise SystemExit(
-                    "Unable to query hosts from Falcon Discover."
+                    f"Unable to query hosts: {host_lookup['body']['errors']}"
                 )
 
             if host_lookup["body"]["resources"]:
                 host_ids = host_lookup["body"]["resources"]
             else:
                 raise SystemExit(
-                    "No hosts were identified by the filter expression."
+                    f"No hosts were identified by the filter expression: {fql}"
                 )
 
             # Get host details
@@ -165,99 +280,73 @@ class InventoryModule(BaseInventoryPlugin):
 
         return host_details
 
-
     def _hostvars(self, host):
         """Return host variables."""
         # todo: this is a common list of fields that are returned by the FalconPy API
-        hostvar_mapping = {
-            "id": "id",
-            "cid": "cid",
-            "aid": "aid",
-            "hostname": "hostname",
-            "asset_type": "entity_type",
-            "first_seen": "first_seen_timestamp",
-            "last_seen": "last_seen_timestamp",
-            "country": "country",
-            "city": "city",
-            "os_name": "platform_name",
-            "os_version": "os_version",
-            "kernel_version": "kernel_version",
-            "tags": "tags",
-            "groups": "groups",
-            "sensor_version": "agent_version",
-            "public_ip": "external_ip",
-            "private_ip": "current_local_ip",
-            "rfm": "reduced_functionality_mode",
-            "mac_address": "mac_address",
-            "fqdn": "fqdn",
-            "location": "location",
-            "state": "state",
-            "confidence": "confidence",
-            "managed_by": "managed_by",
-            "owned_by": "owned_by",
-            "used_for": "used_for",
-            "department": "department",
-            "cloud_provider": "cloud_provider",
-            "cloud_account_id": "cloud_account_id",
-            "cloud_region": "cloud_region",
-            "cloud_resource_id": "cloud_resource_id",
-            "cloud_registered": "cloud_registered",
-            "cloud_instance_id": "cloud_instance_id",
-        }
+        hostvar_opts = [
+            "id",
+            "cid",
+            "aid",
+            "hostname",
+            "entity_type",
+            "first_seen_timestamp",
+            "last_seen_timestamp",
+            "country",
+            "city",
+            "platform_name",
+            "os_version",
+            "kernel_version",
+            "tags",  # list
+            "groups",
+            "agent_version",
+            "external_ip",
+            "current_local_ip",
+            "local_ip_addresses",  # list
+            "reduced_functionality_mode",
+            "mac_address",
+            "fqdn",
+            "location",
+            "state",
+            "confidence",
+            "managed_by",
+            "owned_by",
+            "used_for",
+            "department",
+            "cloud_provider",
+            "cloud_account_id",
+            "cloud_region",
+            "cloud_resource_id",
+            "cloud_registered",
+            "cloud_instance_id",
+        ]
 
         hostvars = {}
-        for key, value in hostvar_mapping.items():
-            if value in host:
-                hostvars[key] = host[value]
+        for item in hostvar_opts:
+            if item in host:
+                hostvars[item] = host[item]
 
         return hostvars
-
 
     def _get_ip_address(self, hostvars):
         """Return the IP address for a host."""
         ip_address = None
-        if "public_ip" in hostvars:
-            ip_address = hostvars["public_ip"]
-        elif "private_ip" in hostvars:
-            ip_address = hostvars["private_ip"][0]
+        if "external_ip" in hostvars:
+            ip_address = hostvars["external_ip"]
+        elif "current_local_ip" in hostvars:
+            ip_address = hostvars["current_local_ip"]
+        elif "local_ip_addresses" in hostvars:
+            ip_address = hostvars["local_ip_addresses"][0]
 
         return ip_address
 
-
-    def _get_hostname(self, hostvars):
+    def _get_hostname(self, hostvars, ip_address):
         """Return the hostname for a host."""
-        hostname = hostvars.get("hostname", "unknown")
+        hostname = hostvars.get("hostname", ip_address)
 
         return hostname
 
-
-    def parse(self, inventory, loader, path, cache=True):
-        """Parse the inventory file and return JSON data structure."""
-        super(InventoryModule, self).parse(inventory, loader, path)
-
-        self._read_config_data(path)
-
-        # Check if FalconPy is installed
-        if not HAS_FALCONPY:
-            raise ImportError(
-                "The crowdstrike.falcon.falcon_discover plugin requires falconpy to be installed."
-            )
-
-        # Check FalconPy version
-        if _VERSION < "1.3.0":
-            raise ImportError(
-                "The crowdstrike.falcon.falcon_discover plugin requires falconpy 1.3.0 or higher."
-            )
-
-        falcon = self._authenticate()
-
-        # Get the filter expression
-        fql = self.get_option("filter")
-
-        # Get host details
-        host_details = self._get_host_details(falcon, fql)
-
-        # Add hosts to inventory
+    def _add_host_to_inventory(self, host_details):
+        """Add host to inventory."""
         for host in host_details:
             hostvars = self._hostvars(host)
             # Only process hosts that have an IP address (reachable)?
@@ -266,7 +355,7 @@ class InventoryModule(BaseInventoryPlugin):
                 continue
 
             # Get the hostname
-            hostname = self._get_hostname(hostvars)
+            hostname = self._get_hostname(hostvars, ip_address)
 
             # Add the host to the inventory
             self.inventory.add_host(hostname)
@@ -275,3 +364,15 @@ class InventoryModule(BaseInventoryPlugin):
             # Add host variables
             for key, value in hostvars.items():
                 self.inventory.set_variable(hostname, key, value)
+
+            # Add host groups
+            strict = self.get_option("strict")
+            self._set_composite_vars(self.get_option("compose"), hostvars, strict)
+
+            # Create user-defined groups based on variables/jinja2 conditionals
+            self._add_host_to_composed_groups(
+                self.get_option("groups"), hostvars, hostname, strict
+            )
+            self._add_host_to_keyed_groups(
+                self.get_option("keyed_groups"), hostvars, hostname, strict
+            )
