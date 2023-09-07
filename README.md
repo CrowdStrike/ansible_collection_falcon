@@ -39,6 +39,12 @@ Name | Description
 [crowdstrike.falcon.sensor_download_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_info.html#ansible-collections-crowdstrike-falcon-sensor-download-info-module)|Get information about Falcon Sensor Installers
 [crowdstrike.falcon.sensor_update_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_policy_info.html#ansible-collections-crowdstrike-falcon-sensor-update-policy-info-module)|Get information about Falcon Update Sensor Policies
 
+
+### Inventory Plugins
+
+Name | Description
+--- | ---
+[crowdstrike.falcon.falcon_discover](https://crowdstrike.github.io/ansible_collection_falcon/falcon_discover_inventory.html#ansible-collections-crowdstrike-falcon-falcon-discover-inventory-plugin)|Falcon Discover inventory source
 <!--end collection content-->
 
 <!--start eda content-->
