@@ -4,7 +4,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 DOCUMENTATION = r"""
-name: crowdstrike.falcon.falcon_discover
+name: falcon_discover
 short_description: CrowdStrike Falcon Discover inventory source
 description:
   - Query asset details from the CrowdStrike Falcon Discover API. To learn more about Falcon Discover and
