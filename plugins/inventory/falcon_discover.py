@@ -64,6 +64,9 @@ requirements:
   - crowdstrike-falconpy >= 1.3.0
 notes:
   - If no credentials are provided, FalconPy will attempt to use the API credentials via environment variables.
+  - The current behavior for assigning an IP address to a host is to use the external IP address if it exists,
+    otherwise the current local IP address is used. If neither of those exist, the host is skipped as Ansible
+    would not be able to connect to it.
 author:
   - Carlos Matos (@carlosmmatos)
 """
@@ -99,23 +102,23 @@ plugin: crowdstrike.falcon.falcon_discover
 
 # place hosts into dynamically created groups based on variable values
 keyed_groups:
-  # places host in a group named cloud_(cloud_provider) (e.g. cloud_AWS) if the asset is a cloud asset
+  # places host in a group named cloud_<cloud_provider> (e.g. cloud_AWS) if the asset is a cloud asset
   - prefix: cloud
     key: cloud_provider
-  # places host in a group named platform_(platform_name) based on the platform name (Linux, Windows, etc.)
+  # places host in a group named platform_<platform_name> based on the platform name (Linux, Windows, etc.)
   - prefix: platform
     key: platform_name
-  # places host in a group named tag_(tags) for each tag on a host
+  # places host in a group named tag_<tags> for each tag on a host
   - prefix: tag
     key: tags
-  # places host in a group named rfm_(Yes|No) to see if the host is in reduced functionality mode
+  # places host in a group named rfm_<Yes|No> to see if the host is in reduced functionality mode
   - prefix: rfm
     key: reduced_functionality_mode
-  # places host in a group named location_(city) based on the city the host is located in
+  # places host in a group named location_<city> based on the city the host is located in
   - prefix: location
     key: city
 
-# place hosts in named groups based on conditional statements (evaluated as true)
+# place hosts in named groups based on conditional statements <evaluated as true>
 groups:
   # places host in a group named unmanaged_assets if the entity_type is unmanaged
   unmanaged_assets: "entity_type == 'unmanaged'"
@@ -265,9 +268,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if host_lookup["body"]["resources"]:
                 host_ids = host_lookup["body"]["resources"]
             else:
-                raise SystemExit(
-                    f"No hosts were identified by the filter expression: {fql}"
-                )
+                # No hosts found
+                return host_details
 
             # Get host details
             details = falcon.get_hosts(ids=host_ids)["body"]["resources"]
@@ -282,7 +284,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def _hostvars(self, host):
         """Return host variables."""
-        # todo: this is a common list of fields that are returned by the FalconPy API
         hostvar_opts = [
             "id",
             "cid",
