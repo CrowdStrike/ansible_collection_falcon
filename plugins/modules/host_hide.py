@@ -41,6 +41,15 @@ extends_documentation_fragment:
   - crowdstrike.falcon.credentials
   - crowdstrike.falcon.credentials.auth
 
+notes:
+  - B(Failure Handling:) This module will not fail if some hosts could not be
+    hidden or unhidden. Instead, it will populate the 'failed_hosts' list
+    with the relevant host IDs and error details. This is designed to allow
+    the user greater flexibility in handling failures, especially when this
+    module is used in a loop. If strict failure handling is needed, users
+    should explicitly check the 'failed_hosts' list after execution. See the
+    examples for more details.
+
 requirements:
   - Hosts [B(WRITE)] API scope
 
@@ -65,6 +74,12 @@ EXAMPLES = r"""
     auth: "{{ falcon.auth }}"  # Use auth saved from crowdstrike.falcon.auth module
     hosts: "{{ item }}"
   loop: "{{ host_ids }}"
+  register: hide_result
+
+- name: Fail if any hosts could not be hidden
+  fail:
+    msg: "Hosts could not be hidden: {{ hide_result.failed_hosts }}"
+  when: hide_result.failed_hosts | length > 0
 
 """
 
@@ -210,20 +225,6 @@ def main():
 
     # Add the hosts to the result
     result["hosts"] = [value for value in host_mapping.values() if value]
-
-    # If no good hosts, then fail the module
-    if not result["hosts"]:
-        module.fail_json(
-            msg="No hosts were successfully hidden or unhidden. See 'failed_hosts' for details.",
-            **result,
-        )
-
-    # If no changes but we have failed hosts, then fail the module
-    if not result["changed"] and result["failed_hosts"]:
-        module.fail_json(
-            msg="Operation didn't make any changes, but some hosts failed. Check 'failed_hosts' for specifics.",
-            **result,
-        )
 
     module.exit_json(**result)
 
