@@ -21,20 +21,18 @@ description:
   - To prevent unnecessary detections from an inactive or a duplicate host,
     you can opt to hide the host from the console. This action does not uninstall or
     deactivate the sensor. Detection reporting resumes after a host is unhidden.
-  - The module will return a list of successfull and failed hosts IDs for the action performed.
+  - The module will return a list of successfull and failed hosts agent IDs (AIDs) for
+    the action performed.
 
 options:
-  action:
+  hidden:
     description:
-      - The type of action to perform on the host(s).
-    type: str
-    default: hide
-    choices:
-      - hide
-      - unhide
-  host_ids:
+      - Whether to hide or unhide the hosts.
+    type: bool
+    default: true
+  hosts:
     description:
-      - A list of host IDs to perform the action on.
+      - A list of host agent IDs (AIDs) to perform the action on.
     type: list
     elements: str
     required: true
@@ -51,22 +49,29 @@ author:
 """
 
 EXAMPLES = r"""
-- name: Hide hosts from the Falcon console
+- name: Hide a host from the Falcon console
   crowdstrike.falcon.host_hide:
-    host_ids: "12345678901234567890"
+    hosts: "12345678901234567890"
 
 - name: Unhide hosts from the Falcon console
   crowdstrike.falcon.host_hide:
-    action: unhide
-    host_ids:
+    hosts:
       - "12345678901234567890"
       - "09876543210987654321"
+    hidden: no
+
+- name: Individually hide hosts with a list from the Falcon console
+  crowdstrike.falcon.host_hide:
+    auth: "{{ falcon.auth }}"  # Use auth saved from crowdstrike.falcon.auth module
+    hosts: "{{ item }}"
+  loop: "{{ host_ids }}"
+
 """
 
 RETURN = r"""
 hosts:
   description:
-    - A list of host IDs that were successfully hidden or unhidden.
+    - A list of host agent IDs (AIDs) that were successfully hidden or unhidden.
   type: list
   returned: always
   elements: str
@@ -79,19 +84,19 @@ failed_hosts:
   contains:
     id:
       description:
-        - The host ID that failed to be hidden or unhidden.
+        - The host agent ID that failed to be hidden or unhidden.
       type: str
-      returned: when a host ID fails
+      returned: when a host agent ID fails
     code:
       description:
         - The error code returned by the API.
       type: int
-      returned: when a host ID fails
+      returned: when a host agent ID fails
     message:
       description:
         - The error message returned by the API.
       type: str
-      returned: when a host ID fails
+      returned: when a host agent ID fails
 """
 
 import traceback
@@ -116,12 +121,11 @@ except ImportError:
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
 
 HOSTS_ARGS = dict(
-    action=dict(
-        type="str",
-        default="hide",
-        choices=["hide", "unhide"],
+    hidden=dict(
+        type="bool",
+        default="true",
     ),
-    host_ids=dict(type="list", elements="str", required=True),
+    hosts=dict(type="list", elements="str", required=True),
 )
 
 
@@ -148,8 +152,8 @@ def main():
 
     check_falconpy_version(module)
 
-    action = module.params["action"]
-    host_ids = module.params["host_ids"]
+    hidden = module.params["hidden"]
+    hosts = module.params["hosts"]
 
     # Setup the return values
     result = dict(
@@ -163,9 +167,9 @@ def main():
 
     falcon = authenticate(module, Hosts)
 
-    action_name = "hide_host" if action == "hide" else "unhide_host"
+    action_name = "hide_host" if hidden else "unhide_host"
 
-    query_result = falcon.perform_action(action_name=action_name, ids=host_ids)
+    query_result = falcon.perform_action(action_name=action_name, ids=hosts)
 
     # The API returns both successful and failed hosts in the same response. This
     # means we need to handle errors differently than we normally would.
@@ -176,8 +180,8 @@ def main():
     if not good and not bad:
         handle_return_errors(module, falcon, query_result)
 
-    # Create a mapping for passed-in host IDs to easily manage their states
-    host_mapping = {host_id: "" for host_id in host_ids}
+    # Create a mapping for passed-in host IDs to manage their states
+    host_mapping = {host_id: "" for host_id in hosts}
 
     # For hosts in 'good', add the ID to the hosts list
     if good:
@@ -185,22 +189,24 @@ def main():
         for host in good:
             host_mapping[host["id"]] = host["id"]
 
-    # For hosts in 'bad', set message based on status code
-    if bad:
-        for host in bad:
-            message = host["message"]
-            for host_id in host_mapping.keys():
-                if host_id in message:
-                    if host["code"] == 409:  # Host already in desired state
-                        host_mapping[host_id] = host_id
-                    else:
-                        result["failed_hosts"].append(
-                            {
-                                "id": host_id,
-                                "code": host["code"],
-                                "message": host["message"],
-                            }
-                        )
+    # For hosts in 'bad', manage state and failed_hosts
+    for host in bad:
+        message, code = host["message"], host["code"]
+
+        for host_id in host_mapping.keys():
+            if host_id not in message:
+                continue
+
+            if code == 409:  # Host already in desired state
+                host_mapping[host_id] = host_id
+            else:
+                result["failed_hosts"].append(
+                    {
+                        "id": host_id,
+                        "code": code,
+                        "message": message,
+                    }
+                )
 
     # Add the hosts to the result
     result["hosts"] = [value for value in host_mapping.values() if value]
@@ -208,7 +214,14 @@ def main():
     # If no good hosts, then fail the module
     if not result["hosts"]:
         module.fail_json(
-            msg=f"All host(s) failed to {action}. Check failed_hosts for details.",
+            msg="No hosts were successfully hidden or unhidden. See 'failed_hosts' for details.",
+            **result,
+        )
+
+    # If no changes but we have failed hosts, then fail the module
+    if not result["changed"] and result["failed_hosts"]:
+        module.fail_json(
+            msg="Operation didn't make any changes, but some hosts failed. Check 'failed_hosts' for specifics.",
             **result,
         )
 
