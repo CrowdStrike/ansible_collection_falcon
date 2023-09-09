@@ -1,9 +1,9 @@
 ---
 # This playbook will hide the host from the falcon console
-- name: CrowdStrike Falcon | Remove/Hide Host from Console (Linux)
+- name: CrowdStrike Falcon | Remove/Hide Host from Console
   crowdstrike.falcon.host_hide:
     auth: "{{ falcon.auth }}"
-    action: hide
-    host_ids:
+    hidden: yes
+    hosts:
       - "{{ falcon_uninstall_remove_aid }}"
   delegate_to: localhost
