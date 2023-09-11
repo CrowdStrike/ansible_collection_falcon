@@ -1,2 +1,0 @@
-minor_changes:
-  - falcon_uninstall - Adds hide/remove host functionality (https://github.com/CrowdStrike/ansible_collection_falcon/pull/393)
