@@ -21,7 +21,6 @@ falcon_allow_downgrade: no
 #
 #   api:         Default: Fetch the latest installer directly from the CrowdStrike API.
 #   url:         Fetch installer from a URL
-#   repo:        Install from a package repository like APT, DNF, or YUM
 #   file:        Install from a local file
 #
 falcon_install_method: api
