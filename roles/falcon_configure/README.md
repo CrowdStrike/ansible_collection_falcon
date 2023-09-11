@@ -21,41 +21,42 @@ future.
 
 ### API Specific Variables
 
-- `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: `null`)
-- `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: `null`)
-- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `us-1`)
+- `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: ***null***)
+- `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: ***null***)
+- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: ***us-1***)
   - choices:
-    - `us-1` -> api.crowdstrike.com
-    - `us-2` -> api.us-2.crowdstrike.com
-    - `us-gov-1` -> api.laggar.gcw.crowdstrike.com
-    - `eu-1` -> api.eu-1.crowdstrike.com
-- `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: `true`)
+    - **us-1** -> api.crowdstrike.com
+    - **us-2** -> api.us-2.crowdstrike.com
+    - **us-gov-1** -> api.laggar.gcw.crowdstrike.com
+    - **eu-1** -> api.eu-1.crowdstrike.com
+- `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 
 ### Common Variables
 
-- `falcon_remove_aid` - Remove the Falcon Agent ID (AID) (bool, default: null)
+- `falcon_remove_aid` - Remove the Falcon Agent ID (AID) (bool, default: ***null***)
 
 ### Windows Specific Variables
 
-- `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: `runas`)
-- `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: `SYSTEM`)
+- `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: ***runas***)
+- `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: ***SYSTEM***)
 
 ### Falconctl Variables (Linux Only)
 
 > This role uses the [crowdstrike.falcon.falconctl](../../plugins/modules/falconctl.py) Ansible Module to configure the Falcon Sensor on Linux.
 
-- `falcon_option_set` - Set True|yes to set options, False|no to delete. *See note below (bool, default: true)
-- `falcon_cid` - Your Falcon Customer ID (CID) if not using API creds (string, default: null)
-- `falcon_provisioning_token` - Falcon Installation Token (string, default: null)
-- `falcon_apd` - Enable/Disable the Falcon Proxy. **To enable proxy, set as:** `false|no` (string, default: null)
-- `falcon_aph` - Falcon Proxy host (by FQDN or IP) (string, default: null)
-- `falcon_app` - Falcon Proxy port (string, default: null)
-- `falcon_trace` - Configure additional traces for debugging (string, default: null)
-- `falcon_feature` - Configures additional features to the sensor (list, default: null)
-- `falcon_message_log` - Enable/Disable message logs (string, default: null)
-- `falcon_billing` - Configure Falcon sensor with Pay-As-You-Go billing (string, default: null)
-- `falcon_tags` - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts (string, default: null)
-- `falcon_backend` - The backend to use for the Falcon Sensor `[auto|bpf|kernel]` (string, default: null)
+- `falcon_option_set` - Set True|yes to set options, False|no to delete. *See note below (bool, default: ***true***)
+- `falcon_cid` - Your Falcon Customer ID (CID) if not using API creds (string, default: ***null***)
+- `falcon_provisioning_token` - Falcon Installation Token (string, default: ***null***)
+- `falcon_apd` - Enable/Disable the Falcon Proxy (string, default: ***null***)
+  > To enable proxy, set as: ***false***
+- `falcon_aph` - Falcon Proxy host (by FQDN or IP) (string, default: ***null***)
+- `falcon_app` - Falcon Proxy port (string, default: ***null***)
+- `falcon_trace` - Configure additional traces for debugging (string, default: ***null***)
+- `falcon_feature` - Configures additional features to the sensor (list, default: ***null***)
+- `falcon_message_log` - Enable/Disable message logs (string, default: ***null***)
+- `falcon_billing` - Configure Falcon sensor with Pay-As-You-Go billing (string, default: ***null***)
+- `falcon_tags` - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts (string, default: ***null***)
+- `falcon_backend` - The backend to use for the Falcon Sensor `[auto|bpf|kernel]` (string, default: ***null***)
 
 ----------
 

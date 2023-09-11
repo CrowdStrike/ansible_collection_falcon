@@ -13,22 +13,22 @@ This role uninstalls the CrowdStrike Falcon Sensor.
 
 ### API Specific Variables
 
-- `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: `null`)
-- `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: `null`)
-- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: `us-1`)
+- `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: ***null***)
+- `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: ***null***)
+- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: ***us-1***)
   - choices:
-    - `us-1` -> api.crowdstrike.com
-    - `us-2` -> api.us-2.crowdstrike.com
-    - `us-gov-1` -> api.laggar.gcw.crowdstrike.com
-    - `eu-1` -> api.eu-1.crowdstrike.com
-- `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: `true`)
+    - **us-1** -> api.crowdstrike.com
+    - **us-2** -> api.us-2.crowdstrike.com
+    - **us-gov-1** -> api.laggar.gcw.crowdstrike.com
+    - **eu-1** -> api.eu-1.crowdstrike.com
+- `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 - `falcon_remove_host` - Whether to hide/remove the host from the CrowdStrike console (bool, default: false)
 
 ### Windows Specific Variables
 
-- `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: `/norestart`)
-- `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: `runas`)
-- `falcon_windows_become_user` - The privileged user to uninstall the sensor on Windows (string, default: `SYSTEM`)
+- `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: ***/norestart***)
+- `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: ***runas***)
+- `falcon_windows_become_user` - The privileged user to uninstall the sensor on Windows (string, default: ***SYSTEM***)
 
 See [defaults/main.yml](defaults/main.yml) for more details on these variables.
 
