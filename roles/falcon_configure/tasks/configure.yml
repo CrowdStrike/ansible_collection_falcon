@@ -39,6 +39,7 @@
   ansible.builtin.stat:
     path: "/Applications/Falcon.app/Contents/Resources/falconctl"
   register: falconctl_mac
+  when: ansible_facts['distribution'] == "MacOSX"
 
 - name: MacOSX Block
   when:

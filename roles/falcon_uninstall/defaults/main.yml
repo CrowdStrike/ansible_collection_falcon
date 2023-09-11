@@ -16,11 +16,6 @@ falcon_api_enable_no_log: yes
 #
 falcon_cloud: "api.crowdstrike.com"
 
-# Auto-discover the CrowdStrike Cloud API Region. When disabled,
-# 'falcon_cloud' should be changed to the appropriate cloud region.
-#
-falcon_cloud_autodiscover: true
-
 # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
 # API. If unknown, get it from the CrowdStrike support portal:
 #
