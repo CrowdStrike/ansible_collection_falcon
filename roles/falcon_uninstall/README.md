@@ -4,7 +4,7 @@ This role uninstalls the CrowdStrike Falcon Sensor.
 
 ## Requirements
 
-- Ansible 2.12 or higher
+- Ansible 2.13 or higher
 
 ## Role Variables
 
