@@ -12,7 +12,7 @@ future.
 
 ## Requirements
 
-- Ansible 2.12 or higher
+- Ansible 2.13 or higher
 - FalconPy 1.3.0 or higher on Ansible control node
 
 > As of version 4.0.0, this role takes full advantage of the FalconPy SDK for interacting with the CrowdStrike API.
