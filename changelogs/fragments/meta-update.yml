@@ -1,0 +1,2 @@
+bugfixes:
+  - update ansible meta information for certifiable requirements (https://github.com/CrowdStrike/ansible_collection_falcon/pull/405)
