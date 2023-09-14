@@ -10,7 +10,8 @@ The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining
 
 ## :warning: Deprecation Notice :warning:
 
-As of September 14, 2023, we are excited to announce the release of Version 4 of the Falcon Ansible Collection. With this new version, we are officially deprecating Version 3.
+As of September 14, 2023, we are excited to announce the release of Version 4 of the Falcon Ansible Collection. In tandem with this release, Version 3 will
+be moved to its own dedicated branch [v3](https://github.com/CrowdStrike/ansible_collection_falcon/tree/v3) as it is officially deprecated.
 
 ### What Does This Mean?
 
