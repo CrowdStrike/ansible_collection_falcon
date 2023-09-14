@@ -162,6 +162,11 @@ This example installs the Falcon Sensor from a local file, then removes it.
       falcon_cid: <FALCON CID with Checksum>
 ```
 
+## Installing on MacOS
+
+Apple platforms require Mobile Device Management (MDM) software to install kernel extensions without user prompting.
+Ansible is only able to run on macOS in an interactive session, which means end-users will receive prompts to accept the CrowdStrike kernel modules.
+
 ## License
 
 [License](https://github.com/crowdstrike/ansible_collection_falcon/blob/main/LICENSE)
