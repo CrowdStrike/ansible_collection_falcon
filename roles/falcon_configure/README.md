@@ -5,7 +5,7 @@ sensor to be installed prior to running this role.
 
 ## Requirements
 
-- Ansible 2.12 or higher
+- Ansible 2.13 or higher
 
 ## Role Variables
 

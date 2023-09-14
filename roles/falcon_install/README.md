@@ -5,7 +5,7 @@ the sensor from a local file or remote URL.
 
 ## Requirements
 
-- Ansible 2.12 or higher
+- Ansible 2.13 or higher
 
 ## Role Variables
 
