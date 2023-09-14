@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.3.3
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-09-14
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.3>`__
+
+
+Bugfixes
+--------
+
+- update ansible meta information for certifiable requirements (https://github.com/CrowdStrike/ansible_collection_falcon/pull/405)
+
 v3.3.2
 ======
 
