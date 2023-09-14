@@ -8,19 +8,28 @@
 
 The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining your interactions with the CrowdStrike Falcon console.
 
-## :warning: Deprecation Notice :warning:
+## :speaker: Announcements
 
-As of September 14, 2023, we are excited to announce the release of Version 4 of the Falcon Ansible Collection. In tandem with this release, Version 3 will
-be moved to its own dedicated branch [v3](https://github.com/CrowdStrike/ansible_collection_falcon/tree/v3) as it is officially deprecated.
+As of September 15, 2023, we are excited to announce the release of Version 4 of the Falcon Ansible Collection. With this exciting release, we are focusing our resources on
+Version 4 to bring you enhanced features and support.
 
-### What Does This Mean?
+### Important Notice for Version 3
 
-- **No New Features:** Version 3 will not receive any new features moving forward. We will only release bug fixes to maintain its stability.
+- **New Branch:** Version 3 will be moved to its own dedicated branch [v3](https://github.com/CrowdStrike/ansible_collection_falcon/tree/v3) to allow for isolated maintenance
+  and bug fixes.
+- **No New Features:** Version 3 will not receive any new features moving forward. We will only release bug fixes to maintain its stability. This is to allow us to focus our
+  development efforts on Version 4.
 - **Limited Support:** Version 3 will continue to receive bug fixes until **February 1st, 2024**. After that date, we will no longer provide updates or support for Version 3.
+
+### Why V4?
+
+As many of you are aware, we have been using version 3 of the CrowdStrike Ansible Collection for our Falcon sensor deployments. While this has been effective,
+we believe that upgrading to version 4 will provide us with numerous advantages that align well with our ongoing automation and cybersecurity strategies. By extending
+the power of the FalconPY SDK, version 4 will be instrumental in interacting and automating the Falcon platform. For more information, read our [Version 4 Highlights and Goals](docs/v4.md).
 
 ### How To Upgrade
 
-We strongly encourage you to upgrade to Version 4 to benefit from new features, performance improvements, and ongoing support. Please see the [Installing this collection](#installing-this-collection) section to get started.
+We strongly encourage you to upgrade to Version 4 to benefit from new features and ongoing support. Please see the [Installing this collection](#installing-this-collection) section to get started.
 
 ### Questions or Concerns?
 
@@ -34,7 +43,7 @@ Tested with the Ansible Core >= 2.13.0 versions, and the current development ver
 
 ## Python version compatibility
 
-This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of 3.6 is required for this collection to function properly.
+This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of `3.6` is required for this collection to function properly.
 
 ## Included content
 
@@ -63,7 +72,6 @@ Name | Description
 [crowdstrike.falcon.sensor_download](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download.html#ansible-collections-crowdstrike-falcon-sensor-download-module)|Download Falcon Sensor Installer
 [crowdstrike.falcon.sensor_download_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_info.html#ansible-collections-crowdstrike-falcon-sensor-download-info-module)|Get information about Falcon Sensor Installers
 [crowdstrike.falcon.sensor_update_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_policy_info.html#ansible-collections-crowdstrike-falcon-sensor-update-policy-info-module)|Get information about Falcon Update Sensor Policies
-
 
 ### Inventory Plugins
 
@@ -141,23 +149,22 @@ The Python module dependencies are not automatically handled by `ansible-galaxy`
 
 > **Note**: If you intend to use Event-Driven Architecture (EDA), the `aiohttp` package should also be installed.
 
+## Authentication
+
+To use this Ansible collection effectively, you'll need to authenticate with the CrowdStrike Falcon API. We've prepared a detailed guide
+outlining the various authentication mechanisms supported. Check out the [Authentication Guide](docs/authentication.md) for step-by-step instructions.
+
 ## Using this collection
 
 ### Example using modules
 
 ```yaml
 ---
-  - name: Generate Authentication Credentials (access token and cloud region)
-    crowdstrike.falcon.auth:
+  - name: Get a list of the 2 latest Windows Sensor Installers
+    crowdstrike.falcon.sensor_download_info:
       client_id: <Falcon_UI_OAUTH_client_id>
       client_secret: <Falcon_UI_OAUTH_client_secret>
       cloud: us-2
-    delegate_to: localhost
-    register: falcon
-
-  - name: Get a list of the 2 latest Windows Sensor Installers
-    crowdstrike.falcon.sensor_download_info:
-      auth: "{{ falcon.auth }}"
       limit: 2
       filter: "platform_name:'windows'"
       sort: "version|desc"
@@ -191,11 +198,6 @@ Install and configure the CrowdStrike Falcon Sensor at version N-2:
 ansible-rulebook -i inventory -r crowdstrike.falcon.event_stream_example -E FALCON_CLIENT_ID,FALCON_CLIENT_SECRET
 ```
 
-## Installing on MacOS
-
-Apple platforms require Mobile Device Management (MDM) software to install kernel extensions without user prompting.
-Ansible is only able to run on macOS in an interactive session, which means end-users will receive prompts to accept the CrowdStrike kernel modules.
-
 ## Release Notes
 
 See the [changelog](./CHANGELOG.rst) for a history of notable changes to this collection.
@@ -209,6 +211,7 @@ See the [changelog](./CHANGELOG.rst) for a history of notable changes to this co
 - [Ansible Community Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html)
 - [Ansible Rulebook Introduction](https://ansible.readthedocs.io/projects/rulebook/en/latest/getting_started.html)
 - [Event Driven Ansible Introduction](https://www.ansible.com/blog/getting-started-with-event-driven-ansible)
+- [CrowdStrike FalconPy SDK](https://www.falconpy.io/)
 
 ## Contributing
 
