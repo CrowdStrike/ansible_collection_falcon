@@ -8,9 +8,11 @@
 
 The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining your interactions with the CrowdStrike Falcon platform.
 
-## :speaker: Announcements
+## :mega: Announcements
 
-As of September 15, 2023, Version 4 of the Falcon Ansible Collection has been officially launched. Our team will be dedicating its efforts to the advancement and support of this new version.
+**September 15, 2023:** We are excited to announce that Version 4 of the Falcon Ansible Collection has been officially launched. Version 4 will provide us with numerous
+advantages that align well with our ongoing automation and cybersecurity strategies. By extending the power of the FalconPy SDK, Version 4 will be instrumental in interacting with
+and automating the Falcon platform.
 
 ### Important Notice for Version 3
 
@@ -20,21 +22,13 @@ As of September 15, 2023, Version 4 of the Falcon Ansible Collection has been of
   development efforts on Version 4.
 - **Limited Support:** Version 3 will continue to receive bug fixes until **February 1st, 2024**. After that date, we will no longer provide updates or support for Version 3.
 
-### Why V4?
-
-As many of you are aware, we have been using Version 3 of the CrowdStrike Ansible Collection for our Falcon sensor deployments. While this has been effective,
-we believe that upgrading to Version 4 will provide us with numerous advantages that align well with our ongoing automation and cybersecurity strategies. By extending
-the power of the FalconPY SDK, Version 4 will be instrumental in interacting with and automating the Falcon platform.
-
-### How To Upgrade
+### How to upgrade
 
 We strongly encourage you to upgrade to Version 4 to benefit from new features and ongoing support. Please see the [Installing this collection](#installing-this-collection) section to get started.
 
-### Questions or Concerns?
+### Questions or concerns?
 
 If you encounter any issues or have questions about the migration, please open an [issue](https://github.com/CrowdStrike/ansible_collection_falcon/issues/new/choose) in this repository.
-
-Thank you for your understanding and cooperation.
 
 ## Ansible version compatibility
 
@@ -50,7 +44,7 @@ This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconp
 
 Offering pre-defined roles tailored for various platforms—including macOS, Linux, and Windows—this collection simplifies the installation, configuration, and removal processes for CrowdStrike's Falcon sensor.
 
-> Please read each role's README to familiarize yourself with the role variables and other requirements.
+*Please read each role's README to familiarize yourself with the role variables and other requirements.*
 
 | Role Name | Documentation | Build Status Linux | Build Status Windows |
 | --------- | :-----------: | ------------------ | -------------------- |
@@ -72,7 +66,7 @@ Name | Description
 [crowdstrike.falcon.sensor_download_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_info.html#ansible-collections-crowdstrike-falcon-sensor-download-info-module)|Get information about Falcon Sensor Installers
 [crowdstrike.falcon.sensor_update_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_policy_info.html#ansible-collections-crowdstrike-falcon-sensor-update-policy-info-module)|Get information about Falcon Update Sensor Policies
 
-### Inventory Plugins
+### Inventory plugins
 
 Name | Description
 --- | ---
@@ -80,9 +74,9 @@ Name | Description
 <!--end collection content-->
 
 <!--start eda content-->
-### Event Sources
+### Event sources
 
-> Ansible EDA (Event Driven Ansible) is a new way to connect to sources of events and act on those events using rulebooks. For more information, see the [EDA documentation](https://ansible.readthedocs.io/projects/rulebook/en/latest/introduction.html).
+Ansible EDA (Event Driven Ansible) is a new way to connect to sources of events and act on those events using rulebooks. For more information, see the [EDA documentation](https://ansible.readthedocs.io/projects/rulebook/en/latest/introduction.html).
 
 Name | Description
 --- | ---
@@ -116,7 +110,7 @@ Then run:
 ansible-galaxy collection install -r requirements.yml
 ```
 
-### Additional Notes
+### Additional notes
 
 - **Upgrading the Collection**: Note that if you've installed the collection from Ansible Galaxy, it won't automatically update when you upgrade the `ansible` package. To manually upgrade to the latest version, use:
 
@@ -130,7 +124,7 @@ ansible-galaxy collection install -r requirements.yml
     ansible-galaxy collection install crowdstrike.falcon:==0.1.0
     ```
 
-### Python Dependencies
+### Python dependencies
 
 The Python module dependencies are not automatically handled by `ansible-galaxy`. To manually install these dependencies, you have the following options:
 
@@ -146,7 +140,8 @@ The Python module dependencies are not automatically handled by `ansible-galaxy`
     pip install crowdstrike-falconpy
     ```
 
-> **Note**: If you intend to use Event-Driven Architecture (EDA), the `aiohttp` package should also be installed.
+> [!NOTE]
+> If you intend to use Event-Driven Ansible (EDA), the `aiohttp` package should also be installed.
 
 ## Authentication
 
@@ -189,9 +184,9 @@ Install and configure the CrowdStrike Falcon Sensor at version N-2:
       falcon_tags: 'falcon,example,tags'
 ```
 
-### Example using the Event Stream EDA Source via Ansible Rulebook
+### Example using the Event Stream EDA source via Ansible Rulebook
 
-> This example requires Ansible EDA to be installed. See the [Ansible Rulebook documentation](https://ansible.readthedocs.io/projects/rulebook/en/latest/getting_started.html) for more information.
+This example requires Ansible EDA to be installed. See the [Ansible Rulebook documentation](https://ansible.readthedocs.io/projects/rulebook/en/latest/getting_started.html) for more information.
 
 ```shell
 ansible-rulebook -i inventory -r crowdstrike.falcon.event_stream_example -E FALCON_CLIENT_ID,FALCON_CLIENT_SECRET
