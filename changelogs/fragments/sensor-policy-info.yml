@@ -1,2 +1,0 @@
-minor_changes:
-  - sensor_policy_info - adds ``sensor_policy_info`` module to retrieve sensor policy information from the CrowdStrike Falcon API (https://github.com/CrowdStrike/ansible_collection_falcon/pull/251)

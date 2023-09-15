@@ -9,7 +9,7 @@ namespace: crowdstrike
 name: falcon
 
 # The version of the collection. Must be compatible with semantic versioning
-version: 3.3.1
+version: 4.0.0
 
 # The path to the Markdown (.md) readme file. This path is relative to the root of the collection
 readme: README.md
@@ -53,6 +53,7 @@ tags:
 # range specifiers can be set and are separated by ','
 dependencies:
   "ansible.windows": ">=1.7.2"
+  "ansible.eda": ">=1.4.2"
 
 # The URL of the originating SCM repository
 repository: https://github.com/CrowdStrike/ansible_collection_crowdstrike

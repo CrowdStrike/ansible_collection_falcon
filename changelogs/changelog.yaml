@@ -305,3 +305,32 @@ releases:
     - 3.3.1.yml
     - eda-tox.yml
     release_date: '2023-08-17'
+  3.3.2:
+    changes:
+      bugfixes:
+      - falcon_configure - add become clause to remove_aid tasks (https://github.com/CrowdStrike/ansible_collection_falcon/pull/392)
+      minor_changes:
+      - falcon_uninstall - Adds hide/remove host functionality (https://github.com/CrowdStrike/ansible_collection_falcon/pull/393)
+      release_summary: '| Release Date: 2023-09-11
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.2>`__
+
+        '
+    fragments:
+    - 3.3.2.yml
+    - fix-become-issue-aid.yml
+    - remove-host.yml
+    release_date: '2023-09-11'
+  3.3.3:
+    changes:
+      bugfixes:
+      - update ansible meta information for certifiable requirements (https://github.com/CrowdStrike/ansible_collection_falcon/pull/405)
+      release_summary: '| Release Date: 2023-09-14
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.3>`__
+
+        '
+    fragments:
+    - 3.3.3.yml
+    - meta-update.yml
+    release_date: '2023-09-14'

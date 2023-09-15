@@ -5,7 +5,7 @@ the sensor from a local file or remote URL.
 
 ## Requirements
 
-- Ansible 2.12 or higher
+- Ansible 2.13 or higher
 - FalconPy 1.3.0 or higher on Ansible control node
 
 > As of version 4.0.0, this role takes full advantage of the FalconPy SDK for interacting with the CrowdStrike API.
@@ -99,8 +99,8 @@ This example installs the latest Falcon Sensor:
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
 ```
 
 ----------
@@ -113,8 +113,8 @@ This example installs the Falcon Sensor at version N-2:
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_version_decrement: 2
 ```
 
@@ -128,8 +128,8 @@ This example installs the Falcon Sensor at version 6.40.13707:
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_version: '6.40.13707'
 ```
 
@@ -143,8 +143,8 @@ This example installs the Falcon Sensor using a sensor update policy called "ACM
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_update_policy_name: "ACME Policy"
 ```
 
@@ -161,6 +161,11 @@ This example installs the Falcon Sensor from a local file, then removes it.
       falcon_localfile_cleanup: yes
       falcon_cid: <FALCON CID with Checksum>
 ```
+
+## Installing on MacOS
+
+Apple platforms require Mobile Device Management (MDM) software to install kernel extensions without user prompting.
+Ansible is only able to run on macOS in an interactive session, which means end-users will receive prompts to accept the CrowdStrike kernel modules.
 
 ## License
 
