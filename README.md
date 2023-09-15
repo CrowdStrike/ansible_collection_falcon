@@ -25,7 +25,7 @@ Version 4 to bring you enhanced features and support.
 
 As many of you are aware, we have been using version 3 of the CrowdStrike Ansible Collection for our Falcon sensor deployments. While this has been effective,
 we believe that upgrading to version 4 will provide us with numerous advantages that align well with our ongoing automation and cybersecurity strategies. By extending
-the power of the FalconPY SDK, version 4 will be instrumental in interacting and automating the Falcon platform. For more information, read our [Version 4 Highlights and Goals](docs/v4.md).
+the power of the FalconPY SDK, version 4 will be instrumental in interacting and automating the Falcon platform.
 
 ### How To Upgrade
 
