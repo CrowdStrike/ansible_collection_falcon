@@ -5,6 +5,57 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.0.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-09-15
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.0.0>`__
+
+
+Minor Changes
+-------------
+
+- auth - adds ``auth`` module to manage authentication with the Falcon API (https://github.com/CrowdStrike/ansible_collection_falcon/pull/384)
+- cid_info - adds ``cid_info`` module to help retrieve CID with checksum (https://github.com/CrowdStrike/ansible_collection_falcon/pull/395)
+- falcon_discover - adds a new dynamic inventory for the Discover service collection (https://github.com/CrowdStrike/ansible_collection_falcon/pull/400)
+- falcon_install - replaces existing API functionality with new modules (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
+- host_hide - adds ``host_hide`` module to hide/unhide hosts from the Falcon console (https://github.com/CrowdStrike/ansible_collection_falcon/pull/399)
+- sensor_download - adds ``sensor_download`` module to download sensor from the Falcon API (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
+- sensor_download_info - adds ``sensor_download_info`` module to retrieve sensor installers to download (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
+- sensor_policy_info - adds ``sensor_policy_info`` module to retrieve sensor policy information from the CrowdStrike Falcon API (https://github.com/CrowdStrike/ansible_collection_falcon/pull/251)
+
+Breaking Changes / Porting Guide
+--------------------------------
+
+- falconpy - new collection requirements for authenticating with the CrowdStrike Falcon API now require the falconpy sdk. All existing roles within the collection have been ported over and should use the ``./requirements.txt`` file to get started. (https://github.com/CrowdStrike/ansible_collection_falcon/pull/384)
+
+Bugfixes
+--------
+
+- cid_info - return the first element of the array (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
+- falcon_configure - add missing when clause for mac task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/399)
+
+New Plugins
+-----------
+
+Inventory
+~~~~~~~~~
+
+- crowdstrike.falcon.falcon_discover - CrowdStrike Falcon Discover inventory source
+
+New Modules
+-----------
+
+- crowdstrike.falcon.auth - Manage authentication
+- crowdstrike.falcon.cid_info - Get CID with checksum
+- crowdstrike.falcon.host_hide - Hide/Unhide hosts from the Falcon console
+- crowdstrike.falcon.sensor_download - Download Falcon Sensor Installer
+- crowdstrike.falcon.sensor_download_info - Get information about Falcon Sensor Installers
+- crowdstrike.falcon.sensor_update_policy_info - Get information about Falcon Update Sensor Policies
+
 v3.3.3
 ======
 
