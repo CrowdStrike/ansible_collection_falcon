@@ -6,6 +6,9 @@ the sensor from a local file or remote URL.
 ## Requirements
 
 - Ansible 2.13 or higher
+- FalconPy 1.3.0 or higher on Ansible control node
+
+> As of version 4.0.0, this role takes full advantage of the FalconPy SDK for interacting with the CrowdStrike API.
 
 ## Role Variables
 
@@ -33,9 +36,12 @@ The following variables are currently supported:
 
 - `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: ***null***)
 - `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: ***null***)
-- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: ***api.crowdstrike.com***)
-- `falcon_cloud_autodiscover` - Auto-discover CrowdStrike API Cloud region (bool, default: ***true***)
-- `falcon_api_auth_run_once` - Whether to enable or disable the run_once option for API auth calls. (bool, default: ***true***)
+- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: ***us-1***)
+  - choices:
+    - **us-1** -> api.crowdstrike.com
+    - **us-2** -> api.us-2.crowdstrike.com
+    - **us-gov-1** -> api.laggar.gcw.crowdstrike.com
+    - **eu-1** -> api.eu-1.crowdstrike.com
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 - `falcon_api_sensor_download_path` - Local directory path to download the sensor to (string, default: ***null***)
 - `falcon_api_sensor_download_filename` - The name to save the sensor file as (string, default: ***null***)
@@ -93,8 +99,8 @@ This example installs the latest Falcon Sensor:
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
 ```
 
 ----------
@@ -107,8 +113,8 @@ This example installs the Falcon Sensor at version N-2:
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_version_decrement: 2
 ```
 
@@ -122,8 +128,8 @@ This example installs the Falcon Sensor at version 6.40.13707:
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_version: '6.40.13707'
 ```
 
@@ -137,8 +143,8 @@ This example installs the Falcon Sensor using a sensor update policy called "ACM
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_update_policy_name: "ACME Policy"
 ```
 
@@ -155,6 +161,11 @@ This example installs the Falcon Sensor from a local file, then removes it.
       falcon_localfile_cleanup: yes
       falcon_cid: <FALCON CID with Checksum>
 ```
+
+## Installing on MacOS
+
+Apple platforms require Mobile Device Management (MDM) software to install kernel extensions without user prompting.
+Ansible is only able to run on macOS in an interactive session, which means end-users will receive prompts to accept the CrowdStrike kernel modules.
 
 ## License
 

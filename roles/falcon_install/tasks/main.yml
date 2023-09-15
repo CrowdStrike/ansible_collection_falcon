@@ -5,23 +5,25 @@
     - ansible.builtin.include_tasks: preinstall.yml
       # noqa name[missing]
 
-- name: URL block
-  when:
-    - falcon_install_method == "url"
-    - ansible_facts['os_family'] != "Windows"
-  block:
-    - ansible.builtin.include_tasks: url.yml
-      # noqa name[missing]
-
 - name: API block
   when:
     - falcon_install_method == "api"
-    - ansible_facts['os_family'] != "Windows"
   block:
     - ansible.builtin.include_tasks: auth.yml
       # noqa name[missing]
     - ansible.builtin.include_tasks: api.yml
       # noqa name[missing]
+
+- name: URL block
+  when:
+    - falcon_install_method == "url"
+  block:
+    - ansible.builtin.include_tasks: url.yml
+      # noqa name[missing]
+      when: ansible_facts['os_family'] != "Windows"
+    - ansible.builtin.include_tasks: win_url.yml
+      # noqa name[missing]
+      when: ansible_facts['os_family'] == "Windows"
 
 - name: File block
   when:
@@ -30,25 +32,7 @@
     - ansible.builtin.include_tasks: file.yml
       # noqa name[missing]
 
-- name: Windows URL block
-  when:
-    - falcon_install_method == "url"
-    - ansible_facts['os_family'] == "Windows"
-  block:
-    - ansible.builtin.include_tasks: win_url.yml
-      # noqa name[missing]
-
-- name: Windows API block
-  when:
-    - falcon_install_method == "api"
-    - ansible_facts['os_family'] == "Windows"
-  block:
-    - ansible.builtin.include_tasks: win_auth.yml
-      # noqa name[missing]
-    - ansible.builtin.include_tasks: win_api.yml
-      # noqa name[missing]
-
-- name: Non-Windows Install block
+- name: Install block (linux/mac)
   when:
     - ansible_facts['os_family'] != "Windows"
   become: true
@@ -57,7 +41,7 @@
     - ansible.builtin.include_tasks: install.yml
       # noqa name[missing]
 
-- name: Windows Install block
+- name: Install block (windows)
   when:
     - ansible_facts['os_family'] == "Windows"
   become: true

@@ -6,33 +6,34 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 # Make coding more python3-ish
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 import re
 import traceback
-from subprocess import check_output, STDOUT, CalledProcessError  # nosec
+from subprocess import STDOUT, CalledProcessError, check_output  # nosec
 
 from ansible.module_utils.common.process import get_bin_path
 
 # Constants
 FALCONCTL_GET_OPTIONS = [
-    'cid',
-    'aid',
-    'apd',
-    'aph',
-    'app',
-    'trace',
-    'feature',
-    'metadata_query',
-    'message_log',
-    'billing',
-    'tags',
+    "cid",
+    "aid",
+    "apd",
+    "aph",
+    "app",
+    "trace",
+    "feature",
+    "metadata_query",
+    "message_log",
+    "billing",
+    "tags",
     # 'provisioning_token', # Taking it out since this does not seem to be a perm option
-    'version',
-    'rfm_state',
-    'rfm_reason',
-    'backend'
+    "version",
+    "rfm_state",
+    "rfm_reason",
+    "backend",
 ]
 
 # Private use only. This is to ensure that the command is checked
@@ -43,9 +44,7 @@ FALCONCTL_NOT_FOUND = False
 FALCONCTL_VALUE_ERROR = None
 _cs_path = "/opt/CrowdStrike"
 try:
-    _FALCONCTL = get_bin_path(
-        'falconctl', required=True, opt_dirs=[_cs_path]
-    )
+    _FALCONCTL = get_bin_path("falconctl", required=True, opt_dirs=[_cs_path])
 except ValueError:
     FALCONCTL_NOT_FOUND = True
     FALCONCTL_VALUE_ERROR = traceback.format_exc()
@@ -53,16 +52,18 @@ except ValueError:
 
 def __get(opt):
     if opt not in FALCONCTL_GET_OPTIONS:
-        raise Exception("Invalid falconctl get option: %s" % opt)
+        raise ValueError("Invalid falconctl get option: %s" % opt)
     if not FALCONCTL_NOT_FOUND:
         cmd = [_FALCONCTL, "-g"]
     else:
-        raise Exception(FALCONCTL_VALUE_ERROR)
+        raise ValueError(FALCONCTL_VALUE_ERROR)
     # make sure opt is translated prior to execution
     opt = opt.replace("_", "-")
     cmd.append("--%s" % opt)
     try:
-        stdout = check_output(cmd, universal_newlines=True, stderr=STDOUT, shell=False)  # nosec
+        stdout = check_output(
+            cmd, universal_newlines=True, stderr=STDOUT, shell=False
+        )  # nosec
     except CalledProcessError:
         stdout = ""
 
@@ -80,11 +81,11 @@ def format_stdout(stdout):
         return None
 
     # Expect stdout in <option>=<value>
-    if 'version' in stdout:
+    if "version" in stdout:
         output = re.sub(r"[\"\s\n]|\(.*\)", "", stdout).split("=")[1]
-    elif 'rfm-reason' in stdout:
+    elif "rfm-reason" in stdout:
         output = re.sub(r"^rfm-reason=|[\"\s\n\.]|\(.*\)", "", stdout)
-    elif 'aph' in stdout:
+    elif "aph" in stdout:
         output = re.sub(r"\.$\n", "", stdout).split("=")[1]
     else:
         output = re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout).split("=")[1]

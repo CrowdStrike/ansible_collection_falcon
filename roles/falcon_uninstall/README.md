@@ -5,6 +5,9 @@ This role uninstalls the CrowdStrike Falcon Sensor.
 ## Requirements
 
 - Ansible 2.13 or higher
+- FalconPy 1.3.0 or higher on Ansible control node
+
+> As of version 4.0.0, this role takes full advantage of the FalconPy SDK for interacting with the CrowdStrike API.
 
 ## Role Variables
 
@@ -12,10 +15,14 @@ This role uninstalls the CrowdStrike Falcon Sensor.
 
 - `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: ***null***)
 - `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: ***null***)
-- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: ***api.crowdstrike.com***)
-- `falcon_cloud_autodiscover` - Auto-discover CrowdStrike API Cloud region (bool, default: ***true***)
+- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: ***us-1***)
+  - choices:
+    - **us-1** -> api.crowdstrike.com
+    - **us-2** -> api.us-2.crowdstrike.com
+    - **us-gov-1** -> api.laggar.gcw.crowdstrike.com
+    - **eu-1** -> api.eu-1.crowdstrike.com
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
-- `falcon_remove_host` - Whether to hide/remove the host from the CrowdStrike console (bool, default: ***false***)
+- `falcon_remove_host` - Whether to hide/remove the host from the CrowdStrike console (bool, default: false)
 
 ### Windows Specific Variables
 
@@ -58,8 +65,8 @@ This example uninstalls the Falcon Sensor and hides/removes the host from the Cr
   roles:
   - role: crowdstrike.falcon.falcon_uninstall
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_cloud: us-2
       falcon_remove_host: true
 ```

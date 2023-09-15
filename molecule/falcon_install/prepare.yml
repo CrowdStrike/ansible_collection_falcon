@@ -5,7 +5,7 @@
   tasks:
     # Ubuntu specific
     - name: Install apt dependencies
-      apt:
+      ansible.builtin.apt:
         name:
           - gpg-agent
         update_cache: yes
@@ -13,7 +13,7 @@
       when: ansible_facts['pkg_mgr'] == 'apt'
 
     - name: Install dependencies
-      package:
+      ansible.builtin.package:
         name:
           - sudo
         state: present
