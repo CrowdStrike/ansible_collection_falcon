@@ -1,61 +1,40 @@
 # Authentication Guide
 
-This guide outlines the different mechanisms available for authenticating with the CrowdStrike
-Falcon API using Ansible modules based on FalconPy.
+The Falcon Ansible collection requires authenticating against the Falcon API. To do so you will
+need client credentials. For more information see [Falcon API clients documentation](https://falcon.crowdstrike.com/documentation/page/a2a7fc0e/crowdstrike-oauth2-based-apis#mf8226da).
 
-- [Environment Variables](#environment-variables)
-- [Module Arguments](#module-arguments)
-- [Auth Object](#auth-object)
+## Passing in credentials
 
-## Environment Variables
+You can pass in your Falcon API client credentials using either environment variables or 
+module arguments. Available environment variables:
 
-Using environment variables is one way to store your Falcon API credentials.
+- `FALCON_CLIENT_ID` - required
+- `FALCON_CLIENT_SECRET` - required
+- `FALCON_CLOUD` - optional (discovered automatically)
+- `FALCON_MEMBER_CID` - optional (only for Flight Control users)
 
-To set these variables,
-run the following commands in your terminal:
-
-```terminal
-export FALCON_CLIENT_ID='API CLIENT ID'
-export FALCON_CLIENT_SECRET='API CLIENT SECRET'
-```
-
-If you would like to specify additional authentication environment variables:
-
-```terminal
-export FALCON_MEMBER_CID='MEMBER CID'
-export FALCON_CLOUD='us-2'
-```
-
-## Module Arguments
-
-Alternatively, you can pass in the credentials directly via module arguments:
-
-> Highly recommended that you use Ansible vault or some other method of securing your credentials
+Available module arguments:
 
 ```yaml
-- crowdstrike.falcon.cid_info:
-    client_id: "API CLIENT ID"
-    client_secret: "API CLIENT SECRET"
-    # Optional
-    member_cid: "MEMBER CID"
-    cloud: "eu-1"
-  register: falcon_cid
+- crowdstrike.falcon.example_module:
+    client_id: abcd1234 # required
+    client_secret: abcd5678 # required
+    cloud: us-2 # optional (discovered automatically)
+    member_cid: abcd2468 # optional (only for Flight Control users)
 ```
 
-## Auth Object
+You can use either of these methods for both authentication methods listed below.
 
-> Token based authentication
+## Authenticating with the Falcon API
 
-As a way to prevent the potential of being rate limited, we've introduced the ability to pass in an
-authentication object which consists of an access token and the cloud region.
+### Recommended: token-based authentication
 
-The `crowdstrike.falcon.auth` module can generate this object for you.
+Token-based authentication allows you to authenticate once against the Falcon API, then use a 
+returned temporary token for many subsequent API interactions. This is more efficient 
+and also mitigates the risk of rate limiting, especially when automating multiple hosts. 
+(For more information: [Falcon API rate limit documentation](https://falcon.crowdstrike.com/documentation/page/a2a7fc0e/crowdstrike-oauth2-based-apis#af41971e).)
 
-> :warning: The `cloud` region in the auth object may differ from the modules `cloud` argument due to auto-discovery.
->
-> See the [FalconPy]([https://](https://www.falconpy.io/Usage/Environment-Configuration.html#cloud-region-autodiscovery)) docs for more information.
-
-To generate an auth object:
+To use token-based authentication, first use the `crowdstrike.falcon.auth` module to get a new token:
 
 ```yaml
 - name: Generate Authentication Object
@@ -72,5 +51,28 @@ After obtaining the auth object, you can pass it to other modules to use the sam
     auth: "{{ falcon.auth }}"
     hosts: "{{ item }}"
   loop: "{{ host_ids }}"
-  register: hide_result
+```
+
+For more details on token-based authentication, see documentation for the `crowdstrike.falcon.auth` module.
+
+### Alternative: per-task authentication
+
+If you are only running a small number of tasks against the Falcon API, you can authenticate directly in the task:
+
+```yaml
+- crowdstrike.falcon.cid_info:
+    client_id: "API CLIENT ID"
+    client_secret: "API CLIENT SECRET"
+    # Optional
+    member_cid: "MEMBER CID"
+    cloud: "eu-1"
+  register: cid_info
+```
+
+Per-task authentication also supports environment variables:
+
+```yaml
+# assumes FALCON_CLIENT_ID and FALCON_CLIENT_SECRET have been set
+- crowdstrike.falcon.cid_info:
+  register: cid_info
 ```
