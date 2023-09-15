@@ -112,8 +112,8 @@ How to set the Falcon Customer ID (CID) using API creds:
   roles:
   - role: crowdstrike.falcon.falcon_configure
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
 ```
 
 How to set the Falcon Customer ID (CID) w/ provisioning token:

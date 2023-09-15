@@ -99,8 +99,8 @@ This example installs the latest Falcon Sensor:
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
 ```
 
 ----------
@@ -113,8 +113,8 @@ This example installs the Falcon Sensor at version N-2:
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_version_decrement: 2
 ```
 
@@ -128,8 +128,8 @@ This example installs the Falcon Sensor at version 6.40.13707:
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_version: '6.40.13707'
 ```
 
@@ -143,8 +143,8 @@ This example installs the Falcon Sensor using a sensor update policy called "ACM
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
-      falcon_client_id: <Falcon_UI_OAUTH_client_id>
-      falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_update_policy_name: "ACME Policy"
 ```
 

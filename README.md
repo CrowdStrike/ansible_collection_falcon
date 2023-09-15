@@ -156,8 +156,8 @@ outlining the various authentication mechanisms supported. Check out the [Authen
 ---
   - name: Get a list of the 2 latest Windows Sensor Installers
     crowdstrike.falcon.sensor_download_info:
-      client_id: <Falcon_UI_OAUTH_client_id>
-      client_secret: <Falcon_UI_OAUTH_client_secret>
+      client_id: <FALCON_CLIENT_ID>
+      client_secret: <FALCON_CLIENT_SECRET>
       cloud: us-2
       limit: 2
       filter: "platform_name:'windows'"
@@ -172,8 +172,8 @@ Install and configure the CrowdStrike Falcon Sensor at version N-2:
 ```yaml
 - hosts: all
   vars:
-    falcon_client_id: <Falcon_UI_OAUTH_client_id>
-    falcon_client_secret: <Falcon_UI_OAUTH_client_secret>
+    falcon_client_id: <FALCON_CLIENT_ID>
+    falcon_client_secret: <FALCON_CLIENT_SECRET>
   roles:
   - role: crowdstrike.falcon.falcon_install
     vars:
