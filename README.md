@@ -6,12 +6,11 @@
 
 # Ansible Collection - crowdstrike.falcon
 
-The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining your interactions with the CrowdStrike Falcon console.
+The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining your interactions with the CrowdStrike Falcon platform.
 
 ## :speaker: Announcements
 
-As of September 15, 2023, we are excited to announce the release of Version 4 of the Falcon Ansible Collection. With this exciting release, we are focusing our resources on
-Version 4 to bring you enhanced features and support.
+As of September 15, 2023, Version 4 of the Falcon Ansible Collection has been officially launched. Our team will be dedicating its efforts to the advancement and support of this new version.
 
 ### Important Notice for Version 3
 
@@ -23,9 +22,9 @@ Version 4 to bring you enhanced features and support.
 
 ### Why V4?
 
-As many of you are aware, we have been using version 3 of the CrowdStrike Ansible Collection for our Falcon sensor deployments. While this has been effective,
-we believe that upgrading to version 4 will provide us with numerous advantages that align well with our ongoing automation and cybersecurity strategies. By extending
-the power of the FalconPY SDK, version 4 will be instrumental in interacting with and automating the Falcon platform.
+As many of you are aware, we have been using Version 3 of the CrowdStrike Ansible Collection for our Falcon sensor deployments. While this has been effective,
+we believe that upgrading to Version 4 will provide us with numerous advantages that align well with our ongoing automation and cybersecurity strategies. By extending
+the power of the FalconPY SDK, Version 4 will be instrumental in interacting with and automating the Falcon platform.
 
 ### How To Upgrade
 
