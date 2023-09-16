@@ -1,0 +1,2 @@
+minor_changes:
+  - host_contain - adds new module to manage host network containment state (https://github.com/CrowdStrike/ansible_collection_falcon/pull/411)
