@@ -14,7 +14,7 @@ module: host_contain
 
 short_description: Network contain hosts in Falcon
 
-version_added: "4.0.1"
+version_added: "4.1.0"
 
 description:
   - Manages the network containment state of Falcon hosts.
