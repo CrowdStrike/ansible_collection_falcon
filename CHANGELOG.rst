@@ -5,6 +5,26 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.1.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-09-16
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.0>`__
+
+
+Minor Changes
+-------------
+
+- host_contain - adds new module to manage host network containment state (https://github.com/CrowdStrike/ansible_collection_falcon/pull/411)
+
+New Modules
+-----------
+
+- crowdstrike.falcon.host_contain - Network contain hosts in Falcon
+
 v4.0.0
 ======
 

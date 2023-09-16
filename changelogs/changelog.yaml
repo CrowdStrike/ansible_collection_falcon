@@ -391,3 +391,20 @@ releases:
         name: falcon_discover
         namespace: null
     release_date: '2023-09-15'
+  4.1.0:
+    changes:
+      minor_changes:
+      - host_contain - adds new module to manage host network containment state (https://github.com/CrowdStrike/ansible_collection_falcon/pull/411)
+      release_summary: '| Release Date: 2023-09-16
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.0>`__
+
+        '
+    fragments:
+    - 4.1.0.yml
+    - host_contain.yml
+    modules:
+    - description: Network contain hosts in Falcon
+      name: host_contain
+      namespace: ''
+    release_date: '2023-09-16'
