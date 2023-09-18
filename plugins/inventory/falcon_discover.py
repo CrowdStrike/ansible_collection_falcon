@@ -368,7 +368,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
             # Add host groups
             strict = self.get_option("strict")
-            self._set_composite_vars(self.get_option("compose"), hostvars, strict)
+            self._set_composite_vars(self.get_option("compose"), hostvars, hostname, strict)
 
             # Create user-defined groups based on variables/jinja2 conditionals
             self._add_host_to_composed_groups(
