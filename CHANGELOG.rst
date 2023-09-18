@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.1.1
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-09-17
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.1>`__
+
+
+Bugfixes
+--------
+
+- falcon_discover - fixed missing parameter for compose to work properly (https://github.com/CrowdStrike/ansible_collection_falcon/pull/413)
+
 v4.1.0
 ======
 
