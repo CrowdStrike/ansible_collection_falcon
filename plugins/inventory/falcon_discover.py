@@ -98,7 +98,7 @@ plugin: crowdstrike.falcon.falcon_discover
 #filter: "reduced_functionality_mode:Yes+last_seen_timestamp:>'now-12h'"
 
 # return all AWS assets
-#filter: "cloud_provider:AWS"
+#filter: "cloud_provider:'AWS'"
 
 # place hosts into dynamically created groups based on variable values
 keyed_groups:
@@ -131,8 +131,8 @@ groups:
 #   ansible_host: external_ip
 #   # this defines combinations of host servers, IP addresses, and related SSH private keys.
 #   ansible_host: external_ip
-#   ansible_user: root
-#   ansible_ssh_private_key_file: /path/to/private_key_file
+#   ansible_user: "'root'"
+#   ansible_ssh_private_key_file: "'/path/to/private_key_file'"
 
 # caching is supported for this inventory plugin.
 # caching can be configured in the ansible.cfg file or in the inventory file.
