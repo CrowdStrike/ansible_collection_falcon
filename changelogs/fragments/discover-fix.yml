@@ -1,2 +1,0 @@
-bugfixes:
-  - falcon_discover - fixed missing parameter for compose to work properly

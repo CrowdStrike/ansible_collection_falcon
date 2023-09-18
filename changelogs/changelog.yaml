@@ -408,3 +408,16 @@ releases:
       name: host_contain
       namespace: ''
     release_date: '2023-09-16'
+  4.1.1:
+    changes:
+      bugfixes:
+      - falcon_discover - fixed missing parameter for compose to work properly (https://github.com/CrowdStrike/ansible_collection_falcon/pull/413)
+      release_summary: '| Release Date: 2023-09-17
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.1>`__
+
+        '
+    fragments:
+    - 4.1.1.yml
+    - discover-fix.yml
+    release_date: '2023-09-17'
