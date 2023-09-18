@@ -41,12 +41,12 @@ author:
 EXAMPLES = r"""
 - name: Get a list of Linux Sensor Installers
   crowdstrike.falcon.sensor_download_info:
-    filter: "platform_name:'linux'"
+    filter: "platform:'linux'"
 
 - name: Get a list of the 2 latest Windows Sensor Installers
   crowdstrike.falcon.sensor_download_info:
     limit: 2
-    filter: "platform_name:'windows'"
+    filter: "platform:'windows'"
     sort: "version|desc"
 """
 
