@@ -1,0 +1,2 @@
+bugfixes:
+  - falconpy_utils - fix incorrect url for eu1 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/415)
