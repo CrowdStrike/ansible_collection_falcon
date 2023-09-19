@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.1.2
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-09-19
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.2>`__
+
+
+Bugfixes
+--------
+
+- falconpy_utils - fix incorrect url for eu1 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/415)
+
 v4.1.1
 ======
 

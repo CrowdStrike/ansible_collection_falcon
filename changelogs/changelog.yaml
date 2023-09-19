@@ -421,3 +421,16 @@ releases:
     - 4.1.1.yml
     - discover-fix.yml
     release_date: '2023-09-17'
+  4.1.2:
+    changes:
+      bugfixes:
+      - falconpy_utils - fix incorrect url for eu1 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/415)
+      release_summary: '| Release Date: 2023-09-19
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.2>`__
+
+        '
+    fragments:
+    - 4.1.2.yml
+    - fix-eu-mapping.yml
+    release_date: '2023-09-19'
