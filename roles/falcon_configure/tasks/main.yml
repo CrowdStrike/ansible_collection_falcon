@@ -8,7 +8,7 @@
   block:
     - ansible.builtin.include_role:
         name: falcon_install
-        tasks_from: "{{ 'win_auth.yml' if ansible_facts['os_family'] == 'Windows' else 'auth.yml' }}"
+        tasks_from: auth
       # noqa name[missing]
 
 - name: Linux Configure block
