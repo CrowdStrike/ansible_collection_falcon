@@ -1,2 +1,0 @@
-bugfixes:
-  - falcon_configure - fix main task call to auth task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/418)
