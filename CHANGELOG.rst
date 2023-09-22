@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.1.3
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-09-22
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.3>`__
+
+
+Bugfixes
+--------
+
+- falcon_configure - fix main task call to auth task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/418)
+
 v4.1.2
 ======
 
