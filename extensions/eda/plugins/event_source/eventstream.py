@@ -62,6 +62,9 @@ REGIONS: dict[str, str] = {
     "us-gov-1": "https://api.laggar.gcw.crowdstrike.com",
 }
 
+# Keep this in sync with galaxy.yml
+VERSION = "4.1.3"
+
 
 class AIOFalconAPI:
     """An asynchronous API client for the CrowdStrike Falcon Event Stream API.
@@ -114,7 +117,9 @@ class AIOFalconAPI:
         self.client_id = client_id
         self.client_secret = client_secret
         self.base_url = base_url or self.BASE_URL
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(headers={
+            "User-Agent": f"crowdstrike-ansible/eda/{VERSION}"
+        })
 
     async def close(self: "AIOFalconAPI") -> None:
         """Close the aiohttp session."""
