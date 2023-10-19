@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.2.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-10-19
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.0>`__
+
+
+Minor Changes
+-------------
+
+- eventstream plugin - add user-agent string (https://github.com/CrowdStrike/ansible_collection_falcon/pull/426)
+
 v4.1.3
 ======
 

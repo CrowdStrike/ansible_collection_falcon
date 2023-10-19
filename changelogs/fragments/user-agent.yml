@@ -1,2 +1,0 @@
-minor_changes:
-  - eventstream plugin - add user-agent string (https://github.com/CrowdStrike/ansible_collection_falcon/pull/426)
