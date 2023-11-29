@@ -77,7 +77,9 @@
     mode: 0640
   changed_when: false
   register: falcon_sensor_copied
-  when: ansible_os_family != "Windows"
+  when:
+    - ansible_os_family != "Windows"
+    - falcon_sensor_download.changed
 
 - name: CrowdStrike Falcon | Copy Sensor Installation Package to remote host (windows)
   ansible.windows.win_copy:
@@ -86,7 +88,9 @@
     mode: 0640
   changed_when: false
   register: win_falcon_sensor_copied
-  when: ansible_os_family == "Windows"
+  when: 
+    - ansible_os_family == "Windows"
+    - falcon_sensor_download.changed
 
 - name: CrowdStrike Falcon | Remove Downloaded Sensor Installation Package (local)
   ansible.builtin.file:
@@ -99,9 +103,13 @@
 - name: CrowdStrike Falcon | Set full file download path (non-windows)
   ansible.builtin.set_fact:
     falcon_sensor_pkg: "{{ falcon_sensor_copied.dest }}"
-  when: ansible_os_family != "Windows"
+  when: 
+    - ansible_os_family != "Windows"
+    - falcon_sensor_download.changed
 
 - name: CrowdStrike Falcon | Set full file download path (windows)
   ansible.builtin.set_fact:
     falcon_sensor_pkg: "{{ win_falcon_sensor_copied.dest }}\\{{ win_falcon_sensor_copied.original_basename }}"
-  when: ansible_os_family == "Windows"
+  when:
+    - ansible_os_family == "Windows"
+    - falcon_sensor_download.changed
