@@ -80,7 +80,6 @@ EXAMPLES = r"""
   fail:
     msg: "Hosts could not be hidden: {{ hide_result.failed_hosts }}"
   when: hide_result.failed_hosts | length > 0
-
 """
 
 RETURN = r"""
