@@ -12,8 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ansible/ansible-lint-action@main
-      with:
-        targets: roles
-        override-deps: |
-          rich>=9.5.1,<11.0.0
+    - uses: ansible/ansible-lint@v6.22.1
