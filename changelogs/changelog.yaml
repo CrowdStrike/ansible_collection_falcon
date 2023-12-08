@@ -460,3 +460,13 @@ releases:
     - 4.2.0.yml
     - user-agent.yml
     release_date: '2023-10-19'
+  4.2.1:
+    changes:
+      release_summary: '| Release Date: 2023-12-08
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.1>`__
+
+        '
+    fragments:
+    - 4.2.1.yml
+    release_date: '2023-12-08'

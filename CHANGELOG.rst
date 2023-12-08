@@ -5,6 +5,16 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.2.1
+======
+
+Release Summary
+---------------
+
+| Release Date: 2023-12-08
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.1>`__
+
+
 v4.2.0
 ======
 
