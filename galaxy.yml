@@ -53,7 +53,6 @@ tags:
 # range specifiers can be set and are separated by ','
 dependencies:
   "ansible.windows": ">=1.7.2"
-  "ansible.eda": ">=1.4.2"
 
 # The URL of the originating SCM repository
 repository: https://github.com/CrowdStrike/ansible_collection_crowdstrike
