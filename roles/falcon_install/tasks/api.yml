@@ -69,6 +69,7 @@
   changed_when: false
   register: falcon_sensor_download
   delegate_to: localhost
+  run_once: true
 
 - name: CrowdStrike Falcon | Copy Sensor Installation Package to remote host (non-windows)
   ansible.builtin.copy:
