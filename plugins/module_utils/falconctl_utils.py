@@ -44,7 +44,7 @@ FALCONCTL_NOT_FOUND = False
 FALCONCTL_VALUE_ERROR = None
 _cs_path = "/opt/CrowdStrike"
 try:
-    _FALCONCTL = get_bin_path("falconctl", required=True, opt_dirs=[_cs_path])
+    _FALCONCTL = get_bin_path("falconctl", opt_dirs=[_cs_path])
 except ValueError:
     FALCONCTL_NOT_FOUND = True
     FALCONCTL_VALUE_ERROR = traceback.format_exc()
