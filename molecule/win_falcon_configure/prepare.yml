@@ -1,10 +1,12 @@
 ---
 - name: Prepare
   hosts: all
+  vars:
+    windows_install_args: "/norestart GROUPING_TAGS=molecule,testing"
   tasks:
     - name: Set ProvToken info (if applicable)
       ansible.builtin.set_fact:
-        windows_install_args: "/norestart ProvToken={{ lookup('env', 'FALCON_PROV_TOKEN') }}"
+        windows_install_args: "{{ windows_install_args }} ProvToken={{ lookup('env', 'FALCON_PROV_TOKEN') }}"
       when: lookup('env', 'FALCON_PROV_TOKEN')
 
     - name: Install Falcon Sensor
@@ -13,4 +15,4 @@
       vars:
         falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
         falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
-        falcon_windows_install_args: "{{ windows_install_args if windows_install_args is defined else '/norestart' }}"
+        falcon_windows_install_args: "{{ windows_install_args }}"
