@@ -470,3 +470,18 @@ releases:
     fragments:
     - 4.2.1.yml
     release_date: '2023-12-08'
+  4.2.2:
+    changes:
+      bugfixes:
+      - Remove superfluous parameter `required` from process.get_bin_path API usage.
+      - falcon_install - fix falcon_target_os value for SLES (https://github.com/CrowdStrike/ansible_collection_falcon/pull/449)
+      release_summary: '| Release Date: 2024-02-14
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.2>`__
+
+        '
+    fragments:
+    - 4.2.2.summary.yml
+    - 448-sles-fix.yml
+    - get_bin_path.yml
+    release_date: '2024-02-14'
