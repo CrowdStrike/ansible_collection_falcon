@@ -127,7 +127,7 @@ EXAMPLES = r"""
   crowdstrike.falcon.falconctl:
     state: present
     apd: no
-    aph: http://example.com
+    aph: example.com
     app: 8080
 """
 
