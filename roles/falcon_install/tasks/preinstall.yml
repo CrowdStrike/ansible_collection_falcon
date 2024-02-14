@@ -54,6 +54,11 @@
     falcon_target_os: "*RHEL*"
   when: ansible_facts['os_family'] == "RedHat"
 
+- name: "CrowdStrike Falcon | Determine if Endpoint Operating System Is SLES"
+  ansible.builtin.set_fact:
+    falcon_target_os: "SLES"
+  when: ansible_facts['os_family'] == "Suse"
+
 - name: "CrowdStrike Falcon | Determine if Target OS Is Amazon Linux"
   ansible.builtin.set_fact:
     falcon_target_os: "Amazon Linux"
