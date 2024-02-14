@@ -49,7 +49,7 @@ future.
 - `falcon_provisioning_token` - Falcon Installation Token (string, default: ***null***)
 - `falcon_apd` - Enable/Disable the Falcon Proxy (string, default: ***null***)
   > To enable proxy, set as: ***false***
-- `falcon_aph` - Falcon Proxy host (by FQDN or IP) (string, default: ***null***)
+- `falcon_aph` - Falcon Proxy host (by FQDN or IP), without protocol (string, default: ***null***)
 - `falcon_app` - Falcon Proxy port (string, default: ***null***)
 - `falcon_trace` - Configure additional traces for debugging (string, default: ***null***)
 - `falcon_feature` - Configures additional features to the sensor (list, default: ***null***)
@@ -135,7 +135,7 @@ How to configure the Falcon Sensor Proxy:
   - role: crowdstrike.falcon.falcon_configure
     vars:
       falcon_apd: no
-      falcon_aph: 'http://example.com'
+      falcon_aph: 'example.com'
       falcon_app: 8080
 ```
 
