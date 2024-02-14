@@ -1,0 +1,2 @@
+bugfixes:
+- falcon_install - fix falcon_target_os value for SLES (https://github.com/CrowdStrike/ansible_collection_falcon/pull/449)
