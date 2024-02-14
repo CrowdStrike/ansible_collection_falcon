@@ -61,7 +61,7 @@ falcon_remove_aid:
 #
 falcon_apd:
 
-# The Falcon Proxy host. Can be either the FQDN or IP.
+# The Falcon Proxy host. Can be either the FQDN or IP. Without protocol.
 #
 falcon_aph:
 
