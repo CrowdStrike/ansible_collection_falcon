@@ -5,6 +5,22 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.2.2
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-02-14
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.2>`__
+
+
+Bugfixes
+--------
+
+- Remove superfluous parameter `required` from process.get_bin_path API usage.
+- falcon_install - fix falcon_target_os value for SLES (https://github.com/CrowdStrike/ansible_collection_falcon/pull/449)
+
 v4.2.1
 ======
 

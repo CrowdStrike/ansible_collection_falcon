@@ -46,7 +46,6 @@
     vars:
       falcon_option_set: no
       falcon_cid: ""
-      falcon_tags: ""
       falcon_billing: ""
       falcon_apd: ""
       falcon_aph: ""
@@ -71,17 +70,19 @@
           that:
             - not delete_info.falconctl_info.aid
             - not delete_info.falconctl_info.cid
-            - not delete_info.falconctl_info.tags
             - not delete_info.falconctl_info.apd
             - not delete_info.falconctl_info.aph
             - not delete_info.falconctl_info.app
 
-  - name: Test auto-detecting CID
-    ansible.builtin.include_role:
-      name: crowdstrike.falcon.falcon_configure
-    vars:
-      falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
-      falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
+  - name: Auto-detect CID block
+    become: no
+    block:
+      - name: Test auto-detecting CID
+        ansible.builtin.include_role:
+          name: crowdstrike.falcon.falcon_configure
+        vars:
+          falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+          falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
 
   - name: Get CID Option
     crowdstrike.falcon.falconctl_info:
