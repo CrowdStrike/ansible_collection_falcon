@@ -8,23 +8,7 @@
 
 The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining your interactions with the CrowdStrike Falcon platform.
 
-## :mega: Announcements
 
-**September 15, 2023:** We are excited to announce that Version 4 of the Falcon Ansible Collection has been officially launched. Version 4 will provide us with numerous
-advantages that align well with our ongoing automation and cybersecurity strategies. By extending the power of the FalconPy SDK, Version 4 will be instrumental in interacting with
-and automating the Falcon platform.
-
-### Important Notice for Version 3
-
-- **New Branch:** Version 3 will be moved to its own dedicated branch [v3](https://github.com/CrowdStrike/ansible_collection_falcon/tree/v3) to allow for isolated maintenance
-  and bug fixes.
-- **No New Features:** Version 3 will not receive any new features moving forward. We will only release bug fixes to maintain its stability. This is to allow us to focus our
-  development efforts on Version 4.
-- **Limited Support:** Version 3 will continue to receive bug fixes until **February 1st, 2024**. After that date, we will no longer provide updates or support for Version 3.
-
-### How to upgrade
-
-We strongly encourage you to upgrade to Version 4 to benefit from new features and ongoing support. Please see the [Installing this collection](#installing-this-collection) section to get started.
 
 ### Questions or concerns?
 
@@ -36,7 +20,7 @@ Tested with the Ansible Core >= 2.14.0 versions, and the current development ver
 
 ## Python version compatibility
 
-This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of `3.6` is required for this collection to function properly.
+This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of `3.7` is required for this collection to function properly.
 
 ## Included content
 
@@ -46,11 +30,11 @@ Offering pre-defined roles tailored for various platforms—including macOS, Lin
 
 *Please read each role's README to familiarize yourself with the role variables and other requirements.*
 
-| Role Name | Documentation | Build Status Linux | Build Status Windows |
-| --------- | :-----------: | ------------------ | -------------------- |
-| crowdstrike.falcon.falcon_install | [README](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_install/README.md) | [![falcon_install](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_install.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_install.yml) | [![falcon_install](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/win_falcon_install.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/win_falcon_install.yml)
-| crowdstrike.falcon.falcon_configure | [README](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_configure/README.md) | [![falcon_configure](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_configure.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_configure.yml) | [![falcon_configure](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/win_falcon_configure.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/win_falcon_configure.yml)
-| crowdstrike.falcon.falcon_uninstall | [README](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_uninstall/README.md) | [![falcon_uninstall](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_uninstall.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/falcon_uninstall.yml) | [![falcon_uninstall](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/win_falcon_uninstall.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/win_falcon_uninstall.yml)
+| Role Name | Documentation
+| --------- | :-----------:
+| crowdstrike.falcon.falcon_install | [README](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_install/README.md)
+| crowdstrike.falcon.falcon_configure | [README](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_configure/README.md)
+| crowdstrike.falcon.falcon_uninstall | [README](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_uninstall/README.md)
 
 <!--start collection content-->
 ### Modules
