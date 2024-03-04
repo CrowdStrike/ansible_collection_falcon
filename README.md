@@ -8,9 +8,7 @@
 
 The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining your interactions with the CrowdStrike Falcon platform.
 
-
-
-### Questions or concerns?
+## Questions or concerns?
 
 If you encounter any issues or have questions about the migration, please open an [issue](https://github.com/CrowdStrike/ansible_collection_falcon/issues/new/choose) in this repository.
 
@@ -21,6 +19,9 @@ Tested with the Ansible Core >= 2.14.0 versions, and the current development ver
 ## Python version compatibility
 
 This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of `3.7` is required for this collection to function properly.
+
+> [!NOTE]
+> As of FalconPy Version 1.4.0, Python 3.6 is no longer supported. If you would like to use FalconPy with Python 3.6, please use FalconPy Version < 1.4.0.
 
 ## Included content
 
