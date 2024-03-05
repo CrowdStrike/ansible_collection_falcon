@@ -18,7 +18,7 @@ jobs:
       PY_COLORS: 1
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
           python-version: '3.11'
@@ -36,7 +36,7 @@ jobs:
       PY_COLORS: 1
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
           python-version: '3.11'
@@ -54,7 +54,7 @@ jobs:
       PY_COLORS: 1
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
           python-version: '3.11'
