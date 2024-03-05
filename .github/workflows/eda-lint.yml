@@ -1,29 +1,29 @@
----
-    on:
-        push:
-          paths:
-            - 'extensions/**'
-            - '.github/workflows/eda-lint.yml'
+name: EDA Linting (tox)
 
-        pull_request:
-          paths:
-            - 'extensions/**'
-            - '.github/workflows/eda-lint.yml'
-    name: EDA Linting (tox)
-    jobs:
-      tox:
-        runs-on: ubuntu-latest
-        steps:
-          - uses: actions/checkout@v4
-          - name: Install dependencies
-            run: |
-              sudo apt-get update -y
-              sudo apt-get install jq libyaml-dev git build-essential findutils libsystemd-dev -y
-              sudo python3 -m pip install tox
-              sudo python3 -m pip install --upgrade --ignore-installed PyYAML
-              sudo python3 -m pip install --upgrade pip
-              sudo python3 -m pip install --upgrade virtualenv
-              sudo python3 -m pip install --upgrade setuptools
-          - name: Run tox
-            run: |
-              tox
+on:
+  push:
+    paths:
+      - "extensions/**"
+      - ".github/workflows/eda-lint.yml"
+
+  pull_request:
+    paths:
+      - "extensions/**"
+      - ".github/workflows/eda-lint.yml"
+jobs:
+  tox:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install jq libyaml-dev git build-essential findutils libsystemd-dev -y
+        sudo python3 -m pip install tox
+        sudo python3 -m pip install --upgrade --ignore-installed PyYAML
+        sudo python3 -m pip install --upgrade pip
+        sudo python3 -m pip install --upgrade virtualenv
+        sudo python3 -m pip install --upgrade setuptools
+    - name: Run tox
+      run: |
+        tox
