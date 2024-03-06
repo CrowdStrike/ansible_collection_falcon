@@ -166,14 +166,14 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     NAME = "crowdstrike.falcon.falcon_discover"
 
     def verify_file(self, path):
-        if super(InventoryModule, self).verify_file(path):
+        if super().verify_file(path):
             if re.match(r".{0,}falcon_discover\.(yml|yaml)$", path):
                 return True
         return False
 
     def parse(self, inventory, loader, path, cache=True):
         """Parse the inventory file and return JSON data structure."""
-        super(InventoryModule, self).parse(inventory, loader, path)
+        super().parse(inventory, loader, path)
 
         self._read_config_data(path)
         cache_key = self.get_cache_key(path)
