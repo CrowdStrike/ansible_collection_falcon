@@ -63,7 +63,7 @@ REGIONS: dict[str, str] = {
 }
 
 # Keep this in sync with galaxy.yml
-VERSION = "3.3.3"
+VERSION = "3.3.4"
 
 
 class AIOFalconAPI:
