@@ -166,6 +166,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
     NAME = "crowdstrike.falcon.falcon_discover"
 
     def verify_file(self, path):
+        """Verify the inventory file."""
         if super().verify_file(path):
             if re.match(r".{0,}falcon_discover\.(yml|yaml)$", path):
                 return True

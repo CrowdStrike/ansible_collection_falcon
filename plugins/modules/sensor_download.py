@@ -133,7 +133,7 @@ def main():
 
     if not dest:
         dest = mkdtemp()
-        os.chmod(dest, 0o755) #nosec
+        os.chmod(dest, 0o755)  # nosec
         tmp_dir = True
 
     # Make sure path exists and is a directory
