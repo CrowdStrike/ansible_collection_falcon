@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v3.3.4
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-03-05
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.4>`__
+
+
+Bugfixes
+--------
+
+- fixed linting issues with ruff, pylint, and flake8
+
 v3.3.3
 ======
 

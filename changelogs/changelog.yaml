@@ -334,3 +334,16 @@ releases:
     - 3.3.3.yml
     - meta-update.yml
     release_date: '2023-09-14'
+  3.3.4:
+    changes:
+      bugfixes:
+      - fixed linting issues with ruff, pylint, and flake8
+      release_summary: '| Release Date: 2024-03-05
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.4>`__
+
+        '
+    fragments:
+    - 3.3.4.yaml
+    - lint.yaml
+    release_date: '2024-03-05'
