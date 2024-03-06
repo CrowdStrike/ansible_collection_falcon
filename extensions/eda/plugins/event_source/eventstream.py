@@ -62,6 +62,9 @@ REGIONS: dict[str, str] = {
     "us-gov-1": "https://api.laggar.gcw.crowdstrike.com",
 }
 
+# Keep this in sync with galaxy.yml
+VERSION = "3.3.3"
+
 
 class AIOFalconAPI:
     """An asynchronous API client for the CrowdStrike Falcon Event Stream API.
@@ -87,6 +90,7 @@ class AIOFalconAPI:
         authenticate: Authenticate to the Falcon API and return the access token.
         list_available_streams: List available streams from the Falcon API.
         refresh_stream: Refresh a stream from the Falcon API.
+
     """
 
     BASE_URL = "https://api.crowdstrike.com"
@@ -110,11 +114,14 @@ class AIOFalconAPI:
             The client secret for authenticating to the Falcon API.
         base_url: str, optional
             The base URL for the Falcon API. Defaults to BASE_URL.
+
         """
         self.client_id = client_id
         self.client_secret = client_secret
         self.base_url = base_url or self.BASE_URL
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(headers={
+            "User-Agent": f"crowdstrike-ansible/eda/{VERSION}",
+        })
 
     async def close(self: "AIOFalconAPI") -> None:
         """Close the aiohttp session."""
@@ -136,6 +143,7 @@ class AIOFalconAPI:
         ------
         ValueError
             If the credentials passed fail to authenticate.
+
         """
         url = self.base_url + self.TOKEN_URL
         data = {"client_id": self.client_id, "client_secret": self.client_secret}
@@ -168,6 +176,7 @@ class AIOFalconAPI:
         dict
             The JSON response from the Falcon API, which includes details about
             the available streams.
+
         """
         params = {"appId": app_id}
         url = self.base_url + self.LIST_STREAMS_URL
@@ -200,6 +209,7 @@ class AIOFalconAPI:
         bool
             True if the refresh was successful (i.e., the server responded with
             a status code of 200); False
+
         """
         ok_response = 200
         params = {
@@ -240,6 +250,7 @@ class Stream:
             A list of event types to filter on.
         stream: dict
             A dictionary containing the details of the stream.
+
         """
         logger.info("Initializing Stream: %s", stream_name)
         self.client: AIOFalconAPI = client
@@ -269,6 +280,7 @@ class Stream:
         bool
             True if the refresh was successful (i.e., the server responded with a
             status code of 200); False otherwise.
+
         """
         refreshed: bool = False
 
@@ -303,6 +315,7 @@ class Stream:
         aiohttp.ClientResponse
             The server's response to the GET request, which is an open streaming
             connection.
+
         """
         event_type_filter = (
             ""
@@ -354,6 +367,7 @@ class Stream:
         ------
         ValueError
             If client authentication fails during the token refresh process.
+
         """
         # Open the stream
         await self.open_stream()
@@ -396,6 +410,7 @@ class Stream:
         bool
             Returns False if the event_type is in the exclude_event_types list,
             otherwise returns True.
+
         """
         if event_type in exclude_event_types:
             return False
@@ -417,6 +432,7 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
     ------
     ValueError
         If a argument is invalid
+
     """
     falcon_client_id: str = str(args.get("falcon_client_id"))
     falcon_client_secret: str = str(args.get("falcon_client_secret"))
@@ -451,21 +467,22 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
         for stream in available_streams["resources"]
     ]
 
-    # Iterate over each stream in the streams list
-    for stream in streams:
-        try:
+    try:
+        # Iterate over each stream in the streams list
+        for stream in streams:
             async for event in stream.stream_events(exclude_event_types):
                 await queue.put(event)
                 await asyncio.sleep(delay)
-        except Exception:  # pylint: disable=broad-except
-            logger.exception("Uncaught Plugin Task Error")
-            continue
-        finally:
-            logger.info("Plugin Task Finished..cleaning up")
-            # Close the stream
+    except Exception:  # pylint: disable=broad-except
+        logger.exception("Uncaught Plugin Task Error")
+    else:
+        logger.info("All streams processed successfully.")
+    finally:
+        logger.info("Plugin Task Finished..cleaning up")
+        # Close the stream and API session outside the loop
+        for stream in streams:
             await stream.spigot.close()
-            # Close the API session
-            await falcon.close()
+        await falcon.close()
 
 
 if __name__ == "__main__":
@@ -480,6 +497,7 @@ if __name__ == "__main__":
             ----------
             event: dict
                 The event to be printed.
+
             """
             print(event)  # noqa: T201
 
