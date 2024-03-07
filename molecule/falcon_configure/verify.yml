@@ -15,7 +15,6 @@
         - info.falconctl_info.cid
         - info.falconctl_info.billing
         - info.falconctl_info.tags
-        - info.falconctl_info.message_log
         - not info.falconctl_info.apd
         - not info.falconctl_info.aph
         - not info.falconctl_info.app
