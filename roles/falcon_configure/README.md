@@ -135,7 +135,7 @@ How to configure the Falcon Sensor Proxy:
   - role: crowdstrike.falcon.falcon_configure
     vars:
       falcon_apd: no
-      falcon_aph: 'http://example.com'
+      falcon_aph: 'example.com'
       falcon_app: 8080
 ```
 

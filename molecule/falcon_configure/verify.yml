@@ -25,7 +25,7 @@
       name: crowdstrike.falcon.falcon_configure
     vars:
       falcon_apd: no
-      falcon_aph: 'http://example.com'
+      falcon_aph: 'example.com'
       falcon_app: 8080
 
   - name: Get list of Falcon Sensor Proxy Options
@@ -36,7 +36,7 @@
     ansible.builtin.assert:
       that:
         - proxy_info.falconctl_info.apd == 'FALSE'
-        - proxy_info.falconctl_info.aph == 'http://example.com'
+        - proxy_info.falconctl_info.aph == 'example.com'
         - proxy_info.falconctl_info.app == '8080'
 
   - name: Test Deleting Options
