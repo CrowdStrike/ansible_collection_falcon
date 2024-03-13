@@ -7,6 +7,7 @@
   register: falcon
   run_once: yes
   no_log: "{{ falcon_api_enable_no_log }}"
+  become: no
   delegate_to: localhost
 
 - name: Set falcon_cid Block
