@@ -10,7 +10,7 @@ description:
   - Query asset details from the CrowdStrike Falcon Hosts API.
   - The inventory file is a YAML configuration and must end with C(falcon_hosts.{yml|yaml}).
   - "Example: C(my_inventory.falcon_hosts.yml)"
-version_added: "4.2.3"
+version_added: "4.3.0"
 extends_documentation_fragment:
   - constructed
   - inventory_cache
