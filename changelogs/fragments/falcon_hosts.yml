@@ -1,0 +1,2 @@
+minor_changes:
+- falcon_hosts - adds a new dynamic inventory for the Hosts service collection (https://github.com/CrowdStrike/ansible_collection_falcon/pull/470)

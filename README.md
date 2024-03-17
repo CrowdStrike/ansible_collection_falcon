@@ -57,6 +57,7 @@ Name | Description
 Name | Description
 --- | ---
 [crowdstrike.falcon.falcon_discover](https://crowdstrike.github.io/ansible_collection_falcon/falcon_discover_inventory.html)|Falcon Discover inventory source
+[crowdstrike.falcon.falcon_hosts](https://crowdstrike.github.io/ansible_collection_falcon/falcon_hosts_inventory.html)|Falcon Hosts inventory source
 <!--end collection content-->
 
 <!--start eda content-->
