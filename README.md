@@ -8,10 +8,6 @@
 
 The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining your interactions with the CrowdStrike Falcon platform.
 
-## Questions or concerns?
-
-If you encounter any issues or have questions about the migration, please open an [issue](https://github.com/CrowdStrike/ansible_collection_falcon/issues/new/choose) in this repository.
-
 ## Ansible version compatibility
 
 Tested with the Ansible Core >= 2.14.0 versions, and the current development version of Ansible. Ansible Core versions before 2.14.0 are not supported.
@@ -201,6 +197,12 @@ All contributions are welcome!
 
 As of release > 3.2.18, we will now be following Ansible's development patterns for implementing Ansible's changelog fragments. This will require a changelog fragment to any PR that is not documentation or trivial. Most changelog entries will
 likely be `bugfixes` or `minor_changes`. Please refer to the documentation for [Ansible's changelog fragments](https://docs.ansible.com/ansible/devel/community/development_process.html#creating-changelog-fragments) to learn more.
+
+## Questions or Support?
+
+CrowdStrike Ansible Collection is a community-driven, open source project aimed at simplifying the integration and utilization of CrowdStrike's Falcon platform with Ansible automation. While not an official CrowdStrike product, the CrowdStrike Ansible Collection is maintained by CrowdStrike and supported in collaboration with the open source developer community.
+
+For additional information, please refer to the [SUPPORT.md](./SUPPORT.md) file.
 
 # License
 

@@ -1,14 +1,13 @@
 # crowdstrike.falcon.falcon_configure
 
-This role configures the CrowdStrike Falcon Sensor. For Linux, this role requires the Falcon
+This role configures the CrowdStrike Falcon Sensor. For Linux and macOS, this role requires the Falcon
 sensor to be installed prior to running this role.
 
-## Limitations
-
-This role is focused mainly on configuring the Falcon Sensor on Linux and MacOS. Windows is supported, but not as
-much functionality is currently available. The main difference is because a lot of the configuration options can
-be set during the installation of the sensor on Windows. We do plan to add more functionality to this role in the
-future.
+> [!NOTE]
+> This role is focused mainly on configuring the Falcon Sensor on Linux and MacOS. Windows is supported, but not as
+> much functionality is currently available. The main difference is because a lot of the configuration options can
+> be set during the installation of the sensor on Windows. We do plan to add more functionality to this role in the
+> future.
 
 ## Requirements
 
@@ -39,6 +38,13 @@ future.
 
 - `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: ***runas***)
 - `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: ***SYSTEM***)
+
+### macOS Specific Variables
+
+- `falcon_option_set` - Set True|yes to set options, False|no to delete. (bool, default: ***true***)
+- `falcon_cid` - Your Falcon Customer ID (CID) if not using API creds (string, default: ***null***)
+- `falcon_provisioning_token` - Falcon Installation Token (string, default: ***null***)
+- `falcon_tags` - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts (string, default: ***null***)
 
 ### Falconctl Variables (Linux Only)
 
@@ -79,6 +85,11 @@ future.
 | falcon_tags               | S/D   |
 | falcon_backend            | S/D   |
 
+## Configuring on macOS
+
+Apple platforms require Mobile Device Management (MDM) software to install kernel extensions without user prompting.
+Ansible is only able to run on macOS in an interactive session, which means end-users will receive prompts to accept the CrowdStrike kernel modules without an MDM profile already established.
+
 ## Falcon API Permissions
 
 API clients are granted one or more API scopes. Scopes allow access to specific CrowdStrike APIs and describe the actions that an API client can perform.
@@ -105,6 +116,8 @@ How to set the Falcon Customer ID (CID) when CID is known:
       falcon_cid: 1234567890ABCDEF1234567890ABCDEF-12
 ```
 
+----------
+
 How to set the Falcon Customer ID (CID) using API creds:
 
 ```yaml
@@ -116,6 +129,8 @@ How to set the Falcon Customer ID (CID) using API creds:
       falcon_client_secret: <FALCON_CLIENT_SECRET>
 ```
 
+----------
+
 How to set the Falcon Customer ID (CID) w/ provisioning token:
 
 ```yaml
@@ -126,6 +141,8 @@ How to set the Falcon Customer ID (CID) w/ provisioning token:
       falcon_cid: 1234567890ABCDEF1234567890ABCDEF-12
       falcon_provisioning_token: 12345678
 ```
+
+----------
 
 How to configure the Falcon Sensor Proxy:
 
@@ -139,6 +156,8 @@ How to configure the Falcon Sensor Proxy:
       falcon_app: 8080
 ```
 
+----------
+
 This example shows how to set some of the other options:
 
 ```yaml
@@ -151,6 +170,8 @@ This example shows how to set some of the other options:
       falcon_message_log: yes
 ```
 
+----------
+
 Examples of deleting options:
 
 ```yaml
@@ -162,6 +183,8 @@ Examples of deleting options:
       falcon_cid: ""
       falcon_tags: ""
 ```
+
+----------
 
 Delete Agent ID to prep Master Image:
 
