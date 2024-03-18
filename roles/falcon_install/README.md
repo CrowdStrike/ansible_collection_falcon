@@ -1,7 +1,10 @@
 # crowdstrike.falcon.falcon_install
 
-This role installs the CrowdStrike Falcon Sensor. This role also supports installing
-the sensor from a local file or remote URL.
+This role installs the CrowdStrike Falcon Sensor. It provides the flexibility to install the sensor using the CrowdStrike API, a local file, or a remote URL.
+
+> [!NOTE]
+> Please note that for Linux and macOS, this role only handles the installation of the sensor. To configure and start the sensor, please use the [falcon_configure](../falcon_configure/) role after the sensor is installed.
+
 
 ## Requirements
 
@@ -26,7 +29,6 @@ The following variables are currently supported:
 
 - `falcon_allow_downgrade` - Whether or not to allow downgrading the sensor version (bool, default: ***false***)
 - `falcon_gpg_key_check` - Whether or not to verify the Falcon sensor Linux based package (bool, default: ***true***)
-- `falcon_cid` - Specify CrowdStrike Customer ID with Checksum (string, default: ***null***)
   - :warning: When `falcon_install_method` is set to **api**, this value will be fetched by the API unless specified.
 - `falcon_install_tmp_dir` - Temporary Linux and MacOS installation directory for the Falson Sensor (string, default: ***/tmp***)
 - `falcon_retries` - Number of attempts to download the sensor (int, default: ***3***)
@@ -63,6 +65,7 @@ The following variables are currently supported:
 
 ### Windows Specific Variables
 
+- `falcon_cid` - Specify CrowdStrike Customer ID with Checksum (string, default: ***null***)
 - `falcon_windows_install_retries` - Number of times to retry sensor install on windows (int, default: ***10***)
 - `falcon_windows_install_delay` - Number of seconds to wait to retry sensor install on windows in the event of a failure (int, default: ***120***)
 - `falcon_windows_tmp_dir` - Temporary Windows installation directory for the Falson Sensor (string, default: ***%SYSTEMROOT%\\Temp***)
@@ -148,6 +151,8 @@ This example installs the Falcon Sensor using a sensor update policy called "ACM
       falcon_sensor_update_policy_name: "ACME Policy"
 ```
 
+----------
+
 This example installs the Falcon Sensor from a local file, then removes it.
 
 ```yaml
@@ -159,13 +164,25 @@ This example installs the Falcon Sensor from a local file, then removes it.
       falcon_install_method: file
       falcon_localfile_path: /tmp/falcon.deb
       falcon_localfile_cleanup: yes
-      falcon_cid: <FALCON CID with Checksum>
 ```
 
-## Installing on MacOS
+----------
 
-Apple platforms require Mobile Device Management (MDM) software to install kernel extensions without user prompting.
-Ansible is only able to run on macOS in an interactive session, which means end-users will receive prompts to accept the CrowdStrike kernel modules.
+This example installs and configures the Falcon Sensor on Windows:
+
+```yaml
+---
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_install
+    vars:
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
+      falcon_cid: <FALCON_CID>
+      falcon_windows_install_args: "/norestart ProvWaitTime=600"
+      falcon_windows_become_method: runas
+      falcon_windows_become_user: SYSTEM
+```
 
 ## License
 
