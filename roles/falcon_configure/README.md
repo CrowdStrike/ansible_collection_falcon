@@ -41,7 +41,7 @@ sensor to be installed prior to running this role.
 
 ### macOS Specific Variables
 
-- `falcon_option_set` - Set True|yes to set options, False|no to delete. *See note below (bool, default: ***true***)
+- `falcon_option_set` - Set True|yes to set options, False|no to delete. (bool, default: ***true***)
 - `falcon_cid` - Your Falcon Customer ID (CID) if not using API creds (string, default: ***null***)
 - `falcon_provisioning_token` - Falcon Installation Token (string, default: ***null***)
 - `falcon_tags` - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts (string, default: ***null***)
