@@ -42,6 +42,10 @@ extends_documentation_fragment:
   - crowdstrike.falcon.credentials.auth
 
 notes:
+  - This module handles the 100 hosts per request limit by the Falcon API. This
+    means that if more than 100 hosts are passed to the module, it will process
+    them in batches of 100 automatically.
+  - For large numbers of hosts, this module may take some time to complete.
   - B(Failure Handling:) This module will not fail if some hosts could not be
     hidden or unhidden. Instead, it will populate the 'failed_hosts' list
     with the relevant host IDs and error details. This is designed to allow
@@ -67,7 +71,7 @@ EXAMPLES = r"""
     hosts:
       - "12345678901234567890"
       - "09876543210987654321"
-    hidden: no
+    hidden: false
 
 - name: Individually hide hosts with a list from the Falcon console
   crowdstrike.falcon.host_hide:
@@ -143,6 +147,63 @@ HOSTS_ARGS = dict(
 )
 
 
+def handle_good_hosts(good, host_mapping):
+    """Handle the hosts that were successfully hidden or unhidden."""
+    for host in good:
+        host_mapping[host["id"]] = host["id"]
+
+
+def handle_bad_hosts(bad, host_mapping, result):
+    """Handle the hosts that failed to be hidden or unhidden."""
+    for host in bad:
+        message, code = host["message"], host["code"]
+
+        for host_id in host_mapping.keys():
+            if host_id not in message:
+                continue
+
+            if code == 409:  # Host already in desired state
+                host_mapping[host_id] = host_id
+            else:
+                result["failed_hosts"].append(
+                    {
+                        "id": host_id,
+                        "code": code,
+                        "message": message,
+                    }
+                )
+
+
+def process_hosts(module, falcon, action_name, hosts, result):
+    """Process the hosts to hide or unhide."""
+    query_result = falcon.perform_action(action_name=action_name, ids=hosts)
+
+    # The API returns both successful and failed hosts in the same response. This
+    # means we need to handle errors differently than we normally would.
+    good = query_result["body"]["resources"]
+    bad = query_result["body"]["errors"]
+
+    # If we get nothing back, handle the error
+    if not good and not bad:
+        handle_return_errors(module, falcon, query_result)
+
+    # Create a mapping for passed-in host IDs to manage their states
+    host_mapping = {host_id: "" for host_id in hosts}
+
+    # For hosts in 'good', add the ID to the hosts list
+    if good:
+        result["changed"] = True
+        handle_good_hosts(good, host_mapping)
+
+    # For hosts in 'bad', manage state and failed_hosts
+    handle_bad_hosts(bad, host_mapping, result)
+
+    # Append the hosts to the result
+    for value in host_mapping.values():
+        if value:
+            result["hosts"].append(value)
+
+
 def argspec():
     """Define the module's argument spec."""
     args = falconpy_arg_spec()
@@ -183,47 +244,9 @@ def main():
 
     action_name = "hide_host" if hidden else "unhide_host"
 
-    query_result = falcon.perform_action(action_name=action_name, ids=hosts)
-
-    # The API returns both successful and failed hosts in the same response. This
-    # means we need to handle errors differently than we normally would.
-    good = query_result["body"]["resources"]
-    bad = query_result["body"]["errors"]
-
-    # If we get nothing back, handle the error
-    if not good and not bad:
-        handle_return_errors(module, falcon, query_result)
-
-    # Create a mapping for passed-in host IDs to manage their states
-    host_mapping = {host_id: "" for host_id in hosts}
-
-    # For hosts in 'good', add the ID to the hosts list
-    if good:
-        result["changed"] = True
-        for host in good:
-            host_mapping[host["id"]] = host["id"]
-
-    # For hosts in 'bad', manage state and failed_hosts
-    for host in bad:
-        message, code = host["message"], host["code"]
-
-        for host_id in host_mapping.keys():
-            if host_id not in message:
-                continue
-
-            if code == 409:  # Host already in desired state
-                host_mapping[host_id] = host_id
-            else:
-                result["failed_hosts"].append(
-                    {
-                        "id": host_id,
-                        "code": code,
-                        "message": message,
-                    }
-                )
-
-    # Add the hosts to the result
-    result["hosts"] = [value for value in host_mapping.values() if value]
+    # API can only process 100 hosts at a time
+    for i in range(0, len(hosts), 100):
+        process_hosts(module, falcon, action_name, hosts[i:i + 100], result)
 
     module.exit_json(**result)
 
