@@ -146,6 +146,7 @@ HOSTS_ARGS = dict(
     hosts=dict(type="list", elements="str", required=True),
 )
 
+
 def handle_good_hosts(good, host_mapping):
     """Handle the hosts that were successfully hidden or unhidden."""
     for host in good:
@@ -243,13 +244,9 @@ def main():
 
     action_name = "hide_host" if hidden else "unhide_host"
 
-    # API can only process 100 hosts at a time. Lets check if we have more than 100
-    # hosts to process and if so, we will process them in batches of 100.
-    if len(hosts) > 100:
-        for i in range(0, len(hosts), 100):
-            process_hosts(module, falcon, action_name, hosts[i : i + 100], result)
-    else:
-        process_hosts(module, falcon, action_name, hosts, result)
+    # API can only process 100 hosts at a time
+    for i in range(0, len(hosts), 100):
+        process_hosts(module, falcon, action_name, hosts[i:i + 100], result)
 
     module.exit_json(**result)
 

@@ -1,0 +1,3 @@
+bugfixes:
+  - host_hide - api action was limited to 100 hosts. Fix now allows for processing of more than
+    100 hosts. (https://github.com/CrowdStrike/ansible_collection_falcon/pull/473)
