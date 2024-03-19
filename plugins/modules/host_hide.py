@@ -42,6 +42,10 @@ extends_documentation_fragment:
   - crowdstrike.falcon.credentials.auth
 
 notes:
+  - This module handles the 100 hosts per request limit by the Falcon API. This
+    means that if more than 100 hosts are passed to the module, it will process
+    them in batches of 100 automatically.
+  - For large numbers of hosts, this module may take some time to complete.
   - B(Failure Handling:) This module will not fail if some hosts could not be
     hidden or unhidden. Instead, it will populate the 'failed_hosts' list
     with the relevant host IDs and error details. This is designed to allow
@@ -67,7 +71,7 @@ EXAMPLES = r"""
     hosts:
       - "12345678901234567890"
       - "09876543210987654321"
-    hidden: no
+    hidden: false
 
 - name: Individually hide hosts with a list from the Falcon console
   crowdstrike.falcon.host_hide:
