@@ -246,6 +246,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         creds = {}
         for key, env in cred_mapping.items():
             value = self.get_option(key) or os.getenv(env)
+            if self.templar.is_template(value):
+                value = self.templar.template(variable=value,disable_lookups=False)
             if value:
                 if key == "cloud":
                     creds["base_url"] = value
