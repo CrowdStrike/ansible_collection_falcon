@@ -57,6 +57,14 @@ options:
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/page/c0b16f1b/host-and-host-group-management-apis#qadd6f8f)
         for more information about what filters are available for this inventory.
     type: str
+  hostnames:
+      description:
+      - A list of templates in order of precedence to compose inventory_hostname.
+      - Ignores template if resulted in an empty string or None value.
+      - You can use property specified in I(properties) as variables in the template.
+      type: list
+      elements: string
+      default: ['hostname']    
 requirements:
   - python >= 3.6
   - crowdstrike-falconpy >= 1.3.0
@@ -305,6 +313,13 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             ipaddress = self._get_ip_address(hostvars)
             if ipaddress:
                 hostname = ipaddress
+
+        hostnames = self.get_option('hostnames')
+        for preference in hostnames:
+            try:
+              hostname = self._compose(preference,hostvars)
+            except:
+              self.display.vv("Error in Hostname templating for host \'{hostname}\' and template \'{template}\'".format(hostname = hostname,template=preference) )
 
         return hostname
 
