@@ -21,6 +21,7 @@ options:
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
         for more information about API clients.
       - The C(FALCON_CLIENT_ID) environment variable can also be used.
+      - This option can be set using a Jinja2 template value.
     type: str
     aliases: [ falcon_client_id ]
   client_secret:
@@ -29,6 +30,7 @@ options:
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
         for more information about API clients.
       - The C(FALCON_CLIENT_SECRET) environment variable can also be used.
+      - This option can be set using a Jinja2 template value.
     type: str
     aliases: [ falcon_client_secret ]
   member_cid:
@@ -37,6 +39,7 @@ options:
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
         for more information about API clients.
       - The C(FALCON_MEMBER_CID) environment variable can also be used.
+      - This option can be set using a Jinja2 template value.
     type: str
   cloud:
     description:
