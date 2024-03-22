@@ -61,10 +61,11 @@ options:
       description:
       - A list of templates in order of precedence to compose inventory_hostname.
       - Ignores template if resulted in an empty string or None value.
-      - You can use property specified in I(properties) as variables in the template.
+      - You can use any host variable as a template.
+      - The default is to use the hostname, external_ip, and local_ip in that order.
       type: list
       elements: string
-      default: ['hostname']    
+      default: ['hostname', 'external_ip', 'local_ip']
 requirements:
   - python >= 3.6
   - crowdstrike-falconpy >= 1.3.0
@@ -126,6 +127,17 @@ groups:
   # place hosts in a group named aws_us_west_2 if the zone_group is in us-west-2
   aws_us_west_2: "'us-west-2' in zone_group and 'Amazon' in system_manufacturer"
 
+# use Jinja2 expressions to compose hostnames
+# hostnames:
+#   - hostname|lower
+
+# define the order of precedence for composing hostnames
+# hostnames:
+#   - device_id
+#   - hostname
+#   - external_ip
+#   - local_ip
+
 # create and modify host variables from Jinja2 expressions
 # compose:
 #   # this sets the ansible_host variable to the external_ip address
@@ -148,6 +160,8 @@ import os
 import re
 import traceback
 
+from ansible.errors import AnsibleError
+from ansible.module_utils.common.text.converters import to_native, to_text
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
 
 FALCONPY_IMPORT_ERROR = None
@@ -292,47 +306,42 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         return hostvars
 
-    def _get_ip_address(self, hostvars):
-        """Return the IP address for a host."""
-        ip_address = None
-        if "external_ip" in hostvars:
-            ip_address = hostvars["external_ip"]
-        elif "local_ip" in hostvars:
-            ip_address = hostvars["local_ip"]
-
-        return ip_address
-
-    def _get_hostname(self, hostvars):
+    def _get_hostname(self, hostvars, hostnames=None, strict=False):
         """Return the hostname for a host."""
         hostname = None
+        errors = []
 
-        if hostvars.get("hostname"):
-            hostname = hostvars.get("hostname")
-        else:
-            # Use the IP address as the hostname if no hostname is available
-            ipaddress = self._get_ip_address(hostvars)
-            if ipaddress:
-                hostname = ipaddress
-
-        hostnames = self.get_option('hostnames')
         for preference in hostnames:
             try:
-              hostname = self._compose(preference,hostvars)
-            except:
-              self.display.vv("Error in Hostname templating for host \'{hostname}\' and template \'{template}\'".format(hostname = hostname,template=preference) )
+                hostname = self._compose(preference, hostvars)
+            except Exception as e:  # pylint: disable=broad-except
+                if strict:
+                    raise AnsibleError(
+                        "Could not compose %s as hostnames - %s" % (preference, to_native(e))
+                    ) from e
 
-        return hostname
+                errors.append(
+                    (preference, str(e))
+                )
+            if hostname:
+                return to_text(hostname)
+
+        raise AnsibleError(
+            'Could not template any hostname for host, errors for each preference: %s' % (
+                ', '.join(['%s: %s' % (pref, err) for pref, err in errors])
+            )
+        )
 
     def _add_host_to_inventory(self, host_details):
         """Add host to inventory."""
+        strict = self.get_option("strict")
+        hostnames = self.get_option("hostnames")
+
         for host in host_details:
             hostvars = self._hostvars(host)
 
             # Get the hostname
-            hostname = self._get_hostname(hostvars)
-            if not hostname:
-                # Skip the host if no hostname is available
-                continue
+            hostname = self._get_hostname(hostvars, hostnames, strict)
 
             # Add the host to the inventory
             self.inventory.add_host(hostname)
@@ -342,7 +351,6 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                 self.inventory.set_variable(hostname, key, value)
 
             # Add host groups
-            strict = self.get_option("strict")
             self._set_composite_vars(self.get_option("compose"), hostvars, hostname, strict)
 
             # Create user-defined groups based on variables/jinja2 conditionals
