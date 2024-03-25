@@ -59,7 +59,7 @@ options:
     type: str
   hostnames:
       description:
-      - A list of templates in order of precedence to compose inventory_hostname.
+      - A list of templates in order of precedence to compose C(inventory_hostname).
       - Ignores template if resulted in an empty string or None value.
       - You can use any host variable as a template.
       - The default is to use the hostname, external_ip, and local_ip in that order.
@@ -70,6 +70,9 @@ requirements:
   - python >= 3.6
   - crowdstrike-falconpy >= 1.3.0
 notes:
+  - By default, Ansible will deduplicate the C(inventory_hostname), so if multiple hosts have the same hostname, only
+    the last one will be used. In this case, consider using the C(device_id) as the first preference in the C(hostnames).
+    You can use C(compose) to specify how Ansible will connectz to the host with the C(ansible_host) variable.
   - If no credentials are provided, FalconPy will attempt to use the API credentials via environment variables.
   - The current behavior is to use the hostname if it exists, otherwise we will attemp to use either the external
     IP address or the local IP address. If neither of those exist, the host will be skipped as Ansible would not
@@ -79,81 +82,84 @@ author:
 """
 
 EXAMPLES = r"""
-# sample file: my_inventory.falcon_hosts.yml
+# Return all hosts
+    plugin: crowdstrike.falcon.falcon_hosts
+    client_id: 1234567890abcdef12345678
+    client_secret: 1234567890abcdef1234567890abcdef12345
+    cloud: us-1
 
-# required for all falcon_hosts inventory configs
-plugin: crowdstrike.falcon.falcon_hosts
+# Return all Windows hosts (authentication via environment variables)
+    plugin: crowdstrike.falcon.falcon_hosts
+    filter: "platform_name:'Windows'"
 
-# authentication credentials (required if not using environment variables)
-#client_id: 1234567890abcdef12345678
-#client_secret: 1234567890abcdef1234567890abcdef12345
-#cloud: us-1
+# Return all Linux hosts in reduced functionality mode
+    plugin: crowdstrike.falcon.falcon_hosts
+    filter: "platform_name:'Linux' + reduced_functionality_mode:'yes'"
 
-# fql filter expression to limit results (by default all hosts are returned)
-# examples below:
+# Return stale devices that haven't checked in for 15 days
+    plugin: crowdstrike.falcon.falcon_hosts
+    filter: "last_seen:<='now-15d'"
 
-# return all Windows hosts
-#filter: "platform_name:'Windows'"
+# Return all Linux hosts running in eBPF User Mode
+    plugin: crowdstrike.falcon.falcon_hosts
+    filter: "linux_sensor_mode:'User Mode'"
 
-# return stale devices that haven't checked in for 15 days
-#filter: "last_seen:<='now-15d'"
+# Place hosts into dynamically created groups based on variable values
+    plugin: crowdstrike.falcon.falcon_hosts
+    keyed_groups:
+      # places host in a group named tag_<tags> for each tag on a host
+      - prefix: tag
+        key: tags
+      # places host in a group named platform_<platform_name> based on the
+      # platform name (Linux, Windows, etc.)
+      - prefix: platform
+        key: platform_name
+      # places host in a group named tag_<tags> for each tag on a host
+      - prefix: rfm
+        key: reduced_functionality_mode
 
-# return all new Linux hosts within the past week
-#filter: "first_seen:<='now-1w' + platform_name:'Linux'"
+# Place hosts into dynamically created groups based on conditional statements
+    plugin: crowdstrike.falcon.falcon_hosts
+    groups:
+      # places hosts in a group named windows_hosts if the platform_name is Windows
+      windows_hosts: "platform_name == 'Windows'"
+      # place hosts in a group named aws_us_west_2 if the zone_group is in us-west-2
+      aws_us_west_2: "'us-west-2' in zone_group and 'Amazon' in system_manufacturer"
 
-# return all hosts seen in the last 12 hours that are in RFM mode
-#filter: "reduced_functionality_mode:'yes' + last_seen:>='now-12h'"
+# Compose inventory_hostname from Jinja2 expressions
+    plugin: crowdstrike.falcon.falcon_hosts
+    hostnames:
+      - hostname|lower
 
-# return all Linux hosts running in eBPF User Mode
-#filter: "linux_sensor_mode:'User Mode'"
+# Compose inventory_hostname from Jinja2 expressions with order of precedence
+    plugin: crowdstrike.falcon.falcon_hosts
+    hostnames:
+      - external_ip
+      - local_ip
+      - serial_number
 
-# place hosts into dynamically created groups based on variable values
-keyed_groups:
-  # places host in a group named tag_<tags> for each tag on a host
-  - prefix: tag
-    key: tags
-  # places host in a group named platform_<platform_name> based on the platform name (Linux, Windows, etc.)
-  - prefix: platform
-    key: platform_name
-  # places host in a group named rfm_<Yes|No> to see if the host is in reduced functionality mode
-  - prefix: rfm
-    key: reduced_functionality_mode
+# Use device_id as the inventory_hostname to prevent deduplication and set ansible_host
+# to a reachable attribute
+    plugin: crowdstrike.falcon.falcon_hosts
+    hostnames:
+      - device_id
+    compose:
+      ansible_host: hostname | default(external_ip) | default(local_ip) | default(None)
 
-# place hosts in named groups based on conditional statements <evaluated as true>
-groups:
-  # places hosts in a group named windows_hosts if the platform_name is Windows
-  windows_hosts: "platform_name == 'Windows'"
+# Compose connection variables for each host
+    plugin: crowdstrike.falcon.falcon_hosts
+    compose:
+      ansible_host: external_ip
+      ansible_user: "'root'"
+      ansible_ssh_private_key_file: "'/path/to/private_key_file'"
 
-  # place hosts in a group named aws_us_west_2 if the zone_group is in us-west-2
-  aws_us_west_2: "'us-west-2' in zone_group and 'Amazon' in system_manufacturer"
-
-# use Jinja2 expressions to compose hostnames
-# hostnames:
-#   - hostname|lower
-
-# define the order of precedence for composing hostnames
-# hostnames:
-#   - device_id
-#   - hostname
-#   - external_ip
-#   - local_ip
-
-# create and modify host variables from Jinja2 expressions
-# compose:
-#   # this sets the ansible_host variable to the external_ip address
-#   ansible_host: external_ip
-#   # this defines combinations of host servers, IP addresses, and related SSH private keys.
-#   ansible_host: external_ip
-#   ansible_user: "'root'"
-#   ansible_ssh_private_key_file: "'/path/to/private_key_file'"
-
-# caching is supported for this inventory plugin.
-# caching can be configured in the ansible.cfg file or in the inventory file.
-cache: true
-cache_plugin: jsonfile
-cache_connection: /tmp/falcon_inventory
-cache_timeout: 1800
-cache_prefix: falcon_hosts
+# Use caching for the inventory
+    plugin: crowdstrike.falcon.falcon_hosts
+    cache: true
+    cache_plugin: jsonfile
+    cache_connection: /tmp/falcon_inventory
+    cache_timeout: 1800
+    cache_prefix: falcon_hosts
 """
 
 import os
@@ -350,7 +356,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             for key, value in hostvars.items():
                 self.inventory.set_variable(hostname, key, value)
 
-            # Add host groups
+            # Create composite vars
             self._set_composite_vars(self.get_option("compose"), hostvars, hostname, strict)
 
             # Create user-defined groups based on variables/jinja2 conditionals
