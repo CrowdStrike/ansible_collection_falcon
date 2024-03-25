@@ -82,84 +82,77 @@ author:
 """
 
 EXAMPLES = r"""
-# Return all hosts
-    plugin: crowdstrike.falcon.falcon_hosts
-    client_id: 1234567890abcdef12345678
-    client_secret: 1234567890abcdef1234567890abcdef12345
-    cloud: us-1
+# sample file: my_inventory.falcon_hosts.yml
 
-# Return all Windows hosts (authentication via environment variables)
-    plugin: crowdstrike.falcon.falcon_hosts
-    filter: "platform_name:'Windows'"
+# required for all falcon_hosts inventory plugin configs
+plugin: crowdstrike.falcon.falcon_hosts
 
-# Return all Linux hosts in reduced functionality mode
-    plugin: crowdstrike.falcon.falcon_hosts
-    filter: "platform_name:'Linux' + reduced_functionality_mode:'yes'"
+# authentication credentials (required if not using environment variables)
+# client_id: 1234567890abcdef12345678
+# client_secret: 1234567890abcdef1234567890abcdef12345
+# cloud: us-1
 
-# Return stale devices that haven't checked in for 15 days
-    plugin: crowdstrike.falcon.falcon_hosts
-    filter: "last_seen:<='now-15d'"
+# return all Windows hosts (authentication via environment variables)
+# filter: "platform_name:'Windows'"
 
-# Return all Linux hosts running in eBPF User Mode
-    plugin: crowdstrike.falcon.falcon_hosts
-    filter: "linux_sensor_mode:'User Mode'"
+# return all Linux hosts in reduced functionality mode
+# filter: "platform_name:'Linux' + reduced_functionality_mode:'yes'"
 
-# Place hosts into dynamically created groups based on variable values
-    plugin: crowdstrike.falcon.falcon_hosts
-    keyed_groups:
-      # places host in a group named tag_<tags> for each tag on a host
-      - prefix: tag
-        key: tags
-      # places host in a group named platform_<platform_name> based on the
-      # platform name (Linux, Windows, etc.)
-      - prefix: platform
-        key: platform_name
-      # places host in a group named tag_<tags> for each tag on a host
-      - prefix: rfm
-        key: reduced_functionality_mode
+# return stale devices that haven't checked in for 15 days
+# filter: "last_seen:<='now-15d'"
 
-# Place hosts into dynamically created groups based on conditional statements
-    plugin: crowdstrike.falcon.falcon_hosts
-    groups:
-      # places hosts in a group named windows_hosts if the platform_name is Windows
-      windows_hosts: "platform_name == 'Windows'"
-      # place hosts in a group named aws_us_west_2 if the zone_group is in us-west-2
-      aws_us_west_2: "'us-west-2' in zone_group and 'Amazon' in system_manufacturer"
+# return all Linux hosts running in eBPF User Mode
+# filter: "linux_sensor_mode:'User Mode'"
 
-# Compose inventory_hostname from Jinja2 expressions
-    plugin: crowdstrike.falcon.falcon_hosts
-    hostnames:
-      - hostname|lower
+# place hosts into dynamically created groups based on variable values
+keyed_groups:
+  # places host in a group named tag_<tags> for each tag on a host
+  - prefix: tag
+    key: tags
+  # places host in a group named platform_<platform_name> based on the
+  # platform name (Linux, Windows, etc.)
+  - prefix: platform
+    key: platform_name
+  # places host in a group named tag_<tags> for each tag on a host
+  - prefix: rfm
+    key: reduced_functionality_mode
 
-# Compose inventory_hostname from Jinja2 expressions with order of precedence
-    plugin: crowdstrike.falcon.falcon_hosts
-    hostnames:
-      - external_ip
-      - local_ip
-      - serial_number
+# place hosts into dynamically created groups based on conditional statements
+groups:
+  # places hosts in a group named windows_hosts if the platform_name is Windows
+  windows_hosts: "platform_name == 'Windows'"
+  # place hosts in a group named aws_us_west_2 if the zone_group is in us-west-2
+  aws_us_west_2: "'us-west-2' in zone_group and 'Amazon' in system_manufacturer"
 
-# Use device_id as the inventory_hostname to prevent deduplication and set ansible_host
+# compose inventory_hostname from Jinja2 expressions
+# hostnames:
+#   - hostname|lower
+
+# compose inventory_hostname from Jinja2 expressions with order of precedence
+# hostnames:
+#   - external_ip
+#   - local_ip
+#   - serial_number
+
+# use device_id as the inventory_hostname to prevent deduplication and set ansible_host
 # to a reachable attribute
-    plugin: crowdstrike.falcon.falcon_hosts
-    hostnames:
-      - device_id
-    compose:
-      ansible_host: hostname | default(external_ip) | default(local_ip) | default(None)
+# hostnames:
+#   - device_id
+# compose:
+#   ansible_host: hostname | default(external_ip) | default(local_ip) | default(None)
 
-# Compose connection variables for each host
-    plugin: crowdstrike.falcon.falcon_hosts
-    compose:
-      ansible_host: external_ip
-      ansible_user: "'root'"
-      ansible_ssh_private_key_file: "'/path/to/private_key_file'"
+# compose connection variables for each host
+# compose:
+#   ansible_host: external_ip
+#   ansible_user: "'root'"
+#   ansible_ssh_private_key_file: "'/path/to/private_key_file'"
 
 # Use caching for the inventory
-    plugin: crowdstrike.falcon.falcon_hosts
-    cache: true
-    cache_plugin: jsonfile
-    cache_connection: /tmp/falcon_inventory
-    cache_timeout: 1800
-    cache_prefix: falcon_hosts
+# cache: true
+# cache_plugin: jsonfile
+# cache_connection: /tmp/falcon_inventory
+# cache_timeout: 1800
+# cache_prefix: falcon_hosts
 """
 
 import os
