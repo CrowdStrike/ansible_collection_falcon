@@ -57,10 +57,22 @@ options:
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/page/c0b16f1b/host-and-host-group-management-apis#qadd6f8f)
         for more information about what filters are available for this inventory.
     type: str
+  hostnames:
+      description:
+      - A list of templates in order of precedence to compose C(inventory_hostname).
+      - Ignores template if resulted in an empty string or None value.
+      - You can use any host variable as a template.
+      - The default is to use the hostname, external_ip, and local_ip in that order.
+      type: list
+      elements: string
+      default: ['hostname', 'external_ip', 'local_ip']
 requirements:
   - python >= 3.6
   - crowdstrike-falconpy >= 1.3.0
 notes:
+  - By default, Ansible will deduplicate the C(inventory_hostname), so if multiple hosts have the same hostname, only
+    the last one will be used. In this case, consider using the C(device_id) as the first preference in the C(hostnames).
+    You can use C(compose) to specify how Ansible will connectz to the host with the C(ansible_host) variable.
   - If no credentials are provided, FalconPy will attempt to use the API credentials via environment variables.
   - The current behavior is to use the hostname if it exists, otherwise we will attemp to use either the external
     IP address or the local IP address. If neither of those exist, the host will be skipped as Ansible would not
@@ -72,74 +84,83 @@ author:
 EXAMPLES = r"""
 # sample file: my_inventory.falcon_hosts.yml
 
-# required for all falcon_hosts inventory configs
+# required for all falcon_hosts inventory plugin configs
 plugin: crowdstrike.falcon.falcon_hosts
 
 # authentication credentials (required if not using environment variables)
-#client_id: 1234567890abcdef12345678
-#client_secret: 1234567890abcdef1234567890abcdef12345
-#cloud: us-1
+# client_id: 1234567890abcdef12345678
+# client_secret: 1234567890abcdef1234567890abcdef12345
+# cloud: us-1
 
-# fql filter expression to limit results (by default all hosts are returned)
-# examples below:
+# return all Windows hosts (authentication via environment variables)
+# filter: "platform_name:'Windows'"
 
-# return all Windows hosts
-#filter: "platform_name:'Windows'"
+# return all Linux hosts in reduced functionality mode
+# filter: "platform_name:'Linux' + reduced_functionality_mode:'yes'"
 
 # return stale devices that haven't checked in for 15 days
-#filter: "last_seen:<='now-15d'"
-
-# return all new Linux hosts within the past week
-#filter: "first_seen:<='now-1w' + platform_name:'Linux'"
-
-# return all hosts seen in the last 12 hours that are in RFM mode
-#filter: "reduced_functionality_mode:'yes' + last_seen:>='now-12h'"
+# filter: "last_seen:<='now-15d'"
 
 # return all Linux hosts running in eBPF User Mode
-#filter: "linux_sensor_mode:'User Mode'"
+# filter: "linux_sensor_mode:'User Mode'"
 
 # place hosts into dynamically created groups based on variable values
 keyed_groups:
   # places host in a group named tag_<tags> for each tag on a host
   - prefix: tag
     key: tags
-  # places host in a group named platform_<platform_name> based on the platform name (Linux, Windows, etc.)
+  # places host in a group named platform_<platform_name> based on the
+  # platform name (Linux, Windows, etc.)
   - prefix: platform
     key: platform_name
-  # places host in a group named rfm_<Yes|No> to see if the host is in reduced functionality mode
+  # places host in a group named tag_<tags> for each tag on a host
   - prefix: rfm
     key: reduced_functionality_mode
 
-# place hosts in named groups based on conditional statements <evaluated as true>
+# place hosts into dynamically created groups based on conditional statements
 groups:
   # places hosts in a group named windows_hosts if the platform_name is Windows
   windows_hosts: "platform_name == 'Windows'"
-
   # place hosts in a group named aws_us_west_2 if the zone_group is in us-west-2
   aws_us_west_2: "'us-west-2' in zone_group and 'Amazon' in system_manufacturer"
 
-# create and modify host variables from Jinja2 expressions
+# compose inventory_hostname from Jinja2 expressions
+# hostnames:
+#   - hostname|lower
+
+# compose inventory_hostname from Jinja2 expressions with order of precedence
+# hostnames:
+#   - external_ip
+#   - local_ip
+#   - serial_number
+
+# use device_id as the inventory_hostname to prevent deduplication and set ansible_host
+# to a reachable attribute
+# hostnames:
+#   - device_id
 # compose:
-#   # this sets the ansible_host variable to the external_ip address
-#   ansible_host: external_ip
-#   # this defines combinations of host servers, IP addresses, and related SSH private keys.
+#   ansible_host: hostname | default(external_ip) | default(local_ip) | default(None)
+
+# compose connection variables for each host
+# compose:
 #   ansible_host: external_ip
 #   ansible_user: "'root'"
 #   ansible_ssh_private_key_file: "'/path/to/private_key_file'"
 
-# caching is supported for this inventory plugin.
-# caching can be configured in the ansible.cfg file or in the inventory file.
-cache: true
-cache_plugin: jsonfile
-cache_connection: /tmp/falcon_inventory
-cache_timeout: 1800
-cache_prefix: falcon_hosts
+# Use caching for the inventory
+# cache: true
+# cache_plugin: jsonfile
+# cache_connection: /tmp/falcon_inventory
+# cache_timeout: 1800
+# cache_prefix: falcon_hosts
 """
 
 import os
 import re
 import traceback
 
+from ansible.errors import AnsibleError
+from ansible.module_utils.common.text.converters import to_native, to_text
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
 
 FALCONPY_IMPORT_ERROR = None
@@ -284,40 +305,42 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
         return hostvars
 
-    def _get_ip_address(self, hostvars):
-        """Return the IP address for a host."""
-        ip_address = None
-        if "external_ip" in hostvars:
-            ip_address = hostvars["external_ip"]
-        elif "local_ip" in hostvars:
-            ip_address = hostvars["local_ip"]
-
-        return ip_address
-
-    def _get_hostname(self, hostvars):
+    def _get_hostname(self, hostvars, hostnames=None, strict=False):
         """Return the hostname for a host."""
         hostname = None
+        errors = []
 
-        if hostvars.get("hostname"):
-            hostname = hostvars.get("hostname")
-        else:
-            # Use the IP address as the hostname if no hostname is available
-            ipaddress = self._get_ip_address(hostvars)
-            if ipaddress:
-                hostname = ipaddress
+        for preference in hostnames:
+            try:
+                hostname = self._compose(preference, hostvars)
+            except Exception as e:  # pylint: disable=broad-except
+                if strict:
+                    raise AnsibleError(
+                        "Could not compose %s as hostnames - %s" % (preference, to_native(e))
+                    ) from e
 
-        return hostname
+                errors.append(
+                    (preference, str(e))
+                )
+            if hostname:
+                return to_text(hostname)
+
+        raise AnsibleError(
+            'Could not template any hostname for host, errors for each preference: %s' % (
+                ', '.join(['%s: %s' % (pref, err) for pref, err in errors])
+            )
+        )
 
     def _add_host_to_inventory(self, host_details):
         """Add host to inventory."""
+        strict = self.get_option("strict")
+        hostnames = self.get_option("hostnames")
+
         for host in host_details:
             hostvars = self._hostvars(host)
 
             # Get the hostname
-            hostname = self._get_hostname(hostvars)
-            if not hostname:
-                # Skip the host if no hostname is available
-                continue
+            hostname = self._get_hostname(hostvars, hostnames, strict)
 
             # Add the host to the inventory
             self.inventory.add_host(hostname)
@@ -326,8 +349,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             for key, value in hostvars.items():
                 self.inventory.set_variable(hostname, key, value)
 
-            # Add host groups
-            strict = self.get_option("strict")
+            # Create composite vars
             self._set_composite_vars(self.get_option("compose"), hostvars, hostname, strict)
 
             # Create user-defined groups based on variables/jinja2 conditionals
