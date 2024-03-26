@@ -21,6 +21,7 @@ options:
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
         for more information about API clients.
       - The C(FALCON_CLIENT_ID) environment variable can also be used.
+      - This option can be set using a Jinja2 template value.
     type: str
     aliases: [ falcon_client_id ]
   client_secret:
@@ -29,6 +30,7 @@ options:
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
         for more information about API clients.
       - The C(FALCON_CLIENT_SECRET) environment variable can also be used.
+      - This option can be set using a Jinja2 template value.
     type: str
     aliases: [ falcon_client_secret ]
   member_cid:
@@ -37,17 +39,15 @@ options:
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients)
         for more information about API clients.
       - The C(FALCON_MEMBER_CID) environment variable can also be used.
+      - This option can be set using a Jinja2 template value.
     type: str
   cloud:
     description:
       - The CrowdStrike cloud region to use.
       - All clouds are automatically discovered if not specified, except for the C(us-gov-1) cloud.
       - The C(FALCON_CLOUD) environment variable can also be used.
-    choices:
-      - us-1
-      - us-2
-      - us-gov-1
-      - eu-1
+      - This option can be set using a Jinja2 template value.
+      - Valid values are C(us-1), C(us-2), C(eu-1), C(us-gov-1).
     default: us-1
     type: str
   filter:
@@ -91,6 +91,11 @@ plugin: crowdstrike.falcon.falcon_hosts
 # client_id: 1234567890abcdef12345678
 # client_secret: 1234567890abcdef1234567890abcdef12345
 # cloud: us-1
+
+# authentication example using hashicorp vault lookup plugin
+# client_id: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=path/to/secret:client_id') }}"
+# client_secret: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=path/to/secret:client_secret') }}"
+# cloud: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=path/to/secret:cloud') }}"
 
 # return all Windows hosts (authentication via environment variables)
 # filter: "platform_name:'Windows'"
@@ -246,8 +251,11 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         creds = {}
         for key, env in cred_mapping.items():
             value = self.get_option(key) or os.getenv(env)
+            if self.templar.is_template(value):
+                value = self.templar.template(variable=value, disable_lookups=False)
             if value:
                 if key == "cloud":
+                    self._verify_cloud(value)
                     creds["base_url"] = value
                 else:
                     creds[key] = value
@@ -259,6 +267,14 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             )
 
         return creds
+
+    def _verify_cloud(self, cloud):
+        """Verify the cloud region."""
+        valid_clouds = ["us-1", "us-2", "eu-1", "us-gov-1"]
+        if cloud not in valid_clouds:
+            raise ValueError(
+                f"Invalid cloud region: '{cloud}'. Valid values are {', '.join(valid_clouds)}"
+            )
 
     def _authenticate(self):
         """Authenticate to the CrowdStrike Falcon API."""
