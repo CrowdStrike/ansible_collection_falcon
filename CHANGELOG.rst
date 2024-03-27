@@ -5,6 +5,36 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.3.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-03-27
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.0>`__
+
+
+Minor Changes
+-------------
+
+- falcon_hosts - adds a new dynamic inventory for the Hosts service collection (https://github.com/CrowdStrike/ansible_collection_falcon/pull/470)
+
+Bugfixes
+--------
+
+- falcon_hosts - added support for hostname preferences and fixed documentation (https://github.com/CrowdStrike/ansible_collection_falcon/pull/474)
+- falcon_hosts - added support for parameter templating (https://github.com/CrowdStrike/ansible_collection_falcon/pull/475)
+- host_hide - api action was limited to 100 hosts. Fix now allows for processing of more than 100 hosts. (https://github.com/CrowdStrike/ansible_collection_falcon/pull/473)
+
+New Plugins
+-----------
+
+Inventory
+~~~~~~~~~
+
+- crowdstrike.falcon.falcon_hosts - CrowdStrike Falcon Hosts inventory source
+
 v4.2.2
 ======
 

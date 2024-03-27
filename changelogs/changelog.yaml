@@ -485,3 +485,31 @@ releases:
     - 448-sles-fix.yml
     - get_bin_path.yml
     release_date: '2024-02-14'
+  4.3.0:
+    changes:
+      bugfixes:
+      - falcon_hosts - added support for hostname preferences and fixed documentation
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/474)
+      - falcon_hosts - added support for parameter templating (https://github.com/CrowdStrike/ansible_collection_falcon/pull/475)
+      - host_hide - api action was limited to 100 hosts. Fix now allows for processing
+        of more than 100 hosts. (https://github.com/CrowdStrike/ansible_collection_falcon/pull/473)
+      minor_changes:
+      - falcon_hosts - adds a new dynamic inventory for the Hosts service collection
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/470)
+      release_summary: '| Release Date: 2024-03-27
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.0>`__
+
+        '
+    fragments:
+    - 4.3.0.yml
+    - falcon_hosts.yml
+    - host_hide_update.yml
+    - pr-474.yml
+    - pr-475.yml
+    plugins:
+      inventory:
+      - description: CrowdStrike Falcon Hosts inventory source
+        name: falcon_hosts
+        namespace: null
+    release_date: '2024-03-27'

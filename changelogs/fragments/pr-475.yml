@@ -1,2 +1,0 @@
-bugfixes:
-  - falcon_hosts - added support for parameter templating (https://github.com/CrowdStrike/ansible_collection_falcon/pull/475)
