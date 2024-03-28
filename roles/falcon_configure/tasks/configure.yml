@@ -28,6 +28,7 @@
         state: "{{ falcon_service_state | default('restarted') }}"
         enabled: yes
       when:
+        - not ansible_check_mode
         - info.falconctl_info.cid
         - falconctl_result.changed
       become: yes

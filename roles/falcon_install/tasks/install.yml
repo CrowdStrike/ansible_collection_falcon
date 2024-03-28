@@ -14,6 +14,7 @@
   loop: "{{ falcon_gpg_keys }}"
   when:
     - falcon_gpg_key_check
+    - falcon_install_temp_directory.path is defined
 
 - name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from files
   ansible.builtin.rpm_key:
@@ -24,6 +25,7 @@
   when:
     - falcon_gpg_key_check
     - ansible_facts['pkg_mgr'] in rpm_packagers
+    - falcon_install_temp_directory.path is defined
 
 - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from file
   ansible.builtin.apt_key:
@@ -33,6 +35,7 @@
   when:
     - falcon_gpg_key_check
     - ansible_facts['pkg_mgr'] in dpkg_packagers
+    - falcon_install_temp_directory.path is defined
 
 - name: CrowdStrike Falcon | Install Falcon Sensor Package (Linux)
   ansible.builtin.package:
@@ -43,6 +46,7 @@
     state: present
   when:
     - ansible_facts['pkg_mgr'] in linux_packagers
+    - not ansible_check_mode
 
 - name: CrowdStrike Falcon | Install Falcon Sensor .pkg Package (macOS)
   ansible.builtin.command: "/usr/sbin/installer -pkg {{ falcon_sensor_pkg }} -target /"
