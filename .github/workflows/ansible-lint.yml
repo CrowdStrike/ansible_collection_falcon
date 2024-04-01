@@ -12,4 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: ansible/ansible-lint@v24.2.0
+    - uses: ansible/ansible-lint@v24.2.1
