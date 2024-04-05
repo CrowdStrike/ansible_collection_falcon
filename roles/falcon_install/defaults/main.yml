@@ -34,6 +34,13 @@ falcon_api_sensor_download_path:
 #
 falcon_api_sensor_download_filename:
 
+# The permissions the saved sensor file should have.
+#
+# If not specified, the default umask on the system will be used when setting
+# the mode for the newly created filesystem object.
+#
+falcon_api_sensor_download_mode:
+
 # Whether or not to delete the downloaded sensor after transfer to remote host.
 #
 # By default, this is enabled.

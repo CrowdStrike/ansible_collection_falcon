@@ -47,6 +47,7 @@ The following variables are currently supported:
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 - `falcon_api_sensor_download_path` - Local directory path to download the sensor to (string, default: ***null***)
 - `falcon_api_sensor_download_filename` - The name to save the sensor file as (string, default: ***null***)
+- `falcon_api_sensor_download_mode` - The permissions to save the sensor file with (int, default: ***null***)
 - `falcon_api_sensor_download_cleanup` - Whether or not to delete the downloaded sensor after transfer to remote host (bool, default: ***true***)
 - `falcon_sensor_version` - Sensor version to install (string, default: ***null***)
 - `falcon_sensor_version_decrement` - Sensor N-x version to install (int, default: ***0*** [latest])

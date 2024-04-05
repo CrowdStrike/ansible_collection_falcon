@@ -70,6 +70,13 @@
   register: falcon_sensor_download
   delegate_to: localhost
 
+- name: CrowdStrike Falcon | Permissions of Falcon Sensor Installation Package (local)
+  ansible.builtin.file:
+    path: "{{ falcon_sensor_download.path }}"
+    mode: "{{ falcon_api_sensor_download_mode }}"
+  delegate_to: localhost
+  when: falcon_api_sensor_download_mode is defined
+
 - name: CrowdStrike Falcon | Copy Sensor Installation Package to remote host (non-windows)
   ansible.builtin.copy:
     src: "{{ falcon_sensor_download.path }}"
