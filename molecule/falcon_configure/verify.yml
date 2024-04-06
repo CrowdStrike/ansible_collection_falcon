@@ -57,7 +57,6 @@
         ansible.builtin.include_role:
           name: crowdstrike.falcon.falcon_configure
         vars:
-          falcon_option_set: no
           falcon_remove_aid: yes
 
       - name: Get Updated Falcon Sensor Option
