@@ -1,0 +1,2 @@
+bugfixes:
+  - sensor_download - added the ability to set file permissions on downloaded files (https://github.com/CrowdStrike/ansible_collection_falcon/pull/485)
