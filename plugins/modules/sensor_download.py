@@ -45,6 +45,7 @@ options:
     required: false
 
 extends_documentation_fragment:
+  - files
   - crowdstrike.falcon.credentials
   - crowdstrike.falcon.credentials.auth
 
@@ -65,6 +66,13 @@ EXAMPLES = r"""
     hash: "1234567890123456789012345678901234567890123456789012345678901234"
     dest: "/tmp/windows"
     name: falcon-sensor.exe
+
+- name: Download the Falcon Sensor Installer to a temporary directory and set permissions
+  crowdstrike.falcon.sensor_download:
+    hash: "1234567890123456789012345678901234567890123456789012345678901234"
+    mode: "0755"
+    owner: "root"
+    group: "root"
 """
 
 RETURN = r"""
@@ -112,10 +120,18 @@ def argspec():
     return args
 
 
+def update_permissions(module, changed, path):
+    """Update the permissions on the file if needed."""
+    file_args = module.load_file_common_arguments(module.params, path=path)
+
+    return module.set_fs_attributes_if_different(file_args, changed=changed)
+
+
 def main():
     """Entry point for module execution."""
     module = AnsibleModule(
         argument_spec=argspec(),
+        add_file_common_args=True,
         supports_check_mode=True,
     )
 
@@ -165,9 +181,15 @@ def main():
             # Compare sha256 hashes to see if any changes have been made
             dest_hash = module.sha256(path)
             if dest_hash == sensor_hash:
-                # File already exists and is the same
+                # File already exists and content is the same. Update permissions if needed.
+                msg = "File already exists and content is the same."
+
+                if update_permissions(module, result["changed"], path):
+                    msg += " Permissions were updated."
+                    result.update(changed=True)
+
                 module.exit_json(
-                    msg="File already exists and content is the same.",
+                    msg=msg,
                     path=path,
                     **result,
                 )
@@ -192,6 +214,9 @@ def main():
 
         with open(path, "wb") as save_file:
             save_file.write(download)
+
+        # Set permissions on the file
+        update_permissions(module, result["changed"], path)
 
         result.update(path=path)
         module.exit_json(**result)
