@@ -70,7 +70,7 @@ EXAMPLES = r"""
 - name: Download the Falcon Sensor Installer to a temporary directory and set permissions
   crowdstrike.falcon.sensor_download:
     hash: "1234567890123456789012345678901234567890123456789012345678901234"
-    mode: "0755"
+    mode: "0644"
     owner: "root"
     group: "root"
 """
