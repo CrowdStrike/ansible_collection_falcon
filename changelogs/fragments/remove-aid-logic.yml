@@ -1,0 +1,2 @@
+bugfixes:
+  - falcon_configure - updated logic to remove aid during configuration stage (https://github.com/CrowdStrike/ansible_collection_falcon/pull/486)
