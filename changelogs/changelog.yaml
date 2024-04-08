@@ -513,3 +513,20 @@ releases:
         name: falcon_hosts
         namespace: null
     release_date: '2024-03-27'
+  4.3.1:
+    changes:
+      bugfixes:
+      - falcon_configure - updated logic to remove aid during configuration stage
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/486)
+      - sensor_download - added the ability to set file permissions on downloaded
+        files (https://github.com/CrowdStrike/ansible_collection_falcon/pull/485)
+      release_summary: '| Release Date: 2024-04-08
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.1>`__
+
+        '
+    fragments:
+    - 4.3.1.yml
+    - add-file-ops-sensor-download.yml
+    - remove-aid-logic.yml
+    release_date: '2024-04-08'
