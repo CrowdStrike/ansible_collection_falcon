@@ -7,18 +7,18 @@
   tasks:
   - name: Get list of Falcon Sensor Options
     crowdstrike.falcon.falconctl_info:
-    register: info
+    register: info_verify
 
   - name: Verify Falcon Sensor options are set
     ansible.builtin.assert:
       that:
-        - info.falconctl_info.cid
-        - info.falconctl_info.billing
-        - info.falconctl_info.tags
-        - not info.falconctl_info.apd
-        - not info.falconctl_info.aph
-        - not info.falconctl_info.app
-        - not info.falconctl_info.trace
+        - info_verify.falconctl_info.cid
+        - info_verify.falconctl_info.billing
+        - info_verify.falconctl_info.tags
+        - not info_verify.falconctl_info.apd
+        - not info_verify.falconctl_info.aph
+        - not info_verify.falconctl_info.app
+        - not info_verify.falconctl_info.trace
 
   - name: Test Setting Proxy Options
     ansible.builtin.include_role:
@@ -51,13 +51,12 @@
       falcon_app: ""
 
   - name: AID deletion block
-    when: info.falconctl_info.aid
+    when: info_verify.falconctl_info.aid
     block:
       - name: Test Deleting AID master image prep
         ansible.builtin.include_role:
           name: crowdstrike.falcon.falcon_configure
         vars:
-          falcon_option_set: no
           falcon_remove_aid: yes
 
       - name: Get Updated Falcon Sensor Option

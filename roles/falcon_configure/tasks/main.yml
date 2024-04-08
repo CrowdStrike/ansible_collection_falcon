@@ -11,10 +11,14 @@
         tasks_from: auth
       # noqa name[missing]
 
+- name: Checks if any options are set
+  ansible.builtin.set_fact:
+    any_option_set: "{{ true if (options | dict2items | selectattr('value', 'ne', omit) | list | length > 0) else false }}"
+
 - name: Linux Configure block
   when:
     - ansible_facts['os_family'] != "Windows"
-    - not falcon_remove_aid
+    - any_option_set
   become: true
   become_user: root
   block:
@@ -24,6 +28,7 @@
 - name: Remove AID block
   when:
     - falcon_remove_aid
+    - not any_option_set
     - ansible_facts['os_family'] != "Windows"
   become: true
   become_user: root

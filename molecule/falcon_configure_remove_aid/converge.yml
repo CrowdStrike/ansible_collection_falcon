@@ -1,0 +1,15 @@
+---
+- name: Converge
+  hosts: all
+  become: yes
+  vars:
+    falcon_client_id: "{{ lookup('env', 'FALCON_CLIENT_ID') }}"
+    falcon_client_secret: "{{ lookup('env', 'FALCON_CLIENT_SECRET') }}"
+  roles:
+    - role: crowdstrike.falcon.falcon_configure
+      vars:
+        falcon_option_set: yes
+        falcon_cid: "{{ lookup('env', 'FALCON_CID') }}"
+        falcon_tags: 'molecule,testing'
+        falcon_backend: 'bpf'
+        falcon_remove_aid: yes

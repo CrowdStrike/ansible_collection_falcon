@@ -186,14 +186,27 @@ Examples of deleting options:
 
 ----------
 
-Delete Agent ID to prep Master Image:
+Delete Agent ID to prep Master Image/Gold Image:
 
 ```yaml
 - hosts: all
   roles:
   - role: crowdstrike.falcon.falcon_configure
     vars:
-      falcon_option_set: no
+      falcon_option_set: yes
+      falcon_cid: 1234567890ABCDEF1234567890ABCDEF-12
+      falcon_remove_aid: yes
+```
+
+----------
+
+Delete Agent ID as standalone task:
+
+```yaml
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_configure
+    vars:
       falcon_remove_aid: yes
 ```
 

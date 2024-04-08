@@ -5,3 +5,16 @@ falcon_cloud_urls:
   us-2: "api.us-2.crowdstrike.com"
   eu-1: "api.eu-1.crowdstrike.com"
   us-gov-1: "api.laggar.gcw.crowdstrike.com"
+
+options:
+  cid: "{{ falcon_cid if (falcon_cid != None) else omit }}"
+  provisioning_token: "{{ falcon_provisioning_token if (falcon_provisioning_token != None) else omit }}"
+  apd: "{{ falcon_apd if (falcon_apd != None) else omit }}"
+  aph: "{{ falcon_aph if (falcon_aph != None) else omit }}"
+  app: "{{ falcon_app if (falcon_app != None) else omit }}"
+  trace: "{{ falcon_trace if (falcon_trace != None) else omit }}"
+  feature: "{{ falcon_feature if (falcon_feature != None) else omit }}"
+  message_log: "{{ falcon_message_log if (falcon_message_log != None) else omit }}"
+  billing: "{{ falcon_billing if (falcon_billing != None) else omit }}"
+  tags: "{{ falcon_tags if (falcon_tags != None) else omit }}"
+  backend: "{{ falcon_backend if (falcon_backend != None) else omit }}"
