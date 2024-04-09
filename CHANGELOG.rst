@@ -5,6 +5,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.3.2
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-04-09
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.2>`__
+
+
+Bugfixes
+--------
+
+- falcon_install - allow permissions for sensor download task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/497)
+
 v4.3.1
 ======
 
