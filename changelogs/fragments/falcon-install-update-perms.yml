@@ -1,0 +1,2 @@
+bugfixes:
+  - falcon_install - allow permissions for sensor download task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/497)
