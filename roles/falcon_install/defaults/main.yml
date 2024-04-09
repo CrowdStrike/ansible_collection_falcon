@@ -34,6 +34,25 @@ falcon_api_sensor_download_path:
 #
 falcon_api_sensor_download_filename:
 
+# The permissions of the downloaded sensor file.
+#
+# If not specified, the default permissions based on the OS/filesystem will be used.
+# Example: '0644'
+#
+falcon_api_sensor_download_mode:
+
+# The owner to set the downloaded sensor file as.
+#
+# If not specified, the default owner based on the OS/filesystem will be used.
+#
+falcon_api_sensor_download_owner:
+
+# The group to set the downloaded sensor file as.
+#
+# If not specified, the default group based on the OS/filesystem will be used.
+#
+falcon_api_sensor_download_group:
+
 # Whether or not to delete the downloaded sensor after transfer to remote host.
 #
 # By default, this is enabled.

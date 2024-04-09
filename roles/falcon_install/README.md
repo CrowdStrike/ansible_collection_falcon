@@ -5,7 +5,6 @@ This role installs the CrowdStrike Falcon Sensor. It provides the flexibility to
 > [!NOTE]
 > Please note that for Linux and macOS, this role only handles the installation of the sensor. To configure and start the sensor, please use the [falcon_configure](../falcon_configure/) role after the sensor is installed.
 
-
 ## Requirements
 
 - Ansible 2.13 or higher
@@ -46,6 +45,9 @@ The following variables are currently supported:
     - **eu-1** -> api.eu-1.crowdstrike.com
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 - `falcon_api_sensor_download_path` - Local directory path to download the sensor to (string, default: ***null***)
+- `falcon_api_sensor_download_mode` - The file permissions to set on the downloaded sensor (string, default: ***null***)
+- `falcon_api_sensor_download_owner` - The owner to set on the downloaded sensor (string, default: ***null***)
+- `falcon_api_sensor_download_group` - The group to set on the downloaded sensor (string, default: ***null***)
 - `falcon_api_sensor_download_filename` - The name to save the sensor file as (string, default: ***null***)
 - `falcon_api_sensor_download_cleanup` - Whether or not to delete the downloaded sensor after transfer to remote host (bool, default: ***true***)
 - `falcon_sensor_version` - Sensor version to install (string, default: ***null***)

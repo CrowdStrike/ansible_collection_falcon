@@ -66,6 +66,9 @@
     hash: "{{ falcon_api_installer_list.installers[falcon_sensor_version_decrement | int].sha256 }}"
     dest: "{{ falcon_api_sensor_download_path | default(omit, true) }}"
     name: "{{ falcon_api_sensor_download_filename | default(omit, true) }}"
+    mode: "{{ falcon_api_sensor_download_mode | default(omit, true) }}"
+    owner: "{{ falcon_api_sensor_download_owner | default(omit, true) }}"
+    group: "{{ falcon_api_sensor_download_group | default(omit, true) }}"
   changed_when: false
   register: falcon_sensor_download
   delegate_to: localhost
