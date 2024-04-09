@@ -530,3 +530,16 @@ releases:
     - add-file-ops-sensor-download.yml
     - remove-aid-logic.yml
     release_date: '2024-04-08'
+  4.3.2:
+    changes:
+      bugfixes:
+      - falcon_install - allow permissions for sensor download task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/497)
+      release_summary: '| Release Date: 2024-04-09
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.2>`__
+
+        '
+    fragments:
+    - 4.3.2.yml
+    - falcon-install-update-perms.yml
+    release_date: '2024-04-09'
