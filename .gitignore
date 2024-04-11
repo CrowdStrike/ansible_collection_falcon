@@ -6,3 +6,4 @@ changelogs/.plugin-cache.yaml
 __pycache__/
 /**venv
 /.vscode
+html/
