@@ -21,6 +21,7 @@ description:
     for Linux (kernel mode), matching the specified filter criteria.
   - See the L(CrowdStrike documentation,https://falcon.crowdstrike.com/login/?unilogin=true&next=/documentation/page/cf432222/sensor-update-policy-apis#t6a20418)
     for more information about available filters.
+    # noqa: E501
 
 options:
   limit:
@@ -41,6 +42,7 @@ notes:
   - To help with your filters, you can use the kernel and sensor support distinct values API to
     retrieve a list of distinct values, with proper syntax, for any field. For more info, see
     L(Retrieving field values for kernel support filters,https://falcon.crowdstrike.com/login/?unilogin=true&next=/documentation/page/cf432222/sensor-update-policy-apis#v3cee3bb).
+    # noqa: E501
 
 requirements:
   - Sensor update policies [B(READ)] API scope
@@ -189,7 +191,7 @@ except ImportError:
 
 POLICY_ARGS = {
     "filter": {"type": "str", "required": False},
-    "limit": {"type": "int", "required": False},
+    "limit": {"type": "int", "required": False, "default": 100},
     "offset": {"type": "int", "required": False},
 }
 
