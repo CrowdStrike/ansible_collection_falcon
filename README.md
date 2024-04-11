@@ -44,6 +44,7 @@ Name | Description
 [crowdstrike.falcon.cid_info](https://crowdstrike.github.io/ansible_collection_falcon/cid_info_module.html)|Get CID with checksum
 [crowdstrike.falcon.host_contain](https://crowdstrike.github.io/ansible_collection_falcon/host_contain_module.html)|Network contain hosts in Falcon
 [crowdstrike.falcon.host_hide](https://crowdstrike.github.io/ansible_collection_falcon/host_hide_module.html)|Hide/Unhide hosts from the Falcon console
+[crowdstrike.falcon.kernel_support_info](https://crowdstrike.github.io/ansible_collection_falcon/kernel_support_info_module.html)|Get information about kernels supported by the Falcon Sensor for Linux
 [crowdstrike.falcon.sensor_download](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_module.html)|Download Falcon Sensor Installer
 [crowdstrike.falcon.sensor_download_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_info_module.html)|Get information about Falcon Sensor Installers
 [crowdstrike.falcon.sensor_update_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_policy_info_module.html)|Get information about Falcon Update Sensor Policies
