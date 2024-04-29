@@ -56,6 +56,12 @@ Name | Description
 --- | ---
 [crowdstrike.falcon.falcon_discover](https://crowdstrike.github.io/ansible_collection_falcon/falcon_discover_inventory.html)|Falcon Discover inventory source
 [crowdstrike.falcon.falcon_hosts](https://crowdstrike.github.io/ansible_collection_falcon/falcon_hosts_inventory.html)|Falcon Hosts inventory source
+
+### Lookup plugins
+
+Name | Description
+--- | ---
+[crowdstrike.falcon.host_ids](https://crowdstrike.github.io/ansible_collection_falcon/host_ids_lookup.html)|Fetch host IDs in Falcon
 <!--end collection content-->
 
 <!--start eda content-->
