@@ -89,7 +89,6 @@ hosts:
     agent_local_time:
       description: The local time of the agent.
       type: str
-      format: date-time
       returned: success
       sample: "2024-03-15T03:06:29.257Z"
     agent_version:
@@ -135,7 +134,6 @@ hosts:
     external_ip:
       description: The external IP address of the host.
       type: str
-      format: ipv4
       returned: success
       sample: "10.10.10.10"
     mac_address:
@@ -168,19 +166,16 @@ hosts:
     first_seen:
       description: The timestamp of when the host was first seen.
       type: str
-      format: date-time
       returned: success
       sample: "2024-03-15T03:06:30Z"
     last_seen:
       description: The timestamp of when the host was last seen.
       type: str
-      format: date-time
       returned: success
       sample: "2024-03-15T03:06:41Z"
     local_ip:
       description: The local IP address of the host.
       type: str
-      format: ipv4
       returned: success
       sample: "10.10.10.10"
     major_version:
@@ -237,13 +232,11 @@ hosts:
         assigned_date:
           description: The timestamp of when the policy was assigned.
           type: str
-          format: date-time
           returned: success
           sample: "2024-03-15T03:06:41.651213667Z"
         applied_date:
           description: The timestamp of when the policy was applied.
           type: str
-          format: date-time
           returned: success
           sample: null
         rule_groups:
@@ -322,7 +315,6 @@ hosts:
     modified_timestamp:
       description: The timestamp of when the host was last modified.
       type: str
-      format: date-time
       returned: success
       sample: "2024-03-15T03:08:21Z"
     meta:
@@ -365,13 +357,11 @@ hosts:
     connection_ip:
       description: The IP address used for connection.
       type: str
-      format: ipv4
       returned: success
       sample: "10.10.10.10"
     default_gateway_ip:
       description: The IP address of the default gateway.
       type: str
-      format: ipv4
       returned: success
       sample: "10.10.10.10"
     connection_mac_address:
