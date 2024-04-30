@@ -28,6 +28,8 @@ options:
   hosts:
     description:
       - A list of host agent IDs (AIDs) to get information about.
+      - Use the P(crowdstrike.falcon.host_ids#lookup) lookup plugin to get a list of host IDs matching
+        specific criteria.
     type: list
     elements: str
     required: true
