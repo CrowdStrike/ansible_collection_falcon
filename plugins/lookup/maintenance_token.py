@@ -17,7 +17,7 @@ version_added: "4.4.0"
 
 description:
   - This lookup returns a maintenance token which can be used for uninstalls and other maintenance
-    operations no done by Falcon platform.
+    operations not done by the Falcon platform.
 
 options:
   _terms:
@@ -151,7 +151,7 @@ class LookupModule(LookupBase):
         # Check if the 'falconpy' library is installed
         if not HAS_FALCONPY:
             raise AnsibleError(
-                "The 'crowdstrike.falcon.host_ids' lookup cannot be run because the 'falconpy' library is not installed."
+                "The 'crowdstrike.falcon.maintenance_token' lookup cannot be run because the 'falconpy' library is not installed."
             )
 
         # Check if the 'falconpy' library is compatible
