@@ -75,7 +75,7 @@ EXAMPLES = r"""
     hosts: "{{ lookup('crowdstrike.falcon.host_ids', contain_filter) }}"
     contained: yes
   vars:
-    contain_filter: >
+    linux_rfm_filter: >
       platform_name:'Linux' +
       reduced_functionality_mode:'yes'
 
