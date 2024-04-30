@@ -23,7 +23,12 @@ options:
   _terms:
     description:
       - The host ID (AID) for which the maintenance token should be fetched.
-      - To retrieve the bulk maintenance token pass the value B(MAINTENANCE) as the term.
+      - If O(bulk) is set to true, this parameter is ignored.
+  bulk:
+    description:
+      - Retrieve a bulk maintenance token.
+    type: bool
+    default: false
 
 extends_documentation_fragment:
   - crowdstrike.falcon.credentials
@@ -46,7 +51,7 @@ EXAMPLES = r"""
 
 - name: Print bulk maintenance token
   ansible.builtin.debug:
-    msg: "{{ lookup('crowdstrike.falcon.maintenance_token', 'MAINTENANCE') }}"
+    msg: "{{ lookup('crowdstrike.falcon.maintenance_token', bulk=true) }}"
 """
 
 RETURN = r"""
@@ -120,6 +125,26 @@ class LookupModule(LookupBase):
 
         return SensorUpdatePolicy(**creds)
 
+    def _fetch_token(self, falcon, device_id):
+        """Fetch maintenance token"""
+        token = None
+        try:
+            result = falcon.reveal_uninstall_token(
+                audit_message="Ansible maintenance token lookup",
+                device_id=device_id,
+            )
+
+            if result["status_code"] != 200:
+                raise AnsibleError(
+                    f"Unable to fetch maintenance token: {result['body']['errors']}"
+                )
+
+            token = result["body"]["resources"][0]["uninstall_token"]
+        except Exception as e:
+            raise AnsibleError(f"Failed to fetch bulk maintenance token: {e}") from e
+
+        return token
+
     def run(self, terms, variables=None, **kwargs):
         """Fetch host IDs based on the provided filter expression."""
 
@@ -140,23 +165,13 @@ class LookupModule(LookupBase):
         falcon = self._authenticate()
         ret = []
 
-        for term in terms:
-            display.debug(f"Fetching maintenance token for device_id: {term}")
-            try:
-                # Fetch host IDs based on the provided filter expression
-                display.vvv(f"device_id used: {term}")
-                result = falcon.reveal_uninstall_token(
-                    audit_message="Ansible maintenance token lookup",
-                    device_id=term,
-                )
-
-                if result["status_code"] != 200:
-                    raise AnsibleError(
-                        f"Unable to fetch maintenance token: {result['body']['errors']}"
-                    )
-
-                ret.append(result["body"]["resources"][0]["uninstall_token"])
-            except Exception as e:  # pylint: disable=broad-except
-                raise AnsibleError(f"Failed to fetch maintenance token: {e}") from e
+        # Check if we should fetch a bulk maintenance token
+        if self.get_option("bulk"):
+            display.debug("Fetching bulk maintenance token")
+            ret.append(self._fetch_token(falcon, "MAINTENANCE"))
+        else:
+            for term in terms:
+                display.debug(f"Fetching maintenance token for device_id: {term}")
+                ret.append(self._fetch_token(falcon, term))
 
         return ret
