@@ -27,13 +27,13 @@ options:
       - The filter expression that should be used to limit the results using FQL (Falcon Query Language) syntax.
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/page/c0b16f1b/host-and-host-group-management-apis#qadd6f8f)
         for more information about the available filters.
-      - B(When using FQL filters, double quotes should be properly escaped to avoid syntax errors.)
 
 extends_documentation_fragment:
   - crowdstrike.falcon.credentials
 
 notes:
   - This plugin will automatically handle pagination for you, so you do not need to worry about it.
+  - You can avoid escaping double quotes by using a multiline string or setting a variable. See examples.
 
 requirements:
   - Hosts [B(READ)] API scope
@@ -47,18 +47,25 @@ EXAMPLES = r"""
   ansible.builtin.debug:
     msg: "{{ lookup('crowdstrike.falcon.host_ids', '') }}"
 
-- name: Print all Windows hosts IDs
+- name: Print all Windows hosts IDs (escaped double quotes)
   ansible.builtin.debug:
     msg: "{{ lookup('crowdstrike.falcon.host_ids', 'platform_name:\"Windows\"') }}"
 
-- name: Print all Linux hosts IDs in reduced functionality mode
+- name: Print all Linux hosts IDs in reduced functionality mode (multiline string)
   ansible.builtin.debug:
-    msg: "{{ lookup('crowdstrike.falcon.host_ids', 'platform_name:\"Linux\" + reduced_functionality_mode:\"yes\"') }}"
+    msg: >
+      {{
+        lookup('crowdstrike.falcon.host_ids',
+          'platform_name:"Linux"
+          + reduced_functionality_mode:"yes"')
+      }}
 
-- name: Hide stale devices that haven't been seen in 15 days
+- name: Hide stale devices that haven't been seen in 15 days (using a filter variable)
   crowdstrike.falcon.host_hide:
     hidden: true
-    hosts: "{{ lookup('crowdstrike.falcon.host_ids', 'last_seen:<=\"now-15d\"') }}"
+    hosts: "{{ lookup('crowdstrike.falcon.host_ids', stale_filter) }}"
+  vars:
+    stale_filter: 'last_seen:<="now-15d"'
 """
 
 RETURN = r"""
