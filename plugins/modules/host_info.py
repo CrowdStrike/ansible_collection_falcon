@@ -56,13 +56,20 @@ EXAMPLES = r"""
       - "12345678901234567890"
       - "09876543210987654321"
 
-- name: Get information about all Windows hosts
+- name: Get information about all Windows hosts (using host_ids lookup)
   crowdstrike.falcon.host_info:
-    hosts: "{{ lookup('crowdstrike.falcon.host_ids', 'platform_name:\"Windows\"') }}"
+    hosts: "{{ lookup('crowdstrike.falcon.host_ids', windows_host_filter) }}"
+  vars:
+    windows_host_filter: 'platform_name:"Windows"'
 
-- name: Get information about all Linux hosts in reduced functionality mode
+- name: Get information about all Linux hosts in reduced functionality mode (using host_ids lookup)
   crowdstrike.falcon.host_info:
-    hosts: "{{ lookup('crowdstrike.falcon.host_ids', 'platform_name:\"Linux\" + reduced_functionality_mode:\"yes\"') }}"
+    hosts: >
+      {{
+        lookup('crowdstrike.falcon.host_ids',
+          'platform_name:"Linux"
+          + reduced_functionality_mode:"yes"')
+      }}
 """
 
 RETURN = r"""

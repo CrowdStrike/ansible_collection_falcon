@@ -70,10 +70,14 @@ EXAMPLES = r"""
       - "09876543210987654321"
     contained: no
 
-- name: Contain all hosts in RFM
+- name: Contain all Linux hosts in RFM (using host_ids lookup)
   crowdstrike.falcon.host_contain:
-    hosts: "{{ lookup('crowdstrike.falcon.host_ids', 'reduced_functionality_mode:\"yes\"') }}"
+    hosts: "{{ lookup('crowdstrike.falcon.host_ids', contain_filter) }}"
     contained: yes
+  vars:
+    contain_filter: >
+      platform_name:'Linux' +
+      reduced_functionality_mode:'yes'
 
 - name: Individually contain hosts within a list
   crowdstrike.falcon.host_contain:
