@@ -74,5 +74,4 @@ build_ignore:
   - '.devcontainer'
   - '.git*'
   - '.pre-commit-config.yaml'
-  - 'docs'
   - 'tox.ini'
