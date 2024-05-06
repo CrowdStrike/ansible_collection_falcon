@@ -543,3 +543,38 @@ releases:
     - 4.3.2.yml
     - falcon-install-update-perms.yml
     release_date: '2024-04-09'
+  4.4.0:
+    changes:
+      minor_changes:
+      - host_ids - adds a new lookup plugin for getting host IDs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/503)
+      - host_info - adds new module for retrieving host details (https://github.com/CrowdStrike/ansible_collection_falcon/pull/504)
+      - kernel_support_info - adds new module for kernel support information (https://github.com/CrowdStrike/ansible_collection_falcon/pull/499)
+      - sensor_update_builds_info - adds new module for retrieving sensor build versions
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/500)
+      release_summary: '| Release Date: 2024-05-06
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.4.0>`__
+
+        '
+    fragments:
+    - 4.4.0.yml
+    - host_ids.yml
+    - host_info.yml
+    - kernel_support_info.yml
+    - sensor_update_builds_info.yml
+    modules:
+    - description: Get information about Falcon hosts
+      name: host_info
+      namespace: ''
+    - description: Get a list of available sensor build versions
+      name: sensor_update_builds_info
+      namespace: ''
+    plugins:
+      lookup:
+      - description: fetch host IDs (AIDs)
+        name: host_ids
+        namespace: null
+      - description: fetch maintenance token
+        name: maintenance_token
+        namespace: null
+    release_date: '2024-05-06'
