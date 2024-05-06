@@ -33,6 +33,8 @@ options:
   hosts:
     description:
       - A list of host agent IDs (AIDs) to perform the action on.
+      - Use the P(crowdstrike.falcon.host_ids#lookup) lookup plugin to get a list of host IDs matching
+        specific criteria.
     type: list
     elements: str
     required: true
@@ -72,6 +74,12 @@ EXAMPLES = r"""
       - "12345678901234567890"
       - "09876543210987654321"
     hidden: false
+
+- name: Hide all stale hosts that have not checked in for 30 days (using host_ids lookup)
+  crowdstrike.falcon.host_hide:
+    hosts: "{{ lookup('crowdstrike.falcon.host_ids', stale_filter) }}"
+  vars:
+    stale_filter: 'last_seen:<="now-15d"'
 
 - name: Individually hide hosts with a list from the Falcon console
   crowdstrike.falcon.host_hide:

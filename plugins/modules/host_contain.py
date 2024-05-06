@@ -32,6 +32,8 @@ options:
   hosts:
     description:
       - A list of host agent IDs (AIDs) to perform the action on.
+      - Use the P(crowdstrike.falcon.host_ids#lookup) lookup plugin to get a list of host IDs matching
+        specific criteria.
     type: list
     elements: str
     required: true
@@ -67,6 +69,15 @@ EXAMPLES = r"""
       - "12345678901234567890"
       - "09876543210987654321"
     contained: no
+
+- name: Contain all Linux hosts in RFM (using host_ids lookup)
+  crowdstrike.falcon.host_contain:
+    hosts: "{{ lookup('crowdstrike.falcon.host_ids', contain_filter) }}"
+    contained: yes
+  vars:
+    linux_rfm_filter: >
+      platform_name:'Linux' +
+      reduced_functionality_mode:'yes'
 
 - name: Individually contain hosts within a list
   crowdstrike.falcon.host_contain:

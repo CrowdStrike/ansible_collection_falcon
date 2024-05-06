@@ -30,6 +30,7 @@ extends_documentation_fragment:
   - crowdstrike.falcon.credentials
   - crowdstrike.falcon.credentials.auth
   - crowdstrike.falcon.info
+  - crowdstrike.falcon.info.sort
 
 requirements:
   - Sensor download [B(READ)] API scope

@@ -10,7 +10,7 @@ The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining
 
 ## Ansible version compatibility
 
-Tested with the Ansible Core >= 2.14.0 versions, and the current development version of Ansible. Ansible Core versions before 2.14.0 are not supported.
+Tested with the Ansible Core >= 2.15.0 versions, and the current development version of Ansible. Ansible Core versions before 2.15.0 are not supported.
 
 ## Python version compatibility
 
@@ -44,8 +44,11 @@ Name | Description
 [crowdstrike.falcon.cid_info](https://crowdstrike.github.io/ansible_collection_falcon/cid_info_module.html)|Get CID with checksum
 [crowdstrike.falcon.host_contain](https://crowdstrike.github.io/ansible_collection_falcon/host_contain_module.html)|Network contain hosts in Falcon
 [crowdstrike.falcon.host_hide](https://crowdstrike.github.io/ansible_collection_falcon/host_hide_module.html)|Hide/Unhide hosts from the Falcon console
+[crowdstrike.falcon.host_info](https://crowdstrike.github.io/ansible_collection_falcon/host_info_module.html)|Get information about Falcon hosts
+[crowdstrike.falcon.kernel_support_info](https://crowdstrike.github.io/ansible_collection_falcon/kernel_support_info_module.html)|Get information about kernels supported by the Falcon Sensor for Linux
 [crowdstrike.falcon.sensor_download](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_module.html)|Download Falcon Sensor Installer
 [crowdstrike.falcon.sensor_download_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_info_module.html)|Get information about Falcon Sensor Installers
+[crowdstrike.falcon.sensor_update_builds_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_builds_info_module.html)|Get a list of available sensor build versions
 [crowdstrike.falcon.sensor_update_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_policy_info_module.html)|Get information about Falcon Update Sensor Policies
 
 ### Inventory plugins
@@ -54,6 +57,13 @@ Name | Description
 --- | ---
 [crowdstrike.falcon.falcon_discover](https://crowdstrike.github.io/ansible_collection_falcon/falcon_discover_inventory.html)|Falcon Discover inventory source
 [crowdstrike.falcon.falcon_hosts](https://crowdstrike.github.io/ansible_collection_falcon/falcon_hosts_inventory.html)|Falcon Hosts inventory source
+
+### Lookup plugins
+
+Name | Description
+--- | ---
+[crowdstrike.falcon.host_ids](https://crowdstrike.github.io/ansible_collection_falcon/host_ids_lookup.html)|Fetch host IDs in Falcon
+[crowdstrike.falcon.maintenance_token](https://crowdstrike.github.io/ansible_collection_falcon/maintenance_token_lookup.html)|Fetch maintenance token
 <!--end collection content-->
 
 <!--start eda content-->

@@ -26,6 +26,6 @@ jobs:
       - name: Perform sanity testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
-          ansible-core-version: stable-2.14
+          ansible-core-version: stable-2.15
           testing-type: sanity
           pre-test-cmd: 'rm -rf .devcontainer/ .git* .pre-commit-config.yaml'

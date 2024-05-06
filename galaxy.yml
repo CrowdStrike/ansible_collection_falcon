@@ -21,8 +21,8 @@ authors:
 
 # A short summary description of the collection
 description: >
-  A collection of roles developed by CrowdStrike for the
-  installation, configuration, and verification of CrowdStrike's software.
+  The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining your interactions
+  with the CrowdStrike Falcon platform.
 
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
@@ -74,5 +74,4 @@ build_ignore:
   - '.devcontainer'
   - '.git*'
   - '.pre-commit-config.yaml'
-  - 'docs'
   - 'tox.ini'

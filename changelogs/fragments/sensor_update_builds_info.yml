@@ -1,0 +1,2 @@
+minor_changes:
+  - sensor_update_builds_info - adds new module for retrieving sensor build versions (https://github.com/CrowdStrike/ansible_collection_falcon/pull/500)

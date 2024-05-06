@@ -17,7 +17,7 @@ options:
   filter:
     description:
       - The filter expression that should be used to limit the results using FQL (Falcon Query Language) syntax.
-      - See the return values for more information about the available filters that can be used.
+      - See the return values or CrowdStrike docs for more information about the available filters that can be used.
     type: str
   limit:
     description:
@@ -28,6 +28,10 @@ options:
     description:
       - The offset to start retrieving records from.
     type: int
+"""
+    # Not all endpoints will have a sort option
+    SORT = r"""
+options:
   sort:
     description:
       - The property to sort by in FQL (Falcon Query Language) syntax.
