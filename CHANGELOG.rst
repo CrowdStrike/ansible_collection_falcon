@@ -5,6 +5,39 @@ Ansible CrowdStrike Falcon Collection Release Notes
 .. contents:: Topics
 
 
+v4.4.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-05-06
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.4.0>`__
+
+
+Minor Changes
+-------------
+
+- host_ids - adds a new lookup plugin for getting host IDs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/503)
+- host_info - adds new module for retrieving host details (https://github.com/CrowdStrike/ansible_collection_falcon/pull/504)
+- kernel_support_info - adds new module for kernel support information (https://github.com/CrowdStrike/ansible_collection_falcon/pull/499)
+- sensor_update_builds_info - adds new module for retrieving sensor build versions (https://github.com/CrowdStrike/ansible_collection_falcon/pull/500)
+
+New Plugins
+-----------
+
+Lookup
+~~~~~~
+
+- crowdstrike.falcon.host_ids - fetch host IDs (AIDs)
+- crowdstrike.falcon.maintenance_token - fetch maintenance token
+
+New Modules
+-----------
+
+- crowdstrike.falcon.host_info - Get information about Falcon hosts
+- crowdstrike.falcon.sensor_update_builds_info - Get a list of available sensor build versions
+
 v4.3.2
 ======
 

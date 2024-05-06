@@ -1,2 +1,0 @@
-minor_changes:
-  - host_ids - adds a new lookup plugin for getting host IDs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/503)

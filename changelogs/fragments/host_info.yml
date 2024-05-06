@@ -1,2 +1,0 @@
-minor_changes:
-  - host_info - adds new module for retrieving host details (https://github.com/CrowdStrike/ansible_collection_falcon/pull/504)
