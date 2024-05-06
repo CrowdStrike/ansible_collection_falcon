@@ -10,7 +10,7 @@ The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining
 
 ## Ansible version compatibility
 
-Tested with the Ansible Core >= 2.14.0 versions, and the current development version of Ansible. Ansible Core versions before 2.14.0 are not supported.
+Tested with the Ansible Core >= 2.15.0 versions, and the current development version of Ansible. Ansible Core versions before 2.15.0 are not supported.
 
 ## Python version compatibility
 
