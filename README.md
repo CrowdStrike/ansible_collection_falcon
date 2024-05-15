@@ -62,6 +62,7 @@ Name | Description
 
 Name | Description
 --- | ---
+[crowdstrike.falcon.fctl_child_cids](https://crowdstrike.github.io/ansible_collection_falcon/fctl_child_cids_lookup.html)|Fetch Flight Control child CIDs
 [crowdstrike.falcon.host_ids](https://crowdstrike.github.io/ansible_collection_falcon/host_ids_lookup.html)|Fetch host IDs in Falcon
 [crowdstrike.falcon.maintenance_token](https://crowdstrike.github.io/ansible_collection_falcon/maintenance_token_lookup.html)|Fetch maintenance token
 <!--end collection content-->
