@@ -1,0 +1,2 @@
+minor_changes:
+- fctl_child_cids - new lookup filter plugin to fetch child cids (https://github.com/CrowdStrike/ansible_collection_falcon/pull/516)
