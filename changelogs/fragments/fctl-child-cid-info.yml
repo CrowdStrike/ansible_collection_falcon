@@ -1,0 +1,2 @@
+minor_changes:
+- fctl_child_cid_info - Added new module to get information about Flight Control child CIDs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/517)
