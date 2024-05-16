@@ -40,6 +40,7 @@ Name | Description
 --- | ---
 [crowdstrike.falcon.falconctl](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_module.html)|Configure CrowdStrike Falcon Sensor (Linux)
 [crowdstrike.falcon.falconctl_info](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_info_module.html)|Get Values Associated with Falcon Sensor (Linux)
+[crowdstrike.falcon.fctl_child_cid_info](https://crowdstrike.github.io/ansible_collection_falcon/fctl_child_cid_info_module.html)|Get information about Flight Control child CIDs
 [crowdstrike.falcon.auth](https://crowdstrike.github.io/ansible_collection_falcon/auth_module.html)|Manage Authentication with Falcon API
 [crowdstrike.falcon.cid_info](https://crowdstrike.github.io/ansible_collection_falcon/cid_info_module.html)|Get CID with checksum
 [crowdstrike.falcon.host_contain](https://crowdstrike.github.io/ansible_collection_falcon/host_contain_module.html)|Network contain hosts in Falcon
