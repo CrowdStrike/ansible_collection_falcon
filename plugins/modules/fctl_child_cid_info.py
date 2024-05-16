@@ -12,18 +12,19 @@ DOCUMENTATION = r"""
 ---
 module: fctl_child_cid_info
 
-short_description: Get information about Flight Control child CIDs
+short_description: Retrieve details about Flight Control child CIDs
 
 version_added: "4.5.0"
 
 description:
-  - Returns information about Flight Control child CIDs.
+  - This module fetches and returns detailed information about specified Flight Control child CIDs.
 
 options:
   cids:
     description:
-      - A list of child CIDs to get information about.
-      - Use the P(crowdstrike.falcon.fctl_child_cids#lookup) lookup plugin to get a list of child CIDs.
+      - A list of child CIDs to retrieve information for.
+      - Consider using the P(crowdstrike.falcon.fctl_child_cids#lookup) lookup plugin
+        to obtain a list of child CIDs.
     type: list
     elements: str
     required: true
@@ -161,6 +162,7 @@ def main():
         changed=False,
     )
 
+    # Use FalconPy override functionality to support backward compatibility
     query_result = falcon.override("POST", "/mssp/entities/children/GET/v2", body={"ids": cids})
 
     if query_result["status_code"] == 200:
