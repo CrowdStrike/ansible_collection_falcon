@@ -578,3 +578,28 @@ releases:
         name: maintenance_token
         namespace: null
     release_date: '2024-05-06'
+  4.5.0:
+    changes:
+      minor_changes:
+      - fctl_child_cid_info - Added new module to get information about Flight Control
+        child CIDs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/517)
+      - fctl_child_cids - new lookup filter plugin to fetch child cids (https://github.com/CrowdStrike/ansible_collection_falcon/pull/516)
+      release_summary: '| Release Date: 2024-05-16
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.0>`__
+
+        '
+    fragments:
+    - 4.5.0.yml
+    - fctl-child-cid-info.yml
+    - fctl-child-cids.yml
+    modules:
+    - description: Retrieve details about Flight Control child CIDs
+      name: fctl_child_cid_info
+      namespace: ''
+    plugins:
+      lookup:
+      - description: fetch Flight Control child CIDs
+        name: fctl_child_cids
+        namespace: null
+    release_date: '2024-05-16'
