@@ -46,6 +46,10 @@ EXAMPLES = r"""
 - name: Print all child CIDs for a secondary parent CID
   ansible.builtin.debug:
     msg: "{{ lookup('crowdstrike.falcon.fctl_child_cids', '123456789abcdefg') }}"
+
+- name: Get information about all child CIDs
+  crowdstrike.falcon.fctl_child_cid_info:
+    cids: "{{ lookup('crowdstrike.falcon.fctl_child_cids') }}"
 """
 
 RETURN = r"""

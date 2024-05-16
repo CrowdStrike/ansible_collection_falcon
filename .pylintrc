@@ -162,7 +162,8 @@ disable=raw-checker-failed,
         useless-object-inheritance,  # Remove when we no longer run on python2 systems
         too-many-instance-attributes,
         no-name-in-module,
-        use-dict-literal
+        use-dict-literal,
+        possibly-used-before-assignment  # New to pylint
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
