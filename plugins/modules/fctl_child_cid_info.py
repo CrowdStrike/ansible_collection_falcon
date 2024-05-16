@@ -71,7 +71,7 @@ child_cids:
       description: The unique identifier of the child CID.
       type: str
       returned: success
-      sample: "12345678901234567890
+      sample: "12345678901234567890"
     child_gcid:
       description: The group CID of the child CID.
       type: str
