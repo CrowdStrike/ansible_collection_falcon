@@ -24,6 +24,6 @@ falcon_cloud_urls:
   us-gov-1: "api.laggar.gcw.crowdstrike.com"
 
 falcon_os_arch_dict:
-  x86_64: "+os_version:!~'arm64'+os_version:!~'zLinux'"
-  aarch64: "+os_version:~'arm64'"
-  s390x: "+os_version:~'zLinux'"
+  x86_64: "+architectures:'x86_64'"
+  aarch64: "+architectures:'arm64'"
+  s390x: "+architectures:'s390x'"
