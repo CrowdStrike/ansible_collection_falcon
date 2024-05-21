@@ -151,7 +151,6 @@ except ImportError:
 DOWNLOAD_INFO_ARGS = {
     "filter": {"type": "str", "required": False},
     "limit": {"type": "int", "required": False, "default": 100},
-    "offset": {"type": "int", "required": False},
     "sort": {"type": "str", "required": False},
 }
 
