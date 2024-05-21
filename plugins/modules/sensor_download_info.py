@@ -20,17 +20,20 @@ description:
   - Returns a set of Sensor Installers which match the filter criteria.
 
 options:
+  filter:
+    description:
+      - The filter expression that should be used to limit the results using FQL (Falcon Query Language) syntax.
+      - See the return values or CrowdStrike docs for more information about the available filters that can be used.
+    type: str
   limit:
     description:
       - The maximum number of records to return. [1-500]
-      - Use with the offset parameter to manage pagination of results.
     default: 100
     type: int
 
 extends_documentation_fragment:
   - crowdstrike.falcon.credentials
   - crowdstrike.falcon.credentials.auth
-  - crowdstrike.falcon.info
   - crowdstrike.falcon.info.sort
 
 requirements:
@@ -41,9 +44,10 @@ author:
 """
 
 EXAMPLES = r"""
-- name: Get a list of Linux Sensor Installers
+- name: Get a list of all Linux Sensor Installers
   crowdstrike.falcon.sensor_download_info:
     filter: "platform:'linux'"
+    limit: 200
 
 - name: Get a list of the 2 latest Windows Sensor Installers
   crowdstrike.falcon.sensor_download_info:
