@@ -4,6 +4,8 @@
 - name: "CrowdStrike Falcon | Linux AID Block"
   when:
     - ansible_facts['system'] == 'Linux'
+  become: true
+  become_user: root
   block:
     - name: "CrowdStrike Falcon | Grab existing AID (Linux)"
       crowdstrike.falcon.falconctl_info:
@@ -25,6 +27,9 @@
 - name: "CrowdStrike Falcon | Windows AID Block"
   when:
     - ansible_facts['os_family'] == "Windows"
+  become: true
+  become_method: "{{ falcon_windows_become_method }}"
+  become_user: "{{ falcon_windows_become_user }}"
   block:
     - name: "CrowdStrike Falcon | Grab existing AID (Windows)"
       ansible.windows.win_reg_stat:
@@ -70,6 +75,8 @@
   when:
     - ansible_facts['distribution'] == "MacOSX"
     - falconctl_mac.stat.exists
+  become: true
+  become_user: root
   block:
     - name: CrowdStrike Falcon | Get AID Value from Stats (macOS)
       ansible.builtin.command: |
