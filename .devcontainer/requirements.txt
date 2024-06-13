@@ -6,7 +6,7 @@ pylint
 pre-commit
 autopep8
 ansible
-ansible-core
+ansible-core==2.16.7
 ansible-lint
 boto3
 botocore
@@ -15,5 +15,5 @@ wheel
 ansible-rulebook
 ansible-runner
 aiohttp
-crowdstrike-falconpy==1.4.1
+crowdstrike-falconpy==1.4.3
 tox
