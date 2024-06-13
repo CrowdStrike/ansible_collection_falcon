@@ -19,8 +19,6 @@
     - falcon.auth is defined
     - falcon_remove_host
     - falcon_sensor_installed
-  become: true
-  become_user: root
   block:
     - ansible.builtin.include_tasks: remove_host_pretasks.yml
       # noqa name[missing]
