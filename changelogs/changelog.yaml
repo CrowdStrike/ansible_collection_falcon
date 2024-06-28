@@ -603,3 +603,21 @@ releases:
         name: fctl_child_cids
         namespace: null
     release_date: '2024-05-16'
+  4.5.1:
+    changes:
+      bugfixes:
+      - falcon_install - fix failed gpg key installs for new sensors (https://github.com/CrowdStrike/ansible_collection_falcon/pull/537)
+      - falcon_install - fix filter to take advantage of new architectures field (https://github.com/CrowdStrike/ansible_collection_falcon/pull/521)
+      - falcon_uninstall - fix become clause for remove_host_pretasks.yml (https://github.com/CrowdStrike/ansible_collection_falcon/pull/532)
+      - sensor_download_info - fix offset and use override for v2 endpoint (https://github.com/CrowdStrike/ansible_collection_falcon/pull/520)
+      release_summary: '| Release Date: 2024-06-28
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.1>`__
+
+        '
+    fragments:
+    - 4.5.1.yml
+    - gpg-key.yml
+    - uninstall-become.yml
+    - v2-sensor-installers.yml
+    release_date: '2024-06-28'

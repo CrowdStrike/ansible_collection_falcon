@@ -1,2 +1,0 @@
-bugfixes:
-- falcon_uninstall - fix become clause for remove_host_pretasks.yml (https://github.com/CrowdStrike/ansible_collection_falcon/pull/532)

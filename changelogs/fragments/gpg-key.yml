@@ -1,2 +1,0 @@
-bugfixes:
-- falcon_install - fix failed gpg key installs for new sensors (https://github.com/CrowdStrike/ansible_collection_falcon/pull/537)
