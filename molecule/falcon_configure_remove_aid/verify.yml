@@ -13,6 +13,7 @@
     ansible.builtin.assert:
       that:
         - info_verify.falconctl_info.cid
+        - info_verify.falconctl_info.provisioning_token
         - info_verify.falconctl_info.tags
 
   - name: Verify AID is not present
@@ -23,6 +24,16 @@
   - name: Reboot system to force AID generation
     ansible.builtin.reboot:
 
+  # Wait for aid to be generated
+  - name: Wait for Falcon Sensor to Generate AID
+    crowdstrike.falcon.falconctl_info:
+      name:
+        - aid
+    register: aid_info
+    retries: 6
+    delay: 10
+    until: aid_info.falconctl_info.aid
+
   - name: Get new list of Falcon Sensor Options
     crowdstrike.falcon.falconctl_info:
     register: new_info_verify
@@ -31,6 +42,11 @@
     ansible.builtin.assert:
       that:
         - new_info_verify.falconctl_info.aid
+
+  - name: Validate Provisioning Token is not present
+    ansible.builtin.assert:
+      that:
+        - not new_info_verify.falconctl_info.provisioning_token
 
   - name: Validate CID and Tags are still present
     ansible.builtin.assert:
