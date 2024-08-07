@@ -38,6 +38,7 @@ options:
         'message_log',
         'billing',
         'tags',
+        'provisioning_token',
         'version',
         'rfm_state',
         'rfm_reason',

@@ -29,7 +29,7 @@ FALCONCTL_GET_OPTIONS = [
     "message_log",
     "billing",
     "tags",
-    # 'provisioning_token', # Taking it out since this does not seem to be a perm option
+    'provisioning_token',
     "version",
     "rfm_state",
     "rfm_reason",
