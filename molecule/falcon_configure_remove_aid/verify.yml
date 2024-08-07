@@ -19,3 +19,21 @@
     ansible.builtin.assert:
       that:
         - not info_verify.falconctl_info.aid
+
+  - name: Reboot system to force AID generation
+    ansible.builtin.reboot:
+
+  - name: Get new list of Falcon Sensor Options
+    crowdstrike.falcon.falconctl_info:
+    register: new_info_verify
+
+  - name: Validate a new AID is present
+    ansible.builtin.assert:
+      that:
+        - new_info_verify.falconctl_info.aid
+
+  - name: Validate CID and Tags are still present
+    ansible.builtin.assert:
+      that:
+        - new_info_verify.falconctl_info.cid
+        - new_info_verify.falconctl_info.tags

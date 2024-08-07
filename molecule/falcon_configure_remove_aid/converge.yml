@@ -10,6 +10,7 @@
       vars:
         falcon_option_set: yes
         falcon_cid: "{{ lookup('env', 'FALCON_CID') }}"
+        falcon_provisioning_token: "{{ lookup('env', 'FALCON_PROV_TOKEN') }}"
         falcon_tags: 'molecule,testing'
         falcon_backend: 'bpf'
         falcon_remove_aid: yes
