@@ -13,7 +13,6 @@
     ansible.builtin.assert:
       that:
         - info_verify.falconctl_info.cid
-        - info_verify.falconctl_info.provisioning_token
         - info_verify.falconctl_info.tags
 
   - name: Verify AID is not present
@@ -42,11 +41,6 @@
     ansible.builtin.assert:
       that:
         - new_info_verify.falconctl_info.aid
-
-  - name: Validate Provisioning Token is not present
-    ansible.builtin.assert:
-      that:
-        - not new_info_verify.falconctl_info.provisioning_token
 
   - name: Validate CID and Tags are still present
     ansible.builtin.assert:

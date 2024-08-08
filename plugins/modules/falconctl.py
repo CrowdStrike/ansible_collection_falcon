@@ -351,7 +351,7 @@ def main():  # pylint: disable=missing-function-docstring
     module_args = dict(
         state=dict(required=True, choices=["absent", "present"], type="str"),
         cid=dict(required=False, type="str"),
-        provisioning_token=dict(required=False, no_log=True, type="str"),
+        provisioning_token=dict(required=False, type="str"),
         aid=dict(required=False, type="bool"),
         apd=dict(required=False, type="str"),
         aph=dict(required=False, type="str"),
