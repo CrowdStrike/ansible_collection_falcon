@@ -47,12 +47,22 @@
         - falconctl_result.changed
       # noqa no-handler
 
-    - name: CrowdStrike Falcon | Remove Falcon Agent ID (AID) If Building A Primary Image
+    # Handle Master Image steps
+    - name: CrowdStrike Falcon | Master Image Prep | Removing AID
       crowdstrike.falcon.falconctl:
         aid: yes
         state: absent
       when:
         - falcon_remove_aid
+
+    - name: CrowdStrike Falcon | Master Image Prep | Set Provisioning Token (if applicable)
+      crowdstrike.falcon.falconctl:
+        cid: "{{ options.cid }}"
+        provisioning_token: "{{ options.provisioning_token }}"
+        state: present
+      when:
+        - falcon_remove_aid
+        - options.provisioning_token
 
 # Start of MacOSX Configuration
 - name: CrowdStrike Falcon | Stat Falcon Sensor (macOS)

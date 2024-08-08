@@ -1,0 +1,3 @@
+bugfixes:
+- falcon_configure - fixed issue with master image and provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
+- falconct_info - added support for querying provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
