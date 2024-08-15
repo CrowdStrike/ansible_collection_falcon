@@ -621,3 +621,17 @@ releases:
     - uninstall-become.yml
     - v2-sensor-installers.yml
     release_date: '2024-06-28'
+  4.5.2:
+    changes:
+      bugfixes:
+      - falcon_configure - fixed issue with master image and provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
+      - falconct_info - added support for querying provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
+      release_summary: '| Release Date: 2024-08-15
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.2>`__
+
+        '
+    fragments:
+    - 4.5.2.yml
+    - master-image-update.yml
+    release_date: '2024-08-15'
