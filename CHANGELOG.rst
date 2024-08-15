@@ -4,6 +4,20 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.5.2
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-08-15
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.2>`__
+
+Bugfixes
+--------
+
+- falcon_configure - fixed issue with master image and provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
+- falconct_info - added support for querying provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
 
 v4.5.1
 ======
@@ -13,7 +27,6 @@ Release Summary
 
 | Release Date: 2024-06-28
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.1>`__
-
 
 Bugfixes
 --------
@@ -31,7 +44,6 @@ Release Summary
 
 | Release Date: 2024-05-16
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.0>`__
-
 
 Minor Changes
 -------------
@@ -60,7 +72,6 @@ Release Summary
 
 | Release Date: 2024-05-06
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.4.0>`__
-
 
 Minor Changes
 -------------
@@ -94,7 +105,6 @@ Release Summary
 | Release Date: 2024-04-09
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.2>`__
 
-
 Bugfixes
 --------
 
@@ -108,7 +118,6 @@ Release Summary
 
 | Release Date: 2024-04-08
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.1>`__
-
 
 Bugfixes
 --------
@@ -124,7 +133,6 @@ Release Summary
 
 | Release Date: 2024-03-27
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.0>`__
-
 
 Minor Changes
 -------------
@@ -155,7 +163,6 @@ Release Summary
 | Release Date: 2024-02-14
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.2>`__
 
-
 Bugfixes
 --------
 
@@ -171,7 +178,6 @@ Release Summary
 | Release Date: 2023-12-08
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.1>`__
 
-
 v4.2.0
 ======
 
@@ -180,7 +186,6 @@ Release Summary
 
 | Release Date: 2023-10-19
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.0>`__
-
 
 Minor Changes
 -------------
@@ -196,7 +201,6 @@ Release Summary
 | Release Date: 2023-09-22
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.3>`__
 
-
 Bugfixes
 --------
 
@@ -210,7 +214,6 @@ Release Summary
 
 | Release Date: 2023-09-19
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.2>`__
-
 
 Bugfixes
 --------
@@ -226,7 +229,6 @@ Release Summary
 | Release Date: 2023-09-17
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.1>`__
 
-
 Bugfixes
 --------
 
@@ -240,7 +242,6 @@ Release Summary
 
 | Release Date: 2023-09-16
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.0>`__
-
 
 Minor Changes
 -------------
@@ -260,7 +261,6 @@ Release Summary
 
 | Release Date: 2023-09-15
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.0.0>`__
-
 
 Minor Changes
 -------------
@@ -312,7 +312,6 @@ Release Summary
 | Release Date: 2023-09-14
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.3>`__
 
-
 Bugfixes
 --------
 
@@ -326,7 +325,6 @@ Release Summary
 
 | Release Date: 2023-09-11
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.2>`__
-
 
 Minor Changes
 -------------
@@ -347,7 +345,6 @@ Release Summary
 | Release Date: 2023-08-17
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.1>`__
 
-
 Bugfixes
 --------
 
@@ -361,7 +358,6 @@ Release Summary
 
 | Release Date: 2023-08-04
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.0>`__
-
 
 Minor Changes
 -------------
@@ -381,7 +377,6 @@ Release Summary
 
 | Release Date: 2023-07-28
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.36>`__
-
 
 Minor Changes
 -------------
@@ -403,7 +398,6 @@ Release Summary
 | Release Date: 2023-06-30
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.35>`__
 
-
 Bugfixes
 --------
 
@@ -417,7 +411,6 @@ Release Summary
 
 | Release Date: 2023-05-10
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.34>`__
-
 
 Bugfixes
 --------
@@ -433,7 +426,6 @@ Release Summary
 | Release Date: 2023-04-24
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.33>`__
 
-
 Minor Changes
 -------------
 
@@ -447,7 +439,6 @@ Release Summary
 
 | Release Date: 2023-03-30
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.32>`__
-
 
 Bugfixes
 --------
@@ -463,7 +454,6 @@ Release Summary
 
 | Release Date: 2023-03-15
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.31>`__
-
 
 Minor Changes
 -------------
@@ -486,7 +476,6 @@ Release Summary
 | Release Date: 2023-03-06
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.30>`__
 
-
 Bugfixes
 --------
 
@@ -500,7 +489,6 @@ Release Summary
 
 | Release Date: 2023-03-01
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.29>`__
-
 
 Minor Changes
 -------------
@@ -516,7 +504,6 @@ Release Summary
 | Release Date: 2023-02-16
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.28>`__
 
-
 Minor Changes
 -------------
 
@@ -531,7 +518,6 @@ Release Summary
 
 | Release Date: 2023-01-12
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.27>`__
-
 
 Minor Changes
 -------------
@@ -549,7 +535,6 @@ Release Summary
 | Release Date: 2022-12-27
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.26>`__
 
-
 Bugfixes
 --------
 
@@ -564,7 +549,6 @@ Release Summary
 | Release Date: 2022-12-22
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.25>`__
 
-
 Bugfixes
 --------
 
@@ -578,7 +562,6 @@ Release Summary
 
 | Release Date: 2022-12-22
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.24>`__
-
 
 Minor Changes
 -------------
@@ -599,7 +582,6 @@ Release Summary
 | Release Date: 2022-10-10
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.23>`__
 
-
 Minor Changes
 -------------
 
@@ -615,7 +597,6 @@ Release Summary
 | Release Date: 2022-09-16
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.22>`__
 
-
 Bugfixes
 --------
 
@@ -629,7 +610,6 @@ Release Summary
 
 | Release Date: 2022-09-06
 | `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.21>`__
-
 
 Minor Changes
 -------------
@@ -650,7 +630,6 @@ Release Summary
 | Release Date: 2022-08-23
 | `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.19>`__
 
-
 Bugfixes
 --------
 
@@ -664,7 +643,6 @@ Release Summary
 
 | Release Date: 2022-08-09
 | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.19>`__
-
 
 Minor Changes
 -------------
