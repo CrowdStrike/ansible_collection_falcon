@@ -1,0 +1,2 @@
+minor_changes:
+- falcon_discover - Added ability to allow duplicate hosts in the same environment (https://github.com/CrowdStrike/ansible_collection_falcon/pull/551)
