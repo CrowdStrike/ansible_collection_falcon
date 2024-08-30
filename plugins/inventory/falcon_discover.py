@@ -59,11 +59,18 @@ options:
       - See the L(Falcon documentation,https://falcon.crowdstrike.com/documentation/page/a9df69ec/asset-management-apis#t0e123bd)
         for more information about what filters are available for this inventory.
     type: str
+  allow_duplicates:
+    description:
+      - Allow duplicate hosts to be added to the inventory by adding the asset ID as a suffix to the hostname.
+      - By default, duplicate hostnames are not allowed.
+    type: bool
+    default: false
 requirements:
   - python >= 3.6
   - crowdstrike-falconpy >= 1.3.0
 notes:
   - If no credentials are provided, FalconPy will attempt to use the API credentials via environment variables.
+  - Hostnames are set to the C(hostname) hostvar if it exists, otherwise the IP address is used.
   - The current behavior for assigning an IP address to a host is to use the external IP address if it exists,
     otherwise the current local IP address is used. If neither of those exist, the host is skipped as Ansible
     would not be able to connect to it.
@@ -99,6 +106,13 @@ plugin: crowdstrike.falcon.falcon_discover
 
 # return all AWS assets
 #filter: "cloud_provider:'AWS'"
+
+# allow duplicate hostnames to be added to the inventory
+# example: If you two hosts with the same hostname, they will be added as:
+#     hostnameA
+#     hostnameA_1234567890abcdef12345678
+#
+#allow_duplicates: true
 
 # place hosts into dynamically created groups based on variable values
 keyed_groups:
@@ -358,6 +372,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
             # Get the hostname
             hostname = self._get_hostname(hostvars, ip_address)
+
+            # Check if we allow duplicate hostnames
+            if self.get_option("allow_duplicates"):
+                # If the hostname already exists, add the asset ID as a suffix
+                if hostname in self.inventory.hosts:
+                    hostname = f"{hostname}_{hostvars['id']}"
 
             # Add the host to the inventory
             self.inventory.add_host(hostname)
