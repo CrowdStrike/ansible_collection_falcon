@@ -248,6 +248,8 @@ class Stream:
             A label identifying the connection.
         offset: int
             The offset to start streaming from.
+        latest: bool
+            Start stream at the latest event.
         include_event_types: List[str]
             A list of event types to filter on.
         stream: dict
@@ -325,10 +327,7 @@ class Stream:
             if not self.include_event_types
             else f"&eventType={','.join(self.include_event_types)}"
         )
-        if self.latest:
-            offset_filter = "&whence=2"
-        else:
-            offset_filter = f"&offset={self.offset}"
+        offset_filter = "&whence=2" if self.latest else f"&offset={self.offset}"
 
         kwargs = {
             "url": f"{self.data_feed}{offset_filter}{event_type_filter}",
@@ -415,13 +414,11 @@ class Stream:
         Returns
         -------
         bool
-            Returns False if the event_type is in the exclude_event_types list,
-            otherwise returns True.
+            Returns True if the event_type is not in the exclude_event_types list,
+            otherwise returns False.
 
         """
-        if event_type in exclude_event_types:
-            return False
-        return True
+        return event_type not in exclude_event_types
 
 
 # pylint: disable=too-many-locals
@@ -487,11 +484,11 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
                 await queue.put(event)
                 await asyncio.sleep(delay)
     except asyncio.TimeoutError:
-        logger.error("Timeout occurred while streaming events.")
-    except aiohttp.ClientError as e:
-        logger.error("Client error occurred while streaming events: %s", e)
-    except Exception as e:  # pylint: disable=broad-except
-        logger.exception("Uncaught Plugin Task Error: %s", e)
+        logger.exception("Timeout occurred while streaming events.")
+    except aiohttp.ClientError:
+        logger.exception("Client error occurred while streaming events.")
+    except Exception:  # pylint: disable=broad-except
+        logger.exception("Uncaught Plugin Task Error.")
     else:
         logger.info("All streams processed successfully.")
     finally:
