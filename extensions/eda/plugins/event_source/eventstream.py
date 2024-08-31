@@ -17,6 +17,7 @@ Arguments:
     include_event_types:    List of event types to filter on. Defaults.
     exclude_event_types:    List of event types to exclude. Default: None.
     offset:                 The offset to start streaming from. Default: 0.
+    latest:                 Start stream at the latest event. Default: False.
     delay:                  Introduce a delay between each event. Default: float(0).
 
 
@@ -233,6 +234,7 @@ class Stream:
         client: AIOFalconAPI,
         stream_name: str,
         offset: int,
+        latest: bool,
         include_event_types: list[str],
         stream: dict,
     ) -> None:
@@ -261,6 +263,7 @@ class Stream:
         self.refresh_url: str = stream["refreshActiveSessionURL"]
         self.partition: str = re.findall(r"v1/(\d+)", self.refresh_url)[0]
         self.offset: int = offset
+        self.latest: bool = latest
         self.include_event_types: list[str] = include_event_types
         self.epoch: int = int(time.time())
         self.refresh_interval: int = int(stream["refreshActiveSessionInterval"])
@@ -322,7 +325,10 @@ class Stream:
             if not self.include_event_types
             else f"&eventType={','.join(self.include_event_types)}"
         )
-        offset_filter = f"&offset={self.offset}"
+        if self.latest:
+            offset_filter = "&whence=2"
+        else:
+            offset_filter = f"&offset={self.offset}"
 
         kwargs = {
             "url": f"{self.data_feed}{offset_filter}{event_type_filter}",
@@ -340,6 +346,7 @@ class Stream:
             self.stream_name,
             self.partition,
         )
+        logger.debug("Stream URL: %s", kwargs["url"])
         return self.spigot
 
     async def stream_events(
@@ -439,12 +446,18 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
     falcon_cloud: str = str(args.get("falcon_cloud", "us-1"))
     stream_name: str = str(args.get("stream_name", "eda")).lower()
     offset: int = int(args.get("offset", 0))
+    latest: bool = bool(args.get("latest", False))
     delay: float = float(args.get("delay", 0))
     include_event_types: list[str] = list(args.get("include_event_types", []))
     exclude_event_types: list[str] = list(args.get("exclude_event_types", []))
 
     if falcon_cloud not in REGIONS:
         msg = f"Invalid falcon_cloud: {falcon_cloud}, must be one of {list(REGIONS.keys())}"
+        raise ValueError(msg)
+
+    # Offset and latest are mutually exclusive
+    if offset > 0 and latest:
+        msg = "offset and latest are mutually exclusive arguments."
         raise ValueError(msg)
 
     falcon = AIOFalconAPI(
@@ -463,7 +476,7 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
         return
 
     streams: list[Stream] = [
-        Stream(falcon, stream_name, offset, include_event_types, stream)
+        Stream(falcon, stream_name, offset, latest, include_event_types, stream)
         for stream in available_streams["resources"]
     ]
 

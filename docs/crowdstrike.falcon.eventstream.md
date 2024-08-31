@@ -23,7 +23,8 @@ An ansible-rulebook event source plugin for generating events from the Falcon Ev
 | **stream_name**</br><font color=purple>string</font> | Label that identifies your connection.</br>**Max:** 32 alphanumeric characters (a-z, A-Z, 0-9)</br><font color=blue>**Default:** eda</font> |
 | **include_event_types**</br><font color=purple>list</font> | List of event types to include. Otherwise all event types are included.</br>Refer to the [Streaming API Event Dictionary](https://falcon.crowdstrike.com/documentation/62/streaming-api-event-dictionary).</br><font color=blue>**Default:** None.</font> |
 | **exclude_event_types**</br><font color=purple>list</font> | List of event types to exclude.</br>Refer to the [Streaming API Event Dictionary](https://falcon.crowdstrike.com/documentation/62/streaming-api-event-dictionary).</br><font color=blue>**Default:** None.</font> |
-| **offset**</br><font color=purple>int</font> | The offset to start streaming from.</br><font color=blue>**Default:** 0.</font> |
+| **offset**</br><font color=purple>int</font> | The offset to start streaming from. The default (0) is to begin the stream from the start of all events.</br>*This option is mutually exclusive with* `latest`.</br><font color=blue>**Default:** 0.</font> |
+| **latest**</br><font color=purple>bool</font> | Start the stream from the newest/latest event.</br>*This option is mutually exclusive with* `offset`.</br><font color=blue>**Default:** false.</font> |
 | **delay**</br><font color=purple>float</font> | Introduce a delay between each event.</br><font color=blue>**Default:** 0.</font> |
 
 ## Example Rulebook
