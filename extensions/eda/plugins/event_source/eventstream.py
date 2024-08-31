@@ -330,7 +330,7 @@ class Stream:
                 "Authorization": f"Token {self.token}",
             },
             "raise_for_status": True,
-            "timeout": aiohttp.ClientTimeout(total=float(self.refresh_interval)),
+            "timeout": aiohttp.ClientTimeout(total=float(self.refresh_interval) + 30),
         }
 
         session = aiohttp.ClientSession()
@@ -473,15 +473,20 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
             async for event in stream.stream_events(exclude_event_types):
                 await queue.put(event)
                 await asyncio.sleep(delay)
-    except Exception:  # pylint: disable=broad-except
-        logger.exception("Uncaught Plugin Task Error")
+    except asyncio.TimeoutError:
+        logger.error("Timeout occurred while streaming events.")
+    except aiohttp.ClientError as e:
+        logger.error("Client error occurred while streaming events: %s", e)
+    except Exception as e:  # pylint: disable=broad-except
+        logger.exception("Uncaught Plugin Task Error: %s", e)
     else:
         logger.info("All streams processed successfully.")
     finally:
         logger.info("Plugin Task Finished..cleaning up")
         # Close the stream and API session outside the loop
         for stream in streams:
-            await stream.spigot.close()
+            if stream.spigot:
+                await stream.spigot.close()
         await falcon.close()
 
 
