@@ -1,0 +1,5 @@
+minor_changes:
+- eventsource - add support for starting stream from latest event (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
+
+bugfixes:
+- eventsource - fix issue with refreshinterval causing timeout (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
