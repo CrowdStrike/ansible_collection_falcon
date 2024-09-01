@@ -233,7 +233,7 @@ class Stream:
         self: "Stream",
         client: AIOFalconAPI,
         stream_name: str,
-        offset: int,
+        offset: Optional[int],
         latest: bool,
         include_event_types: list[str],
         stream: dict,
@@ -441,7 +441,7 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
     falcon_client_secret: str = str(args.get("falcon_client_secret"))
     falcon_cloud: str = str(args.get("falcon_cloud", "us-1"))
     stream_name: str = str(args.get("stream_name", "eda")).lower()
-    offset: int = int(args.get("offset"))
+    offset: Optional[int] = args.get("offset")
     latest: bool = bool(args.get("latest", False))
     delay: float = float(args.get("delay", 0))
     include_event_types: list[str] = list(args.get("include_event_types", []))
