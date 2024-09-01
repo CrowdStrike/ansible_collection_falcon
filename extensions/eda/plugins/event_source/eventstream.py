@@ -16,7 +16,8 @@ Arguments:
                             Max: 32 alphanumeric characters. Default: eda
     include_event_types:    List of event types to filter on. Defaults.
     exclude_event_types:    List of event types to exclude. Default: None.
-    offset:                 The offset to start streaming from. Default: 0.
+    offset:                 The offset to start streaming from. Default: None.
+    latest:                 Start stream at the latest event. Default: False.
     delay:                  Introduce a delay between each event. Default: float(0).
 
 
@@ -233,6 +234,7 @@ class Stream:
         client: AIOFalconAPI,
         stream_name: str,
         offset: int,
+        latest: bool,
         include_event_types: list[str],
         stream: dict,
     ) -> None:
@@ -246,6 +248,8 @@ class Stream:
             A label identifying the connection.
         offset: int
             The offset to start streaming from.
+        latest: bool
+            Start stream at the latest event.
         include_event_types: List[str]
             A list of event types to filter on.
         stream: dict
@@ -254,13 +258,14 @@ class Stream:
         """
         logger.info("Initializing Stream: %s", stream_name)
         self.client: AIOFalconAPI = client
+        self.session: aiohttp.ClientSession = client.session
         self.stream_name: str = stream_name
         self.data_feed: str = stream["dataFeedURL"]
         self.token: str = stream["sessionToken"]["token"]
-        self.token_expires: str = stream["sessionToken"]["expiration"]
         self.refresh_url: str = stream["refreshActiveSessionURL"]
         self.partition: str = re.findall(r"v1/(\d+)", self.refresh_url)[0]
-        self.offset: int = offset
+        self.offset: int = offset if offset else 0
+        self.latest: bool = latest
         self.include_event_types: list[str] = include_event_types
         self.epoch: int = int(time.time())
         self.refresh_interval: int = int(stream["refreshActiveSessionInterval"])
@@ -322,7 +327,7 @@ class Stream:
             if not self.include_event_types
             else f"&eventType={','.join(self.include_event_types)}"
         )
-        offset_filter = f"&offset={self.offset}"
+        offset_filter = "&whence=2" if self.latest else f"&offset={self.offset}"
 
         kwargs = {
             "url": f"{self.data_feed}{offset_filter}{event_type_filter}",
@@ -330,16 +335,16 @@ class Stream:
                 "Authorization": f"Token {self.token}",
             },
             "raise_for_status": True,
-            "timeout": aiohttp.ClientTimeout(total=float(self.refresh_interval)),
+            "timeout": aiohttp.ClientTimeout(total=None),
         }
 
-        session = aiohttp.ClientSession()
-        self.spigot: aiohttp.ClientResponse = await session.get(**kwargs)
+        self.spigot: aiohttp.ClientResponse = await self.session.get(**kwargs)
         logger.info(
             "Successfully opened stream %s:%s",
             self.stream_name,
             self.partition,
         )
+        logger.debug("Stream URL: %s", kwargs["url"])
         return self.spigot
 
     async def stream_events(
@@ -408,13 +413,11 @@ class Stream:
         Returns
         -------
         bool
-            Returns False if the event_type is in the exclude_event_types list,
-            otherwise returns True.
+            Returns True if the event_type is not in the exclude_event_types list,
+            otherwise returns False.
 
         """
-        if event_type in exclude_event_types:
-            return False
-        return True
+        return event_type not in exclude_event_types
 
 
 # pylint: disable=too-many-locals
@@ -438,13 +441,19 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
     falcon_client_secret: str = str(args.get("falcon_client_secret"))
     falcon_cloud: str = str(args.get("falcon_cloud", "us-1"))
     stream_name: str = str(args.get("stream_name", "eda")).lower()
-    offset: int = int(args.get("offset", 0))
+    offset: int = int(args.get("offset"))
+    latest: bool = bool(args.get("latest", False))
     delay: float = float(args.get("delay", 0))
     include_event_types: list[str] = list(args.get("include_event_types", []))
     exclude_event_types: list[str] = list(args.get("exclude_event_types", []))
 
     if falcon_cloud not in REGIONS:
         msg = f"Invalid falcon_cloud: {falcon_cloud}, must be one of {list(REGIONS.keys())}"
+        raise ValueError(msg)
+
+    # Offset and latest are mutually exclusive
+    if offset and latest:
+        msg = "'offset' and 'latest' are mutually exclusive parameters."
         raise ValueError(msg)
 
     falcon = AIOFalconAPI(
@@ -463,7 +472,7 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
         return
 
     streams: list[Stream] = [
-        Stream(falcon, stream_name, offset, include_event_types, stream)
+        Stream(falcon, stream_name, offset, latest, include_event_types, stream)
         for stream in available_streams["resources"]
     ]
 
@@ -473,15 +482,20 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
             async for event in stream.stream_events(exclude_event_types):
                 await queue.put(event)
                 await asyncio.sleep(delay)
+    except asyncio.TimeoutError:
+        logger.exception("Timeout occurred while streaming events.")
+    except aiohttp.ClientError:
+        logger.exception("Client error occurred while streaming events.")
     except Exception:  # pylint: disable=broad-except
-        logger.exception("Uncaught Plugin Task Error")
+        logger.exception("Uncaught Plugin Task Error.")
     else:
         logger.info("All streams processed successfully.")
     finally:
         logger.info("Plugin Task Finished..cleaning up")
         # Close the stream and API session outside the loop
         for stream in streams:
-            await stream.spigot.close()
+            if stream.spigot:
+                await stream.spigot.close()
         await falcon.close()
 
 
