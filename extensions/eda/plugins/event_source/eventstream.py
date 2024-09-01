@@ -16,7 +16,7 @@ Arguments:
                             Max: 32 alphanumeric characters. Default: eda
     include_event_types:    List of event types to filter on. Defaults.
     exclude_event_types:    List of event types to exclude. Default: None.
-    offset:                 The offset to start streaming from. Default: 0.
+    offset:                 The offset to start streaming from. Default: None.
     latest:                 Start stream at the latest event. Default: False.
     delay:                  Introduce a delay between each event. Default: float(0).
 
@@ -264,7 +264,7 @@ class Stream:
         self.token: str = stream["sessionToken"]["token"]
         self.refresh_url: str = stream["refreshActiveSessionURL"]
         self.partition: str = re.findall(r"v1/(\d+)", self.refresh_url)[0]
-        self.offset: int = offset
+        self.offset: int = offset if offset else 0
         self.latest: bool = latest
         self.include_event_types: list[str] = include_event_types
         self.epoch: int = int(time.time())
@@ -441,7 +441,7 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
     falcon_client_secret: str = str(args.get("falcon_client_secret"))
     falcon_cloud: str = str(args.get("falcon_cloud", "us-1"))
     stream_name: str = str(args.get("stream_name", "eda")).lower()
-    offset: int = int(args.get("offset", 0))
+    offset: int = int(args.get("offset"))
     latest: bool = bool(args.get("latest", False))
     delay: float = float(args.get("delay", 0))
     include_event_types: list[str] = list(args.get("include_event_types", []))
@@ -452,8 +452,8 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
         raise ValueError(msg)
 
     # Offset and latest are mutually exclusive
-    if offset > 0 and latest:
-        msg = "offset and latest are mutually exclusive arguments."
+    if offset and latest:
+        msg = "'offset' and 'latest' are mutually exclusive parameters."
         raise ValueError(msg)
 
     falcon = AIOFalconAPI(
