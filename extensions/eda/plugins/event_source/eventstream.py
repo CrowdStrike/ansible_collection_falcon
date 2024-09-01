@@ -258,10 +258,10 @@ class Stream:
         """
         logger.info("Initializing Stream: %s", stream_name)
         self.client: AIOFalconAPI = client
+        self.session: aiohttp.ClientSession = client.session
         self.stream_name: str = stream_name
         self.data_feed: str = stream["dataFeedURL"]
         self.token: str = stream["sessionToken"]["token"]
-        self.token_expires: str = stream["sessionToken"]["expiration"]
         self.refresh_url: str = stream["refreshActiveSessionURL"]
         self.partition: str = re.findall(r"v1/(\d+)", self.refresh_url)[0]
         self.offset: int = offset
@@ -335,11 +335,10 @@ class Stream:
                 "Authorization": f"Token {self.token}",
             },
             "raise_for_status": True,
-            "timeout": aiohttp.ClientTimeout(total=float(self.refresh_interval) + 30),
+            "timeout": aiohttp.ClientTimeout(total=None),
         }
 
-        session = aiohttp.ClientSession()
-        self.spigot: aiohttp.ClientResponse = await session.get(**kwargs)
+        self.spigot: aiohttp.ClientResponse = await self.session.get(**kwargs)
         logger.info(
             "Successfully opened stream %s:%s",
             self.stream_name,
