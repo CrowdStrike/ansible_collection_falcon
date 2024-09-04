@@ -160,7 +160,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.common_args imp
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     authenticate,
     check_falconpy_version,
-    handle_return_errors,
+    get_paginated_results_info,
 )
 
 FALCONPY_IMPORT_ERROR = None
@@ -199,36 +199,12 @@ def main():
 
     check_falconpy_version(module)
 
-    args = {}
-    for key, value in module.params.items():
-        if key in POLICY_ARGS:
-            args[key] = value
+    query_filter = module.params.get("filter")
+    max_limit = 500
 
     falcon = authenticate(module, SensorUpdatePolicy)
 
-    result = dict(
-        changed=False,
-        info=[],
-    )
-
-    max_limit = 500
-    offset = None
-    running = True
-    while running:
-        query_result = falcon.query_combined_kernels(**args, offset=offset, limit=max_limit)
-        if query_result["status_code"] != 200:
-            handle_return_errors(module, result, query_result)
-
-        if query_result["body"]["resources"]:
-            result['info'].extend(query_result["body"]["resources"])
-        else:
-            # Break the loop if there are no more resources
-            break
-
-        # Check if we need to continue
-        offset = query_result["body"]["meta"]["pagination"]["offset"]
-        if query_result["body"]["meta"]["pagination"]["total"] <= len(result['info']):
-            running = False
+    result = get_paginated_results_info(module, query_filter, max_limit, falcon.query_combined_kernels)
 
     module.exit_json(**result)
 

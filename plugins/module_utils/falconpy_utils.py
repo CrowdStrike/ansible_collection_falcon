@@ -117,6 +117,34 @@ def handle_return_errors(module, result, query_result):
             module.fail_json(msg=msg, **result)
 
 
+def get_paginated_results_info(module, qfilter, limit, method):
+    """Return paginated results from the Falcon API for info modules."""
+    result = dict(
+        changed=False,
+        info=[],
+    )
+
+    max_limit = limit
+    offset = None
+    running = True
+    while running:
+        query_result = method(filter=qfilter, offset=offset, limit=max_limit)
+        if query_result["status_code"] != 200:
+            handle_return_errors(module, result, query_result)
+
+        if query_result["body"]["resources"]:
+            result["info"].extend(query_result["body"]["resources"])
+        else:
+            return result
+
+        # Check if we need to continue
+        offset = query_result["body"]["meta"]["pagination"]["offset"]
+        if query_result["body"]["meta"]["pagination"]["total"] <= len(result["info"]):
+            running = False
+
+    return result
+
+
 def get_cloud_from_url(module, base_url):
     """Return the cloud name from a base URL."""
     mapping = {
