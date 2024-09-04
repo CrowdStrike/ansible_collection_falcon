@@ -19,15 +19,6 @@ options:
       - The filter expression that should be used to limit the results using FQL (Falcon Query Language) syntax.
       - See the return values or CrowdStrike docs for more information about the available filters that can be used.
     type: str
-  limit:
-    description:
-      - The maximum number of records to return. [1-5000]
-      - Use with the offset parameter to manage pagination of results.
-    type: int
-  offset:
-    description:
-      - The offset to start retrieving records from.
-    type: int
 """
     # Not all endpoints will have a sort option
     SORT = r"""
@@ -38,4 +29,16 @@ options:
       - See the L(FalconPy documentation,https://www.falconpy.io/Usage/Falcon-Query-Language.html#using-fql-in-a-sort)
         for more information about sorting with FQL.
     type: str
+"""
+    # Probably to be discontinued
+    PAGINATION = r"""
+  limit:
+    description:
+      - The maximum number of records to return. [1-5000]
+      - Use with the offset parameter to manage pagination of results.
+    type: int
+  offset:
+    description:
+      - The offset to start retrieving records from.
+    type: int
 """
