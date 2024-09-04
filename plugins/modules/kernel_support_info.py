@@ -23,14 +23,6 @@ description:
     for more information about available filters.
     # noqa: E501
 
-options:
-  limit:
-    description:
-      - The maximum number of records to return. [1-500]
-      - Use with the offset parameter to manage pagination of results.
-    type: int
-    default: 100
-
 extends_documentation_fragment:
   - crowdstrike.falcon.credentials
   - crowdstrike.falcon.credentials.auth
@@ -38,7 +30,7 @@ extends_documentation_fragment:
 
 notes:
   - This module will return a list of supported kernel information for kernel mode only of the
-    Falcon sensor for Linux. This is not for user mode.
+    Falcon sensor for Linux. B(This is not for user mode).
   - To help with your filters, you can use the kernel and sensor support distinct values API to
     retrieve a list of distinct values, with proper syntax, for any field. For more info, see
     L(Retrieving field values for kernel support filters,https://falcon.crowdstrike.com/login/?unilogin=true&next=/documentation/page/cf432222/sensor-update-policy-apis#v3cee3bb).
@@ -157,15 +149,6 @@ info:
         "X.YY.Z-1101",
         "X.YY.Z-1102"
       ]
-pagination:
-  description: Pagination details for the query.
-  type: dict
-  returned: success
-  sample: {
-    "limit": 5000,
-    "offset": 0,
-    "total": 1
-  }
 """
 
 import traceback
@@ -177,7 +160,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.common_args imp
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     authenticate,
     check_falconpy_version,
-    handle_return_errors,
+    get_paginated_results_info,
 )
 
 FALCONPY_IMPORT_ERROR = None
@@ -190,9 +173,7 @@ except ImportError:
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
 
 POLICY_ARGS = {
-    "filter": {"type": "str", "required": False},
-    "limit": {"type": "int", "required": False, "default": 100},
-    "offset": {"type": "int", "required": False},
+    "filter": {"type": "str", "required": False}
 }
 
 
@@ -218,26 +199,12 @@ def main():
 
     check_falconpy_version(module)
 
-    args = {}
-    for key, value in module.params.items():
-        if key in POLICY_ARGS:
-            args[key] = value
+    query_filter = module.params.get("filter")
+    max_limit = 500
 
     falcon = authenticate(module, SensorUpdatePolicy)
 
-    query_result = falcon.query_combined_kernels(**args)
-
-    result = dict(
-        changed=False,
-    )
-
-    if query_result["status_code"] == 200:
-        result.update(
-            info=query_result["body"]["resources"],
-            pagination=query_result["body"]["meta"]["pagination"],
-        )
-
-    handle_return_errors(module, result, query_result)
+    result = get_paginated_results_info(module, query_filter, max_limit, falcon.query_combined_kernels)
 
     module.exit_json(**result)
 
