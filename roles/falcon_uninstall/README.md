@@ -27,6 +27,7 @@ This role uninstalls the CrowdStrike Falcon Sensor.
 ### Windows Specific Variables
 
 - `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: ***/norestart***)
+- `falcon_windows_become` - Whether to become a privileged user on Windows (bool, default: ***true***)
 - `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: ***runas***)
 - `falcon_windows_become_user` - The privileged user to uninstall the sensor on Windows (string, default: ***SYSTEM***)
 

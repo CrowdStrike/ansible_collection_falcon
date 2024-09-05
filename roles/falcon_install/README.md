@@ -73,6 +73,7 @@ The following variables are currently supported:
 - `falcon_windows_tmp_dir` - Temporary Windows installation directory for the Falson Sensor (string, default: ***%SYSTEMROOT%\\Temp***)
 - `falcon_windows_install_args` - Additional Windows install arguments (string, default: ***/norestart***)
 - `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: ***/norestart***)
+- `falcon_windows_become` - Whether to become a privileged user on Windows (bool, default: ***true***)
 - `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: ***runas***)
 - `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: ***SYSTEM***)
 
@@ -182,6 +183,7 @@ This example installs and configures the Falcon Sensor on Windows:
       falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_cid: <FALCON_CID>
       falcon_windows_install_args: "/norestart ProvWaitTime=600"
+      falcon_windows_become: true
       falcon_windows_become_method: runas
       falcon_windows_become_user: SYSTEM
 ```

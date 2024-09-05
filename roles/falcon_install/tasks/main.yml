@@ -44,7 +44,7 @@
 - name: Install block (windows)
   when:
     - ansible_facts['os_family'] == "Windows"
-  become: true
+  become: "{{ falcon_windows_become }}"
   become_method: "{{ falcon_windows_become_method }}"
   become_user: "{{ falcon_windows_become_user }}"
   block:

@@ -114,6 +114,11 @@ falcon_tags:
 #
 falcon_backend:
 
+# Ansible become toggle for Windows systems.
+# The default is true
+#
+falcon_windows_become: true
+
 # Ansible become method for Windows systems.
 # The default is runas
 #
