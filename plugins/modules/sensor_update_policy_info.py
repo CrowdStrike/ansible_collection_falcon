@@ -51,10 +51,6 @@ EXAMPLES = r"""
   crowdstike.falcon.sensor_update_policy_info:
     filter: "platform_name:'Windows'+enabled:'true'"
 
-- name: Get Sensor Policies with a limit of 10
-  crowdstike.falcon.sensor_update_policy_info:
-    limit: 10
-
 - name: Get Sensor Policies and sort assending by platform_name
   crowdstike.falcon.sensor_update_policy_info:
     sort: "platform_name.asc"
@@ -177,15 +173,6 @@ policies:
         sample: {
           "build": "n-1|tagged"
         }
-pagination:
-  description: Pagination details for the query.
-  type: dict
-  returned: success
-  sample: {
-    "limit": 5000,
-    "offset": 0,
-    "total": 1
-  }
 """
 
 import traceback
@@ -197,7 +184,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.common_args imp
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     authenticate,
     check_falconpy_version,
-    handle_return_errors,
+    get_paginated_results_info,
 )
 
 FALCONPY_IMPORT_ERROR = None
@@ -211,8 +198,6 @@ except ImportError:
 
 POLICY_ARGS = {
     "filter": {"type": "str", "required": False},
-    "limit": {"type": "int", "required": False},
-    "offset": {"type": "int", "required": False},
     "sort": {"type": "str", "required": False},
 }
 
@@ -244,21 +229,17 @@ def main():
         if key in POLICY_ARGS:
             args[key] = value
 
+    max_limit = 5000
+
     falcon = authenticate(module, SensorUpdatePolicy)
 
-    query_result = falcon.query_combined_policies_v2(**args)
-
-    result = dict(
-        changed=False,
+    result = get_paginated_results_info(
+        module,
+        args,
+        max_limit,
+        falcon.query_combined_policies_v2,
+        list_name="policies"
     )
-
-    if query_result["status_code"] == 200:
-        result.update(
-            policies=query_result["body"]["resources"],
-            pagination=query_result["body"]["meta"]["pagination"],
-        )
-
-    handle_return_errors(module, result, query_result)
 
     module.exit_json(**result)
 

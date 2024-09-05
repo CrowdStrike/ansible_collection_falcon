@@ -25,11 +25,6 @@ options:
       - The filter expression that should be used to limit the results using FQL (Falcon Query Language) syntax.
       - See the return values or CrowdStrike docs for more information about the available filters that can be used.
     type: str
-  limit:
-    description:
-      - The maximum number of records to return. [1-500]
-    default: 100
-    type: int
 
 extends_documentation_fragment:
   - crowdstrike.falcon.credentials
@@ -44,14 +39,12 @@ author:
 """
 
 EXAMPLES = r"""
-- name: Get a list of all Linux Sensor Installers
+- name: Get all Linux Sensor Installers
   crowdstrike.falcon.sensor_download_info:
     filter: "platform:'linux'"
-    limit: 200
 
-- name: Get a list of the 2 latest Windows Sensor Installers
+- name: Get all Windows Sensor Installers sorted by version
   crowdstrike.falcon.sensor_download_info:
-    limit: 2
     filter: "platform:'windows'"
     sort: "version|desc"
 
@@ -150,7 +143,6 @@ except ImportError:
 
 DOWNLOAD_INFO_ARGS = {
     "filter": {"type": "str", "required": False},
-    "limit": {"type": "int", "required": False, "default": 100},
     "sort": {"type": "str", "required": False},
 }
 
@@ -184,6 +176,7 @@ def main():
 
     falcon = authenticate(module, SensorDownload)
 
+    # Pagination is not supported, so we can just call the API directly
     query_result = falcon.override("GET", "/sensors/combined/installers/v2", parameters={**args})
 
     result = dict(

@@ -117,29 +117,29 @@ def handle_return_errors(module, result, query_result):
             module.fail_json(msg=msg, **result)
 
 
-def get_paginated_results_info(module, qfilter, limit, method):
+def get_paginated_results_info(module, args, limit, method, list_name):
     """Return paginated results from the Falcon API for info modules."""
     result = dict(
         changed=False,
-        info=[],
+        **{list_name: []},
     )
 
     max_limit = limit
     offset = None
     running = True
     while running:
-        query_result = method(filter=qfilter, offset=offset, limit=max_limit)
+        query_result = method(**args, offset=offset, limit=max_limit)
         if query_result["status_code"] != 200:
             handle_return_errors(module, result, query_result)
 
         if query_result["body"]["resources"]:
-            result["info"].extend(query_result["body"]["resources"])
+            result[list_name].extend(query_result["body"]["resources"])
         else:
             return result
 
         # Check if we need to continue
         offset = query_result["body"]["meta"]["pagination"]["offset"]
-        if query_result["body"]["meta"]["pagination"]["total"] <= len(result["info"]):
+        if query_result["body"]["meta"]["pagination"]["total"] <= len(result[list_name]):
             running = False
 
     return result
