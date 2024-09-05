@@ -36,6 +36,7 @@ sensor to be installed prior to running this role.
 
 ### Windows Specific Variables
 
+- `falcon_windows_become` - Whether to become a privileged user on Windows (bool, default: ***true***)
 - `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: ***runas***)
 - `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: ***SYSTEM***)
 
