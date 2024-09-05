@@ -67,6 +67,7 @@ options:
       elements: string
       default: ['hostname', 'external_ip', 'local_ip']
 requirements:
+  - Hosts [B(READ)] API scope
   - python >= 3.6
   - crowdstrike-falconpy >= 1.3.0
 notes:
