@@ -1,0 +1,2 @@
+minor_changes:
+- Enhance the info modules with how pagination is handled and clean options (https://github.com/CrowdStrike/ansible_collection_falcon/pull/558)
