@@ -66,6 +66,7 @@ options:
     type: bool
     default: false
 requirements:
+  - Assets [B(READ)] API scope
   - python >= 3.6
   - crowdstrike-falconpy >= 1.3.0
 notes:
