@@ -199,12 +199,22 @@ def main():
 
     check_falconpy_version(module)
 
-    query_filter = module.params.get("filter")
+    args = {}
+    for key, value in module.params.items():
+        if key in POLICY_ARGS:
+            args[key] = value
+
     max_limit = 500
 
     falcon = authenticate(module, SensorUpdatePolicy)
 
-    result = get_paginated_results_info(module, query_filter, max_limit, falcon.query_combined_kernels)
+    result = get_paginated_results_info(
+        module,
+        args,
+        max_limit,
+        falcon.query_combined_kernels,
+        list_name="info"
+    )
 
     module.exit_json(**result)
 
