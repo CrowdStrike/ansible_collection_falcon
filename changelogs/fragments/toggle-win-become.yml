@@ -1,2 +1,0 @@
-minor_changes:
-- allow become clause for Windows tasks to be toggable in each role (https://github.com/CrowdStrike/ansible_collection_falcon/pull/561)

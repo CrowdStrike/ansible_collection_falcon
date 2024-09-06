@@ -4,6 +4,29 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.6.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-09-06
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.6.0>`__
+
+Minor Changes
+-------------
+
+- Enhance the info modules with how pagination is handled and clean options (https://github.com/CrowdStrike/ansible_collection_falcon/pull/558)
+- allow become clause for Windows tasks to be toggable in each role (https://github.com/CrowdStrike/ansible_collection_falcon/pull/561)
+- eventsource - add support for starting stream from latest event (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
+- falcon_discover - Added ability to allow duplicate hosts in the same environment (https://github.com/CrowdStrike/ansible_collection_falcon/pull/551)
+- kernel_support_info - Add support for paginating kernel support information (https://github.com/CrowdStrike/ansible_collection_falcon/pull/557)
+
+Bugfixes
+--------
+
+- eventsource - fix issue with refreshinterval causing timeout (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
+
 v4.5.2
 ======
 
