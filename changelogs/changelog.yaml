@@ -635,3 +635,29 @@ releases:
     - 4.5.2.yml
     - master-image-update.yml
     release_date: '2024-08-15'
+  4.6.0:
+    changes:
+      bugfixes:
+      - eventsource - fix issue with refreshinterval causing timeout (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
+      minor_changes:
+      - Enhance the info modules with how pagination is handled and clean options
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/558)
+      - allow become clause for Windows tasks to be toggable in each role (https://github.com/CrowdStrike/ansible_collection_falcon/pull/561)
+      - eventsource - add support for starting stream from latest event (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
+      - falcon_discover - Added ability to allow duplicate hosts in the same environment
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/551)
+      - kernel_support_info - Add support for paginating kernel support information
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/557)
+      release_summary: '| Release Date: 2024-09-06
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.6.0>`__
+
+        '
+    fragments:
+    - 4.6.0.yml
+    - duplicate_hosts.yml
+    - eda-updates.yml
+    - info-updates.yml
+    - paginate-kernel-support-info.yml
+    - toggle-win-become.yml
+    release_date: '2024-09-06'
