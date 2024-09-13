@@ -62,7 +62,8 @@
         state: present
       when:
         - falcon_remove_aid
-        - options.provisioning_token
+        - options.cid | bool
+        - options.provisioning_token | bool
 
 # Start of MacOSX Configuration
 - name: CrowdStrike Falcon | Stat Falcon Sensor (macOS)
