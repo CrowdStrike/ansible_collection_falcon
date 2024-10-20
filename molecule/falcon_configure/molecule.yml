@@ -17,6 +17,11 @@ platforms:
     boot_wait_seconds: ${MOLECULE_BOOT_WAIT_SECONDS:-10}
 provisioner:
   name: ansible
+  config_options:
+    ssh_connection:
+      pipelining: true
+    defaults:
+      callbacks_enabled: ansible.posix.profile_tasks
   playbooks:
     create: ../shared/playbooks/create.yml
     destroy: ../shared/playbooks/destroy.yml
