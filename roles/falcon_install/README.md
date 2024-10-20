@@ -44,7 +44,7 @@ The following variables are currently supported:
     - **us-gov-1** -> api.laggar.gcw.crowdstrike.com
     - **eu-1** -> api.eu-1.crowdstrike.com
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
-- `falcon_api_sensor_download_path` - Local directory path to download the sensor to (string, default: ***null***)
+- `falcon_api_sensor_download_path` - Local directory path to download the sensor to (string, default: ***/tmp***)
 - `falcon_api_sensor_download_mode` - The file permissions to set on the downloaded sensor (string, default: ***null***)
 - `falcon_api_sensor_download_owner` - The owner to set on the downloaded sensor (string, default: ***null***)
 - `falcon_api_sensor_download_group` - The group to set on the downloaded sensor (string, default: ***null***)
