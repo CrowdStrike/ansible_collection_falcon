@@ -105,6 +105,7 @@
     state: absent
   changed_when: false
   delegate_to: localhost
+  run_once: true
   when: falcon_api_sensor_download_cleanup
 
 - name: CrowdStrike Falcon | Set full file download path (non-windows)
