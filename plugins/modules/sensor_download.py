@@ -139,7 +139,7 @@ def lock_file(file_path, exclusive=True, timeout=300, retry_interval=5):
     lock_file_handle = open(lock_file_path, 'w', encoding='utf-8')  # pylint: disable=consider-using-with
     start_time = time.time()
     # Implement a delay to prevent thundering herd
-    delay = random.random()
+    delay = random.random()  # nosec
 
     while True:
         try:
