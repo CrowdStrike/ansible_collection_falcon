@@ -88,6 +88,7 @@ import fcntl
 import traceback
 import os
 import time
+import random
 from tempfile import mkdtemp
 
 from ansible.module_utils.basic import AnsibleModule, missing_required_lib
@@ -133,8 +134,12 @@ def update_permissions(module, changed, path):
 def lock_file(file_path, exclusive=True, timeout=300, retry_interval=5):
     """Lock a file for reading or writing."""
     lock_file_path = file_path + ".lock"
-    lock_file_handle = open(lock_file_path, 'w', encoding='utf-8')
+    # Ignore the pylint warning here as a with block will close the file handle immediately
+    # and we need to keep it open to maintain the lock
+    lock_file_handle = open(lock_file_path, 'w', encoding='utf-8')  # pylint: disable=consider-using-with
     start_time = time.time()
+    # Implement a delay to prevent thundering herd
+    delay = random.random()
 
     while True:
         try:
@@ -148,13 +153,55 @@ def lock_file(file_path, exclusive=True, timeout=300, retry_interval=5):
                 raise
             if time.time() - start_time > timeout:
                 return None
-            time.sleep(retry_interval)
+            time.sleep(delay + retry_interval)
+            delay = 0
 
 
 def unlock_file(locked_file):
     """Unlock a file."""
     fcntl.flock(locked_file, fcntl.LOCK_UN)
     locked_file.close()
+
+
+def check_destination_path(module, dest):
+    """Check if the destination path is valid."""
+    if not os.path.isdir(dest):
+        module.fail_json(msg=f"Destination path does not exist or is not a directory: {dest}")
+
+    if not os.access(dest, os.W_OK):
+        module.fail_json(msg=f"Destination path is not writable: {dest}")
+
+
+def handle_existing_file(module, result, path, sensor_hash):
+    """Handle the case where the file already exists."""
+    # Compare sha256 hashes to see if any changes have been made
+    dest_hash = module.sha256(path)
+    if dest_hash == sensor_hash:
+        # File already exists and content is the same. Update permissions if needed.
+        msg = "File already exists and content is the same."
+
+        if update_permissions(module, result["changed"], path):
+            msg += " Permissions were updated."
+            result.update(changed=True)
+
+        module.exit_json(
+            msg=msg,
+            path=path,
+            **result,
+        )
+
+
+def download_sensor_installer(module, result, falcon, sensor_hash, path):
+    """Download the sensor installer."""
+    # Because this returns a binary, we need to handle errors differently
+    download = falcon.download_sensor_installer(id=sensor_hash)
+
+    if isinstance(download, dict):
+        # Error as download should not be a dict (from FalconPy)
+        module.fail_json(msg="Unable to download sensor installer", **result)
+
+    with open(path, "wb") as save_file:
+        save_file.write(download)
 
 
 def main():
@@ -174,7 +221,6 @@ def main():
 
     sensor_hash = module.params["hash"]
     dest = module.params["dest"]
-    name = module.params["name"]
     tmp_dir = False
 
     if not dest:
@@ -183,12 +229,7 @@ def main():
         tmp_dir = True
 
     # Make sure path exists and is a directory
-    if not os.path.isdir(dest):
-        module.fail_json(msg=f"Destination path does not exist or is not a directory: {dest}")
-
-    # Make sure path is writable
-    if not os.access(dest, os.W_OK):
-        module.fail_json(msg=f"Destination path is not writable: {dest}")
+    check_destination_path(module, dest)
 
     falcon = authenticate(module, SensorDownload)
 
@@ -201,8 +242,7 @@ def main():
 
     if sensor_check["status_code"] == 200:
         # Get the name of the sensor installer
-        if not name:
-            name = sensor_check["body"]["resources"][0]["name"]
+        name = module.params["name"] or sensor_check["body"]["resources"][0]["name"]
 
         path = os.path.join(dest, name)
         lock = None
@@ -214,21 +254,7 @@ def main():
 
             # Check if the file already exists
             if not tmp_dir and os.path.isfile(path):
-                # Compare sha256 hashes to see if any changes have been made
-                dest_hash = module.sha256(path)
-                if dest_hash == sensor_hash:
-                    # File already exists and content is the same. Update permissions if needed.
-                    msg = "File already exists and content is the same."
-
-                    if update_permissions(module, result["changed"], path):
-                        msg += " Permissions were updated."
-                        result.update(changed=True)
-
-                    module.exit_json(
-                        msg=msg,
-                        path=path,
-                        **result,
-                    )
+                handle_existing_file(module, result, path, sensor_hash)
 
             # If we get here, the file either doesn't exist or has changed
             result.update(changed=True)
@@ -241,15 +267,7 @@ def main():
                 )
 
             # Download the sensor installer
-            # Because this returns a binary, we need to handle errors differently
-            download = falcon.download_sensor_installer(id=sensor_hash)
-
-            if isinstance(download, dict):
-                # Error as download should not be a dict (from FalconPy)
-                module.fail_json(msg="Unable to download sensor installer", **result)
-
-            with open(path, "wb") as save_file:
-                save_file.write(download)
+            download_sensor_installer(module, result, falcon, sensor_hash, path)
 
             # Set permissions on the file
             update_permissions(module, result["changed"], path)
