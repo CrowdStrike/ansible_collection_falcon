@@ -93,8 +93,7 @@
 - name: CrowdStrike Falcon | Copy Sensor Installation Package to remote host (windows)
   ansible.windows.win_copy:
     src: "{{ falcon_sensor_download.path }}"
-    dest: "{{ falcon_install_win_temp_directory.path }}"
-    mode: 0640
+    dest: "{{ falcon_install_win_temp_directory }}"
   changed_when: false
   register: win_falcon_sensor_copied
   when: ansible_os_family == "Windows"
