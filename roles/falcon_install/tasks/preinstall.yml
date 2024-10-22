@@ -97,8 +97,6 @@
     state: directory
   when:
     - ansible_facts['os_family'] == "Windows"
-    - falcon_windows_tmp_dir is defined
-  register: falcon_install_win_temp_directory
   changed_when: no
 
 - name: CrowdStrike Falcon | Verify Falcon is not already installed (macOS)

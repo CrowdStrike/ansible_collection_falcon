@@ -2,12 +2,12 @@
 - name: CrowdStrike Falcon | Downloading Installation Package from URL (Windows)
   ansible.windows.win_get_url:
     url: "{{ falcon_download_url }}"
-    dest: "{{ falcon_install_win_temp_directory }}"
+    dest: "{{ falcon_windows_tmp_dir }}"
     url_username: "{{ falcon_download_url_username | default(omit) }}"
     url_password: "{{ falcon_download_url_password | default(omit) }}"
   when:
     - falcon_download_url
-    - falcon_install_win_temp_directory
+    - falcon_windows_tmp_dir
   register: falcon_sensor_download
   retries: "{{ falcon_retries }}"
   delay: "{{ falcon_delay }}"
