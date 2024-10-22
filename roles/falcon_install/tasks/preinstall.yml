@@ -99,6 +99,14 @@
     - ansible_facts['os_family'] == "Windows"
   changed_when: no
 
+- name: CrowdStrike Falcon | Validate Temporary install directory (Windows)
+  ansible.windows.win_stat:
+    path: "{{ falcon_windows_tmp_dir }}"
+  when:
+    - ansible_facts['os_family'] == "Windows"
+  register: falcon_windows_tmp_dir_stat
+  failed_when: false
+
 - name: CrowdStrike Falcon | Verify Falcon is not already installed (macOS)
   ansible.builtin.stat:
     path: "{{ falcon_path }}"
