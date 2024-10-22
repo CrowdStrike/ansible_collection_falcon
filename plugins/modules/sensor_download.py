@@ -208,7 +208,7 @@ def main():
         lock = None
 
         try:
-            lock = lock_file(path, timeout=300, retry_interval=1)
+            lock = lock_file(path, timeout=300, retry_interval=5)
             if not lock:
                 module.fail_json(msg=f"Unable to acquire lock for file: {path} after 5 minutes.", **result)
 
