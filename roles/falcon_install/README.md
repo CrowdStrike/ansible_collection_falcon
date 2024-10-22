@@ -29,7 +29,7 @@ The following variables are currently supported:
 - `falcon_allow_downgrade` - Whether or not to allow downgrading the sensor version (bool, default: ***false***)
 - `falcon_gpg_key_check` - Whether or not to verify the Falcon sensor Linux based package (bool, default: ***true***)
   - :warning: When `falcon_install_method` is set to **api**, this value will be fetched by the API unless specified.
-- `falcon_install_tmp_dir` - Temporary Linux and MacOS installation directory for the Falson Sensor (string, default: ***/tmp***)
+- `falcon_install_tmp_dir` - Temporary Linux and MacOS installation directory for the Falson Sensor (string, default: ***/tmp/falcon-sensor***)
 - `falcon_retries` - Number of attempts to download the sensor (int, default: ***3***)
 - `falcon_delay` - Number of seconds before trying another download attempt (int, default: ***3***)
 
@@ -44,7 +44,7 @@ The following variables are currently supported:
     - **us-gov-1** -> api.laggar.gcw.crowdstrike.com
     - **eu-1** -> api.eu-1.crowdstrike.com
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
-- `falcon_api_sensor_download_path` - Local directory path to download the sensor to (string, default: ***/tmp***)
+- `falcon_api_sensor_download_path` - Local directory path to download the sensor to (string, default: ***/tmp/falcon-sensor***)
 - `falcon_api_sensor_download_mode` - The file permissions to set on the downloaded sensor (string, default: ***null***)
 - `falcon_api_sensor_download_owner` - The owner to set on the downloaded sensor (string, default: ***null***)
 - `falcon_api_sensor_download_group` - The group to set on the downloaded sensor (string, default: ***null***)
@@ -70,7 +70,7 @@ The following variables are currently supported:
 - `falcon_cid` - Specify CrowdStrike Customer ID with Checksum (string, default: ***null***)
 - `falcon_windows_install_retries` - Number of times to retry sensor install on windows (int, default: ***10***)
 - `falcon_windows_install_delay` - Number of seconds to wait to retry sensor install on windows in the event of a failure (int, default: ***120***)
-- `falcon_windows_tmp_dir` - Temporary Windows installation directory for the Falson Sensor (string, default: ***%SYSTEMROOT%\\Temp***)
+- `falcon_windows_tmp_dir` - Temporary Windows installation directory for the Falson Sensor (string, default: ***%SYSTEMROOT%\\Temp\\falcon-sensor***)
 - `falcon_windows_install_args` - Additional Windows install arguments (string, default: ***/norestart***)
 - `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: ***/norestart***)
 - `falcon_windows_become` - Whether to become a privileged user on Windows (bool, default: ***true***)

@@ -80,22 +80,21 @@
     falcon_sensor_update_policy_platform: "{{ ansible_facts['os_family'] }}"
   when: ansible_facts['os_family'] == "Windows"
 
-- name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (non-Windows)
-  ansible.builtin.tempfile:
+- name: CrowdStrike Falcon | Ensure Temporary Install Directory Exists (non-Windows)
+  ansible.builtin.file:
     path: "{{ falcon_install_tmp_dir }}"
     state: directory
-    suffix: falcon
+    mode: '0755'
   when:
     - ansible_facts['system'] == "Linux" or ansible_facts['system'] == "Darwin"
     - falcon_install_tmp_dir is defined
   register: falcon_install_temp_directory
   changed_when: no
 
-- name: CrowdStrike Falcon | Verify Temporary Install Directory Exists (Windows)
-  ansible.windows.win_tempfile:
+- name: CrowdStrike Falcon | Ensure Temporary Install Directory Exists (Windows)
+  ansible.windows.win_file:
     path: "{{ falcon_windows_tmp_dir }}"
     state: directory
-    suffix: falcon
   when:
     - ansible_facts['os_family'] == "Windows"
     - falcon_windows_tmp_dir is defined
