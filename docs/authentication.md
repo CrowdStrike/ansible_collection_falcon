@@ -5,13 +5,16 @@ need client credentials. For more information see [Falcon API clients documentat
 
 ## Passing in credentials
 
-You can pass in your Falcon API client credentials using either environment variables or 
+You can pass in your Falcon API client credentials using either environment variables or
 module arguments. Available environment variables:
 
-- `FALCON_CLIENT_ID` - required
-- `FALCON_CLIENT_SECRET` - required
-- `FALCON_CLOUD` - optional (discovered automatically)
+- `FALCON_CLIENT_ID` - **required**
+- `FALCON_CLIENT_SECRET` - **required**
+- `FALCON_CLOUD` - optional (discovered automatically*)
 - `FALCON_MEMBER_CID` - optional (only for Flight Control users)
+
+> [!IMPORTANT]
+> \* Auto-discovery is only available for the [*us-1, us-2, eu-1*] cloud regions.
 
 Available module arguments:
 
@@ -19,7 +22,7 @@ Available module arguments:
 - crowdstrike.falcon.example_module:
     client_id: abcd1234 # required
     client_secret: abcd5678 # required
-    cloud: us-2 # optional (discovered automatically)
+    cloud: us-2 # optional (discovered automatically*)
     member_cid: abcd2468 # optional (only for Flight Control users)
 ```
 
@@ -29,9 +32,9 @@ You can use either of these methods for both authentication methods listed below
 
 ### Recommended: token-based authentication
 
-Token-based authentication allows you to authenticate once against the Falcon API, then use a 
-returned temporary token for many subsequent API interactions. This is more efficient 
-and also mitigates the risk of rate limiting, especially when automating multiple hosts. 
+Token-based authentication allows you to authenticate once against the Falcon API, then use a
+returned temporary token for many subsequent API interactions. This is more efficient
+and also mitigates the risk of rate limiting, especially when automating multiple hosts.
 (For more information: [Falcon API rate limit documentation](https://falcon.crowdstrike.com/documentation/page/a2a7fc0e/crowdstrike-oauth2-based-apis#af41971e).)
 
 To use token-based authentication, first use the `crowdstrike.falcon.auth` module to get a new token:

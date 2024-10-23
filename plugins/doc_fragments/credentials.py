@@ -62,8 +62,8 @@ options:
       - Extended headers that are prepended to the default headers dictionary.
     type: dict
 requirements:
-  - python >= 3.6
-  - crowdstrike-falconpy >= 1.3.0
+  - python >= 3.7
+  - crowdstrike-falconpy >= 1.4.0
 """
 
     AUTH = r"""

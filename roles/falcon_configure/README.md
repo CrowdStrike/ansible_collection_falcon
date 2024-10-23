@@ -1,7 +1,12 @@
 # crowdstrike.falcon.falcon_configure
 
 This role configures the CrowdStrike Falcon Sensor. For Linux and macOS, this role requires the Falcon
-sensor to be installed prior to running this role.
+sensor to be installed prior to running this role (see [falcon_install](../falcon_install/README.md)).
+
+> [!IMPORTANT]
+> The Falcon Customer ID (CID) with checksum is ***required*** in order to properly configure and start the Falcon Sensor.
+> You can either pass the CID as a variable (`falcon_cid`) or use let Ansible fetch it from the CrowdStrike API using your
+> API credentials.
 
 > [!NOTE]
 > This role is focused mainly on configuring the Falcon Sensor on Linux and MacOS. Windows is supported, but not as
@@ -11,8 +16,8 @@ sensor to be installed prior to running this role.
 
 ## Requirements
 
-- Ansible 2.13 or higher
-- FalconPy 1.3.0 or higher on Ansible control node
+- Ansible Core >= 2.15.0
+- FalconPy 1.4.0 or higher on Ansible control node
 
 > As of version 4.0.0, this role takes full advantage of the FalconPy SDK for interacting with the CrowdStrike API.
 
@@ -100,10 +105,22 @@ Ensure the following API scopes are enabled (***if applicable***) for this role:
 - When using API credentials `falcon_client_id` and `falcon_client_secret`
   - **Sensor Download** [read]
 
+## Falcon Sensor Service
+
+For Linux/macOS, the Falcon Sensor service is automatically started after the sensor is installed (*although it will be in a failed state*).
+
+> [!WARNING]
+> The service will be in a failed state until the CID is set and the sensor is restarted.
+
+This role will restart the Falcon Sensor service after the CID is set, along with any other configuration options.
+
 ## Dependencies
 
 - Privilege escalation (sudo) is required for this role to function properly.
-- Falcon Sensor must be installed
+- The Falcon Sensor must be installed
+
+> [!IMPORTANT]
+> The role automatically handles privilege escalation so you do not need to set `become: true` in your playbook.
 
 ## Example Playbooks
 

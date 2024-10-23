@@ -7,8 +7,8 @@ This role installs the CrowdStrike Falcon Sensor. It provides the flexibility to
 
 ## Requirements
 
-- Ansible 2.13 or higher
-- FalconPy 1.3.0 or higher on Ansible control node
+- Ansible Core >= 2.15.0
+- FalconPy 1.4.0 or higher on Ansible control node
 
 > As of version 4.0.0, this role takes full advantage of the FalconPy SDK for interacting with the CrowdStrike API.
 
@@ -94,6 +94,9 @@ Ensure the following API scopes are enabled (***if applicable***) for this role:
 ## Dependencies
 
 - Privilege escalation is required for this role to function properly.
+
+> [!IMPORTANT]
+> The role automatically handles privilege escalation so you do not need to set `become: true` in your playbook.
 
 ## Example Playbooks
 
