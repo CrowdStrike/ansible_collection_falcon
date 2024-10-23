@@ -227,6 +227,7 @@ def main():
 
     sensor_hash = module.params["hash"]
     dest = module.params["dest"]
+    name = module.params["name"]
     tmp_dir = False
 
     if not dest:
@@ -248,7 +249,8 @@ def main():
 
     if sensor_check["status_code"] == 200:
         # Get the name of the sensor installer
-        name = module.params["name"] or sensor_check["body"]["resources"][0]["name"]
+        if not name:
+            name = sensor_check["body"]["resources"][0]["name"]
 
         path = os.path.join(dest, name)
         lock = None
