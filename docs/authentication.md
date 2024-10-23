@@ -10,11 +10,8 @@ module arguments. Available environment variables:
 
 - `FALCON_CLIENT_ID` - **required**
 - `FALCON_CLIENT_SECRET` - **required**
-- `FALCON_CLOUD` - optional (discovered automatically*)
-- `FALCON_MEMBER_CID` - optional (only for Flight Control users)
-
-> [!IMPORTANT]
-> \* Auto-discovery is only available for the [*us-1, us-2, eu-1*] cloud regions.
+- `FALCON_CLOUD` - *optional* for us-1, us-2, and eu-1; **required** for gov clouds
+- `FALCON_MEMBER_CID` - *optional* (only for Flight Control users)
 
 Available module arguments:
 
@@ -22,7 +19,7 @@ Available module arguments:
 - crowdstrike.falcon.example_module:
     client_id: abcd1234 # required
     client_secret: abcd5678 # required
-    cloud: us-2 # optional (discovered automatically*)
+    cloud: us-gov-1 # optional for us-1, us-2, and eu-1; required for gov clouds
     member_cid: abcd2468 # optional (only for Flight Control users)
 ```
 
