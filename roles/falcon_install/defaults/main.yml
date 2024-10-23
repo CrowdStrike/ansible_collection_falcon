@@ -23,10 +23,9 @@ falcon_install_method: api
 # The local directory path to download the sensor to.
 # This is in relation to the localhost running the role.
 #
-# If path is not specified, a temporary directory will be created using the system's
-# default temporary directory.
+# By default, this will be the temp OS filesystem
 #
-falcon_api_sensor_download_path:
+falcon_api_sensor_download_path: "/tmp/falcon-sensor"
 
 # The name to save the sensor file as.
 #
@@ -125,7 +124,7 @@ falcon_sensor_update_policy_name: ""
 # Where should the sensor file be copied to on Linux and MacOS systems?
 # By default, this will be the temp OS filesystem
 #
-falcon_install_tmp_dir: "/tmp"
+falcon_install_tmp_dir: "/tmp/falcon-sensor"
 
 # If the installation method is 'url', provide the url for the sensor to
 # be downloaded from.
@@ -160,7 +159,7 @@ falcon_windows_install_delay: 120
 #
 # For Windows, this can be "%SYSTEMROOT%\\Temp"
 #
-falcon_windows_tmp_dir: "%SYSTEMROOT%\\Temp"
+falcon_windows_tmp_dir: "%SYSTEMROOT%\\Temp\\falcon-sensor"
 
 # Additional install arguments beyond the default required
 #

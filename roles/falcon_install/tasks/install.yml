@@ -56,23 +56,10 @@
     manager: auto
   when: ansible_facts['distribution'] != "MacOSX"
 
-- name: CrowdStrike Falcon | Gather tmp install directory objects
-  ansible.builtin.find:
-    paths: "{{ falcon_install_tmp_dir }}"
-    patterns: "ansible.*falcon"
-    file_type: directory
-  register: falcon_tmp_dir_objects
-  when: falcon_install_tmp_dir | length > 0
-  changed_when: no
-
-- name: CrowdStrike Falcon | Remove tmp install directories
+- name: CrowdStrike Falcon | Remove tmp install directory
   ansible.builtin.file:
-    path: "{{ item.path }}"
+    path: "{{ falcon_install_tmp_dir }}"
     state: absent
-  loop: "{{ falcon_tmp_dir_objects.files }}"
-  when:
-    - falcon_install_tmp_dir | length > 0
-    - falcon_tmp_dir_objects is defined and falcon_tmp_dir_objects.files | length > 0
   changed_when: no
 
 - name: CrowdStrike Falcon | Remove Falcon Sensor Package (local file)

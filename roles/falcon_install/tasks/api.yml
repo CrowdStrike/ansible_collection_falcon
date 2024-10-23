@@ -40,12 +40,11 @@
       ansible.builtin.set_fact:
         falcon_sensor_version: "+version:'{{ falcon_sensor_update_policy_package_version }}'"
 
-
 - name: "CrowdStrike Falcon | Build API Sensor Query"
   ansible.builtin.set_fact:
-    falcon_os_query: "os:'{{ falcon_target_os }}'+os_version:'{{ falcon_os_version }}'\
+    falcon_os_query:
+      "os:'{{ falcon_target_os }}'+os_version:'{{ falcon_os_version }}'\
       {{ falcon_os_arch | default('') }}{{ falcon_sensor_version | default('') }}"
-
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
   crowdstrike.falcon.sensor_download_info:
@@ -59,6 +58,15 @@
   ansible.builtin.fail:
     msg: "No Falcon Sensor was found! If passing in falcon_sensor_version, ensure it is correct!"
   when: falcon_api_installer_list.installers[0] is not defined
+
+- name: CrowdStrike Falcon | Ensure download path exists (local)
+  ansible.builtin.file:
+    path: "{{ falcon_api_sensor_download_path }}"
+    state: directory
+    mode: "0755"
+  changed_when: false
+  delegate_to: localhost
+  run_once: true
 
 - name: CrowdStrike Falcon | Download Falcon Sensor Installation Package (local)
   crowdstrike.falcon.sensor_download:
@@ -85,18 +93,20 @@
 - name: CrowdStrike Falcon | Copy Sensor Installation Package to remote host (windows)
   ansible.windows.win_copy:
     src: "{{ falcon_sensor_download.path }}"
-    dest: "{{ falcon_install_win_temp_directory.path }}"
-    mode: 0640
+    dest: "{{ falcon_windows_tmp_dir_stat.stat.path }}"
   changed_when: false
   register: win_falcon_sensor_copied
   when: ansible_os_family == "Windows"
 
-- name: CrowdStrike Falcon | Remove Downloaded Sensor Installation Package (local)
+- name: CrowdStrike Falcon | Remove Downloaded Sensor Installation directory (local)
   ansible.builtin.file:
-    path: "{{ falcon_sensor_download.path }}"
+    path: "{{ item }}"
     state: absent
   changed_when: false
   delegate_to: localhost
+  loop:
+    - "{{ falcon_sensor_download.path }}"
+    - "{{ falcon_sensor_download.path + '.lock' }}"
   when: falcon_api_sensor_download_cleanup
 
 - name: CrowdStrike Falcon | Set full file download path (non-windows)
