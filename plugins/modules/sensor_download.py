@@ -49,6 +49,12 @@ extends_documentation_fragment:
   - crowdstrike.falcon.credentials
   - crowdstrike.falcon.credentials.auth
 
+notes:
+  - This module implements file locking to ensure safe concurrent downloads by preventing multiple
+    instances from accessing the same file simultaneously. As a result, a temporary 0-byte .lock
+    file will be created in the same directory as the downloaded file. If needed, this lock file
+    can be safely removed in a subsequent task after the download completes.
+
 requirements:
   - Sensor download [B(READ)] API scope
 
