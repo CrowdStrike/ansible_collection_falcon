@@ -1,6 +1,6 @@
 # crowdstrike.falcon.falcon_uninstall
 
-This role uninstalls the CrowdStrike Falcon Sensor.
+Uninstalls the CrowdStrike Falcon Sensor.
 
 ## Requirements
 
@@ -45,10 +45,8 @@ Ensure the following API scopes are enabled (**if applicable**) for this role:
 
 ## Dependencies
 
-Privilege escalation (sudo) is required for this role to function properly.
-
-> [!IMPORTANT]
-> The role automatically handles privilege escalation so you do not need to set `become: true` in your playbook.
+- Privilege escalation (sudo/runas) is required for this role to function properly.
+  > See [Privilege Escalation Requirements](../../README.md#privilege-escalation-requirements) for more information.
 
 ## Example Playbooks
 

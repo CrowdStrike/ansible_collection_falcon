@@ -25,7 +25,14 @@ This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconp
 
 Offering pre-defined roles tailored for various platforms—including macOS, Linux, and Windows—this collection simplifies the installation, configuration, and removal processes for CrowdStrike's Falcon sensor.
 
-***Please read each role's README to familiarize yourself with the role variables and other requirements.***
+#### Privilege Escalation Requirements
+
+When using this collection, it's essential to understand how privilege escalation works. While our roles use privilege escalation internally, you must ensure that it is configured on the target hosts.
+
+> [!IMPORTANT]
+> Do not set `become: true` for the roles. Instead, make sure that the target hosts have privilege escalation (sudo/runas) configured and available. This will allow our roles to use privilege escalation internally.
+
+*Please read each role's README to familiarize yourself with the role variables and other requirements.*
 
 | Role Name | Documentation
 | --------- | :-----------:
