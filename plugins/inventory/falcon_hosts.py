@@ -68,8 +68,8 @@ options:
       default: ['hostname', 'external_ip', 'local_ip']
 requirements:
   - Hosts [B(READ)] API scope
-  - python >= 3.6
-  - crowdstrike-falconpy >= 1.3.0
+  - python >= 3.7
+  - crowdstrike-falconpy >= 1.4.0
 notes:
   - By default, Ansible will deduplicate the C(inventory_hostname), so if multiple hosts have the same hostname, only
     the last one will be used. In this case, consider using the C(device_id) as the first preference in the C(hostnames).
@@ -206,9 +206,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             )
 
         # Check FalconPy version
-        if _VERSION < "1.3.0":
+        if _VERSION < "1.4.0":
             raise ImportError(
-                "The crowdstrike.falcon.falcon_hosts plugin requires falconpy 1.3.0 or higher."
+                "The crowdstrike.falcon.falcon_hosts plugin requires falconpy 1.4.0 or higher."
             )
 
         # cache may be True or False at this point to indicate if the inventory is being refreshed

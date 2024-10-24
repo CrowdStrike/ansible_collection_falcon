@@ -17,13 +17,20 @@ Tested with the Ansible Core >= 2.15.0 versions, and the current development ver
 This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of `3.7` is required for this collection to function properly.
 
 > [!NOTE]
-> As of FalconPy Version 1.4.0, Python 3.6 is no longer supported. If you would like to use FalconPy with Python 3.6, please use FalconPy Version < 1.4.0.
+> As of FalconPy Version 1.4.0, Python 3.6 is no longer supported. If you would like to use FalconPy with Python 3.6, please use FalconPy Version < 1.4.0. Please note this will not be supported by this collection.
 
 ## Included content
 
 ### Roles
 
 Offering pre-defined roles tailored for various platforms—including macOS, Linux, and Windows—this collection simplifies the installation, configuration, and removal processes for CrowdStrike's Falcon sensor.
+
+#### Privilege Escalation Requirements
+
+When using this collection, it's essential to understand how privilege escalation works. While our roles use privilege escalation internally, you must ensure that it is configured on the target hosts.
+
+> [!IMPORTANT]
+> Do not set `become: true` for the roles. Instead, make sure that the target hosts have privilege escalation (sudo/runas) configured and available. This will allow our roles to use privilege escalation internally.
 
 *Please read each role's README to familiarize yourself with the role variables and other requirements.*
 
@@ -123,20 +130,20 @@ ansible-galaxy collection install -r requirements.yml
 
 The Python module dependencies are not automatically handled by `ansible-galaxy`. To manually install these dependencies, you have the following options:
 
-1. Utilize the `requirements.txt` file to install all required packages:
-
-    ```terminal
-    pip install -r requirements.txt
-    ```
-
-2. Alternatively, install the CrowdStrike FalconPy package directly:
+1. Install the CrowdStrike FalconPy package directly:
 
     ```terminal
     pip install crowdstrike-falconpy
     ```
 
-> [!NOTE]
+> [!IMPORTANT]
 > If you intend to use Event-Driven Ansible (EDA), the `aiohttp` package should also be installed.
+
+2. Alternatively, if you clone the repository you can utilize the `requirements.txt` file to install all required packages:
+
+    ```terminal
+    pip install -r requirements.txt
+    ```
 
 ## Authentication
 
