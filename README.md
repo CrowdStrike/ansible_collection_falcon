@@ -128,18 +128,15 @@ ansible-galaxy collection install -r requirements.yml
 
 ### Python dependencies
 
-The Python module dependencies are not automatically handled by `ansible-galaxy`. To manually install these dependencies, you have the following options:
+The Python module dependencies are not automatically handled by `ansible-galaxy`. To install these dependencies, you have the following options:
 
 1. Install the CrowdStrike FalconPy package directly:
 
     ```terminal
-    pip install crowdstrike-falconpy
+    pip install crowdstrike-falconpy aiohttp
     ```
 
-> [!IMPORTANT]
-> If you intend to use Event-Driven Ansible (EDA), the `aiohttp` package should also be installed.
-
-2. Alternatively, if you clone the repository you can utilize the `requirements.txt` file to install all required packages:
+2. Alternatively, if you clone the repository, you can utilize the `requirements.txt` file to install all required packages:
 
     ```terminal
     pip install -r requirements.txt
