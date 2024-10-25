@@ -155,9 +155,9 @@ class LookupModule(LookupBase):
             )
 
         # Check if the 'falconpy' library is compatible
-        if _VERSION < "1.4.0":
+        if _VERSION < "1.3.0":
             raise AnsibleError(
-                f"Unsupported FalconPy version: {_VERSION}. Upgrade to 1.4.0 or higher."
+                f"Unsupported FalconPy version: {_VERSION}. Upgrade to 1.3.0 or higher."
             )
 
         self.set_options(var_options=variables, direct=kwargs)

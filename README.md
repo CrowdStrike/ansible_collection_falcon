@@ -17,7 +17,7 @@ Tested with the Ansible Core >= 2.15.0 versions, and the current development ver
 This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of `3.7` is required for this collection to function properly.
 
 > [!NOTE]
-> As of FalconPy Version 1.4.0, Python 3.6 is no longer supported. If you would like to use FalconPy with Python 3.6, please use FalconPy Version < 1.4.0. Please note this will not be supported by this collection.
+> As of FalconPy Version 1.4.0, Python 3.6 is no longer supported. If you would like to use FalconPy with Python 3.6, please use FalconPy Version < 1.4.0.
 
 ## Included content
 

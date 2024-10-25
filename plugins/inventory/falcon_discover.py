@@ -67,8 +67,8 @@ options:
     default: false
 requirements:
   - Assets [B(READ)] API scope
-  - python >= 3.7
-  - crowdstrike-falconpy >= 1.4.0
+  - python >= 3.6
+  - crowdstrike-falconpy >= 1.3.0
 notes:
   - If no credentials are provided, FalconPy will attempt to use the API credentials via environment variables.
   - Hostnames are set to the C(hostname) hostvar if it exists, otherwise the IP address is used.
@@ -201,9 +201,9 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             )
 
         # Check FalconPy version
-        if _VERSION < "1.4.0":
+        if _VERSION < "1.3.0":
             raise ImportError(
-                "The crowdstrike.falcon.falcon_discover plugin requires falconpy 1.4.0 or higher."
+                "The crowdstrike.falcon.falcon_discover plugin requires falconpy 1.3.0 or higher."
             )
 
         # cache may be True or False at this point to indicate if the inventory is being refreshed

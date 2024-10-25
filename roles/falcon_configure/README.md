@@ -9,8 +9,8 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 
 ## Requirements
 
-- Ansible Core >= 2.15.0
-- FalconPy 1.4.0 or higher on Ansible control node
+- Ansible 2.13 or higher
+- FalconPy 1.3.0 or higher on Ansible control node
 
 > As of version 4.0.0, this role takes full advantage of the FalconPy SDK for interacting with the CrowdStrike API.
 
