@@ -25,6 +25,13 @@ This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconp
 
 Offering pre-defined roles tailored for various platforms—including macOS, Linux, and Windows—this collection simplifies the installation, configuration, and removal processes for CrowdStrike's Falcon sensor.
 
+#### Privilege Escalation Requirements
+
+When using this collection, it's essential to understand how privilege escalation works. While our roles use privilege escalation internally, you must ensure that it is configured on the target hosts.
+
+> [!IMPORTANT]
+> Do not set `become: true` for the roles. Instead, make sure that the target hosts have privilege escalation (sudo/runas) configured and available. This will allow our roles to use privilege escalation internally.
+
 *Please read each role's README to familiarize yourself with the role variables and other requirements.*
 
 | Role Name | Documentation
@@ -121,22 +128,19 @@ ansible-galaxy collection install -r requirements.yml
 
 ### Python dependencies
 
-The Python module dependencies are not automatically handled by `ansible-galaxy`. To manually install these dependencies, you have the following options:
+The Python module dependencies are not automatically handled by `ansible-galaxy`. To install these dependencies, you have the following options:
 
-1. Utilize the `requirements.txt` file to install all required packages:
+1. Install the CrowdStrike FalconPy package directly:
+
+    ```terminal
+    pip install crowdstrike-falconpy aiohttp
+    ```
+
+2. Alternatively, if you clone the repository, you can utilize the `requirements.txt` file to install all required packages:
 
     ```terminal
     pip install -r requirements.txt
     ```
-
-2. Alternatively, install the CrowdStrike FalconPy package directly:
-
-    ```terminal
-    pip install crowdstrike-falconpy
-    ```
-
-> [!NOTE]
-> If you intend to use Event-Driven Ansible (EDA), the `aiohttp` package should also be installed.
 
 ## Authentication
 

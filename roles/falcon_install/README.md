@@ -1,9 +1,9 @@
 # crowdstrike.falcon.falcon_install
 
-This role installs the CrowdStrike Falcon Sensor. It provides the flexibility to install the sensor using the CrowdStrike API, a local file, or a remote URL.
+Installs the CrowdStrike Falcon Sensor. It provides the flexibility to install the sensor using the CrowdStrike API, a local file, or a remote URL.
 
-> [!NOTE]
-> Please note that for Linux and macOS, this role only handles the installation of the sensor. To configure and start the sensor, please use the [falcon_configure](../falcon_configure/) role after the sensor is installed.
+> [!IMPORTANT]
+> On Linux and macOS systems, running this role alone is insufficient for a fully operational Falcon sensor deployment. To complete the setup, you must also run the [falcon_configure](../falcon_configure/) role after installing the sensor with this role.
 
 ## Requirements
 
@@ -93,7 +93,8 @@ Ensure the following API scopes are enabled (***if applicable***) for this role:
 
 ## Dependencies
 
-- Privilege escalation is required for this role to function properly.
+- Privilege escalation (sudo/runas) is required for this role to function properly.
+  > See [Privilege Escalation Requirements](../../README.md#privilege-escalation-requirements) for more information.
 
 ## Example Playbooks
 
