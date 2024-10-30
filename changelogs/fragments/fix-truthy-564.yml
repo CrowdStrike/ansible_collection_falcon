@@ -1,2 +1,0 @@
-bugfixes:
-  - falcon_configure - Fix truthy condition for falcon_cid and falcon_provisioning_token (https://github.com/CrowdStrike/ansible_collection_falcon/pull/565)
