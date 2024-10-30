@@ -4,6 +4,26 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.7.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-10-30
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.0>`__
+
+Minor Changes
+-------------
+
+- sensor_download - adds the ability to lock files to prevent collision when downloading the sensor (https://github.com/CrowdStrike/ansible_collection_falcon/pull/569)
+
+Bugfixes
+--------
+
+- falcon_configure - Fix truthy condition for falcon_cid and falcon_provisioning_token (https://github.com/CrowdStrike/ansible_collection_falcon/pull/565)
+- falcon_install - fix issue with temp directories being random or non-existent (https://github.com/CrowdStrike/ansible_collection_falcon/pull/569)
+
 v4.6.0
 ======
 
