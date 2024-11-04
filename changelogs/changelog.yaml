@@ -681,3 +681,17 @@ releases:
     - add-locking.yml
     - fix-truthy-564.yml
     release_date: '2024-10-30'
+  4.7.1:
+    changes:
+      bugfixes:
+      - win_uninstall - add new windows sensor installer name to uninstall regex for
+        Ansible to be able to uninstall the sensor from package cache (https://github.com/CrowdStrike/ansible_collection_falcon/pull/575)
+      release_summary: '| Release Date: 2024-11-04
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.1>`__
+
+        '
+    fragments:
+    - 4.7.1.yml
+    - fix-windows-uninstall-regex.yml
+    release_date: '2024-11-04'

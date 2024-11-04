@@ -4,6 +4,20 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.7.1
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-11-04
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.1>`__
+
+Bugfixes
+--------
+
+- win_uninstall - add new windows sensor installer name to uninstall regex for Ansible to be able to uninstall the sensor from package cache (https://github.com/CrowdStrike/ansible_collection_falcon/pull/575)
+
 v4.7.0
 ======
 
