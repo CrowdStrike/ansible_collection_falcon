@@ -23,16 +23,16 @@ __metaclass__ = type
 
 def check_falconpy_version(module):
     """Ensure FalconPy version is compatible."""
-    minumum_version = "1.3.0"
+    minimum_version = "1.3.0"
 
     if FALCONPY_IMPORT_ERROR:
         module.fail_json(
             msg=f"Unable to import FalconPy: {FALCONPY_IMPORT_ERROR}. See module documentation for help."
         )
 
-    if _VERSION < minumum_version:
+    if _VERSION < minimum_version:
         module.fail_json(
-            msg=f"Unsupported FalconPy version: {_VERSION}. Upgrade to {minumum_version} or higher."
+            msg=f"Unsupported FalconPy version: {_VERSION}. Upgrade to {minimum_version} or higher."
         )
 
 

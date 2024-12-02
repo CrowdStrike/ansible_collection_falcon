@@ -100,7 +100,7 @@ falcon_client_secret: ""
 # The Falcon sensor version to install. This allows you to pin a specific sensor
 # version.
 #
-# NOTE: This variable will be overriden by falcon_sensor_update_policy_name.
+# NOTE: This variable will be overridden by falcon_sensor_update_policy_name.
 #
 falcon_sensor_version: ""
 
@@ -108,7 +108,7 @@ falcon_sensor_version: ""
 # Setting the value to 1 would install the sensor at N-1.
 # The value must be an integer between 0 and 5 inclusive.
 #
-# NOTE: This variable will be overriden by falcon_sensor_update_policy_name or falcon_sensor_version.
+# NOTE: This variable will be overridden by falcon_sensor_update_policy_name or falcon_sensor_version.
 #
 falcon_sensor_version_decrement: 0
 
@@ -168,7 +168,7 @@ falcon_windows_tmp_dir: "%SYSTEMROOT%\\Temp\\falcon-sensor"
 #
 falcon_windows_install_args: "/norestart"
 
-# Additional arugments to uninstall the sensor.
+# Additional arguments to uninstall the sensor.
 # You can add your maintenance token here by adding MAINTENANCE_TOKEN=<token>
 #
 falcon_windows_uninstall_args: "/norestart"
