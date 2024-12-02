@@ -20,7 +20,7 @@ description:
   - Manages the network containment state of Falcon hosts.
   - To restrict a host that may be compromised from making network connections, contain
     it within the network. Lift containment to restore its regular communication capabilities.
-  - The module will return a list of successfull and failed hosts agent IDs (AIDs) for
+  - The module will return a list of successful and failed hosts agent IDs (AIDs) for
     the action performed.
 
 options:

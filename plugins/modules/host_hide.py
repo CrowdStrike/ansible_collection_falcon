@@ -21,7 +21,7 @@ description:
   - To prevent unnecessary detections from an inactive or a duplicate host,
     you can opt to hide the host from the console. This action does not uninstall or
     deactivate the sensor. Detection reporting resumes after a host is unhidden.
-  - The module will return a list of successfull and failed hosts agent IDs (AIDs) for
+  - The module will return a list of successful and failed hosts agent IDs (AIDs) for
     the action performed.
 
 options:

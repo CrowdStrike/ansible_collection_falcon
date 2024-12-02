@@ -73,9 +73,9 @@ requirements:
 notes:
   - By default, Ansible will deduplicate the C(inventory_hostname), so if multiple hosts have the same hostname, only
     the last one will be used. In this case, consider using the C(device_id) as the first preference in the C(hostnames).
-    You can use C(compose) to specify how Ansible will connectz to the host with the C(ansible_host) variable.
+    You can use C(compose) to specify how Ansible will connect to the host with the C(ansible_host) variable.
   - If no credentials are provided, FalconPy will attempt to use the API credentials via environment variables.
-  - The current behavior is to use the hostname if it exists, otherwise we will attemp to use either the external
+  - The current behavior is to use the hostname if it exists; otherwise, we will attempt to use either the external
     IP address or the local IP address. If neither of those exist, the host will be skipped as Ansible would not
     be able to connect to it.
 author:

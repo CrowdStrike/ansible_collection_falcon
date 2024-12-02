@@ -3,7 +3,7 @@ dependency:
   name: galaxy
 driver:
   name: ec2
-# The Default Platform is Ubunutu 20.04 LTS | T2.Micro | us-west-2
+# The Default Platform is Ubuntu 20.04 LTS | T2.Micro | us-west-2
 platforms:
   - name: "${MOLECULE_INSTANCE_NAME:-default-falcon-uninstall}"
     image_owner: "${MOLECULE_IMAGE_OWNER:-099720109477}"

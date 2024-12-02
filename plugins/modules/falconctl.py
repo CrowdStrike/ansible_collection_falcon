@@ -40,7 +40,7 @@ options:
     description:
       - Installation tokens prevent unauthorized hosts from being accidentally or maliciously added to your customer ID (CID).
       - Optional security measure for your CID.
-      - This paramter requires supplying a C(cid).
+      - This parameter requires supplying a C(cid).
     type: str
   aid:
     description:
@@ -188,7 +188,7 @@ class FalconCtl(object):
 
     @classmethod
     def __list_to_string(cls, value):
-        """Converts paramaters passed as lists to strings"""
+        """Converts parameters passed as lists to strings"""
         if isinstance(value, list):
             # Make a copy and return it
             new_value = value[:]
@@ -278,7 +278,7 @@ class FalconCtl(object):
         return values
 
     def execute(self):
-        """Run the falconctl commmand"""
+        """Run the falconctl command"""
         cmd = self.add_args(self.params["state"])
         if not self.module.check_mode:
             self.__run_command(cmd)
@@ -296,7 +296,7 @@ class FalconCtl(object):
         return get_options(values)
 
     def validate_params(self, params):
-        """Ensure paramaters are valid"""
+        """Ensure parameters are valid"""
 
         if params["provisioning_token"]:
             # Ensure cid is also passed
@@ -335,7 +335,7 @@ class FalconCtl(object):
         self.check_param("backend", ["auto", "bpf", "kernel"], True)
 
     def check_param(self, param, options, to_lower=False):
-        """Validate single paramater"""
+        """Validate single parameter"""
         if self.params[param]:
             parameter = self.params[param].lower() if to_lower else self.params[param]
 

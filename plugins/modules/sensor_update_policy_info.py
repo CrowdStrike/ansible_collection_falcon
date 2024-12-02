@@ -51,7 +51,7 @@ EXAMPLES = r"""
   crowdstike.falcon.sensor_update_policy_info:
     filter: "platform_name:'Windows'+enabled:'true'"
 
-- name: Get Sensor Policies and sort assending by platform_name
+- name: Get Sensor Policies and sort ascending by platform_name
   crowdstike.falcon.sensor_update_policy_info:
     sort: "platform_name.asc"
 """
