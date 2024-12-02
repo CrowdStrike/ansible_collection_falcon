@@ -23,6 +23,8 @@ Uninstalls the CrowdStrike Falcon Sensor.
     - **eu-1** -> api.eu-1.crowdstrike.com
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 - `falcon_remove_host` - Whether to hide/remove the host from the CrowdStrike console (bool, default: false)
+   > `WARNING`:
+   > Please use `Host Retention Policies` under `Host Management` in the Falcon console which provides more flexibility and customization for automatically hiding and deleting hosts instead.
 
 ### Windows Specific Variables
 
