@@ -50,3 +50,10 @@
   block:
     - ansible.builtin.include_tasks: win_install.yml
       # noqa name[missing]
+
+- name: Cleanup block
+  when:
+    - falcon_install_method == "api"
+  block:
+    - ansible.builtin.include_tasks: cleanup.yml
+    # noqa name[missing]
