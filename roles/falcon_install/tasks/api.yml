@@ -98,17 +98,6 @@
   register: win_falcon_sensor_copied
   when: ansible_os_family == "Windows"
 
-- name: CrowdStrike Falcon | Remove Downloaded Sensor Installation directory (local)
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  changed_when: false
-  delegate_to: localhost
-  loop:
-    - "{{ falcon_sensor_download.path }}"
-    - "{{ falcon_sensor_download.path + '.lock' }}"
-  when: falcon_api_sensor_download_cleanup
-
 - name: CrowdStrike Falcon | Set full file download path (non-windows)
   ansible.builtin.set_fact:
     falcon_sensor_pkg: "{{ falcon_sensor_copied.dest }}"
