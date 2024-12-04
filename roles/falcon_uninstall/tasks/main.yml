@@ -46,6 +46,7 @@
 - name: Hide host
   when:
     - falcon.auth is defined
+    - falcon_remove_host
     - falcon_uninstall_remove_aid is defined
   block:
     - ansible.builtin.include_tasks: hide_host.yml

@@ -59,13 +59,6 @@ EXAMPLES = r"""
           'platform_name:"Linux"
           + reduced_functionality_mode:"yes"')
       }}
-
-- name: Hide stale devices that haven't been seen in 15 days (using a filter variable)
-  crowdstrike.falcon.host_hide:
-    hidden: true
-    hosts: "{{ lookup('crowdstrike.falcon.host_ids', stale_filter) }}"
-  vars:
-    stale_filter: 'last_seen:<="now-15d"'
 """
 
 RETURN = r"""

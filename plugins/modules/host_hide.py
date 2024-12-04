@@ -44,6 +44,10 @@ extends_documentation_fragment:
   - crowdstrike.falcon.credentials.auth
 
 notes:
+  - While you can use this module to hide or unhide hosts, it is recommended to
+    use the B(Host Retention Policies) in the Falcon console to create policies to
+    manage automatically hiding and deleting hosts in the console instead of using
+    this module.
   - This module handles the 100 hosts per request limit by the Falcon API. This
     means that if more than 100 hosts are passed to the module, it will process
     them in batches of 100 automatically.
