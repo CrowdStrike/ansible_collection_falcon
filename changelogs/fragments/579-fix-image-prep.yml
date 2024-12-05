@@ -1,0 +1,2 @@
+bugfixes:
+  - falcon_configure - Fixed issue where the bool filter was incorrectly used with provisioning token when clause for master image prep (https://github.com/CrowdStrike/ansible_collection_falcon/pull/585)
