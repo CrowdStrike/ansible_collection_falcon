@@ -58,11 +58,11 @@
     - name: CrowdStrike Falcon | Master Image Prep | Set Provisioning Token (if applicable)
       crowdstrike.falcon.falconctl:
         cid: "{{ options.cid }}"
-        provisioning_token: "{{ options.provisioning_token }}"
+        provisioning_token: "{{ falcon_provisioning_token }}"
         state: present
       when:
         - falcon_remove_aid
-        - options.provisioning_token is defined and options.provisioning_token | length > 0
+        - falcon_provisioning_token is not none and falcon_provisioning_token | length > 0
 
     - name: CrowdStrike Falcon | Master Image Prep | Stop Falcon Sensor service
       ansible.builtin.service:
