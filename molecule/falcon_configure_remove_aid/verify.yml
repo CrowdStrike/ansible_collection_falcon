@@ -20,6 +20,16 @@
       that:
         - not info_verify.falconctl_info.aid
 
+  - name: Register provisioning token output
+    ansible.builtin.command:
+      cmd: /opt/CrowdStrike/falconctl -g --provisioning-token
+    register: provisioning_token
+
+  - name: Verify provisioning token is present
+    ansible.builtin.assert:
+      that:
+        - "'not set' not in provisioning_token.stdout"
+
   - name: Reboot system to force AID generation
     ansible.builtin.reboot:
 

@@ -58,12 +58,18 @@
     - name: CrowdStrike Falcon | Master Image Prep | Set Provisioning Token (if applicable)
       crowdstrike.falcon.falconctl:
         cid: "{{ options.cid }}"
-        provisioning_token: "{{ options.provisioning_token }}"
+        provisioning_token: "{{ falcon_provisioning_token }}"
         state: present
       when:
         - falcon_remove_aid
-        - options.cid | bool
-        - options.provisioning_token | bool
+        - falcon_provisioning_token is not none and falcon_provisioning_token | length > 0
+
+    - name: CrowdStrike Falcon | Master Image Prep | Stop Falcon Sensor service
+      ansible.builtin.service:
+        name: falcon-sensor
+        state: stopped
+      when:
+        - falcon_remove_aid
 
 # Start of MacOSX Configuration
 - name: CrowdStrike Falcon | Stat Falcon Sensor (macOS)
