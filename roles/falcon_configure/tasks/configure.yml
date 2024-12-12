@@ -33,19 +33,44 @@
       # noqa args[module]
       # noqa no-handler
 
-    # Wait for aid to be generated
-    - name: CrowdStrike Falcon | Wait for Falcon Sensor to Generate AID
-      crowdstrike.falcon.falconctl_info:
-        name:
-          - aid
-      register: info
-      retries: 6
-      delay: 10
-      until: info.falconctl_info.aid
+    - name: Wait for AID to be generated block
       when:
         - info.falconctl_info.cid
         - falconctl_result.changed
-      # noqa no-handler
+      block:
+        # Wait for aid to be generated
+        - name: CrowdStrike Falcon | Wait for Falcon Sensor to Generate AID
+          crowdstrike.falcon.falconctl_info:
+            name:
+              - aid
+          register: get_aid
+          retries: "{{ falcon_aid_retries | int }}"
+          delay: "{{ falcon_aid_delay | int }}"
+          until: get_aid.falconctl_info.aid
+
+      rescue:
+        - name: CrowdStrike Falcon | Second attempt to get AID
+          crowdstrike.falcon.falconctl_info:
+            name:
+              - aid
+          register: get_aid_retry
+          retries: "{{ falcon_aid_retries | int }}"
+          delay: "{{ falcon_aid_delay | int }}"
+          until: get_aid_retry.falconctl_info.aid
+          ignore_errors: true
+
+        - name: CrowdStrike Falcon | Fail if AID Generation Fails
+          ansible.builtin.fail:
+            msg: "{{ error_msg }}"
+          vars:
+            error_msg:
+              error: "Failed to generate Falcon Sensor AID after multiple attempts."
+              troubleshooting_steps:
+                - "Verify the sensor is properly installed"
+                - "Confirm the CID is correct"
+                - "Check system can reach the CrowdStrike cloud"
+                - "Manually verify AID with: sudo /opt/CrowdStrike/falconctl -g --aid"
+          when: not get_aid_retry.falconctl_info.aid
 
     # Handle Master Image steps
     - name: CrowdStrike Falcon | Master Image Prep | Removing AID

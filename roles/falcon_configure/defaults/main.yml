@@ -44,6 +44,16 @@ falcon_client_secret:
 #
 falcon_provisioning_token:
 
+######### Wait for AID generation #########
+# Number of retries to attempt when waiting to retrieve the Falcon Agent ID (AID)
+# after sensor restart.
+falcon_aid_retries: 6
+
+# Number of seconds to wait between retries when waiting to retrieve the Falcon Agent ID (AID)
+# after sensor restart.
+falcon_aid_delay: 10
+###########################################
+
 # Falcon requires that a master image remove the Falcon Agent ID (AID). This
 # ensures instances spun up from the master receive their own, unique,
 # Falcon Agent ID.

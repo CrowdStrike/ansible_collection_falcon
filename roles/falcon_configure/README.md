@@ -32,6 +32,15 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 
 - `falcon_remove_aid` - Remove the Falcon Agent ID (AID) (bool, default: ***null***)
 
+### Linux Specific Variables
+
+- `falcon_aid_retries` - Number of retries to attempt when waiting to retrieve the Falcon Agent ID (AID) (int, default: ***6***)
+- `falcon_aid_delay` - Number of seconds to wait between `falcon_aid_retries` when waiting to retrieve the Falcon Agent ID (AID) (int, default: ***10***)
+
+> These variables control the retry behavior when attempting to retrieve the Falcon Agent ID (AID) after configuring
+> and restarting the sensor. The default values should work for most, but you may need to increase them in
+> environments with slower startup times.
+
 ### Windows Specific Variables
 
 - `falcon_windows_become` - Whether to become a privileged user on Windows (bool, default: ***true***)
