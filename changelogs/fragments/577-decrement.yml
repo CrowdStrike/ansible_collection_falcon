@@ -1,2 +1,2 @@
 bugfixes:
-  - falcon_install - fixes issue where failure to download sensor weren't apparent (https://github.com/CrowdStrike/ansible_collection_falcon/pull/588)
+  - falcon_install - improves error message when using falcon_sensor_version_decrement but not enough historical sensors are available (https://github.com/CrowdStrike/ansible_collection_falcon/pull/588)
