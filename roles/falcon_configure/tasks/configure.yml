@@ -38,14 +38,13 @@
       crowdstrike.falcon.falconctl_info:
         name:
           - aid
-      register: info
-      retries: 6
-      delay: 10
-      until: info.falconctl_info.aid
+      register: get_aid
+      retries: "{{ falcon_aid_retries | int }}"
+      delay: "{{ falcon_aid_delay | int }}"
+      until: get_aid.falconctl_info.aid
       when:
         - info.falconctl_info.cid
         - falconctl_result.changed
-      # noqa no-handler
 
     # Handle Master Image steps
     - name: CrowdStrike Falcon | Master Image Prep | Removing AID

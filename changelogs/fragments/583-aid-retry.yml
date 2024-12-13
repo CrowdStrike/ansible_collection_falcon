@@ -1,0 +1,2 @@
+bugfixes:
+  - falcon_configure - fix issue where AID generation task would fail/timeout (https://github.com/CrowdStrike/ansible_collection_falcon/pull/586)
