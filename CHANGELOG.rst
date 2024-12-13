@@ -4,6 +4,24 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.7.2
+======
+
+Release Summary
+---------------
+
+| Release Date: 2024-12-13
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.2>`__
+
+Bugfixes
+--------
+
+- falcon_configure - Fixed issue where the bool filter was incorrectly used with provisioning token when clause for master image prep (https://github.com/CrowdStrike/ansible_collection_falcon/pull/585)
+- falcon_configure - fix issue where AID generation task would fail/timeout (https://github.com/CrowdStrike/ansible_collection_falcon/pull/586)
+- falcon_install - fixes issue with premature localhost deletion of downloaded sensor (https://github.com/CrowdStrike/ansible_collection_falcon/pull/584)
+- falcon_install - improves error message when using falcon_sensor_version_decrement but not enough historical sensors are available (https://github.com/CrowdStrike/ansible_collection_falcon/pull/588)
+- falcon_uninstall - add missing when clause for removing host from UI (https://github.com/CrowdStrike/ansible_collection_falcon/pull/582)
+
 v4.7.1
 ======
 
