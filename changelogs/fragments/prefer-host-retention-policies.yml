@@ -1,6 +1,0 @@
-trivial:
-  - host_hide - Preference should be given to using Host Retention Policies under Host Management in the Falcon console which provides more flexibility and customization for automatically hiding and deleting hosts instead (https://github.com/CrowdStrike/ansible_collection_falcon/pull/582)
-  - host_ids - Preference should be given to using Host Retention Policies under Host Management in the Falcon console which provides more flexibility and customization for automatically hiding and deleting hosts instead (https://github.com/CrowdStrike/ansible_collection_falcon/pull/582)
-
-bugfixes:
-  - falcon_uninstall - add missing when clause for removing host from UI (https://github.com/CrowdStrike/ansible_collection_falcon/pull/582)

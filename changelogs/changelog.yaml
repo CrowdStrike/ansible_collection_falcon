@@ -695,3 +695,28 @@ releases:
     - 4.7.1.yml
     - fix-windows-uninstall-regex.yml
     release_date: '2024-11-04'
+  4.7.2:
+    changes:
+      bugfixes:
+      - falcon_configure - Fixed issue where the bool filter was incorrectly used
+        with provisioning token when clause for master image prep (https://github.com/CrowdStrike/ansible_collection_falcon/pull/585)
+      - falcon_configure - fix issue where AID generation task would fail/timeout
+        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/586)
+      - falcon_install - fixes issue with premature localhost deletion of downloaded
+        sensor (https://github.com/CrowdStrike/ansible_collection_falcon/pull/584)
+      - falcon_install - improves error message when using falcon_sensor_version_decrement
+        but not enough historical sensors are available (https://github.com/CrowdStrike/ansible_collection_falcon/pull/588)
+      - falcon_uninstall - add missing when clause for removing host from UI (https://github.com/CrowdStrike/ansible_collection_falcon/pull/582)
+      release_summary: '| Release Date: 2024-12-13
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.2>`__
+
+        '
+    fragments:
+    - 4.7.2.yml
+    - 577-decrement.yml
+    - 578-localhost-deletion.yml
+    - 579-fix-image-prep.yml
+    - 583-aid-retry.yml
+    - prefer-host-retention-policies.yml
+    release_date: '2024-12-13'
