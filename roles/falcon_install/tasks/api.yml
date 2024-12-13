@@ -54,10 +54,22 @@
   register: falcon_api_installer_list
   delegate_to: localhost
 
-- name: CrowdStrike Falcon | Validate Sensor request
+- name: CrowdStrike Falcon | Validate sensor request
   ansible.builtin.fail:
-    msg: "No Falcon Sensor was found! If passing in falcon_sensor_version, ensure it is correct!"
+    msg: "No Falcon sensor was found! If passing in falcon_sensor_version, ensure it is correct!"
   when: falcon_api_installer_list.installers[0] is not defined
+
+- name: CrowdStrike Falcon | Validate available sensor count > decrement (if applicable)
+  ansible.builtin.assert:
+    that:
+      - falcon_api_installer_list.installers | length > falcon_sensor_version_decrement
+    fail_msg:
+      "Not enough sensor versions available for the specified decrement value: N-{{ falcon_sensor_version_decrement }}.
+      This may occur if your OS distribution/version is newly supported and fewer
+      historical sensor versions exist."
+  when:
+    - falcon_sensor_version_decrement is defined
+    - falcon_sensor_version_decrement > 0
 
 - name: CrowdStrike Falcon | Ensure download path exists (local)
   ansible.builtin.file:
