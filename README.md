@@ -276,7 +276,6 @@ See the [CHANGELOG.rst](./CHANGELOG.rst) for a history of notable changes to thi
 - [Ansible User Guide](https://docs.ansible.com/ansible/latest/user_guide/index.html)
 - [Ansible Using Collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html)
 - [Ansible Community Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html)
-- [Ansible Community Code of Conduct](https://docs.ansible.com/ansible/latest/community/code_of_conduct.html)
 - [Ansible Rulebook Introduction](https://ansible.readthedocs.io/projects/rulebook/en/latest/getting_started.html)
 - [Event Driven Ansible Introduction](https://www.ansible.com/blog/getting-started-with-event-driven-ansible)
 - [CrowdStrike FalconPy SDK](https://www.falconpy.io/)
