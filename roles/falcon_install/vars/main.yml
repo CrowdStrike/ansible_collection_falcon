@@ -15,6 +15,7 @@ falcon_gpg_keys:
   - falcon-sensor.gpg
   - falcon-sensor1.gpg
   - falcon-sensor2.gpg
+  - falcon-sensor3.gpg
 
 latest_gpg_key: "{{ falcon_gpg_keys[0] }}"
 
