@@ -1,0 +1,2 @@
+minor_changes:
+- falcon_install - add Falcon Linux Sensor RPM signing GPG key, 2025 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/599)
