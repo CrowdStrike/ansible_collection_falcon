@@ -720,3 +720,16 @@ releases:
     - 583-aid-retry.yml
     - prefer-host-retention-policies.yml
     release_date: '2024-12-13'
+  4.7.3:
+    changes:
+      minor_changes:
+      - falcon_install - add Falcon Linux Sensor RPM signing GPG key, 2025 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/599)
+      release_summary: '| Release Date: 2025-04-21
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.3>`__
+
+        '
+    fragments:
+    - 4.7.3.yml
+    - 599-gpg-key.yml
+    release_date: '2025-04-21'

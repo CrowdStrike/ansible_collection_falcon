@@ -4,6 +4,20 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.7.3
+======
+
+Release Summary
+---------------
+
+| Release Date: 2025-04-21
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.3>`__
+
+Minor Changes
+-------------
+
+- falcon_install - add Falcon Linux Sensor RPM signing GPG key, 2025 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/599)
+
 v4.7.2
 ======
 
