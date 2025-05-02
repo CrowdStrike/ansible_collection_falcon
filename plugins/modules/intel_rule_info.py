@@ -47,7 +47,6 @@ options:
   tags:
     description:
       - Search for rule tags.
-      - List of strings.
     type: list
     elements: str
   q:
@@ -68,6 +67,10 @@ options:
 extends_documentation_fragment:
   - crowdstrike.falcon.credentials
   - crowdstrike.falcon.credentials.auth
+
+notes:
+  - For large sets of Rule IDs (if not using limits) there may be a delay in processing as the current
+    API endpoint for retrieving details can only process 10 at a time.
 
 author:
   - Carlos Matos (@carlosmmatos)
@@ -211,7 +214,7 @@ def _get_rule_ids(module, falcon, query_params, result):
         result: Results dict
 
     Returns:
-        The final API response containing all rule IDs
+        A list of Rule IDs
     """
     # Check if limit is specified
     user_limit = module.params.get('limit')
