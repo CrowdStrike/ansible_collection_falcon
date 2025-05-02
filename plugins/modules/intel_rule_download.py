@@ -305,6 +305,28 @@ def handle_existing_file(module, result, path):
     )
 
 
+def prepare_download_path(module, dest, rule_details, name, compression_format):
+    """Prepare the download path for the rule file."""
+    # Check if destination directory exists
+    if not dest:
+        dest = mkdtemp()
+        os.chmod(dest, 0o755)  # nosec
+        tmp_dir = True
+    else:
+        tmp_dir = False
+        # Make sure path exists and is a directory
+        check_destination_path(module, dest)
+
+    # Set the filename if not provided
+    if not name:
+        rule_type_name = rule_details.get('type', 'rule')
+        name = f"{rule_type_name}-{rule_details['id']}.{compression_format}"
+
+    path = os.path.join(dest, name)
+
+    return path, tmp_dir
+
+
 def main():
     """Entry point for module execution."""
     module = AnsibleModule(
@@ -321,26 +343,16 @@ def main():
 
     check_falconpy_version(module)
 
+    # Get parameters
     rule_id = module.params.get("rule_id")
     rule_type = module.params.get("type")
     compression_format = module.params.get("format")
     dest = module.params.get("dest")
     name = module.params.get("name")
-    tmp_dir = False
-
-    if not dest:
-        dest = mkdtemp()
-        os.chmod(dest, 0o755)  # nosec
-        tmp_dir = True
-
-    # Make sure path exists and is a directory
-    check_destination_path(module, dest)
 
     # Authenticate and initialize
     falcon = authenticate(module, Intel)
-    result = dict(
-        changed=False,
-    )
+    result = dict(changed=False)
 
     # If rule_id is not provided, get the latest rule ID for the specified type
     if not rule_id:
@@ -350,18 +362,15 @@ def main():
 
     # Get rule details to include in the result
     rule_details = get_rule_details(module, falcon, rule_id, result)
+    rule_details['id'] = rule_id  # Add the ID to the rule details
     result.update(
         rule_id=rule_id,
         rule_name=rule_details.get('name'),
         rule_type=rule_details.get('type')
     )
 
-    # Set the filename if not provided
-    if not name:
-        rule_type_name = rule_details.get('type', 'rule')
-        name = f"{rule_type_name}-{rule_id}.{compression_format}"
-
-    path = os.path.join(dest, name)
+    # Prepare the download path
+    path, tmp_dir = prepare_download_path(module, dest, rule_details, name, compression_format)
     lock = None
 
     try:
@@ -395,7 +404,7 @@ def main():
 
         result.update(path=path)
         module.exit_json(**result)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         module.fail_json(msg=f"Error downloading rule file: {str(e)}", **result)
     finally:
         if lock:
