@@ -77,7 +77,7 @@ requirements:
   - Rules (Falcon Intelligence) [B(READ)] API scope
 
 author:
-  - CrowdStrike (@crowdstrike)
+  - Carlos Matos (@carlosmmatos)
 """
 
 EXAMPLES = r"""
