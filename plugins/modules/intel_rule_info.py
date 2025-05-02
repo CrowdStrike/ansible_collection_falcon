@@ -54,14 +54,6 @@ options:
     description:
       - Perform a generic substring search across all fields.
     type: str
-  min_created_date:
-    description:
-      - Filter results to those created on or after a certain date.
-    type: str
-  max_created_date:
-    description:
-      - Filter results to those created on or before a certain date.
-    type: str
   sort:
     description:
       - The property to sort by in FQL (Falcon Query Language) syntax (e.g. created_date|asc).
@@ -99,14 +91,8 @@ EXAMPLES = r"""
   crowdstrike.falcon.intel_rule_info:
     type: "yara-master"
     tags:
-      - "ransomware"
-      - "malware"
-
-- name: Search rules by creation date range
-  crowdstrike.falcon.intel_rule_info:
-    type: "common-event-format"
-    min_created_date: "2023-01-01T00:00:00Z"
-    max_created_date: "2023-12-31T23:59:59Z"
+      - "intel_feed"
+      - "yara"
 """
 
 RETURN = r"""
@@ -209,8 +195,6 @@ def argspec():
         description=dict(type='list', elements='str'),
         tags=dict(type='list', elements='str'),
         q=dict(type='str'),
-        min_created_date=dict(type='str'),
-        max_created_date=dict(type='str'),
         sort=dict(type='str'),
         limit=dict(type='int'),
     )
@@ -288,8 +272,6 @@ def main():
         'description': 'description',
         'tags': 'tags',
         'q': 'q',
-        'min_created_date': 'min_created_date',
-        'max_created_date': 'max_created_date',
         'sort': 'sort',
     }
 
