@@ -72,6 +72,9 @@ notes:
   - For large sets of Rule IDs (if not using limits) there may be a delay in processing as the current
     API endpoint for retrieving details can only process 10 at a time.
 
+requirements:
+  - Rules (Falcon Intelligence) [B(READ)] API scope
+
 author:
   - Carlos Matos (@carlosmmatos)
 
