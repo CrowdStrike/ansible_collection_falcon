@@ -55,6 +55,7 @@ Name | Description
 [crowdstrike.falcon.host_contain](https://crowdstrike.github.io/ansible_collection_falcon/host_contain_module.html)|Network contain hosts in Falcon
 [crowdstrike.falcon.host_hide](https://crowdstrike.github.io/ansible_collection_falcon/host_hide_module.html)|Hide/Unhide hosts from the Falcon console. Preference should be given to using `Host Retention Policies` under `Host Management` in the Falcon console which provides more flexibility and customization for automatically hiding and deleting hosts instead.
 [crowdstrike.falcon.host_info](https://crowdstrike.github.io/ansible_collection_falcon/host_info_module.html)|Get information about Falcon hosts
+[crowdstrike.falcon.intel_rule_download](https://crowdstrike.github.io/ansible_collection_falcon/intel_rule_download_module.html)|Download CrowdStrike Falcon Intel rule files
 [crowdstrike.falcon.intel_rule_info](https://crowdstrike.github.io/ansible_collection_falcon/intel_rule_info_module.html)|Get information about CrowdStrike Falcon Intel rules
 [crowdstrike.falcon.kernel_support_info](https://crowdstrike.github.io/ansible_collection_falcon/kernel_support_info_module.html)|Get information about kernels supported by the Falcon Sensor for Linux
 [crowdstrike.falcon.sensor_download](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_module.html)|Download Falcon Sensor Installer
