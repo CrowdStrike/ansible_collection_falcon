@@ -1,4 +1,4 @@
-[![Galaxy version](https://img.shields.io/badge/dynamic/json?style=flat&label=Galaxy&prefix=v&url=https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/index/crowdstrike/falcon/versions/?is_highest=true&query=data[0].version)](https://galaxy.ansible.com/ui/repo/published/crowdstrike/falcon/)
+![Ansible Collection Version](https://img.shields.io/ansible/collection/v/crowdstrike/falcon?style=flat)
 
 # CrowdStrike Falcon Collection
 
