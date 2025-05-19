@@ -1,48 +1,4 @@
-"""eventstream.py.
-
-An ansible-rulebook event source plugin for generating events from the Falcon
-Event Stream API.
-
-Each event is imbedded in a dict with the key "falcon" and the value is the raw
-event from the API.
-
-Arguments:
----------
-    falcon_client_id:       CrowdStrike OAUTH Client ID
-    falcon_client_secret:   CrowdStrike OAUTH Client Secret
-    falcon_cloud:           CrowdStrike Cloud Region (us-1, us-2, eu-1, us-gov-1)
-                            Default: us-1
-    stream_name:            Label that identifies your connection.
-                            Max: 32 alphanumeric characters. Default: eda
-    include_event_types:    List of event types to filter on. Defaults.
-    exclude_event_types:    List of event types to exclude. Default: None.
-    offset:                 The offset to start streaming from. Default: None.
-    latest:                 Start stream at the latest event. Default: False.
-    delay:                  Introduce a delay between each event. Default: float(0).
-
-
-Examples:
---------
-  # Stream all events except AuthActivityAuditEvent from Falcon Event Stream API
-  sources:
-    - crowdstrike.falcon.eventstream:
-        falcon_client_id: "{{ FALCON_CLIENT_ID }}"
-        falcon_client_secret: "{{ FALCON_CLIENT_SECRET }}"
-        falcon_cloud: "us-1"
-        exclude_event_types:
-            - "AuthActivityAuditEvent"
-
-  # Stream only DetectionSummaryEvent from Falcon Event Stream API
-  sources:
-    - crowdstrike.falcon.eventstream:
-        falcon_client_id: "{{ FALCON_CLIENT_ID }}"
-        falcon_client_secret: "{{ FALCON_CLIENT_SECRET }}"
-        falcon_cloud: "us-2"
-        stream_name: "eda-example"
-        include_event_types:
-          - "DetectionSummaryEvent"
-
-"""
+"""CrowdStrike Falcon Event Stream API event source plugin."""
 import asyncio
 import json
 import logging
@@ -52,6 +8,83 @@ from collections.abc import AsyncGenerator, Callable
 from typing import Any, Optional
 
 import aiohttp
+
+DOCUMENTATION = r"""
+---
+name: eventstream
+short_description: Event source plugin for CrowdStrike Falcon Event Stream API
+description:
+    - This event source plugin connects to the CrowdStrike Falcon Event Stream API and forwards events to EDA
+options:
+    falcon_client_id:
+        description: Client ID for CrowdStrike Falcon API authentication
+        required: true
+        type: str
+    falcon_client_secret:
+        description: Client secret for CrowdStrike Falcon API authentication
+        required: true
+        type: str
+    falcon_cloud:
+        description: CrowdStrike Falcon cloud region
+        default: 'us-1'
+        type: str
+    stream_name:
+        description: Label identifying the connection
+        default: 'eda'
+        type: str
+    offset:
+        description: The offset to start streaming from
+        required: false
+        type: int
+    latest:
+        description: Start stream at the latest event
+        default: false
+        type: bool
+    delay:
+        description: Delay between events in seconds
+        default: 0
+        type: float
+    include_event_types:
+        description: List of event types to include
+        default: []
+        type: list
+        elements: str
+    exclude_event_types:
+        description: List of event types to exclude
+        default: []
+        type: list
+        elements: str
+"""
+
+EXAMPLES = r"""
+---
+- name: Listen for CrowdStrike Falcon detection events
+  hosts: localhost
+  sources:
+    - crowdstrike.falcon.eventstream:
+        falcon_client_id: "{{ falcon_client_id }}"
+        falcon_client_secret: "{{ falcon_client_secret }}"
+        falcon_cloud: us-1
+        stream_name: eda
+        latest: true
+        include_event_types:
+          - EPPDetectionSummaryEvent
+"""
+
+RETURN = r"""
+---
+falcon:
+    description: Event data from CrowdStrike Falcon API
+    type: dict
+    returned: always
+    contains:
+        metadata:
+            description: Metadata about the event
+            type: dict
+        event:
+            description: The event data
+            type: dict
+"""
 
 logger = logging.getLogger()
 

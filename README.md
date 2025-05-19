@@ -1,4 +1,4 @@
-[![Galaxy version](https://img.shields.io/badge/dynamic/json?style=flat&label=Galaxy&prefix=v&url=https://galaxy.ansible.com/api/v3/plugin/ansible/content/published/collections/index/crowdstrike/falcon/versions/?is_highest=true&query=data[0].version)](https://galaxy.ansible.com/ui/repo/published/crowdstrike/falcon/)
+![Ansible Collection Version](https://img.shields.io/ansible/collection/v/crowdstrike/falcon?style=flat)
 
 # CrowdStrike Falcon Collection
 
@@ -86,7 +86,7 @@ Ansible EDA (Event Driven Ansible) is a new way to connect to sources of events 
 
 Name | Description
 --- | ---
-[crowdstrike.falcon.eventstream](./docs/crowdstrike.falcon.eventstream.md) | Receive events from CrowdStrike Falcon Event Stream.
+[crowdstrike.falcon.eventstream](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/docs/crowdstrike.falcon.eventstream.md) | Receive events from CrowdStrike Falcon Event Stream.
 
 <!--end eda content-->
 
@@ -149,7 +149,7 @@ The Python module dependencies are not automatically handled by `ansible-galaxy`
 ## Authentication
 
 To use this Ansible collection effectively, you'll need to authenticate with the CrowdStrike Falcon API. We've prepared a detailed guide
-outlining the various authentication mechanisms supported. Check out the [Authentication Guide](docs/authentication.md) for step-by-step instructions.
+outlining the various authentication mechanisms supported. Check out the [Authentication Guide](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/docs/authentication.md) for step-by-step instructions.
 
 ## Use Cases
 
@@ -250,7 +250,7 @@ The CrowdStrike Falcon Ansible collection uses automated testing through Molecul
 
 This automated testing pipeline helps maintain collection reliability and quickly identifies potential issues across different environments and use cases.
 
-To learn more about how we use Molecule, check out the [molecule](./molecule/) directory.
+To learn more about how we use Molecule, check out the [molecule](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/molecule/) directory.
 
 Nightly Results: [Actions](https://github.com/CrowdStrike/ansible_collection_falcon/actions)
 
@@ -266,11 +266,11 @@ likely be `bugfixes` or `minor_changes`. Please refer to the documentation for [
 
 CrowdStrike Ansible Collection is a community-driven, open source project aimed at simplifying the integration and utilization of CrowdStrike's Falcon platform with Ansible automation. While not an official CrowdStrike product, the CrowdStrike Ansible Collection is maintained by CrowdStrike and supported in collaboration with the open source developer community.
 
-For additional information, please refer to the [SUPPORT.md](./SUPPORT.md) file.
+For additional information, please refer to the [SUPPORT.md](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/SUPPORT.md) file.
 
 ## Release Notes
 
-See the [CHANGELOG.rst](./CHANGELOG.rst) for a history of notable changes to this collection.
+See the [CHANGELOG.rst](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/CHANGELOG.rst) for a history of notable changes to this collection.
 
 ## Related information
 
@@ -284,4 +284,4 @@ See the [CHANGELOG.rst](./CHANGELOG.rst) for a history of notable changes to thi
 
 ## License Information
 
-See the [LICENSE](LICENSE) for more information.
+See the [LICENSE](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/LICENSE) for more information.

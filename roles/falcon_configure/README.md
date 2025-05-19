@@ -56,7 +56,7 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 
 ### Falconctl Variables (Linux Only)
 
-> This role uses the [crowdstrike.falcon.falconctl](../../plugins/modules/falconctl.py) Ansible Module to configure the Falcon Sensor on Linux.
+> This role uses the [crowdstrike.falcon.falconctl](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/plugins/modules/falconctl.py) Ansible Module to configure the Falcon Sensor on Linux.
 
 - `falcon_option_set` - Set True|yes to set options, False|no to delete. *See note below (bool, default: ***true***)
 - `falcon_cid` - Your Falcon Customer ID (CID) if not using API creds (string, default: ***null***)
@@ -110,9 +110,9 @@ Ensure the following API scopes are enabled (***if applicable***) for this role:
 ## Dependencies
 
 - Privilege escalation (sudo/runas) is required for this role to function properly.
-  > See [Privilege Escalation Requirements](../../README.md#privilege-escalation-requirements) for more information.
+  > See [Privilege Escalation Requirements](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/README.md#privilege-escalation-requirements) for more information.
 - The Falcon Sensor must be installed on the target host
-  > See the [falcon_install](../falcon_install/README.md) role to learn more about installing the Falcon sensor.
+  > See the [falcon_install](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_install/README.md) role to learn more about installing the Falcon sensor.
 
 ## Example Playbooks
 
