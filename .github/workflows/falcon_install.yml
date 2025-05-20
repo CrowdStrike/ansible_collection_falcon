@@ -118,7 +118,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-          cache-dependency-path: '.github/workflows/falcon_install.yml'
+          cache-dependency-path: '.devcontainer/requirements.txt'
 
       - name: Install dependencies
         run: |
