@@ -6,7 +6,7 @@ pylint
 pre-commit
 autopep8
 ansible
-ansible-core
+ansible-core==2.16.7
 ansible-lint
 boto3
 botocore
