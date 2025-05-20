@@ -733,3 +733,17 @@ releases:
     - 4.7.3.yml
     - 599-gpg-key.yml
     release_date: '2025-04-21'
+  4.8.0:
+    changes:
+      minor_changes:
+      - intel_rule_download - added new module to download Intel Rules files (https://github.com/CrowdStrike/ansible_collection_falcon/issues/587)
+      - intel_rule_info - added new info module for Intel Rules files (https://github.com/CrowdStrike/ansible_collection_falcon/issues/587)
+      release_summary: '| Release Date: 2025-05-20
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.8.0>`__
+
+        '
+    fragments:
+    - 4.8.0.yml
+    - 602-add-new-intel-rule.yml
+    release_date: '2025-05-20'
