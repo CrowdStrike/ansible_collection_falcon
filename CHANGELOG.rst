@@ -4,6 +4,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.8.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2025-05-20
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.8.0>`__
+
+Minor Changes
+-------------
+
+- intel_rule_download - added new module to download Intel Rules files (https://github.com/CrowdStrike/ansible_collection_falcon/issues/587)
+- intel_rule_info - added new info module for Intel Rules files (https://github.com/CrowdStrike/ansible_collection_falcon/issues/587)
+
 v4.7.3
 ======
 
