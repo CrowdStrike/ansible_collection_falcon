@@ -44,6 +44,13 @@
     falcon_sensor_update_policy_platform: "{{ ansible_facts['system'] }}"
     falcon_os_vendor: "{{ ansible_facts['os_family'] | lower if (ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution'] != 'Amazon') else ansible_facts['distribution'] | lower }}"
 
+- name: "CrowdStrike Falcon | Override OS version for Amazon Linux 2"
+  ansible.builtin.set_fact:
+    falcon_os_version: "{{ ansible_facts['distribution_major_version'] }}"
+  when:
+    - ansible_facts['distribution'] == "Amazon"
+    - ansible_facts['distribution_major_version'] | int == 2
+
 - name: "CrowdStrike Falcon | Determine Operating System Architecture (Linux)"
   ansible.builtin.set_fact:
     falcon_os_arch: "{{ falcon_os_arch_dict[ansible_facts['architecture']] }}"
@@ -84,7 +91,7 @@
   ansible.builtin.file:
     path: "{{ falcon_install_tmp_dir }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
   when:
     - ansible_facts['system'] == "Linux" or ansible_facts['system'] == "Darwin"
     - falcon_install_tmp_dir is defined
