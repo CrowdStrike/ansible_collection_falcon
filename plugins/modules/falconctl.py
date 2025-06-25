@@ -99,6 +99,13 @@ options:
       - C(backend) is only available in sensor versions that support the C(--backend) option (>6.46.0).
       - "Valid Options are: C('auto'|'bpf'|'kernel')"
     type: str
+  maintenance_token:
+    description:
+      - Maintenance token required for sensor operations when uninstall and maintenance protection is enabled.
+      - Required for sensor versions 7.20+ when protection is armed.
+      - Used to disable protection before uninstall, upgrade, or configuration changes.
+    type: str
+    no_log: true
 """
 
 EXAMPLES = r"""
@@ -152,6 +159,7 @@ VALID_PARAMS = {
         "tags",
         "provisioning_token",
         "backend",
+        "maintenance_token",
     ],
     "d": [
         "cid",
@@ -369,6 +377,7 @@ def main():  # pylint: disable=missing-function-docstring
         billing=dict(required=False, type="str"),
         tags=dict(required=False, type="str"),
         backend=dict(required=False, type="str"),
+        maintenance_token=dict(required=False, no_log=True, type="str"),
     )
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)

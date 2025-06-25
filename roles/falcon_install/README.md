@@ -54,6 +54,11 @@ The following variables are currently supported:
 - `falcon_sensor_version_decrement` - Sensor N-x version to install (int, default: ***0*** [latest])
 - `falcon_sensor_update_policy_name` - Sensor update policy used to control sensor version (string, default: ***null***)
 
+### Maintenance Token Variables
+
+- `falcon_maintenance_token` - Maintenance token for sensor operations when uninstall and maintenance protection is enabled (string, default: ***null***)
+  > Required for sensor versions 7.20+ when protection is armed during upgrades/downgrades. Can be retrieved using the maintenance_token lookup plugin or provided manually.
+
 ### File Installation Variables
 
 - `falcon_localfile_path` - Absolute path to local falcon sensor package (string, default: ***null***)
@@ -95,6 +100,56 @@ Ensure the following API scopes are enabled (***if applicable***) for this role:
 
 - Privilege escalation (sudo/runas) is required for this role to function properly.
   > See [Privilege Escalation Requirements](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/README.md#privilege-escalation-requirements) for more information.
+
+## Maintenance Token Best Practices
+
+When working with protected Falcon sensors (versions 7.20+ for Linux), CrowdStrike recommends the following approaches:
+
+### **Recommended: Sensor Update Policy Management**
+
+The preferred method is to temporarily move hosts to a maintenance policy that has uninstall and maintenance protection disabled:
+
+1. Create a sensor update policy for maintenance with:
+   - Uninstall and maintenance protection **disabled**
+   - Sensor version updates **off**
+2. Move hosts to the maintenance policy before sensor operations
+3. Perform sensor upgrade/downgrade/reinstall
+4. Move hosts back to their original policies
+
+### **Alternative: Bulk Maintenance Token**
+
+When policy management isn't feasible, use bulk maintenance tokens:
+
+> [!IMPORTANT]
+> Bulk tokens work across multiple hosts and are more efficient than host-specific tokens. Ensure bulk maintenance tokens are enabled in your CrowdStrike environment.
+
+Using the lookup plugin via API:
+
+```yaml
+---
+- hosts: all
+  vars:
+    falcon_client_id: <FALCON_CLIENT_ID>
+    falcon_client_secret: <FALCON_CLIENT_SECRET>
+  roles:
+  - role: crowdstrike.falcon.falcon_install
+    vars:
+      falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token',
+                                          bulk=true,
+                                          client_id=falcon_client_id,
+                                          client_secret=falcon_client_secret) }}"
+```
+
+Alternatively you can provide a pre-obtained token:
+
+```yaml
+---
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_install
+    vars:
+      falcon_maintenance_token: "your-maintenance-token-here"
+```
 
 ## Example Playbooks
 
@@ -188,6 +243,8 @@ This example installs and configures the Falcon Sensor on Windows:
       falcon_windows_become_method: runas
       falcon_windows_become_user: SYSTEM
 ```
+
+----------
 
 ## License
 
