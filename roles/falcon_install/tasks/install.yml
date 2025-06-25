@@ -34,6 +34,17 @@
     - falcon_gpg_key_check | bool
     - ansible_facts['pkg_mgr'] in dpkg_packagers
 
+- name: CrowdStrike Falcon | Apply maintenance token (if sensor already installed - Linux)
+  crowdstrike.falcon.falconctl:
+    state: present
+    maintenance_token: "{{ falcon_maintenance_token }}"
+  when:
+    - falcon_maintenance_token is defined
+    - falcon_maintenance_token is not none
+    - falcon_maintenance_token | length > 0
+    - falcon_sensor_installed | default(false)
+
+
 - name: CrowdStrike Falcon | Install Falcon Sensor Package (Linux)
   ansible.builtin.package:
     deb: "{{ falcon_sensor_pkg if (ansible_facts['pkg_mgr'] in dpkg_packagers) else omit }}"
@@ -43,6 +54,18 @@
     state: present
   when:
     - ansible_facts['pkg_mgr'] in linux_packagers
+
+- name: CrowdStrike Falcon | Apply maintenance token (if sensor already installed - macOS)
+  ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl unload --maintenance-token"
+  args:
+    stdin: "{{ falcon_maintenance_token }}"
+  changed_when: false
+  when:
+    - falcon_maintenance_token is defined
+    - falcon_maintenance_token is not none
+    - falcon_maintenance_token | length > 0
+    - falcon_sensor_installed | default(false)
+    - ansible_facts['distribution'] == "MacOSX"
 
 - name: CrowdStrike Falcon | Install Falcon Sensor .pkg Package (macOS)
   ansible.builtin.command: "/usr/sbin/installer -pkg {{ falcon_sensor_pkg }} -target /"

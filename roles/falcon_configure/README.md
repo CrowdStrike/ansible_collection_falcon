@@ -130,6 +130,56 @@ Ensure the following API scopes are enabled (***if applicable***) for this role:
 - The Falcon Sensor must be installed on the target host
   > See the [falcon_install](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/roles/falcon_install/README.md) role to learn more about installing the Falcon sensor.
 
+## Maintenance Token Best Practices
+
+When working with protected Falcon sensors (versions 7.20+ for Linux), CrowdStrike recommends the following approaches:
+
+### **Recommended: Sensor Update Policy Management**
+
+The preferred method is to temporarily move hosts to a maintenance policy that has uninstall and maintenance protection disabled:
+
+1. Create a sensor update policy for maintenance with:
+   - Uninstall and maintenance protection **disabled**
+   - Sensor version updates **off**
+2. Move hosts to the maintenance policy before sensor operations
+3. Perform configuration changes
+4. Move hosts back to their original policies
+
+### **Alternative: Bulk Maintenance Token**
+
+When policy management isn't feasible, use bulk maintenance tokens:
+
+> [!IMPORTANT]
+> Bulk tokens work across multiple hosts and are more efficient than host-specific tokens. Ensure bulk maintenance tokens are enabled in your CrowdStrike environment.
+
+Using the lookup plugin via API:
+
+```yaml
+---
+- hosts: all
+  vars:
+    falcon_client_id: <FALCON_CLIENT_ID>
+    falcon_client_secret: <FALCON_CLIENT_SECRET>
+  roles:
+  - role: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token',
+                                          bulk=true,
+                                          client_id=falcon_client_id,
+                                          client_secret=falcon_client_secret) }}"
+```
+
+Alternatively you can provide a pre-obtained token:
+
+```yaml
+---
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_maintenance_token: "your-maintenance-token-here"
+```
+
 ## Example Playbooks
 
 How to set the Falcon Customer ID (CID) when CID is known:

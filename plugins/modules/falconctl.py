@@ -107,6 +107,13 @@ options:
       - "Valid Options are: C('us-1'|'us-2'|'eu-1'|'us-gov-1'|'us-gov-2')"
     type: str
     choices: ['us-1', 'us-2', 'eu-1', 'us-gov-1', 'us-gov-2']
+  maintenance_token:
+    description:
+      - Maintenance token required for sensor operations when uninstall and maintenance protection is enabled.
+      - Required for sensor versions 7.20+ when protection is armed.
+      - Used to disable protection before uninstall, upgrade, or configuration changes.
+    type: str
+    no_log: true
 """
 
 EXAMPLES = r"""
@@ -168,6 +175,7 @@ VALID_PARAMS = {
         "provisioning_token",
         "backend",
         "cloud",
+        "maintenance_token",
     ],
     "d": [
         "cid",
@@ -412,6 +420,7 @@ def main():  # pylint: disable=missing-function-docstring
             choices=["us-1", "us-2", "eu-1", "us-gov-1", "us-gov-2"],
             type="str",
         ),
+        maintenance_token=dict(required=False, no_log=True, type="str"),
     )
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)

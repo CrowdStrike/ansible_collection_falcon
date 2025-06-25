@@ -91,6 +91,21 @@ falcon_cid:
 falcon_client_id: ""
 falcon_client_secret: ""
 
+# Maintenance token for sensor operations when uninstall and maintenance protection is enabled.
+# Required for sensor versions 7.20+ when protection is armed during upgrades/downgrades.
+#
+# Examples:
+#   # Manual token
+#   falcon_maintenance_token: "your-token-here"
+#
+#   # Bulk token (recommended)
+#   falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token', bulk=true) }}"
+#
+#   # Host-specific token
+#   falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token', host_aid) }}"
+#
+falcon_maintenance_token:
+
 # The Falcon sensor version to install. This allows you to pin a specific sensor
 # version.
 #
@@ -159,11 +174,6 @@ falcon_windows_tmp_dir: "%SYSTEMROOT%\\Temp\\falcon-sensor"
 #       re-add them here.
 #
 falcon_windows_install_args: "/norestart"
-
-# Additional arguments to uninstall the sensor.
-# You can add your maintenance token here by adding MAINTENANCE_TOKEN=<token>
-#
-falcon_windows_uninstall_args: "/norestart"
 
 # Ansible become toggle for Windows systems.
 # The default is true

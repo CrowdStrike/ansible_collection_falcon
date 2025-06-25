@@ -26,6 +26,11 @@ Uninstalls the CrowdStrike Falcon Sensor.
    > :warning:
    > Please use `Host Retention Policies` under `Host Management` in the Falcon console which provides more flexibility and customization for automatically hiding and deleting hosts instead.
 
+### Maintenance Token Variables
+
+- `falcon_maintenance_token` - Maintenance token for sensor operations when uninstall and maintenance protection is enabled (string, default: ***null***)
+  > Required for sensor versions 7.20+ when protection is armed. Can be retrieved using the maintenance_token lookup plugin or provided manually.
+
 ### Windows Specific Variables
 
 - `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: ***/norestart***)
@@ -44,11 +49,64 @@ Ensure the following API scopes are enabled (**if applicable**) for this role:
 - When using API credentials `falcon_client_id` and `falcon_client_secret`
   - To hide/remove the host from the CrowdStrike console:
     - **Host** [write]
+  - To retrieve maintenance tokens using the lookup plugin:
+    - **Sensor update policies** [write]
 
 ## Dependencies
 
 - Privilege escalation (sudo/runas) is required for this role to function properly.
   > See [Privilege Escalation Requirements](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/README.md#privilege-escalation-requirements) for more information.
+
+## Maintenance Token Best Practices
+
+When working with protected Falcon sensors (versions 7.20+ for Linux), CrowdStrike recommends the following approaches:
+
+### **Recommended: Sensor Update Policy Management**
+
+The preferred method is to temporarily move hosts to a maintenance policy that has uninstall and maintenance protection disabled:
+
+1. Create a sensor update policy for maintenance with:
+   - Uninstall and maintenance protection **disabled**
+   - Sensor version updates **off**
+2. Move hosts to the maintenance policy before sensor operations
+3. Perform sensor upgrade/downgrade/reinstall
+4. Move hosts back to their original policies
+
+### **Alternative: Bulk Maintenance Token**
+
+When policy management isn't feasible, use bulk maintenance tokens:
+
+> [!IMPORTANT]
+> Bulk tokens work across multiple hosts and are more efficient than host-specific tokens. Ensure bulk maintenance tokens are enabled in your CrowdStrike environment.
+
+Using the lookup plugin via API:
+
+```yaml
+---
+- hosts: all
+  vars:
+    falcon_client_id: <FALCON_CLIENT_ID>
+    falcon_client_secret: <FALCON_CLIENT_SECRET>
+  roles:
+  - role: crowdstrike.falcon.falcon_uninstall
+    vars:
+      falcon_remove_host: true
+      falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token',
+                                          bulk=true,
+                                          client_id=falcon_client_id,
+                                          client_secret=falcon_client_secret) }}"
+```
+
+Alternatively you can provide a pre-obtained token:
+
+```yaml
+---
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_uninstall
+    vars:
+      falcon_maintenance_token: "your-maintenance-token-here"
+```
 
 ## Example Playbooks
 
@@ -85,6 +143,32 @@ This example uses a maintenance token to uninstall a Falcon Sensor on Windows:
     vars:
       falcon_windows_uninstall_args: "/norestart MAINTENANCE_TOKEN=<Falcon_Maintenance_Token>"
 ```
+
+Use a single bulk token for all hosts in your environment:
+
+> Requires bulk token to be enabled in your policy.
+
+```yaml
+---
+- hosts: all
+  vars:
+    falcon_client_id: <FALCON_CLIENT_ID>
+    falcon_client_secret: <FALCON_CLIENT_SECRET>
+  roles:
+  - role: crowdstrike.falcon.falcon_uninstall
+    vars:
+      falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token',
+                                          bulk=true,
+                                          client_id=falcon_client_id,
+                                          client_secret=falcon_client_secret) }}"
+```
+
+### Troubleshooting
+
+- If uninstall fails, the sensor likely has protection enabled and requires a maintenance token
+- Bulk tokens work for most scenarios and are the recommended approach
+- Host-specific tokens require the sensor to be running and configured (AID available)
+- Ensure **Sensor update policies** [write] API scope is enabled for token retrieval
 
 ## License
 

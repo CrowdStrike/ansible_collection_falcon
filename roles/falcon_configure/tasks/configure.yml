@@ -2,6 +2,15 @@
 - name: Linux Block
   when: ansible_facts['distribution'] != "MacOSX"
   block:
+    - name: CrowdStrike Falcon | Disable Maintenance Protection (if token provided)
+      crowdstrike.falcon.falconctl:
+        maintenance_token: "{{ falcon_maintenance_token }}"
+        state: 'present'
+      when:
+        - falcon_maintenance_token is defined
+        - falcon_maintenance_token is not none
+        - falcon_maintenance_token | length > 0
+
     - name: CrowdStrike Falcon | Configure Falcon Sensor Options (Linux)
       crowdstrike.falcon.falconctl:
         cid: "{{ options.cid }}"
@@ -122,6 +131,16 @@
       changed_when: falconctl_mac_tags_get.stdout != grouping_tags
       vars:
         grouping_tags: "Grouping tags: {{ falcon_tags }}"
+
+    - name: CrowdStrike Falcon | Apply maintenance token (macOS)
+      ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl unload --maintenance-token"
+      args:
+        stdin: "{{ falcon_maintenance_token }}"
+      changed_when: false
+      when:
+        - falcon_maintenance_token is defined
+        - falcon_maintenance_token is not none
+        - falcon_maintenance_token | length > 0
 
     - name: CrowdStrike Falcon | Set Grouping Tags (macOS)
       ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl grouping-tags set {{ falcon_tags }}"
