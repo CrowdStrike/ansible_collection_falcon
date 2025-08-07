@@ -191,7 +191,7 @@ def process_hosts(module, falcon, action_name, hosts, result):
     """Process the hosts to hide or unhide."""
     query_result = falcon.perform_action(action_name=action_name, ids=hosts)
 
-    if query_result["status_code"] != 200:
+    if query_result["status_code"] == 403:
         raise AnsibleError(
             f"Unable to hide/unhide hosts: {query_result['body']['errors']}"
         )
