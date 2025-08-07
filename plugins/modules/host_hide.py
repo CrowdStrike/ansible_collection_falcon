@@ -5,7 +5,6 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
-from ansible.errors import AnsibleError
 
 __metaclass__ = type
 
@@ -192,8 +191,8 @@ def process_hosts(module, falcon, action_name, hosts, result):
     query_result = falcon.perform_action(action_name=action_name, ids=hosts)
 
     if query_result["status_code"] == 403:
-        raise AnsibleError(
-            f"Unable to hide/unhide hosts: {query_result['body']['errors']}"
+        module.fail_json(
+            msg=f"Unable to hide/unhide hosts: {query_result['body']['errors']}"
         )
 
     # The API returns both successful and failed hosts in the same response. This
