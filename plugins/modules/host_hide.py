@@ -190,6 +190,11 @@ def process_hosts(module, falcon, action_name, hosts, result):
     """Process the hosts to hide or unhide."""
     query_result = falcon.perform_action(action_name=action_name, ids=hosts)
 
+    if query_result["status_code"] == 403:
+        module.fail_json(
+            msg=f"Unable to hide/unhide hosts: {query_result['body']['errors']}"
+        )
+
     # The API returns both successful and failed hosts in the same response. This
     # means we need to handle errors differently than we normally would.
     good = query_result["body"]["resources"]
