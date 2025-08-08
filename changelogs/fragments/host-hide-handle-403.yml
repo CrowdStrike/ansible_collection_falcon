@@ -1,0 +1,2 @@
+bugfixes:
+  - "host_hide module - Raise errors back to Ansible when the status code returned from the API is a 403"
