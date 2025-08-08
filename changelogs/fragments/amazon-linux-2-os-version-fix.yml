@@ -1,2 +1,0 @@
-bugfixes:
-  - "falcon_install role - Fix falcon_os_version for Amazon Linux 2 by removing wildcards that caused compatibility issues with sensor installation."

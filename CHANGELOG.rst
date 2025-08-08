@@ -4,6 +4,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.8.1
+======
+
+Release Summary
+---------------
+
+| Release Date: 2025-08-08
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.8.1>`__
+
+Bugfixes
+--------
+
+- falcon_install role - Fix falcon_os_version for Amazon Linux 2 by removing wildcards that caused compatibility issues with sensor installation.
+- host_hide module - Raise errors back to Ansible when the status code returned from the API is a 403
+
 v4.8.0
 ======
 
