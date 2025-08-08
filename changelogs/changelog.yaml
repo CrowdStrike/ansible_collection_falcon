@@ -747,3 +747,20 @@ releases:
     - 4.8.0.yml
     - 602-add-new-intel-rule.yml
     release_date: '2025-05-20'
+  4.8.1:
+    changes:
+      bugfixes:
+      - falcon_install role - Fix falcon_os_version for Amazon Linux 2 by removing
+        wildcards that caused compatibility issues with sensor installation.
+      - host_hide module - Raise errors back to Ansible when the status code returned
+        from the API is a 403
+      release_summary: '| Release Date: 2025-08-08
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.8.1>`__
+
+        '
+    fragments:
+    - 4.8.1.yml
+    - amazon-linux-2-os-version-fix.yml
+    - host-hide-handle-403.yml
+    release_date: '2025-08-08'
