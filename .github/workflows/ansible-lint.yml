@@ -11,5 +11,5 @@ jobs:
     name: Verify Ansible Lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: ansible/ansible-lint@v25.7.0
