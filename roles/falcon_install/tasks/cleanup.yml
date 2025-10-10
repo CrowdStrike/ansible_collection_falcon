@@ -7,4 +7,4 @@
   loop:
     - "{{ falcon_sensor_download.path }}"
     - "{{ falcon_sensor_download.path + '.lock' }}"
-  when: falcon_api_sensor_download_cleanup
+  when: falcon_api_sensor_download_cleanup | bool

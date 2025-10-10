@@ -5,17 +5,17 @@
     - name: "CrowdStrike Falcon | Validate Required API URL Is Defined"
       ansible.builtin.fail:
         msg: "falcon_cloud is not configured! Please configure falcon_cloud and re-run the installation again!"
-      when: not falcon_cloud
+      when: not (falcon_cloud | default('', true) | length > 0)
 
     - name: "CrowdStrike Falcon | Validate CrowdStrike API Client ID Is Defined"
       ansible.builtin.fail:
         msg: "falcon_client_id is not configured! Please configure falcon_client_id and re-run the installation again!"
-      when: not falcon_client_id
+      when: not (falcon_client_id | default('', true) | length > 0)
 
     - name: "CrowdStrike Falcon | Validate CrowdStrike API Client Secret Is Defined"
       ansible.builtin.fail:
         msg: "falcon_client_secret is not configured! Please configure falcon_client_secret and re-run the installation again!"
-      when: not falcon_client_secret
+      when: not (falcon_client_secret | default('', true) | length > 0)
 
     - name: "CrowdStrike Falcon | Validate CrowdStrike Falcon Sensor version decrement is correctly set"
       ansible.builtin.fail:
@@ -125,9 +125,7 @@
 - name: "CrowdStrike Falcon | Override falcon_sensor_version_decrement when falcon_sensor_update_policy_name or falcon_sensor_version set"
   ansible.builtin.set_fact:
     falcon_sensor_version_decrement: 0
-  when:
-    - falcon_sensor_update_policy_name or
-      falcon_sensor_version
+  when: (falcon_sensor_update_policy_name | length > 0) or (falcon_sensor_version | length > 0)
 
 - name: CrowdStrike Falcon | Override falcon_sensor_version when set
   ansible.builtin.set_fact:

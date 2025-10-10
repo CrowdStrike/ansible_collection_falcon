@@ -8,7 +8,7 @@
     url_password: "{{ falcon_download_url_password | default(omit) }}"
     mode: 0640
   when:
-    - falcon_download_url
+    - falcon_download_url is defined and falcon_download_url is not none and falcon_download_url | length > 0
     - falcon_install_temp_directory
   register: falcon_sensor_download
   retries: "{{ falcon_retries }}"

@@ -6,7 +6,7 @@
 
 - name: API block
   when:
-    - falcon_client_id and falcon_client_secret
+    - (falcon_client_id | default('', true)) | length > 0 and (falcon_client_secret | default('', true)) | length > 0
     - falcon_sensor_installed
   block:
     - ansible.builtin.include_role:

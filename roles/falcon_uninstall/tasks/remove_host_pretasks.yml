@@ -19,6 +19,8 @@
     - name: "CrowdStrike Falcon | Assert AID found (Linux)"
       ansible.builtin.assert:
         that:
+          - falcon_uninstall_linux_aid is defined
+          - falcon_uninstall_linux_aid is not none
           - falcon_uninstall_linux_aid | length > 0
         fail_msg: "AID was not found!"
         success_msg: "Found AID."
@@ -59,6 +61,8 @@
     - name: "CrowdStrike Falcon | Assert AID found (Windows)"
       ansible.builtin.assert:
         that:
+          - falcon_uninstall_windows_aid is defined
+          - falcon_uninstall_windows_aid is not none
           - falcon_uninstall_windows_aid | length > 0
         fail_msg: "AID was not found!"
         success_msg: "Found AID."
@@ -91,6 +95,8 @@
     - name: "CrowdStrike Falcon | Assert AID found (macOS)"
       ansible.builtin.assert:
         that:
+          - falcon_uninstall_mac_aid is defined
+          - falcon_uninstall_mac_aid is not none
           - falcon_uninstall_mac_aid | length > 0
         fail_msg: "AID was not found!"
         success_msg: "Found AID."

@@ -2,7 +2,7 @@
 # tasks file for falcon_configure
 - name: API block
   when:
-    - falcon_client_id and falcon_client_secret
+    - (falcon_client_id | default('', true)) | length > 0 and (falcon_client_secret | default('', true)) | length > 0
     - falcon_option_set
     - not falcon_cid
   block:
@@ -27,7 +27,7 @@
 
 - name: Remove AID block
   when:
-    - falcon_remove_aid
+    - falcon_remove_aid is defined and falcon_remove_aid | bool
     - not any_option_set
     - ansible_facts['os_family'] != "Windows"
   become: true

@@ -6,7 +6,7 @@
     url_username: "{{ falcon_download_url_username | default(omit) }}"
     url_password: "{{ falcon_download_url_password | default(omit) }}"
   when:
-    - falcon_download_url
+    - falcon_download_url is defined and falcon_download_url is not none and falcon_download_url | length > 0
     - falcon_windows_tmp_dir_stat.stat.path
   register: falcon_sensor_download
   retries: "{{ falcon_retries }}"
