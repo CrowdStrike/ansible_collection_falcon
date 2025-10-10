@@ -28,7 +28,7 @@
         state: "{{ falcon_service_state | default('restarted') }}"
         enabled: yes
       when:
-        - info.falconctl_info.cid is defined and info.falconctl_info.cid is not none and info.falconctl_info.cid | length > 0
+        - info.falconctl_info.cid | default('', true) | length > 0
         - falconctl_result.changed
       # noqa args[module]
       # noqa no-handler
@@ -41,9 +41,9 @@
       register: get_aid
       retries: "{{ falcon_aid_retries | int }}"
       delay: "{{ falcon_aid_delay | int }}"
-      until: get_aid.falconctl_info.aid is defined and get_aid.falconctl_info.aid is not none and get_aid.falconctl_info.aid | length > 0
+      until: get_aid.falconctl_info.aid | default('', true) | length > 0
       when:
-        - info.falconctl_info.cid is defined and info.falconctl_info.cid is not none and info.falconctl_info.cid | length > 0
+        - info.falconctl_info.cid | default('', true) | length > 0
         - falconctl_result.changed
 
     # Handle Master Image steps
@@ -61,7 +61,7 @@
         state: present
       when:
         - falcon_remove_aid is defined and falcon_remove_aid | bool
-        - falcon_provisioning_token is not none and falcon_provisioning_token | length > 0
+        - falcon_provisioning_token | default('', true) | length > 0
 
     - name: CrowdStrike Falcon | Master Image Prep | Stop Falcon Sensor service
       ansible.builtin.service:

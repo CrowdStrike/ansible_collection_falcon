@@ -10,7 +10,7 @@
   delegate_to: localhost
 
 - name: Set falcon_cid Block
-  when: not (falcon_cid is defined and falcon_cid is not none and falcon_cid | length > 0)
+  when: not (falcon_cid | default('', true) | length > 0)
   block:
   - name: CrowdStrike Falcon | Detect Target CID Based on Credentials
     crowdstrike.falcon.cid_info:
