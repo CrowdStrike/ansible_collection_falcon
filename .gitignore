@@ -118,6 +118,20 @@ $RECYCLE.BIN/
 *.zip
 *.7z
 
-# AI/ML tools (your custom additions)
-.clinerules
-.continue
+# AI Assistants
+#  Various AI coding assistants create local cache, settings, and conversation history
+#  These contain user-specific data and should not be committed to version control
+.cursorignore
+.cursorindexingignore
+.claude/
+CLAUDE.md
+.anthropic/
+.openai/
+.codeium/
+.tabnine/
+.github-copilot/
+.roo/
+.aider/
+.aider*
+.clinerules/
+memory-bank/
