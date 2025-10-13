@@ -6,7 +6,7 @@
         state: "{{ falcon_service_state | default('started') }}"
         start_mode: auto
       when:
-        - falcon_cid
+        - falcon_cid | default('', true) | length > 0
 
     - name: CrowdStrike Falcon Installer | Remove any AID Key
       ansible.windows.win_regedit:
@@ -17,4 +17,4 @@
         - 'HKLM:\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\{16e0423f-7058-48c9-a204-725362b67639}\Default\AG'
         - 'HKLM:\SYSTEM\CurrentControlSet\Services\CSAgent\Sim\AG'
       when:
-        - falcon_remove_aid
+        - falcon_remove_aid is defined and falcon_remove_aid | bool

@@ -13,7 +13,7 @@
   changed_when: no
   loop: "{{ falcon_gpg_keys }}"
   when:
-    - falcon_gpg_key_check
+    - falcon_gpg_key_check | bool
 
 - name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from files
   ansible.builtin.rpm_key:
@@ -22,7 +22,7 @@
   changed_when: no
   loop: "{{ falcon_gpg_keys }}"
   when:
-    - falcon_gpg_key_check
+    - falcon_gpg_key_check | bool
     - ansible_facts['pkg_mgr'] in rpm_packagers
 
 - name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from file
@@ -31,7 +31,7 @@
     state: present
   changed_when: no
   when:
-    - falcon_gpg_key_check
+    - falcon_gpg_key_check | bool
     - ansible_facts['pkg_mgr'] in dpkg_packagers
 
 - name: CrowdStrike Falcon | Install Falcon Sensor Package (Linux)
@@ -68,5 +68,5 @@
     state: absent
   when:
     - falcon_install_method == "file"
-    - falcon_localfile_cleanup
+    - falcon_localfile_cleanup | bool
   changed_when: no

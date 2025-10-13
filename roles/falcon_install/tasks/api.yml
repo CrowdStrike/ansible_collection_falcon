@@ -1,7 +1,7 @@
 ---
 - name: Sensor Update Policy Block
   when:
-    - falcon_sensor_update_policy_name
+    - falcon_sensor_update_policy_name | length > 0
   block:
     - name: "CrowdStrike Falcon | Build Sensor Update Policy API Query"
       ansible.builtin.set_fact:
