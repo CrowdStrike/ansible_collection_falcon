@@ -33,6 +33,7 @@ FALCONCTL_GET_OPTIONS = [
     "rfm_state",
     "rfm_reason",
     "backend",
+    "cloud",
 ]
 
 # Private use only. This is to ensure that the command is checked

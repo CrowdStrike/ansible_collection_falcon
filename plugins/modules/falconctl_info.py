@@ -41,7 +41,8 @@ options:
         'version',
         'rfm_state',
         'rfm_reason',
-        'backend'
+        'backend',
+        'cloud'
         ]
     type: list
     elements: str
