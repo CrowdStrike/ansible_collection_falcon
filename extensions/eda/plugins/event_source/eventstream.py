@@ -5,7 +5,7 @@ import logging
 import re
 import time
 from collections.abc import AsyncGenerator, Callable
-from typing import Any, Optional
+from typing import Any
 
 import aiohttp
 
@@ -136,7 +136,7 @@ class AIOFalconAPI:
         self: "AIOFalconAPI",
         client_id: str,
         client_secret: str,
-        base_url: Optional[str] = None,
+        base_url: str | None = None,
     ) -> None:
         """Initialize a new AIOFalconAPI object.
 
@@ -266,7 +266,7 @@ class Stream:
         self: "Stream",
         client: AIOFalconAPI,
         stream_name: str,
-        offset: Optional[int],
+        offset: int | None,
         latest: bool,
         include_event_types: list[str],
         stream: dict,
@@ -305,7 +305,7 @@ class Stream:
         self.token_expired: Callable[[], bool] = lambda: (
             (self.refresh_interval) - 60
         ) + self.epoch < int(time.time())
-        self.spigot: Optional[aiohttp.ClientResponse] = None
+        self.spigot: aiohttp.ClientResponse | None = None
 
     async def refresh(self: "Stream") -> bool:
         """Refresh the stream and client token.
@@ -474,7 +474,7 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
     falcon_client_secret: str = str(args.get("falcon_client_secret"))
     falcon_cloud: str = str(args.get("falcon_cloud", "us-1"))
     stream_name: str = str(args.get("stream_name", "eda")).lower()
-    offset: Optional[int] = args.get("offset")
+    offset: int | None = args.get("offset")
     latest: bool = bool(args.get("latest", False))
     delay: float = float(args.get("delay", 0))
     include_event_types: list[str] = list(args.get("include_event_types", []))
