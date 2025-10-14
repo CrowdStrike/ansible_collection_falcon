@@ -99,6 +99,14 @@ options:
       - C(backend) is only available in sensor versions that support the C(--backend) option (>6.46.0).
       - "Valid Options are: C('auto'|'bpf'|'kernel')"
     type: str
+  cloud:
+    description:
+      - Specify the cloud region for the Falcon sensor to connect to.
+      - C(cloud) is only available in sensor versions 7.28.0 and above with unified installer support.
+      - This parameter helps the sensor connect to the correct cloud region and can resolve AID generation timeouts.
+      - "Valid Options are: C('us-1'|'us-2'|'eu-1'|'us-gov-1'|'us-gov-2')"
+    type: str
+    choices: ['us-1', 'us-2', 'eu-1', 'us-gov-1', 'us-gov-2']
 """
 
 EXAMPLES = r"""
@@ -112,6 +120,12 @@ EXAMPLES = r"""
     state: present
     cid: 1234567890ABCDEF1234567890ABCDEF-12
     provisioning_token: 12345678
+
+- name: Set CrowdStrike Falcon CID with Cloud Region (Sensor v7.28+)
+  crowdstrike.falcon.falconctl:
+    state: present
+    cid: 1234567890ABCDEF1234567890ABCDEF-12
+    cloud: us-2
 
 - name: Delete CrowdStrike Falcon CID
   crowdstrike.falcon.falconctl:
@@ -131,6 +145,7 @@ EXAMPLES = r"""
     app: 8080
 """
 
+import platform
 import re
 
 from ansible.module_utils.basic import AnsibleModule
@@ -152,6 +167,7 @@ VALID_PARAMS = {
         "tags",
         "provisioning_token",
         "backend",
+        "cloud",
     ],
     "d": [
         "cid",
@@ -164,6 +180,7 @@ VALID_PARAMS = {
         "tags",
         "provisioning_token",
         "backend",
+        "cloud",
     ],
 }
 
@@ -203,7 +220,28 @@ class FalconCtl(object):
 
         # Check if any error keyword is found in output[2]
         if any(keyword in output[2] for keyword in error_keywords):
-            self.module.fail_json(msg="ERROR: %s" % (output[2].splitlines()[0]))
+            error_msg = output[2].splitlines()[0]
+
+            # Handle unrecognized option gracefully (generic for any parameter)
+            if "unrecognized option" in error_msg:
+                # Extract parameter name using regex (re module already imported)
+                match = re.search(r"unrecognized option '(--[^'=\s]+)", error_msg)
+                param_name = match.group(1) if match else "unknown parameter"
+
+                # Get hostname for context (fallback chain for reliability)
+                hostname = (
+                    platform.node() or
+                    'unknown-host'
+                )
+                warning_msg = (
+                    f"Host {hostname}: Parameter {param_name} was skipped - not supported by this sensor version. "
+                    f"Consider upgrading your sensor for full parameter support."
+                )
+                self.module.warn(warning_msg)
+                return  # Continue execution instead of failing
+            else:
+                # All other error types still fail as before
+                self.module.fail_json(msg="ERROR: %s" % error_msg)
 
     @classmethod
     def __validate_regex(cls, string, regex, flags=re.IGNORECASE):
@@ -369,6 +407,11 @@ def main():  # pylint: disable=missing-function-docstring
         billing=dict(required=False, type="str"),
         tags=dict(required=False, type="str"),
         backend=dict(required=False, type="str"),
+        cloud=dict(
+            required=False,
+            choices=["us-1", "us-2", "eu-1", "us-gov-1", "us-gov-2"],
+            type="str",
+        ),
     )
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)

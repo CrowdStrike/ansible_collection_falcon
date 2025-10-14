@@ -15,6 +15,7 @@
         billing: "{{ options.billing }}"
         tags: "{{ options.tags }}"
         backend: "{{ options.backend }}"
+        cloud: "{{ options.cloud }}"
         state: "{{ 'present' if falcon_option_set else 'absent' }}"
       register: falconctl_result
 

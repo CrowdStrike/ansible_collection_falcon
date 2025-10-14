@@ -18,3 +18,4 @@ options:
   billing: "{{ falcon_billing if (falcon_billing != None) else omit }}"
   tags: "{{ falcon_tags if (falcon_tags != None) else omit }}"
   backend: "{{ falcon_backend if (falcon_backend != None) else omit }}"
+  cloud: "{{ falcon_sensor_cloud if (falcon_sensor_cloud != None) else omit }}"

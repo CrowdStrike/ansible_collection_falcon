@@ -20,7 +20,9 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 
 - `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: ***null***)
 - `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: ***null***)
-- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: ***us-1***)
+- `falcon_cloud` - CrowdStrike API URL for API operations (string, default: ***us-1***)
+  - Controls API endpoint selection for authentication and data retrieval
+  - Can be specified as either a cloud alias (us-1, us-2, etc.) or full URL
   - choices:
     - **us-1** -> api.crowdstrike.com
     - **us-2** -> api.us-2.crowdstrike.com
@@ -28,18 +30,32 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
     - **eu-1** -> api.eu-1.crowdstrike.com
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 
+### Sensor Configuration Variables
+
+- `falcon_sensor_cloud` - Cloud region for the Falcon sensor to connect to (string, default: ***null***)
+  - Specifies which CrowdStrike cloud region the sensor should connect to
+  - Only available for sensor version 7.28.0 and above with unified installer support
+  - Helps resolve AID generation timeouts by connecting to the correct cloud endpoint immediately
+  - Independent of API cloud configuration (falcon_cloud)
+  - Valid values: `us-1`, `us-2`, `eu-1`, `us-gov-1`, `us-gov-2`
+
 ### Common Variables
 
 - `falcon_remove_aid` - Remove the Falcon Agent ID (AID) (bool, default: ***null***)
 
 ### Linux Specific Variables
 
-- `falcon_aid_retries` - Number of retries to attempt when waiting to retrieve the Falcon Agent ID (AID) (int, default: ***6***)
+- `falcon_aid_retries` - Number of retries to attempt when waiting to retrieve the Falcon Agent ID (AID) (int, default: ***12***)
 - `falcon_aid_delay` - Number of seconds to wait between `falcon_aid_retries` when waiting to retrieve the Falcon Agent ID (AID) (int, default: ***10***)
 
+> [!NOTE]
 > These variables control the retry behavior when attempting to retrieve the Falcon Agent ID (AID) after configuring
 > and restarting the sensor. The default values should work for most, but you may need to increase them in
 > environments with slower startup times.
+
+> [!IMPORTANT]
+> For sensor version 7.28+, specifying the correct `falcon_sensor_cloud`
+> region can significantly reduce AID generation time by connecting to the proper cloud endpoint immediately.
 
 ### Windows Specific Variables
 
@@ -151,6 +167,34 @@ How to set the Falcon Customer ID (CID) w/ provisioning token:
       falcon_cid: 1234567890ABCDEF1234567890ABCDEF-12
       falcon_provisioning_token: 12345678
 ```
+
+----------
+
+How to configure for specific cloud regions (sensor v7.28+):
+
+```yaml
+# API-based workflow with explicit sensor cloud region
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_client_id: <FALCON_CLIENT_ID>
+      falcon_client_secret: <FALCON_CLIENT_SECRET>
+      falcon_sensor_cloud: us-2  # Explicit sensor cloud region
+      # falcon_cloud can autodiscover any region for API operations
+
+# Non-API workflow with sensor cloud region
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_cid: 1234567890ABCDEF1234567890ABCDEF-12
+      falcon_sensor_cloud: us-2  # No dependency on API configuration
+```
+
+> **Note**: For Falcon sensor v7.28+ with unified installers, specifying `falcon_sensor_cloud`
+> helps prevent AID generation timeouts by ensuring the sensor connects to the proper cloud endpoint immediately
+> instead of trying multiple regions sequentially.
 
 ----------
 

@@ -124,6 +124,14 @@ falcon_tags:
 #
 falcon_backend:
 
+# Configure the cloud region for the Falcon sensor to connect to.
+# Valid values are: [us-1|us-2|eu-1|us-gov-1|us-gov-2]
+#
+# This is only available for sensors version 7.28.0 and above with unified installer support.
+# Helps resolve AID generation timeouts by connecting to the correct cloud endpoint immediately.
+#
+falcon_sensor_cloud:
+
 # Ansible become toggle for Windows systems.
 # The default is true
 #
