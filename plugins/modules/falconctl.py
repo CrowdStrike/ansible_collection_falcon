@@ -145,6 +145,7 @@ EXAMPLES = r"""
     app: 8080
 """
 
+import platform
 import re
 
 from ansible.module_utils.basic import AnsibleModule
@@ -221,16 +222,25 @@ class FalconCtl(object):
         if any(keyword in output[2] for keyword in error_keywords):
             error_msg = output[2].splitlines()[0]
 
-            # Provide specific guidance for cloud parameter errors
-            if "--cloud" in error_msg and "unrecognized" in error_msg:
-                cloud_value = self.module.params.get("cloud", "unknown")
-                enhanced_msg = (
-                    f"Cloud parameter '{cloud_value}' is not supported by this sensor version. "
-                    f"Please upgrade to sensor v7.28+ to use cloud region specification. "
-                    f"Original error: {error_msg}"
+            # Handle unrecognized option gracefully (generic for any parameter)
+            if "unrecognized option" in error_msg:
+                # Extract parameter name using regex (re module already imported)
+                match = re.search(r"unrecognized option '(--[^'=\s]+)", error_msg)
+                param_name = match.group(1) if match else "unknown parameter"
+
+                # Get hostname for context (fallback chain for reliability)
+                hostname = (
+                    platform.node() or
+                    'unknown-host'
                 )
-                self.module.fail_json(msg=enhanced_msg)
+                warning_msg = (
+                    f"Host {hostname}: Parameter {param_name} was skipped - not supported by this sensor version. "
+                    f"Consider upgrading your sensor for full parameter support."
+                )
+                self.module.warn(warning_msg)
+                return  # Continue execution instead of failing
             else:
+                # All other error types still fail as before
                 self.module.fail_json(msg="ERROR: %s" % error_msg)
 
     @classmethod

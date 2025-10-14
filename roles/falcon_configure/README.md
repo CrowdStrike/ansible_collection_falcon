@@ -48,9 +48,13 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 - `falcon_aid_retries` - Number of retries to attempt when waiting to retrieve the Falcon Agent ID (AID) (int, default: ***12***)
 - `falcon_aid_delay` - Number of seconds to wait between `falcon_aid_retries` when waiting to retrieve the Falcon Agent ID (AID) (int, default: ***10***)
 
+> [!NOTE]
 > These variables control the retry behavior when attempting to retrieve the Falcon Agent ID (AID) after configuring
 > and restarting the sensor. The default values should work for most, but you may need to increase them in
-> environments with slower startup times. For sensor version 7.28+, specifying the correct `falcon_cloud`
+> environments with slower startup times.
+
+> [!IMPORTANT]
+> For sensor version 7.28+, specifying the correct `falcon_sensor_cloud`
 > region can significantly reduce AID generation time by connecting to the proper cloud endpoint immediately.
 
 ### Windows Specific Variables
