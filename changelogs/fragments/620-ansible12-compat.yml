@@ -1,4 +1,0 @@
-bugfixes:
-  - "Fixed conditional evaluation compatibility with ansible-core >=2.19 (Ansible 12) by converting string-based conditionals to explicit boolean comparisons across all roles (https://github.com/CrowdStrike/ansible_collection_falcon/issues/620)."
-  - "Standardized conditional patterns to use consistent 'variable | default(\"\", true) | length > 0' syntax for string variables and 'variable | bool' for boolean variables throughout the collection."
-  - "Fixed assert statements and retry loops to handle null values properly in Ansible 12's stricter conditional validation."
