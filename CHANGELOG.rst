@@ -4,6 +4,30 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.9.0
+======
+
+Release Summary
+---------------
+
+| Release Date: 2025-10-14
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.9.0>`__
+
+Minor Changes
+-------------
+
+- Added 'falcon_sensor_cloud' variable to falcon_configure role to specify cloud region during sensor configuration (us-1, us-2, eu-1, us-gov-1, us-gov-2).
+- Added support for the '--cloud' parameter in falconctl and falconctl_info modules for Falcon sensor v7.28+ unified installers to resolve AID generation timeout issues (https://github.com/CrowdStrike/ansible_collection_falcon/issues/625).
+- Enhanced falconctl module with graceful handling of unrecognized parameters - now generates host-specific warnings instead of failing when older sensors don't support newer parameters.
+- Improved multi-host deployment experience by adding hostname context to parameter compatibility warnings, enabling administrators to identify which specific hosts need sensor upgrades.
+
+Bugfixes
+--------
+
+- Fixed assert statements and retry loops to handle null values properly in Ansible 12's stricter conditional validation.
+- Fixed conditional evaluation compatibility with ansible-core >=2.19 (Ansible 12) by converting string-based conditionals to explicit boolean comparisons across all roles (https://github.com/CrowdStrike/ansible_collection_falcon/issues/620).
+- Standardized conditional patterns to use consistent 'variable | default("", true) | length > 0' syntax for string variables and 'variable | bool' for boolean variables throughout the collection.
+
 v4.8.1
 ======
 
