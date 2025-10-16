@@ -6,11 +6,11 @@
 #
 # Disabling this can expose your API credentials and authorization token.
 #
-falcon_api_enable_no_log: yes
+falcon_api_enable_no_log: true
 
 # Controls whether you would like to set or delete options associated with the Falcon Sensor.
 # The default is `yes` - to SET options.
-falcon_option_set: yes
+falcon_option_set: true
 
 # CrowdStrike API URL for downloading the Falcon sensor. Possible values:
 #       us-1:       api.crowdstrike.com
@@ -28,7 +28,6 @@ falcon_cloud_autodiscover: true
 # Your Falcon Customer ID (CID) used to associate your sensor.
 #
 falcon_cid:
-
 # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
 # API. If unknown, get it from the CrowdStrike support portal:
 #
@@ -36,14 +35,12 @@ falcon_cid:
 #
 falcon_client_id:
 falcon_client_secret:
-
 # Installation tokens prevent unauthorized hosts from being accidentally or maliciously added
 # to your Customer ID (CID). Installation tokens are an optional security
 # measure for your CID. For more details:
 # https://falcon.crowdstrike.com/support/documentation/page/f4d593ca/installation-options-for-falcon-sensor-for-linux#l086f14c
 #
 falcon_provisioning_token:
-
 ######### Wait for AID generation #########
 # Number of retries to attempt when waiting to retrieve the Falcon Agent ID (AID)
 # after sensor restart.
@@ -62,7 +59,6 @@ falcon_aid_delay: 10
 # to 'true|yes'.
 #
 falcon_remove_aid:
-
 ######### PROXY CONFIG #########
 # Whether to enable or disable the Falcon sensor to use a proxy. Set this value to either
 # 'true|yes' or 'false|no'.
@@ -70,11 +66,9 @@ falcon_remove_aid:
 # NOTE: To enable the proxy - use `false|no`
 #
 falcon_apd:
-
 # The Falcon Proxy host. Can be either the FQDN or IP.
 #
 falcon_aph:
-
 # Falcon Proxy port associated with the proxy host.
 #
 falcon_app:
@@ -84,7 +78,6 @@ falcon_app:
 # [none|err|warn|info|debug]
 #
 falcon_trace:
-
 # Falcon allows the configuration of additional features to the sensor. Valid values are:
 # [none,[enableLog[,disableLogBuffer]]] and are passed in as
 # a list.
@@ -95,17 +88,14 @@ falcon_trace:
 #     - disableLogBuffer
 #
 falcon_feature:
-
 # Whether to enable or disable the ability to log messages to disk. Set this value to either
 # 'true|yes' or 'false|no'.
 #
 falcon_message_log:
-
 # Configure Falcon sensor with Pay-As-You-Go billing. Useful for cloud environments.
 # Valid values are: [default|metered]
 #
 falcon_billing:
-
 # Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.
 # If using tags, ensure the following requirements are met:
 #   * Tags can include these characters: a-zA-Z0-9-_/
@@ -116,14 +106,12 @@ falcon_billing:
 # Example
 #   falcon_tags: 'Washington/DC_USA,Production'
 falcon_tags:
-
 # Configure the Falcon sensor to use a specific backend.
 # Valid values are: [auto|bpf|kernel]
 #
 # This is only available for Linux systems on sensors greater than 6.47.0.
 #
 falcon_backend:
-
 # Configure the cloud region for the Falcon sensor to connect to.
 # Valid values are: [us-1|us-2|eu-1|us-gov-1|us-gov-2]
 #
@@ -131,7 +119,6 @@ falcon_backend:
 # Helps resolve AID generation timeouts by connecting to the correct cloud endpoint immediately.
 #
 falcon_sensor_cloud:
-
 # Ansible become toggle for Windows systems.
 # The default is true
 #

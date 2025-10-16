@@ -2,14 +2,14 @@
 - name: Example of what modules would look like in this collection
   hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: false
 
   tasks:
-  - name: Generate Authentication Credentials (access token and cloud region)
-    crowdstrike.falcon.auth:
-    register: falcon
+    - name: Generate Authentication Credentials (access token and cloud region)
+      crowdstrike.falcon.auth:
+      register: falcon
 
-  - name: Get enabled windows sensor policies
-    crowdstrike.falcon.sensor_update_policy_info:
-      auth: "{{ falcon.auth }}"
-      filter: "platform_name:'Windows'+enabled:'true'"
+    - name: Get enabled windows sensor policies
+      crowdstrike.falcon.sensor_update_policy_info:
+        auth: "{{ falcon.auth }}"
+        filter: "platform_name:'Windows'+enabled:'true'"

@@ -86,34 +86,34 @@ EXAMPLES = r"""
 plugin: crowdstrike.falcon.falcon_discover
 
 # authentication credentials (required if not using environment variables)
-#client_id: 1234567890abcdef12345678
-#client_secret: 1234567890abcdef1234567890abcdef12345
-#cloud: us-1
+# client_id: 1234567890abcdef12345678
+# client_secret: 1234567890abcdef1234567890abcdef12345
+# cloud: us-1
 
 # fql filter expression to limit results (by default all assets are returned)
 # examples below:
 
 # return unmanaged assets discovered in the past day
-#filter: "entity_type:'unmanaged'+first_seen_timestamp:>'now-1d'"
+# filter: "entity_type:'unmanaged'+first_seen_timestamp:>'now-1d'"
 
 # return all new assets within the past week
-#filter: "first_seen_timestamp:>'now-1w'"
+# filter: "first_seen_timestamp:>'now-1w'"
 
 # return all assets that have been seen in the past 3 days
-#filter: "last_seen_timestamp:>'now-3d'"
+# filter: "last_seen_timestamp:>'now-3d'"
 
 # return all assets seen in the last 12 hours that are in RFM mode
-#filter: "reduced_functionality_mode:Yes+last_seen_timestamp:>'now-12h'"
+# filter: "reduced_functionality_mode:Yes+last_seen_timestamp:>'now-12h'"
 
 # return all AWS assets
-#filter: "cloud_provider:'AWS'"
+# filter: "cloud_provider:'AWS'"
 
 # allow duplicate hostnames to be added to the inventory
 # example: If you two hosts with the same hostname, they will be added as:
 #     hostnameA
 #     hostnameA_1234567890abcdef12345678
 #
-#allow_duplicates: true
+# allow_duplicates: true
 
 # place hosts into dynamically created groups based on variable values
 keyed_groups:

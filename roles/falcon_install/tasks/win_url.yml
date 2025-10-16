@@ -1,3 +1,4 @@
+---
 # Tasks for Installing CrowdStrike's Falcon Sensor via URL
 - name: CrowdStrike Falcon | Downloading Installation Package from URL (Windows)
   ansible.windows.win_get_url:

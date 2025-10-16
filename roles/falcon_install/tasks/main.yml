@@ -10,7 +10,7 @@
     - falcon_install_method == "api"
   block:
     - ansible.builtin.include_tasks: auth.yml
-      # noqa name[missing]
+    # noqa name[missing]
     - ansible.builtin.include_tasks: api.yml
       # noqa name[missing]
 
