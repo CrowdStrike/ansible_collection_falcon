@@ -1,27 +1,33 @@
 ---
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
+# Fast pre-commit checks to catch common issues quickly (< 30 seconds)
+# For deep testing, manually run: ansible-test sanity --exclude '.devcontainer/' -v --docker && tox
 repos:
+  # Basic file hygiene - catches obvious issues
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files
+        args: [--maxkb=1024]  # 1MB limit
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-ast  # Python syntax check
+        files: \.py$
 
+  # YAML linting - fast syntax and style checking
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint]
+        exclude: ^(molecule/|\.github/)
+
+  # Ansible linting - catches Ansible-specific issues quickly
   - repo: https://github.com/ansible/ansible-lint.git
-    rev: v6.22.1
+    rev: v25.8.2  # Match CI workflow version
     hooks:
       - id: ansible-lint
-        files: \.(yaml|yml)$
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-
-  - repo: https://github.com/PyCQA/pylint
-    rev: v3.0.0a6
-    hooks:
-      - id: pylint
+        # Only run on changed YAML files for speed
+        files: \.(yaml|yml|py)$
