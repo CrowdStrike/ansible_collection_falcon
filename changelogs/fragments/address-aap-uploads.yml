@@ -1,0 +1,4 @@
+bugfixes:
+  - modernizes the collection's code quality tooling and resolves all outstanding ansible-lint violations
+    while establishing a more efficient development workflow
+    (https://github.com/CrowdStrike/ansible_collection_falcon/pull/630)
