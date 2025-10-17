@@ -1,3 +1,4 @@
+---
 - name: CrowdStrike Falcon | Remove Downloaded Sensor Installation directory (local)
   ansible.builtin.file:
     path: "{{ item }}"

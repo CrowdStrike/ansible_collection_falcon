@@ -5,20 +5,20 @@
     client_secret: "{{ falcon_client_secret }}"
     cloud: "{{ falcon_cloud }}"
   register: falcon
-  run_once: yes
+  run_once: true
   no_log: "{{ falcon_api_enable_no_log }}"
   delegate_to: localhost
 
 - name: Set falcon_cid Block
   when: not (falcon_cid | default('', true) | length > 0)
   block:
-  - name: CrowdStrike Falcon | Detect Target CID Based on Credentials
-    crowdstrike.falcon.cid_info:
-      auth: "{{ falcon.auth }}"
-    register: falcon_api_cid_info
-    run_once: yes
-    delegate_to: localhost
+    - name: CrowdStrike Falcon | Detect Target CID Based on Credentials
+      crowdstrike.falcon.cid_info:
+        auth: "{{ falcon.auth }}"
+      register: falcon_api_cid_info
+      run_once: true
+      delegate_to: localhost
 
-  - name: CrowdStrike Falcon | Set CID received from API
-    ansible.builtin.set_fact:
-      falcon_cid: "{{ falcon_api_cid_info.cid }}"
+    - name: CrowdStrike Falcon | Set CID received from API
+      ansible.builtin.set_fact:
+        falcon_cid: "{{ falcon_api_cid_info.cid }}"

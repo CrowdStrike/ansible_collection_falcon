@@ -1,3 +1,4 @@
+---
 - name: Windows Block
   block:
     - name: CrowdStrike Falcon Installer | Starting Falcon Sensor Service (Windows)
@@ -14,7 +15,7 @@
         state: absent
         delete_key: true
       loop:
-        - 'HKLM:\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\{16e0423f-7058-48c9-a204-725362b67639}\Default\AG'
-        - 'HKLM:\SYSTEM\CurrentControlSet\Services\CSAgent\Sim\AG'
+        - "HKLM:\\SYSTEM\\CrowdStrike\\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\\{16e0423f-7058-48c9-a204-725362b67639}\\Default\\AG"
+        - "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\CSAgent\\Sim\\AG"
       when:
         - falcon_remove_aid is defined and falcon_remove_aid | bool

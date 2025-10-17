@@ -26,8 +26,8 @@ description: >
 
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
-#license:
-#- GPL-3.0-or-later
+# license:
+# - GPL-3.0-or-later
 
 # The path to the license file for the collection. This path is relative to the root of the collection. This key is
 # mutually exclusive with 'license'
@@ -71,6 +71,7 @@ issues: https://github.com/CrowdStrike/ansible_collection_crowdstrike/issues
 # uses 'fnmatch' to match the files or directories. Some directories and files like 'galaxy.yml', '*.pyc', '*.retry',
 # and '.git' are always filtered
 build_ignore:
-  - 'tox.ini'
-  - '.*'
-  - 'molecule'
+  - ".[dgrv]*"
+  - ".ansible"
+  - ".pre-commit-config.yaml"
+  - "molecule"

@@ -27,12 +27,12 @@
       ansible.builtin.service:
         name: falcon-sensor
         state: "{{ falcon_service_state | default('restarted') }}"
-        enabled: yes
+        enabled: true
       when:
         - info.falconctl_info.cid | default('', true) | length > 0
         - falconctl_result.changed
-      # noqa args[module]
-      # noqa no-handler
+    # noqa args[module]
+    # noqa no-handler
 
     # Wait for aid to be generated
     - name: CrowdStrike Falcon | Wait for Falcon Sensor to Generate AID
@@ -50,7 +50,7 @@
     # Handle Master Image steps
     - name: CrowdStrike Falcon | Master Image Prep | Removing AID
       crowdstrike.falcon.falconctl:
-        aid: yes
+        aid: true
         state: absent
       when:
         - falcon_remove_aid is defined and falcon_remove_aid | bool
@@ -82,7 +82,7 @@
   when:
     - ansible_facts['distribution'] == "MacOSX"
     - falconctl_mac.stat.exists
-  become: yes
+  become: true
   block:
     - name: CrowdStrike Falcon | Associate Falcon Sensor with your Customer ID (CID) (macOS)
       ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl license {{ falcon_cid }}"

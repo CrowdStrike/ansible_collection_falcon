@@ -42,7 +42,12 @@
     falcon_os_family: "{{ ansible_facts['system'] | lower }}"
     falcon_os_version: "*{{ ansible_facts['distribution_major_version'] }}*"
     falcon_sensor_update_policy_platform: "{{ ansible_facts['system'] }}"
-    falcon_os_vendor: "{{ ansible_facts['os_family'] | lower if (ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution'] != 'Amazon') else ansible_facts['distribution'] | lower }}"
+    falcon_os_vendor: >-
+      {{
+        ansible_facts['os_family'] | lower
+        if (ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution'] != 'Amazon')
+        else ansible_facts['distribution'] | lower
+      }}
 
 - name: "CrowdStrike Falcon | Override OS version for Amazon Linux 2"
   ansible.builtin.set_fact:
@@ -96,7 +101,7 @@
     - ansible_facts['system'] == "Linux" or ansible_facts['system'] == "Darwin"
     - falcon_install_tmp_dir | default('', true) | length > 0
   register: falcon_install_temp_directory
-  changed_when: no
+  changed_when: false
 
 - name: CrowdStrike Falcon | Ensure Temporary Install Directory Exists (Windows)
   ansible.windows.win_file:
@@ -105,7 +110,7 @@
   when:
     - ansible_facts['os_family'] == "Windows"
     - falcon_windows_tmp_dir | default('', true) | length > 0
-  changed_when: no
+  changed_when: false
 
 - name: CrowdStrike Falcon | Validate Temporary install directory (Windows)
   ansible.windows.win_stat:

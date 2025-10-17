@@ -1,799 +1,595 @@
-ancestor: null
+---
+ancestor:
 releases:
   3.2.19:
     changes:
       bugfixes:
-      - falconctl - updated usage of string options and added validation for options.
+        - falconctl - updated usage of string options and added validation for options.
       minor_changes:
-      - ansible_install - added optional credentials for package download
-      - falcon_install - Update target_os for RHEL family to support RHEL 9.
-      - falconctl - Fixed issue with APD and billing options being able to use empty
-        string as proper argument.
-      - falconctl - extrapolated common param checks to function.
-      release_summary: '| Release Date: 2022-08-09
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.19>`__
-
-        '
+        - ansible_install - added optional credentials for package download
+        - falcon_install - Update target_os for RHEL family to support RHEL 9.
+        - falconctl - Fixed issue with APD and billing options being able to use empty string as proper argument.
+        - falconctl - extrapolated common param checks to function.
+      release_summary: "| Release Date: 2022-08-09\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.19>`__\n"
     fragments:
-    - 228-fix-apd-billing-issue.yml
-    - 231-fix-falconctl-plugin-issues.yml
-    - 232-auth-in-download.yml
-    - 233-fix-rhel9-support-issue.yml
-    - 3.2.19.yml
-    release_date: '2022-08-09'
+      - 228-fix-apd-billing-issue.yml
+      - 231-fix-falconctl-plugin-issues.yml
+      - 232-auth-in-download.yml
+      - 233-fix-rhel9-support-issue.yml
+      - 3.2.19.yml
+    release_date: "2022-08-09"
   3.2.20:
     changes:
       bugfixes:
-      - falcon_install - fix-incorrect-arm64-assumptions (https://github.com/CrowdStrike/ansible_collection_falcon/issues/244)
-      release_summary: '| Release Date: 2022-08-23
-
-        | `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.19>`__
-
-        '
+        - falcon_install - fix-incorrect-arm64-assumptions (https://github.com/CrowdStrike/ansible_collection_falcon/issues/244)
+      release_summary: "| Release Date: 2022-08-23\n| `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.19>`__\n"
     fragments:
-    - fix-incorrect-arm64-assumptions.yml
-    - v3.2.20.yml
-    release_date: '2022-08-23'
+      - fix-incorrect-arm64-assumptions.yml
+      - v3.2.20.yml
+    release_date: "2022-08-23"
   3.2.21:
     changes:
       bugfixes:
-      - falcon_configure - fix issue with aid removal for image prep failed (https://github.com/CrowdStrike/ansible_collection_falcon/issues/254)
+        - falcon_configure - fix issue with aid removal for image prep failed (https://github.com/CrowdStrike/ansible_collection_falcon/issues/254)
       minor_changes:
-      - falcon_install - add the ability to install from a local file (https://github.com/CrowdStrike/ansible_collection_falcon/pull/242).
-      release_summary: '| Release Date: 2022-09-06
-
-        | `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.21>`__
-
-        '
+        - falcon_install - add the ability to install from a local file (https://github.com/CrowdStrike/ansible_collection_falcon/pull/242).
+      release_summary: "| Release Date: 2022-09-06\n| `Release Notes <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.21>`__\n"
     fragments:
-    - 3-2-21-summary.yml
-    - add-local-file-install-method.yml
-    - fix-failing-aid-master-prep.yml
-    release_date: '2022-09-16'
+      - 3-2-21-summary.yml
+      - add-local-file-install-method.yml
+      - fix-failing-aid-master-prep.yml
+    release_date: "2022-09-16"
   3.2.22:
     changes:
       bugfixes:
-      - falcon_configure - fix issue with falcon_cloud variable not being set correctly
-        (https://github.com/CrowdStrike/ansible_collection_falcon/issues/257)
-      release_summary: '| Release Date: 2022-09-16
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.22>`__
-
-        '
+        - falcon_configure - fix issue with falcon_cloud variable not being set correctly (https://github.com/CrowdStrike/ansible_collection_falcon/issues/257)
+      release_summary: "| Release Date: 2022-09-16\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.22>`__\n"
     fragments:
-    - 3.2.22-summary.yaml
-    - fix-falcon-configure-var-issue.yaml
-    release_date: '2022-09-30'
+      - 3.2.22-summary.yaml
+      - fix-falcon-configure-var-issue.yaml
+    release_date: "2022-09-30"
   3.2.23:
     changes:
       minor_changes:
-      - Updates made to conform with the latest ansible-lint rules (https://github.com/CrowdStrike/ansible_collection_falcon/pull/263)
-      - implement run_once playbook option to reduce API calls (https://github.com/CrowdStrike/ansible_collection_falcon/pull/261)
-      release_summary: '| Release Date: 2022-10-10
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.23>`__
-
-        '
+        - Updates made to conform with the latest ansible-lint rules (https://github.com/CrowdStrike/ansible_collection_falcon/pull/263)
+        - implement run_once playbook option to reduce API calls (https://github.com/CrowdStrike/ansible_collection_falcon/pull/261)
+      release_summary: "| Release Date: 2022-10-10\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.23>`__\n"
     fragments:
-    - 3.2.23-summary.yaml
-    - ansible-lint-updates.yaml
-    - run-once.yaml
-    release_date: '2022-10-10'
+      - 3.2.23-summary.yaml
+      - ansible-lint-updates.yaml
+      - run-once.yaml
+    release_date: "2022-10-10"
   3.2.24:
     changes:
       bugfixes:
-      - falcon_install - fix issue with sensor update policies and arch support (https://github.com/CrowdStrike/ansible_collection_falcon/pull/276)
+        - falcon_install - fix issue with sensor update policies and arch support (https://github.com/CrowdStrike/ansible_collection_falcon/pull/276)
       minor_changes:
-      - falcon_install falcon_configure - Refactored API authentication for better
-        useability (https://github.com/CrowdStrike/ansible_collection_falcon/pull/273)
-      release_summary: '| Release Date: 2022-12-22
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.24>`__
-
-        '
+        - falcon_install falcon_configure - Refactored API authentication for better useability
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/273)
+      release_summary: "| Release Date: 2022-12-22\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.24>`__\n"
     fragments:
-    - 3.2.24-summary.yml
-    - release-notes.yml
-    release_date: '2022-12-22'
+      - 3.2.24-summary.yml
+      - release-notes.yml
+    release_date: "2022-12-22"
   3.2.25:
     changes:
       bugfixes:
-      - falcon_install - Fixed support for s390x that was causing issues for the other
-        archs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/281)
-      release_summary: '| Release Date: 2022-12-22
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.25>`__
-
-        '
+        - falcon_install - Fixed support for s390x that was causing issues for the other archs
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/281)
+      release_summary: "| Release Date: 2022-12-22\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.25>`__\n"
     fragments:
-    - 3.2.25.yml
-    - fixes.yml
-    release_date: '2022-12-22'
+      - 3.2.25.yml
+      - fixes.yml
+    release_date: "2022-12-22"
   3.2.26:
     changes:
       bugfixes:
-      - falcon_install - Fix issue with non-linux systems being affected by `falcon_os_arch`
-        variable (https://github.com/CrowdStrike/ansible_collection_falcon/pull/284)
-      release_summary: '| Release Date: 2022-12-27
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.26>`__
-
-        '
+        - falcon_install - Fix issue with non-linux systems being affected by `falcon_os_arch` variable
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/284)
+      release_summary: "| Release Date: 2022-12-27\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.26>`__\n"
     fragments:
-    - 3.2.26-summary.yml
-    - bugfixes.yml
-    release_date: '2022-12-27'
+      - 3.2.26-summary.yml
+      - bugfixes.yml
+    release_date: "2022-12-27"
   3.2.27:
     changes:
       minor_changes:
-      - falcon_configure - Add backend support for bpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/287)
-      - falcon_install - Fixed issue with delegation in Auth call (https://github.com/CrowdStrike/ansible_collection_falcon/pull/286)
-      - falconctl, falconctl_info - Add backend option support for bpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/287)
-      release_summary: '| Release Date: 2023-01-12
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.27>`__
-
-        '
+        - falcon_configure - Add backend support for bpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/287)
+        - falcon_install - Fixed issue with delegation in Auth call (https://github.com/CrowdStrike/ansible_collection_falcon/pull/286)
+        - falconctl, falconctl_info - Add backend option support for bpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/287)
+      release_summary: "| Release Date: 2023-01-12\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.27>`__\n"
     fragments:
-    - 3.2.27-summary.yml
-    - changes.yml
-    release_date: '2023-01-12'
+      - 3.2.27-summary.yml
+      - changes.yml
+    release_date: "2023-01-12"
   3.2.28:
     changes:
       minor_changes:
-      - falcon_configure, falcon_install, falcon_uninstall - Updated to use ansible
-        facts dictionary instead of the ansible_* naming convention (https://github.com/CrowdStrike/ansible_collection_falcon/pull/299)
-      - falcon_install - Fix delegate_to issue due to omit bug in Ansible 2.12 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/306)
-      release_summary: '| Release Date: 2023-02-16
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.28>`__
-
-        '
+        - falcon_configure, falcon_install, falcon_uninstall - Updated to use ansible facts dictionary instead of the ansible_* naming convention
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/299)
+        - falcon_install - Fix delegate_to issue due to omit bug in Ansible 2.12 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/306)
+      release_summary: "| Release Date: 2023-02-16\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.28>`__\n"
     fragments:
-    - 3.2.28.yaml
-    - minor_changes.yaml
-    release_date: '2023-02-16'
+      - 3.2.28.yaml
+      - minor_changes.yaml
+    release_date: "2023-02-16"
   3.2.29:
     changes:
       minor_changes:
-      - falcon_configure, falcon_install - Extract authentication logic to be more
-        OS specific (https://github.com/CrowdStrike/ansible_collection_falcon/pull/309)
-      release_summary: '| Release Date: 2023-03-01
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.29>`__
-
-        '
+        - falcon_configure, falcon_install - Extract authentication logic to be more OS specific
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/309)
+      release_summary: "| Release Date: 2023-03-01\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.29>`__\n"
     fragments:
-    - 3.2.29.yaml
-    - minor_changes.yml
-    release_date: '2023-03-01'
+      - 3.2.29.yaml
+      - minor_changes.yml
+    release_date: "2023-03-01"
   3.2.30:
     changes:
       bugfixes:
-      - falcon_install - fix win auth (https://github.com/CrowdStrike/ansible_collection_falcon/pull/316)
-      release_summary: '| Release Date: 2023-03-06
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.30>`__
-
-        '
+        - falcon_install - fix win auth (https://github.com/CrowdStrike/ansible_collection_falcon/pull/316)
+      release_summary: "| Release Date: 2023-03-06\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.30>`__\n"
     fragments:
-    - 3.2.30.yml
-    - fix-win-auth.yaml
-    release_date: '2023-03-06'
+      - 3.2.30.yml
+      - fix-win-auth.yaml
+    release_date: "2023-03-06"
   3.2.31:
     changes:
       bugfixes:
-      - falcon_install - fixes a bug where falcon_os_arch was affecting the falcon_install
-        module on Mac OS X (https://github.com/CrowdStrike/ansible_collection_falcon/pull/318)
+        - falcon_install - fixes a bug where falcon_os_arch was affecting the falcon_install module on Mac OS X
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/318)
       minor_changes:
-      - falcon_configure - adds the ability to manage grouping tags for Mac OS (https://github.com/CrowdStrike/ansible_collection_falcon/pull/318)
-      - falcon_install - made the ability to toggle run_once options available to
-        the user (https://github.com/CrowdStrike/ansible_collection_falcon/pull/320)
-      - falcon_install, falcon_configure, falcon_uninstall - Enhances the roles to
-        better support Mac OS, to include changed_when and failed_when conditions
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/318/files)
-      release_summary: '| Release Date: 2023-03-15
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.31>`__
-
-        '
+        - falcon_configure - adds the ability to manage grouping tags for Mac OS (https://github.com/CrowdStrike/ansible_collection_falcon/pull/318)
+        - falcon_install - made the ability to toggle run_once options available to the user (https://github.com/CrowdStrike/ansible_collection_falcon/pull/320)
+        - falcon_install, falcon_configure, falcon_uninstall - Enhances the roles to better support Mac OS, to include changed_when and failed_when conditions
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/318/files)
+      release_summary: "| Release Date: 2023-03-15\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.31>`__\n"
     fragments:
-    - 3.2.31.yml
-    - mac-updates-318.yml
-    - run-once-320.yml
-    release_date: '2023-03-15'
+      - 3.2.31.yml
+      - mac-updates-318.yml
+      - run-once-320.yml
+    release_date: "2023-03-15"
   3.2.32:
     changes:
       bugfixes:
-      - falcon_install - fix issue with sorting of returned versions when using falcon_sensor_version_decrement
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/325)
-      - falcon_install - fix kernel compatibility query (https://github.com/CrowdStrike/ansible_collection_falcon/pull/332)
-      release_summary: '| Release Date: 2023-03-30
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.32>`__
-
-        '
+        - falcon_install - fix issue with sorting of returned versions when using falcon_sensor_version_decrement
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/325)
+        - falcon_install - fix kernel compatibility query (https://github.com/CrowdStrike/ansible_collection_falcon/pull/332)
+      release_summary: "| Release Date: 2023-03-30\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.32>`__\n"
     fragments:
-    - 3.2.32.yml
-    - fix-decrement-sorting.yml
-    - fix-kernel-compat-query.yml
-    release_date: '2023-03-30'
+      - 3.2.32.yml
+      - fix-decrement-sorting.yml
+      - fix-kernel-compat-query.yml
+    release_date: "2023-03-30"
   3.2.33:
     changes:
       minor_changes:
-      - falcon_install - gives the user the option to downgrade the falcon sensor
-        to a previous version (https://github.com/CrowdStrike/ansible_collection_falcon/pull/334)
-      release_summary: '| Release Date: 2023-04-24
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.33>`__
-
-        '
+        - falcon_install - gives the user the option to downgrade the falcon sensor to a previous version
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/334)
+      release_summary: "| Release Date: 2023-04-24\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.33>`__\n"
     fragments:
-    - 3.2.33.yml
-    - downgrade.yml
-    release_date: '2023-04-24'
+      - 3.2.33.yml
+      - downgrade.yml
+    release_date: "2023-04-24"
   3.2.34:
     changes:
       bugfixes:
-      - falcon_install - fix bug with zypper downgrade (https://github.com/CrowdStrike/ansible_collection_falcon/pull/344)
-      release_summary: '| Release Date: 2023-05-10
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.34>`__
-
-        '
+        - falcon_install - fix bug with zypper downgrade (https://github.com/CrowdStrike/ansible_collection_falcon/pull/344)
+      release_summary: "| Release Date: 2023-05-10\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.34>`__\n"
     fragments:
-    - 3.2.34.yml
-    - zypper-downgrade.yml
-    release_date: '2023-05-10'
+      - 3.2.34.yml
+      - zypper-downgrade.yml
+    release_date: "2023-05-10"
   3.2.35:
     changes:
       bugfixes:
-      - falcon_install - fix issue with expired gpg key (https://github.com/CrowdStrike/ansible_collection_falcon/pull/361)
-      release_summary: '| Release Date: 2023-06-30
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.35>`__
-
-        '
+        - falcon_install - fix issue with expired gpg key (https://github.com/CrowdStrike/ansible_collection_falcon/pull/361)
+      release_summary: "| Release Date: 2023-06-30\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.35>`__\n"
     fragments:
-    - 3.2.35.yml
-    - gpg-key.yml
-    release_date: '2023-06-30'
+      - 3.2.35.yml
+      - gpg-key.yml
+    release_date: "2023-06-30"
   3.2.36:
     changes:
       bugfixes:
-      - falcon_install - use tmp path instead of hardcoding sensor name (https://github.com/CrowdStrike/ansible_collection_falcon/pull/368)
+        - falcon_install - use tmp path instead of hardcoding sensor name (https://github.com/CrowdStrike/ansible_collection_falcon/pull/368)
       minor_changes:
-      - falcon_install - add the ability to install from an URL for windows (https://github.com/CrowdStrike/ansible_collection_falcon/pull/363)
-      - falcon_install - removing kernel compat check due to prevelance of ebpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/367)
-      release_summary: '| Release Date: 2023-07-28
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.36>`__
-
-        '
+        - falcon_install - add the ability to install from an URL for windows (https://github.com/CrowdStrike/ansible_collection_falcon/pull/363)
+        - falcon_install - removing kernel compat check due to prevelance of ebpf (https://github.com/CrowdStrike/ansible_collection_falcon/pull/367)
+      release_summary: "| Release Date: 2023-07-28\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.2.36>`__\n"
     fragments:
-    - 3.2.36.yml
-    - remove-kernel-compat.yml
-    - url_ability_for_windows.yml
-    release_date: '2023-07-28'
+      - 3.2.36.yml
+      - remove-kernel-compat.yml
+      - url_ability_for_windows.yml
+    release_date: "2023-07-28"
   3.3.0:
     changes:
       bugfixes:
-      - falcon_install - Fix Windows destination URL (https://github.com/CrowdStrike/ansible_collection_falcon/pull/375)
+        - falcon_install - Fix Windows destination URL (https://github.com/CrowdStrike/ansible_collection_falcon/pull/375)
       minor_changes:
-      - evenstream-eda - Introducing new EvenStream EDA plugin (https://github.com/CrowdStrike/ansible_collection_falcon/pull/322)
-      release_summary: '| Release Date: 2023-08-04
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.0>`__
-
-        '
+        - evenstream-eda - Introducing new EvenStream EDA plugin (https://github.com/CrowdStrike/ansible_collection_falcon/pull/322)
+      release_summary: "| Release Date: 2023-08-04\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.0>`__\n"
     fragments:
-    - 3.3.0.yml
-    - eda.yml
-    - fix-windows-dest-url.yml
-    release_date: '2023-08-04'
+      - 3.3.0.yml
+      - eda.yml
+      - fix-windows-dest-url.yml
+    release_date: "2023-08-04"
   3.3.1:
     changes:
       bugfixes:
-      - eda - fix EDA partner requirements using tox (https://github.com/CrowdStrike/ansible_collection_falcon/pull/381)
-      release_summary: '| Release Date: 2023-08-17
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.1>`__
-
-        '
+        - eda - fix EDA partner requirements using tox (https://github.com/CrowdStrike/ansible_collection_falcon/pull/381)
+      release_summary: "| Release Date: 2023-08-17\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.1>`__\n"
     fragments:
-    - 3.3.1.yml
-    - eda-tox.yml
-    release_date: '2023-08-17'
+      - 3.3.1.yml
+      - eda-tox.yml
+    release_date: "2023-08-17"
   3.3.2:
     changes:
       bugfixes:
-      - falcon_configure - add become clause to remove_aid tasks (https://github.com/CrowdStrike/ansible_collection_falcon/pull/392)
+        - falcon_configure - add become clause to remove_aid tasks (https://github.com/CrowdStrike/ansible_collection_falcon/pull/392)
       minor_changes:
-      - falcon_uninstall - Adds hide/remove host functionality (https://github.com/CrowdStrike/ansible_collection_falcon/pull/393)
-      release_summary: '| Release Date: 2023-09-11
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.2>`__
-
-        '
+        - falcon_uninstall - Adds hide/remove host functionality (https://github.com/CrowdStrike/ansible_collection_falcon/pull/393)
+      release_summary: "| Release Date: 2023-09-11\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.2>`__\n"
     fragments:
-    - 3.3.2.yml
-    - fix-become-issue-aid.yml
-    - remove-host.yml
-    release_date: '2023-09-11'
+      - 3.3.2.yml
+      - fix-become-issue-aid.yml
+      - remove-host.yml
+    release_date: "2023-09-11"
   3.3.3:
     changes:
       bugfixes:
-      - update ansible meta information for certifiable requirements (https://github.com/CrowdStrike/ansible_collection_falcon/pull/405)
-      release_summary: '| Release Date: 2023-09-14
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.3>`__
-
-        '
+        - update ansible meta information for certifiable requirements (https://github.com/CrowdStrike/ansible_collection_falcon/pull/405)
+      release_summary: "| Release Date: 2023-09-14\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/3.3.3>`__\n"
     fragments:
-    - 3.3.3.yml
-    - meta-update.yml
-    release_date: '2023-09-14'
+      - 3.3.3.yml
+      - meta-update.yml
+    release_date: "2023-09-14"
   4.0.0:
     changes:
       breaking_changes:
-      - falconpy - new collection requirements for authenticating with the CrowdStrike
-        Falcon API now require the falconpy sdk. All existing roles within the collection
-        have been ported over and should use the ``./requirements.txt`` file to get
-        started. (https://github.com/CrowdStrike/ansible_collection_falcon/pull/384)
+        - falconpy - new collection requirements for authenticating with the CrowdStrike Falcon API now require the falconpy sdk. All existing roles within the
+          collection have been ported over and should use the ``./requirements.txt`` file to get started.
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/384)
       bugfixes:
-      - cid_info - return the first element of the array (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
-      - falcon_configure - add missing when clause for mac task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/399)
+        - cid_info - return the first element of the array (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
+        - falcon_configure - add missing when clause for mac task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/399)
       minor_changes:
-      - auth - adds ``auth`` module to manage authentication with the Falcon API (https://github.com/CrowdStrike/ansible_collection_falcon/pull/384)
-      - cid_info - adds ``cid_info`` module to help retrieve CID with checksum (https://github.com/CrowdStrike/ansible_collection_falcon/pull/395)
-      - falcon_discover - adds a new dynamic inventory for the Discover service collection
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/400)
-      - falcon_install - replaces existing API functionality with new modules (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
-      - host_hide - adds ``host_hide`` module to hide/unhide hosts from the Falcon
-        console (https://github.com/CrowdStrike/ansible_collection_falcon/pull/399)
-      - sensor_download - adds ``sensor_download`` module to download sensor from
-        the Falcon API (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
-      - sensor_download_info - adds ``sensor_download_info`` module to retrieve sensor
-        installers to download (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
-      - sensor_policy_info - adds ``sensor_policy_info`` module to retrieve sensor
-        policy information from the CrowdStrike Falcon API (https://github.com/CrowdStrike/ansible_collection_falcon/pull/251)
-      release_summary: '| Release Date: 2023-09-15
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.0.0>`__
-
-        '
+        - auth - adds ``auth`` module to manage authentication with the Falcon API (https://github.com/CrowdStrike/ansible_collection_falcon/pull/384)
+        - cid_info - adds ``cid_info`` module to help retrieve CID with checksum (https://github.com/CrowdStrike/ansible_collection_falcon/pull/395)
+        - falcon_discover - adds a new dynamic inventory for the Discover service collection (https://github.com/CrowdStrike/ansible_collection_falcon/pull/400)
+        - falcon_install - replaces existing API functionality with new modules (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
+        - host_hide - adds ``host_hide`` module to hide/unhide hosts from the Falcon console (https://github.com/CrowdStrike/ansible_collection_falcon/pull/399)
+        - sensor_download - adds ``sensor_download`` module to download sensor from the Falcon API
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
+        - sensor_download_info - adds ``sensor_download_info`` module to retrieve sensor installers to download
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/396)
+        - sensor_policy_info - adds ``sensor_policy_info`` module to retrieve sensor policy information from the CrowdStrike Falcon API
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/251)
+      release_summary: "| Release Date: 2023-09-15\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.0.0>`__\n"
     fragments:
-    - 4.0.0.yml
-    - v4-updates.yml
+      - 4.0.0.yml
+      - v4-updates.yml
     modules:
-    - description: Manage authentication
-      name: auth
-      namespace: ''
-    - description: Get CID with checksum
-      name: cid_info
-      namespace: ''
-    - description: Hide/Unhide hosts from the Falcon console
-      name: host_hide
-      namespace: ''
-    - description: Download Falcon Sensor Installer
-      name: sensor_download
-      namespace: ''
-    - description: Get information about Falcon Sensor Installers
-      name: sensor_download_info
-      namespace: ''
-    - description: Get information about Falcon Update Sensor Policies
-      name: sensor_update_policy_info
-      namespace: ''
+      - description: Manage authentication
+        name: auth
+        namespace: ""
+      - description: Get CID with checksum
+        name: cid_info
+        namespace: ""
+      - description: Hide/Unhide hosts from the Falcon console
+        name: host_hide
+        namespace: ""
+      - description: Download Falcon Sensor Installer
+        name: sensor_download
+        namespace: ""
+      - description: Get information about Falcon Sensor Installers
+        name: sensor_download_info
+        namespace: ""
+      - description: Get information about Falcon Update Sensor Policies
+        name: sensor_update_policy_info
+        namespace: ""
     plugins:
       inventory:
-      - description: CrowdStrike Falcon Discover inventory source
-        name: falcon_discover
-        namespace: null
-    release_date: '2023-09-15'
+        - description: CrowdStrike Falcon Discover inventory source
+          name: falcon_discover
+          namespace:
+    release_date: "2023-09-15"
   4.1.0:
     changes:
       minor_changes:
-      - host_contain - adds new module to manage host network containment state (https://github.com/CrowdStrike/ansible_collection_falcon/pull/411)
-      release_summary: '| Release Date: 2023-09-16
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.0>`__
-
-        '
+        - host_contain - adds new module to manage host network containment state (https://github.com/CrowdStrike/ansible_collection_falcon/pull/411)
+      release_summary: "| Release Date: 2023-09-16\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.0>`__\n"
     fragments:
-    - 4.1.0.yml
-    - host_contain.yml
+      - 4.1.0.yml
+      - host_contain.yml
     modules:
-    - description: Network contain hosts in Falcon
-      name: host_contain
-      namespace: ''
-    release_date: '2023-09-16'
+      - description: Network contain hosts in Falcon
+        name: host_contain
+        namespace: ""
+    release_date: "2023-09-16"
   4.1.1:
     changes:
       bugfixes:
-      - falcon_discover - fixed missing parameter for compose to work properly (https://github.com/CrowdStrike/ansible_collection_falcon/pull/413)
-      release_summary: '| Release Date: 2023-09-17
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.1>`__
-
-        '
+        - falcon_discover - fixed missing parameter for compose to work properly (https://github.com/CrowdStrike/ansible_collection_falcon/pull/413)
+      release_summary: "| Release Date: 2023-09-17\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.1>`__\n"
     fragments:
-    - 4.1.1.yml
-    - discover-fix.yml
-    release_date: '2023-09-17'
+      - 4.1.1.yml
+      - discover-fix.yml
+    release_date: "2023-09-17"
   4.1.2:
     changes:
       bugfixes:
-      - falconpy_utils - fix incorrect url for eu1 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/415)
-      release_summary: '| Release Date: 2023-09-19
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.2>`__
-
-        '
+        - falconpy_utils - fix incorrect url for eu1 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/415)
+      release_summary: "| Release Date: 2023-09-19\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.2>`__\n"
     fragments:
-    - 4.1.2.yml
-    - fix-eu-mapping.yml
-    release_date: '2023-09-19'
+      - 4.1.2.yml
+      - fix-eu-mapping.yml
+    release_date: "2023-09-19"
   4.1.3:
     changes:
       bugfixes:
-      - falcon_configure - fix main task call to auth task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/418)
-      release_summary: '| Release Date: 2023-09-22
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.3>`__
-
-        '
+        - falcon_configure - fix main task call to auth task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/418)
+      release_summary: "| Release Date: 2023-09-22\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.1.3>`__\n"
     fragments:
-    - 4.1.3.yml
-    - fix-configure-role.yml
-    release_date: '2023-09-22'
+      - 4.1.3.yml
+      - fix-configure-role.yml
+    release_date: "2023-09-22"
   4.2.0:
     changes:
       minor_changes:
-      - eventstream plugin - add user-agent string (https://github.com/CrowdStrike/ansible_collection_falcon/pull/426)
-      release_summary: '| Release Date: 2023-10-19
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.0>`__
-
-        '
+        - eventstream plugin - add user-agent string (https://github.com/CrowdStrike/ansible_collection_falcon/pull/426)
+      release_summary: "| Release Date: 2023-10-19\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.0>`__\n"
     fragments:
-    - 4.2.0.yml
-    - user-agent.yml
-    release_date: '2023-10-19'
+      - 4.2.0.yml
+      - user-agent.yml
+    release_date: "2023-10-19"
   4.2.1:
     changes:
-      release_summary: '| Release Date: 2023-12-08
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.1>`__
-
-        '
+      release_summary: "| Release Date: 2023-12-08\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.1>`__\n"
     fragments:
-    - 4.2.1.yml
-    release_date: '2023-12-08'
+      - 4.2.1.yml
+    release_date: "2023-12-08"
   4.2.2:
     changes:
       bugfixes:
-      - Remove superfluous parameter `required` from process.get_bin_path API usage.
-      - falcon_install - fix falcon_target_os value for SLES (https://github.com/CrowdStrike/ansible_collection_falcon/pull/449)
-      release_summary: '| Release Date: 2024-02-14
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.2>`__
-
-        '
+        - Remove superfluous parameter `required` from process.get_bin_path API usage.
+        - falcon_install - fix falcon_target_os value for SLES (https://github.com/CrowdStrike/ansible_collection_falcon/pull/449)
+      release_summary: "| Release Date: 2024-02-14\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.2.2>`__\n"
     fragments:
-    - 4.2.2.summary.yml
-    - 448-sles-fix.yml
-    - get_bin_path.yml
-    release_date: '2024-02-14'
+      - 4.2.2.summary.yml
+      - 448-sles-fix.yml
+      - get_bin_path.yml
+    release_date: "2024-02-14"
   4.3.0:
     changes:
       bugfixes:
-      - falcon_hosts - added support for hostname preferences and fixed documentation
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/474)
-      - falcon_hosts - added support for parameter templating (https://github.com/CrowdStrike/ansible_collection_falcon/pull/475)
-      - host_hide - api action was limited to 100 hosts. Fix now allows for processing
-        of more than 100 hosts. (https://github.com/CrowdStrike/ansible_collection_falcon/pull/473)
+        - falcon_hosts - added support for hostname preferences and fixed documentation (https://github.com/CrowdStrike/ansible_collection_falcon/pull/474)
+        - falcon_hosts - added support for parameter templating (https://github.com/CrowdStrike/ansible_collection_falcon/pull/475)
+        - host_hide - api action was limited to 100 hosts. Fix now allows for processing of more than 100 hosts.
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/473)
       minor_changes:
-      - falcon_hosts - adds a new dynamic inventory for the Hosts service collection
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/470)
-      release_summary: '| Release Date: 2024-03-27
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.0>`__
-
-        '
+        - falcon_hosts - adds a new dynamic inventory for the Hosts service collection (https://github.com/CrowdStrike/ansible_collection_falcon/pull/470)
+      release_summary: "| Release Date: 2024-03-27\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.0>`__\n"
     fragments:
-    - 4.3.0.yml
-    - falcon_hosts.yml
-    - host_hide_update.yml
-    - pr-474.yml
-    - pr-475.yml
+      - 4.3.0.yml
+      - falcon_hosts.yml
+      - host_hide_update.yml
+      - pr-474.yml
+      - pr-475.yml
     plugins:
       inventory:
-      - description: CrowdStrike Falcon Hosts inventory source
-        name: falcon_hosts
-        namespace: null
-    release_date: '2024-03-27'
+        - description: CrowdStrike Falcon Hosts inventory source
+          name: falcon_hosts
+          namespace:
+    release_date: "2024-03-27"
   4.3.1:
     changes:
       bugfixes:
-      - falcon_configure - updated logic to remove aid during configuration stage
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/486)
-      - sensor_download - added the ability to set file permissions on downloaded
-        files (https://github.com/CrowdStrike/ansible_collection_falcon/pull/485)
-      release_summary: '| Release Date: 2024-04-08
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.1>`__
-
-        '
+        - falcon_configure - updated logic to remove aid during configuration stage (https://github.com/CrowdStrike/ansible_collection_falcon/pull/486)
+        - sensor_download - added the ability to set file permissions on downloaded files (https://github.com/CrowdStrike/ansible_collection_falcon/pull/485)
+      release_summary: "| Release Date: 2024-04-08\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.1>`__\n"
     fragments:
-    - 4.3.1.yml
-    - add-file-ops-sensor-download.yml
-    - remove-aid-logic.yml
-    release_date: '2024-04-08'
+      - 4.3.1.yml
+      - add-file-ops-sensor-download.yml
+      - remove-aid-logic.yml
+    release_date: "2024-04-08"
   4.3.2:
     changes:
       bugfixes:
-      - falcon_install - allow permissions for sensor download task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/497)
-      release_summary: '| Release Date: 2024-04-09
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.2>`__
-
-        '
+        - falcon_install - allow permissions for sensor download task (https://github.com/CrowdStrike/ansible_collection_falcon/pull/497)
+      release_summary: "| Release Date: 2024-04-09\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.3.2>`__\n"
     fragments:
-    - 4.3.2.yml
-    - falcon-install-update-perms.yml
-    release_date: '2024-04-09'
+      - 4.3.2.yml
+      - falcon-install-update-perms.yml
+    release_date: "2024-04-09"
   4.4.0:
     changes:
       minor_changes:
-      - host_ids - adds a new lookup plugin for getting host IDs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/503)
-      - host_info - adds new module for retrieving host details (https://github.com/CrowdStrike/ansible_collection_falcon/pull/504)
-      - kernel_support_info - adds new module for kernel support information (https://github.com/CrowdStrike/ansible_collection_falcon/pull/499)
-      - sensor_update_builds_info - adds new module for retrieving sensor build versions
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/500)
-      release_summary: '| Release Date: 2024-05-06
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.4.0>`__
-
-        '
+        - host_ids - adds a new lookup plugin for getting host IDs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/503)
+        - host_info - adds new module for retrieving host details (https://github.com/CrowdStrike/ansible_collection_falcon/pull/504)
+        - kernel_support_info - adds new module for kernel support information (https://github.com/CrowdStrike/ansible_collection_falcon/pull/499)
+        - sensor_update_builds_info - adds new module for retrieving sensor build versions (https://github.com/CrowdStrike/ansible_collection_falcon/pull/500)
+      release_summary: "| Release Date: 2024-05-06\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.4.0>`__\n"
     fragments:
-    - 4.4.0.yml
-    - host_ids.yml
-    - host_info.yml
-    - kernel_support_info.yml
-    - sensor_update_builds_info.yml
+      - 4.4.0.yml
+      - host_ids.yml
+      - host_info.yml
+      - kernel_support_info.yml
+      - sensor_update_builds_info.yml
     modules:
-    - description: Get information about Falcon hosts
-      name: host_info
-      namespace: ''
-    - description: Get a list of available sensor build versions
-      name: sensor_update_builds_info
-      namespace: ''
+      - description: Get information about Falcon hosts
+        name: host_info
+        namespace: ""
+      - description: Get a list of available sensor build versions
+        name: sensor_update_builds_info
+        namespace: ""
     plugins:
       lookup:
-      - description: fetch host IDs (AIDs)
-        name: host_ids
-        namespace: null
-      - description: fetch maintenance token
-        name: maintenance_token
-        namespace: null
-    release_date: '2024-05-06'
+        - description: fetch host IDs (AIDs)
+          name: host_ids
+          namespace:
+        - description: fetch maintenance token
+          name: maintenance_token
+          namespace:
+    release_date: "2024-05-06"
   4.5.0:
     changes:
       minor_changes:
-      - fctl_child_cid_info - Added new module to get information about Flight Control
-        child CIDs (https://github.com/CrowdStrike/ansible_collection_falcon/pull/517)
-      - fctl_child_cids - new lookup filter plugin to fetch child cids (https://github.com/CrowdStrike/ansible_collection_falcon/pull/516)
-      release_summary: '| Release Date: 2024-05-16
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.0>`__
-
-        '
+        - fctl_child_cid_info - Added new module to get information about Flight Control child CIDs
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/517)
+        - fctl_child_cids - new lookup filter plugin to fetch child cids (https://github.com/CrowdStrike/ansible_collection_falcon/pull/516)
+      release_summary: "| Release Date: 2024-05-16\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.0>`__\n"
     fragments:
-    - 4.5.0.yml
-    - fctl-child-cid-info.yml
-    - fctl-child-cids.yml
+      - 4.5.0.yml
+      - fctl-child-cid-info.yml
+      - fctl-child-cids.yml
     modules:
-    - description: Retrieve details about Flight Control child CIDs
-      name: fctl_child_cid_info
-      namespace: ''
+      - description: Retrieve details about Flight Control child CIDs
+        name: fctl_child_cid_info
+        namespace: ""
     plugins:
       lookup:
-      - description: fetch Flight Control child CIDs
-        name: fctl_child_cids
-        namespace: null
-    release_date: '2024-05-16'
+        - description: fetch Flight Control child CIDs
+          name: fctl_child_cids
+          namespace:
+    release_date: "2024-05-16"
   4.5.1:
     changes:
       bugfixes:
-      - falcon_install - fix failed gpg key installs for new sensors (https://github.com/CrowdStrike/ansible_collection_falcon/pull/537)
-      - falcon_install - fix filter to take advantage of new architectures field (https://github.com/CrowdStrike/ansible_collection_falcon/pull/521)
-      - falcon_uninstall - fix become clause for remove_host_pretasks.yml (https://github.com/CrowdStrike/ansible_collection_falcon/pull/532)
-      - sensor_download_info - fix offset and use override for v2 endpoint (https://github.com/CrowdStrike/ansible_collection_falcon/pull/520)
-      release_summary: '| Release Date: 2024-06-28
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.1>`__
-
-        '
+        - falcon_install - fix failed gpg key installs for new sensors (https://github.com/CrowdStrike/ansible_collection_falcon/pull/537)
+        - falcon_install - fix filter to take advantage of new architectures field (https://github.com/CrowdStrike/ansible_collection_falcon/pull/521)
+        - falcon_uninstall - fix become clause for remove_host_pretasks.yml (https://github.com/CrowdStrike/ansible_collection_falcon/pull/532)
+        - sensor_download_info - fix offset and use override for v2 endpoint (https://github.com/CrowdStrike/ansible_collection_falcon/pull/520)
+      release_summary: "| Release Date: 2024-06-28\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.1>`__\n"
     fragments:
-    - 4.5.1.yml
-    - gpg-key.yml
-    - uninstall-become.yml
-    - v2-sensor-installers.yml
-    release_date: '2024-06-28'
+      - 4.5.1.yml
+      - gpg-key.yml
+      - uninstall-become.yml
+      - v2-sensor-installers.yml
+    release_date: "2024-06-28"
   4.5.2:
     changes:
       bugfixes:
-      - falcon_configure - fixed issue with master image and provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
-      - falconct_info - added support for querying provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
-      release_summary: '| Release Date: 2024-08-15
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.2>`__
-
-        '
+        - falcon_configure - fixed issue with master image and provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
+        - falconct_info - added support for querying provisioning tokens (https://github.com/CrowdStrike/ansible_collection_falcon/pull/546)
+      release_summary: "| Release Date: 2024-08-15\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.5.2>`__\n"
     fragments:
-    - 4.5.2.yml
-    - master-image-update.yml
-    release_date: '2024-08-15'
+      - 4.5.2.yml
+      - master-image-update.yml
+    release_date: "2024-08-15"
   4.6.0:
     changes:
       bugfixes:
-      - eventsource - fix issue with refreshinterval causing timeout (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
+        - eventsource - fix issue with refreshinterval causing timeout (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
       minor_changes:
-      - Enhance the info modules with how pagination is handled and clean options
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/558)
-      - allow become clause for Windows tasks to be toggable in each role (https://github.com/CrowdStrike/ansible_collection_falcon/pull/561)
-      - eventsource - add support for starting stream from latest event (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
-      - falcon_discover - Added ability to allow duplicate hosts in the same environment
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/551)
-      - kernel_support_info - Add support for paginating kernel support information
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/557)
-      release_summary: '| Release Date: 2024-09-06
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.6.0>`__
-
-        '
+        - Enhance the info modules with how pagination is handled and clean options (https://github.com/CrowdStrike/ansible_collection_falcon/pull/558)
+        - allow become clause for Windows tasks to be toggable in each role (https://github.com/CrowdStrike/ansible_collection_falcon/pull/561)
+        - eventsource - add support for starting stream from latest event (https://github.com/CrowdStrike/ansible_collection_falcon/pull/552)
+        - falcon_discover - Added ability to allow duplicate hosts in the same environment (https://github.com/CrowdStrike/ansible_collection_falcon/pull/551)
+        - kernel_support_info - Add support for paginating kernel support information (https://github.com/CrowdStrike/ansible_collection_falcon/pull/557)
+      release_summary: "| Release Date: 2024-09-06\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.6.0>`__\n"
     fragments:
-    - 4.6.0.yml
-    - duplicate_hosts.yml
-    - eda-updates.yml
-    - info-updates.yml
-    - paginate-kernel-support-info.yml
-    - toggle-win-become.yml
-    release_date: '2024-09-06'
+      - 4.6.0.yml
+      - duplicate_hosts.yml
+      - eda-updates.yml
+      - info-updates.yml
+      - paginate-kernel-support-info.yml
+      - toggle-win-become.yml
+    release_date: "2024-09-06"
   4.7.0:
     changes:
       bugfixes:
-      - falcon_configure - Fix truthy condition for falcon_cid and falcon_provisioning_token
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/565)
-      - falcon_install - fix issue with temp directories being random or non-existent
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/569)
+        - falcon_configure - Fix truthy condition for falcon_cid and falcon_provisioning_token
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/565)
+        - falcon_install - fix issue with temp directories being random or non-existent (https://github.com/CrowdStrike/ansible_collection_falcon/pull/569)
       minor_changes:
-      - sensor_download - adds the ability to lock files to prevent collision when
-        downloading the sensor (https://github.com/CrowdStrike/ansible_collection_falcon/pull/569)
-      release_summary: '| Release Date: 2024-10-30
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.0>`__
-
-        '
+        - sensor_download - adds the ability to lock files to prevent collision when downloading the sensor
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/569)
+      release_summary: "| Release Date: 2024-10-30\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.0>`__\n"
     fragments:
-    - 4.7.0.yml
-    - add-locking.yml
-    - fix-truthy-564.yml
-    release_date: '2024-10-30'
+      - 4.7.0.yml
+      - add-locking.yml
+      - fix-truthy-564.yml
+    release_date: "2024-10-30"
   4.7.1:
     changes:
       bugfixes:
-      - win_uninstall - add new windows sensor installer name to uninstall regex for
-        Ansible to be able to uninstall the sensor from package cache (https://github.com/CrowdStrike/ansible_collection_falcon/pull/575)
-      release_summary: '| Release Date: 2024-11-04
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.1>`__
-
-        '
+        - win_uninstall - add new windows sensor installer name to uninstall regex for Ansible to be able to uninstall the sensor from package cache
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/575)
+      release_summary: "| Release Date: 2024-11-04\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.1>`__\n"
     fragments:
-    - 4.7.1.yml
-    - fix-windows-uninstall-regex.yml
-    release_date: '2024-11-04'
+      - 4.7.1.yml
+      - fix-windows-uninstall-regex.yml
+    release_date: "2024-11-04"
   4.7.2:
     changes:
       bugfixes:
-      - falcon_configure - Fixed issue where the bool filter was incorrectly used
-        with provisioning token when clause for master image prep (https://github.com/CrowdStrike/ansible_collection_falcon/pull/585)
-      - falcon_configure - fix issue where AID generation task would fail/timeout
-        (https://github.com/CrowdStrike/ansible_collection_falcon/pull/586)
-      - falcon_install - fixes issue with premature localhost deletion of downloaded
-        sensor (https://github.com/CrowdStrike/ansible_collection_falcon/pull/584)
-      - falcon_install - improves error message when using falcon_sensor_version_decrement
-        but not enough historical sensors are available (https://github.com/CrowdStrike/ansible_collection_falcon/pull/588)
-      - falcon_uninstall - add missing when clause for removing host from UI (https://github.com/CrowdStrike/ansible_collection_falcon/pull/582)
-      release_summary: '| Release Date: 2024-12-13
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.2>`__
-
-        '
+        - falcon_configure - Fixed issue where the bool filter was incorrectly used with provisioning token when clause for master image prep
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/585)
+        - falcon_configure - fix issue where AID generation task would fail/timeout (https://github.com/CrowdStrike/ansible_collection_falcon/pull/586)
+        - falcon_install - fixes issue with premature localhost deletion of downloaded sensor
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/584)
+        - falcon_install - improves error message when using falcon_sensor_version_decrement but not enough historical sensors are available
+          (https://github.com/CrowdStrike/ansible_collection_falcon/pull/588)
+        - falcon_uninstall - add missing when clause for removing host from UI (https://github.com/CrowdStrike/ansible_collection_falcon/pull/582)
+      release_summary: "| Release Date: 2024-12-13\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.2>`__\n"
     fragments:
-    - 4.7.2.yml
-    - 577-decrement.yml
-    - 578-localhost-deletion.yml
-    - 579-fix-image-prep.yml
-    - 583-aid-retry.yml
-    - prefer-host-retention-policies.yml
-    release_date: '2024-12-13'
+      - 4.7.2.yml
+      - 577-decrement.yml
+      - 578-localhost-deletion.yml
+      - 579-fix-image-prep.yml
+      - 583-aid-retry.yml
+      - prefer-host-retention-policies.yml
+    release_date: "2024-12-13"
   4.7.3:
     changes:
       minor_changes:
-      - falcon_install - add Falcon Linux Sensor RPM signing GPG key, 2025 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/599)
-      release_summary: '| Release Date: 2025-04-21
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.3>`__
-
-        '
+        - falcon_install - add Falcon Linux Sensor RPM signing GPG key, 2025 (https://github.com/CrowdStrike/ansible_collection_falcon/pull/599)
+      release_summary: "| Release Date: 2025-04-21\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.7.3>`__\n"
     fragments:
-    - 4.7.3.yml
-    - 599-gpg-key.yml
-    release_date: '2025-04-21'
+      - 4.7.3.yml
+      - 599-gpg-key.yml
+    release_date: "2025-04-21"
   4.8.0:
     changes:
       minor_changes:
-      - intel_rule_download - added new module to download Intel Rules files (https://github.com/CrowdStrike/ansible_collection_falcon/issues/587)
-      - intel_rule_info - added new info module for Intel Rules files (https://github.com/CrowdStrike/ansible_collection_falcon/issues/587)
-      release_summary: '| Release Date: 2025-05-20
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.8.0>`__
-
-        '
+        - intel_rule_download - added new module to download Intel Rules files (https://github.com/CrowdStrike/ansible_collection_falcon/issues/587)
+        - intel_rule_info - added new info module for Intel Rules files (https://github.com/CrowdStrike/ansible_collection_falcon/issues/587)
+      release_summary: "| Release Date: 2025-05-20\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.8.0>`__\n"
     fragments:
-    - 4.8.0.yml
-    - 602-add-new-intel-rule.yml
-    release_date: '2025-05-20'
+      - 4.8.0.yml
+      - 602-add-new-intel-rule.yml
+    release_date: "2025-05-20"
   4.8.1:
     changes:
       bugfixes:
-      - falcon_install role - Fix falcon_os_version for Amazon Linux 2 by removing
-        wildcards that caused compatibility issues with sensor installation.
-      - host_hide module - Raise errors back to Ansible when the status code returned
-        from the API is a 403
-      release_summary: '| Release Date: 2025-08-08
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.8.1>`__
-
-        '
+        - falcon_install role - Fix falcon_os_version for Amazon Linux 2 by removing wildcards that caused compatibility issues with sensor installation.
+        - host_hide module - Raise errors back to Ansible when the status code returned from the API is a 403
+      release_summary: "| Release Date: 2025-08-08\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.8.1>`__\n"
     fragments:
-    - 4.8.1.yml
-    - amazon-linux-2-os-version-fix.yml
-    - host-hide-handle-403.yml
-    release_date: '2025-08-08'
+      - 4.8.1.yml
+      - amazon-linux-2-os-version-fix.yml
+      - host-hide-handle-403.yml
+    release_date: "2025-08-08"
   4.9.0:
     changes:
       bugfixes:
-      - Fixed assert statements and retry loops to handle null values properly in
-        Ansible 12's stricter conditional validation.
-      - Fixed conditional evaluation compatibility with ansible-core >=2.19 (Ansible
-        12) by converting string-based conditionals to explicit boolean comparisons
-        across all roles (https://github.com/CrowdStrike/ansible_collection_falcon/issues/620).
-      - Standardized conditional patterns to use consistent 'variable | default("",
-        true) | length > 0' syntax for string variables and 'variable | bool' for
-        boolean variables throughout the collection.
+        - Fixed assert statements and retry loops to handle null values properly in Ansible 12's stricter conditional validation.
+        - Fixed conditional evaluation compatibility with ansible-core >=2.19 (Ansible 12) by converting string-based conditionals to explicit boolean
+          comparisons across all roles (https://github.com/CrowdStrike/ansible_collection_falcon/issues/620).
+        - Standardized conditional patterns to use consistent 'variable | default("", true) | length > 0' syntax for string variables and 'variable | bool' for
+          boolean variables throughout the collection.
       minor_changes:
-      - Added 'falcon_sensor_cloud' variable to falcon_configure role to specify cloud
-        region during sensor configuration (us-1, us-2, eu-1, us-gov-1, us-gov-2).
-      - Added support for the '--cloud' parameter in falconctl and falconctl_info
-        modules for Falcon sensor v7.28+ unified installers to resolve AID generation
-        timeout issues (https://github.com/CrowdStrike/ansible_collection_falcon/issues/625).
-      - Enhanced falconctl module with graceful handling of unrecognized parameters
-        - now generates host-specific warnings instead of failing when older sensors
-        don't support newer parameters.
-      - Improved multi-host deployment experience by adding hostname context to parameter
-        compatibility warnings, enabling administrators to identify which specific
-        hosts need sensor upgrades.
-      release_summary: '| Release Date: 2025-10-14
-
-        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.9.0>`__
-
-        '
+        - Added 'falcon_sensor_cloud' variable to falcon_configure role to specify cloud region during sensor configuration (us-1, us-2, eu-1, us-gov-1,
+          us-gov-2).
+        - Added support for the '--cloud' parameter in falconctl and falconctl_info modules for Falcon sensor v7.28+ unified installers to resolve AID
+          generation timeout issues (https://github.com/CrowdStrike/ansible_collection_falcon/issues/625).
+        - Enhanced falconctl module with graceful handling of unrecognized parameters - now generates host-specific warnings instead of failing when older
+          sensors don't support newer parameters.
+        - Improved multi-host deployment experience by adding hostname context to parameter compatibility warnings, enabling administrators to identify which
+          specific hosts need sensor upgrades.
+      release_summary: "| Release Date: 2025-10-14\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.9.0>`__\n"
     fragments:
-    - 4.9.0.yml
-    - 620-ansible12-compat.yml
-    - 625-cloud-parameter-support.yml
-    release_date: '2025-10-14'
+      - 4.9.0.yml
+      - 620-ansible12-compat.yml
+      - 625-cloud-parameter-support.yml
+    release_date: "2025-10-14"

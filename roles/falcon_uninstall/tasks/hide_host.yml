@@ -3,7 +3,7 @@
 - name: CrowdStrike Falcon | Remove/Hide Host from Console
   crowdstrike.falcon.host_hide:
     auth: "{{ falcon.auth }}"
-    hidden: yes
+    hidden: true
     hosts:
       - "{{ falcon_uninstall_remove_aid }}"
   delegate_to: localhost

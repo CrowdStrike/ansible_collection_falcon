@@ -6,10 +6,10 @@
 #
 # Disabling this can expose your API credentials and authorization token.
 #
-falcon_api_enable_no_log: yes
+falcon_api_enable_no_log: true
 
 # Whether or not to allow downgrading the Falcon Sensor.
-falcon_allow_downgrade: no
+falcon_allow_downgrade: false
 
 # This installer is capable of three different installation
 # methods:
@@ -32,47 +32,42 @@ falcon_api_sensor_download_path: "/tmp/falcon-sensor"
 # If not specified, the file will be saved as the same name from the API.
 #
 falcon_api_sensor_download_filename:
-
 # The permissions of the downloaded sensor file.
 #
 # If not specified, the default permissions based on the OS/filesystem will be used.
 # Example: '0644'
 #
 falcon_api_sensor_download_mode:
-
 # The owner to set the downloaded sensor file as.
 #
 # If not specified, the default owner based on the OS/filesystem will be used.
 #
 falcon_api_sensor_download_owner:
-
 # The group to set the downloaded sensor file as.
 #
 # If not specified, the default group based on the OS/filesystem will be used.
 #
 falcon_api_sensor_download_group:
-
 # Whether or not to delete the downloaded sensor after transfer to remote host.
 #
 # By default, this is enabled.
 #
-falcon_api_sensor_download_cleanup: yes
+falcon_api_sensor_download_cleanup: true
 
 # If the installation method is 'file', provide the absolute path to the installer file.
 #
 falcon_localfile_path:
-
 # If the installation method is 'file', specify whether to remove the local file after installation.
 # By default, this is disabled in the event the falcon_localfile_path is set to a shared file
 # system location.
 #
-falcon_localfile_cleanup: no
+falcon_localfile_cleanup: false
 
 # Specify whether or not to verify the Falcon sensor Linux based packages.
 # By default, this is enabled - which will handle the installation and importing
 # of the CrowdStrike Falcon sensor GPG Key.
 #
-falcon_gpg_key_check: yes
+falcon_gpg_key_check: true
 
 # CrowdStrike API Cloud region for downloading the Falcon sensor. Possible values:
 #       us-1:       api.crowdstrike.com
@@ -88,7 +83,6 @@ falcon_cloud: "us-1"
 #       applies to Windows installations.
 #
 falcon_cid:
-
 # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
 # API. If unknown, download from the CrowdStrike support portal:
 #
@@ -130,11 +124,9 @@ falcon_install_tmp_dir: "/tmp/falcon-sensor"
 # be downloaded from.
 #
 falcon_download_url:
-
 # If 'url' is authenticated, provide credentials.
 falcon_download_url_username:
 falcon_download_url_password:
-
 # If using 'api' or 'url' methods, the number of retries the
 # installer should attempt.
 #

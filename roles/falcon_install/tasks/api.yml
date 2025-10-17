@@ -42,9 +42,11 @@
 
 - name: "CrowdStrike Falcon | Build API Sensor Query"
   ansible.builtin.set_fact:
-    falcon_os_query:
-      "os:'{{ falcon_target_os }}'+os_version:'{{ falcon_os_version }}'\
-      {{ falcon_os_arch | default('') }}{{ falcon_sensor_version | default('') }}"
+    falcon_os_query: >-
+      os:'{{ falcon_target_os }}'+
+      os_version:'{{ falcon_os_version }}'{{
+      falcon_os_arch | default('') }}{{
+      falcon_sensor_version | default('') }}
 
 - name: CrowdStrike Falcon | Get list of filtered Falcon sensors
   crowdstrike.falcon.sensor_download_info:
@@ -63,10 +65,9 @@
   ansible.builtin.assert:
     that:
       - falcon_api_installer_list.installers | length > falcon_sensor_version_decrement
-    fail_msg:
-      "Not enough sensor versions available for the specified decrement value: N-{{ falcon_sensor_version_decrement }}.
-      This may occur if your OS distribution/version is newly supported and fewer
-      historical sensor versions exist."
+    fail_msg: >-
+      Not enough sensor versions available for the specified decrement value: N-{{ falcon_sensor_version_decrement }}.
+      This may occur if your OS distribution/version is newly supported and fewer historical sensor versions exist.
   when:
     - falcon_sensor_version_decrement is defined
     - falcon_sensor_version_decrement > 0
@@ -97,7 +98,7 @@
   ansible.builtin.copy:
     src: "{{ falcon_sensor_download.path }}"
     dest: "{{ falcon_install_temp_directory.path }}"
-    mode: 0640
+    mode: "0640"
   changed_when: false
   register: falcon_sensor_copied
   when: ansible_os_family != "Windows"

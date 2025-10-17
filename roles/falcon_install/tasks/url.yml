@@ -6,7 +6,7 @@
     dest: "{{ falcon_install_temp_directory.path }}"
     url_username: "{{ falcon_download_url_username | default(omit) }}"
     url_password: "{{ falcon_download_url_password | default(omit) }}"
-    mode: 0640
+    mode: "0640"
   when:
     - falcon_download_url | default('', true) | length > 0
     - falcon_install_temp_directory | default('', true) | length > 0

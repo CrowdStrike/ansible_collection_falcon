@@ -1,13 +1,16 @@
+---
 exclude_paths:
   - molecule
+  - ".[dgc]*"
+  - ".ansible/collections/"  # Exclude duplicate processing of installed collections
 
 enable_list:
-  - fqcn-builtins  # opt-in
+  - fqcn-builtins # opt-in
 
 skip_list:
-  - '204'
-  - 'ignore-errors'
-  - 'var-naming[no-role-prefix]'
+  - "204"
+  - "ignore-errors"
+  - "var-naming[no-role-prefix]"
 
 warn_list:
   - experimental

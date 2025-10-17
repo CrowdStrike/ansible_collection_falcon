@@ -6,7 +6,7 @@
 #
 # Disabling this can expose your API credentials and authorization token.
 #
-falcon_api_enable_no_log: yes
+falcon_api_enable_no_log: true
 
 # CrowdStrike API URL for downloading the Falcon sensor. Possible values:
 #       us-1:       api.crowdstrike.com
@@ -23,7 +23,6 @@ falcon_cloud: "api.crowdstrike.com"
 #
 falcon_client_id:
 falcon_client_secret:
-
 # Whether to hide/remove the host from the CrowdStrike console.
 # The default is false
 #

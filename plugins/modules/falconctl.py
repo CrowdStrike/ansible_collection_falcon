@@ -135,12 +135,12 @@ EXAMPLES = r"""
 - name: Delete Agent ID to Prep Master Image
   crowdstrike.falcon.falconctl:
     state: absent
-    aid: yes
+    aid: true
 
 - name: Configure Falcon Sensor Proxy
   crowdstrike.falcon.falconctl:
     state: present
-    apd: no
+    apd: false
     aph: example.com
     app: 8080
 """

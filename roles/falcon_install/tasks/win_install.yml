@@ -16,4 +16,4 @@
   ansible.windows.win_file:
     path: "{{ falcon_windows_tmp_dir_stat.stat.path }}"
     state: absent
-  changed_when: no
+  changed_when: false
