@@ -7,19 +7,28 @@ on:
   # Run manually if needed
   workflow_dispatch:
 
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
 jobs:
   build:
+    if: false  # Disable for now until we figure a better path forward
     permissions:
       contents: write
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
 
       - name: Build docs
-        uses: addnab/docker-run-action@v3
+        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
         with:
           registry: quay.io
           image: quay.io/crowdstrike/ansible-doc-builder:latest
@@ -36,7 +45,7 @@ jobs:
           git commit -m "Updating gh-pages docs"
 
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@77c5b412c50b723d2a4fbc6d71fb5723bcd439aa # master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages

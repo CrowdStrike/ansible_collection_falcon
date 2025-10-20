@@ -11,5 +11,10 @@ jobs:
     name: Verify Ansible Lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
-    - uses: ansible/ansible-lint@v25.8.2
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    - uses: ansible/ansible-lint@50373efb440dd3b524956c075af715cd00eaf20b # v25.8.2
