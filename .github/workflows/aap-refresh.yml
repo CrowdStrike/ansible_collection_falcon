@@ -4,12 +4,20 @@ on:
   schedule:
     - cron: '0 6 * * *'
 
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
     env:
       PY_COLORS: 1
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+      with:
+        egress-policy: audit
+
     - name: Refresh offline token
       run: |
         curl https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token -d grant_type=refresh_token -d client_id="cloud-services" -d refresh_token="$AAP_KEY" --fail --silent --show-error --output /dev/null
