@@ -2,10 +2,16 @@
 # tasks file for falcon_configure
 - name: API block
   when:
-    - (falcon_client_id | default('', true)) | length > 0 and (falcon_client_secret | default('', true)) | length > 0
+    - falcon_client_id | default('', true) | length > 0
+    - falcon_client_secret | default('', true) | length > 0
     - falcon_option_set
-    - not falcon_cid
+    - not falcon_cid | default('', true) | length > 0
   block:
+    - ansible.builtin.include_role:
+        name: falcon_install
+        tasks_from: validate_api_credentials
+      # noqa name[missing]
+
     - ansible.builtin.include_role:
         name: falcon_install
         tasks_from: auth

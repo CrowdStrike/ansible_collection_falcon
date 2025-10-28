@@ -15,16 +15,19 @@
       delegate_to: localhost
 
     - name: "CrowdStrike Falcon | Validate Sensor Update Policy request"
-      ansible.builtin.fail:
-        msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} was found!"
-      when: falcon_sensor_update_policy_info.policies is not defined
+      ansible.builtin.assert:
+        that:
+          - falcon_sensor_update_policy_info.policies is defined
+        fail_msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} was found!"
+        success_msg: "Falcon Sensor Update Policy {{ falcon_sensor_update_policy_name }} found successfully."
 
     - name: "CrowdStrike Falcon | Validate Sensor Update Policy request for aarch64 architectures"
-      ansible.builtin.fail:
-        msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} and enabled for aarch64 was found!"
-      when:
-        - falcon_sensor_update_policy_info.policies[0].settings.variants[0] is not defined
-        - ansible_facts['machine'] == "aarch64"
+      ansible.builtin.assert:
+        that:
+          - falcon_sensor_update_policy_info.policies[0].settings.variants[0] is defined
+        fail_msg: "No Falcon Sensor Update Policy with name: {{ falcon_sensor_update_policy_name }} and enabled for aarch64 was found!"
+        success_msg: "Falcon Sensor Update Policy {{ falcon_sensor_update_policy_name }} found for aarch64 architecture."
+      when: ansible_facts['machine'] == "aarch64"
 
     - name: "CrowdStrike Falcon | Get the Falcon Sensor version from Update Policy"
       ansible.builtin.set_fact:
@@ -57,9 +60,11 @@
   delegate_to: localhost
 
 - name: CrowdStrike Falcon | Validate sensor request
-  ansible.builtin.fail:
-    msg: "No Falcon sensor was found! If passing in falcon_sensor_version, ensure it is correct!"
-  when: falcon_api_installer_list.installers[0] is not defined
+  ansible.builtin.assert:
+    that:
+      - falcon_api_installer_list.installers[0] is defined
+    fail_msg: "No Falcon sensor was found! If passing in falcon_sensor_version, ensure it is correct!"
+    success_msg: "Falcon sensor found successfully."
 
 - name: CrowdStrike Falcon | Validate available sensor count > decrement (if applicable)
   ansible.builtin.assert:

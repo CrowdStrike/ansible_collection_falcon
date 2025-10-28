@@ -2,32 +2,24 @@
 - name: API Install Method Block
   when: falcon_install_method == "api"
   block:
-    - name: "CrowdStrike Falcon | Validate Required API URL Is Defined"
-      ansible.builtin.fail:
-        msg: "falcon_cloud is not configured! Please configure falcon_cloud and re-run the installation again!"
-      when: not (falcon_cloud | default('', true) | length > 0)
-
-    - name: "CrowdStrike Falcon | Validate CrowdStrike API Client ID Is Defined"
-      ansible.builtin.fail:
-        msg: "falcon_client_id is not configured! Please configure falcon_client_id and re-run the installation again!"
-      when: not (falcon_client_id | default('', true) | length > 0)
-
-    - name: "CrowdStrike Falcon | Validate CrowdStrike API Client Secret Is Defined"
-      ansible.builtin.fail:
-        msg: "falcon_client_secret is not configured! Please configure falcon_client_secret and re-run the installation again!"
-      when: not (falcon_client_secret | default('', true) | length > 0)
+    - name: "CrowdStrike Falcon | Validate API Credentials"
+      ansible.builtin.include_tasks: validate_api_credentials.yml
 
     - name: "CrowdStrike Falcon | Validate CrowdStrike Falcon Sensor version decrement is correctly set"
-      ansible.builtin.fail:
-        msg: "falcon_sensor_version_decrement must be an integer between 0 and 5 inclusive!"
-      when: falcon_sensor_version_decrement | int < 0 or falcon_sensor_version_decrement | int > 5
+      ansible.builtin.assert:
+        that:
+          - falcon_sensor_version_decrement | int >= 0
+          - falcon_sensor_version_decrement | int <= 5
+        fail_msg: "falcon_sensor_version_decrement must be an integer between 0 and 5 inclusive!"
+        success_msg: "falcon_sensor_version_decrement is properly configured."
 
 - name: CrowdStrike Falcon | Validate CID is defined (non-api)
-  ansible.builtin.fail:
-    msg: "falcon_cid is not defined! Please set falcon_cid and re-run the installation again!"
-  when:
-    - falcon_install_method != "api"
-    - not falcon_cid
+  ansible.builtin.assert:
+    that:
+      - falcon_cid | default('', true) | length > 0
+    fail_msg: "falcon_cid is not defined! Please set falcon_cid and re-run the installation again!"
+    success_msg: "falcon_cid is properly configured."
+  when: falcon_install_method != "api"
 
 - name: "CrowdStrike Falcon | Configure Python Interpreter for older Linux OSes"
   ansible.builtin.set_fact:

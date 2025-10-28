@@ -12,6 +12,11 @@
   block:
     - ansible.builtin.include_role:
         name: falcon_install
+        tasks_from: validate_api_credentials
+      # noqa name[missing]
+
+    - ansible.builtin.include_role:
+        name: falcon_install
         tasks_from: auth
       # noqa name[missing]
 
