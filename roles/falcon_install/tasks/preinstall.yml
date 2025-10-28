@@ -2,20 +2,8 @@
 - name: API Install Method Block
   when: falcon_install_method == "api"
   block:
-    - name: "CrowdStrike Falcon | Validate Required API URL Is Defined"
-      ansible.builtin.fail:
-        msg: "falcon_cloud is not configured! Please configure falcon_cloud and re-run the installation again!"
-      when: not (falcon_cloud | default('', true) | length > 0)
-
-    - name: "CrowdStrike Falcon | Validate CrowdStrike API Client ID Is Defined"
-      ansible.builtin.fail:
-        msg: "falcon_client_id is not configured! Please configure falcon_client_id and re-run the installation again!"
-      when: not (falcon_client_id | default('', true) | length > 0)
-
-    - name: "CrowdStrike Falcon | Validate CrowdStrike API Client Secret Is Defined"
-      ansible.builtin.fail:
-        msg: "falcon_client_secret is not configured! Please configure falcon_client_secret and re-run the installation again!"
-      when: not (falcon_client_secret | default('', true) | length > 0)
+    - name: "CrowdStrike Falcon | Validate API Credentials"
+      ansible.builtin.include_tasks: validate_api_credentials.yml
 
     - name: "CrowdStrike Falcon | Validate CrowdStrike Falcon Sensor version decrement is correctly set"
       ansible.builtin.fail:

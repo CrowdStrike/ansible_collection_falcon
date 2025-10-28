@@ -1,5 +1,14 @@
 ---
 # tasks file for falcon_configure
+- name: API validation block
+  when:
+    - (falcon_client_id | default('', true)) | length > 0 and (falcon_client_secret | default('', true)) | length > 0
+    - falcon_option_set
+    - not falcon_cid
+  block:
+    - name: "CrowdStrike Falcon | Validate API Credentials"
+      ansible.builtin.include_tasks: ../falcon_install/tasks/validate_api_credentials.yml
+
 - name: API block
   when:
     - (falcon_client_id | default('', true)) | length > 0 and (falcon_client_secret | default('', true)) | length > 0
