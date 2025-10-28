@@ -4,21 +4,17 @@
   ansible.builtin.include_tasks: preuninstall.yml
   # noqa name[missing]
 
-- name: API validation block
-  when:
-    - falcon_client_id | default('', true) | length > 0
-    - falcon_client_secret | default('', true) | length > 0
-    - falcon_sensor_installed | bool
-  block:
-    - name: "CrowdStrike Falcon | Validate API Credentials"
-      ansible.builtin.include_tasks: ../falcon_install/tasks/validate_api_credentials.yml
-
 - name: API block
   when:
     - falcon_client_id | default('', true) | length > 0
     - falcon_client_secret | default('', true) | length > 0
     - falcon_sensor_installed | bool
   block:
+    - ansible.builtin.include_role:
+        name: falcon_install
+        tasks_from: validate_api_credentials
+      # noqa name[missing]
+
     - ansible.builtin.include_role:
         name: falcon_install
         tasks_from: auth
