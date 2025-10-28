@@ -1,0 +1,4 @@
+bugfixes:
+  - replace fail modules with assert modules for API authentication pre-requisite validations across all roles,
+    consolidate duplicated API validation blocks, and improve user feedback with success messages
+    (https://github.com/CrowdStrike/ansible_collection_falcon/pull/638).
