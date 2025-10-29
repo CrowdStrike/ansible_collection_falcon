@@ -593,3 +593,16 @@ releases:
       - 620-ansible12-compat.yml
       - 625-cloud-parameter-support.yml
     release_date: "2025-10-14"
+  4.9.1:
+    changes:
+      bugfixes:
+        - modernizes the collection's code quality tooling and resolves all outstanding ansible-lint violations while establishing a more efficient development
+          workflow (https://github.com/CrowdStrike/ansible_collection_falcon/pull/630)
+        - replace fail modules with assert modules for API authentication pre-requisite validations across all roles, consolidate duplicated API validation
+          blocks, and improve user feedback with success messages (https://github.com/CrowdStrike/ansible_collection_falcon/pull/638).
+      release_summary: "| Release Date: 2025-10-29\n| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.9.1>`__\n"
+    fragments:
+      - 4.9.1.yml
+      - 631-fix-api-auth-assertions.yml
+      - address-aap-uploads.yml
+    release_date: "2025-10-29"
