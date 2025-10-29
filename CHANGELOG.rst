@@ -4,6 +4,21 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.9.1
+======
+
+Release Summary
+---------------
+
+| Release Date: 2025-10-29
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.9.1>`__
+
+Bugfixes
+--------
+
+- modernizes the collection's code quality tooling and resolves all outstanding ansible-lint violations while establishing a more efficient development workflow (https://github.com/CrowdStrike/ansible_collection_falcon/pull/630)
+- replace fail modules with assert modules for API authentication pre-requisite validations across all roles, consolidate duplicated API validation blocks, and improve user feedback with success messages (https://github.com/CrowdStrike/ansible_collection_falcon/pull/638).
+
 v4.9.0
 ======
 

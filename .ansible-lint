@@ -2,8 +2,8 @@
 exclude_paths:
   - molecule
   - ".[dgc]*"
-  - ".ansible/collections/"  # Exclude duplicate processing of installed collections
-  - "tests/container-env/"  # Exclude container test environment files
+  - ".ansible/collections/" # Exclude duplicate processing of installed collections
+  - "tests/container-env/" # Exclude container test environment files
 
 enable_list:
   - fqcn-builtins # opt-in
