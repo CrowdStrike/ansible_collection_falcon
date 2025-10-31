@@ -28,11 +28,7 @@ jobs:
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
-      FALCON_CLIENT_ID: ${{ secrets.FALCON_CLIENT_ID }}
-      FALCON_CLIENT_SECRET: ${{ secrets.FALCON_CLIENT_SECRET }}
-      FALCON_CID: ${{ secrets.FALCON_CID }}
       AWS_REGION: "us-west-2"
-      MOLECULE_VPC_SUBNET_ID: ${{ secrets.MOLECULE_VPC_SUBNET_ID }}
     permissions:
       contents: read
       id-token: write
@@ -101,9 +97,18 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
         with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE }}
+          role-to-assume: ${{ vars.AWS_OIDC_ROLE }}
           role-session-name: github-actions-molecule-ansible
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get secrets from AWS Secrets Manager
+        uses: aws-actions/aws-secretsmanager-get-secrets@a9a7eb4e2f2871d30dc5b892576fde60a2ecc802 # v2.0.10
+        with:
+          secret-ids: |
+            FALCON_CLIENT_ID,github/crowdstrike/ansible_collection_falcon:falcon_client_id
+            FALCON_CLIENT_SECRET,github/crowdstrike/ansible_collection_falcon:falcon_client_secret
+            FALCON_CID,github/crowdstrike/ansible_collection_falcon:falcon_cid
+            MOLECULE_VPC_SUBNET_ID,github/crowdstrike/ansible_collection_falcon:molecule_vpc_subnet_id
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
