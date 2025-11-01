@@ -1,3 +1,4 @@
+---
 minor_changes:
   - falcon_uninstall role - Add maintenance token support for sensor versions 7.20+ with uninstall and maintenance protection enabled
   - falcon_uninstall role - Added shared check_sensor_installed.yml task for reusable sensor detection across roles

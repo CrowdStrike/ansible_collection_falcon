@@ -42,7 +42,6 @@ falcon_remove_host: false
 #   falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token', host_aid) }}"
 #
 falcon_maintenance_token:
-
 # Additional arugments to uninstall the sensor.
 # You can add your maintenance token here by adding MAINTENANCE_TOKEN=<token>
 #

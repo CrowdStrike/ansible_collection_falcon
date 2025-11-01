@@ -1,12 +1,11 @@
+---
 - name: CrowdStrike Falcon | Disable sensor protection before uninstall (Linux)
   crowdstrike.falcon.falconctl:
     state: present
     maintenance_token: "{{ falcon_maintenance_token }}"
   when:
     - ansible_facts['system'] == "Linux"
-    - falcon_maintenance_token is defined
-    - falcon_maintenance_token is not none
-    - falcon_maintenance_token | length > 0
+    - falcon_maintenance_token | default('', true) | length > 0
     - falcon_sensor_installed
 
 - name: CrowdStrike Falcon | Uninstalling Falcon Sensor (Linux)
@@ -23,9 +22,7 @@
     stdin: "{{ falcon_maintenance_token }}"
   changed_when: false
   when:
-    - falcon_maintenance_token is defined
-    - falcon_maintenance_token is not none
-    - falcon_maintenance_token | length > 0
+    - falcon_maintenance_token | default('', true) | length > 0
     - falcon_sensor_installed
     - ansible_facts['distribution'] == "MacOSX"
 

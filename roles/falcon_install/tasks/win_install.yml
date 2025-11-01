@@ -1,9 +1,7 @@
 ---
 - name: CrowdStrike Falcon | Handle maintenance token for Windows install
   when:
-    - falcon_maintenance_token is defined
-    - falcon_maintenance_token is not none
-    - falcon_maintenance_token | length > 0
+    - falcon_maintenance_token | default('', true) | length > 0
   block:
     - name: CrowdStrike Falcon | Check if maintenance token is already in install args
       ansible.builtin.set_fact:

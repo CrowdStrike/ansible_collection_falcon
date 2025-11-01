@@ -105,7 +105,6 @@ falcon_client_secret: ""
 #   falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token', host_aid) }}"
 #
 falcon_maintenance_token:
-
 # The Falcon sensor version to install. This allows you to pin a specific sensor
 # version.
 #

@@ -55,4 +55,11 @@
 # Check if sensor is installed (any platform)
 - name: Check if sensor is installed
   ansible.builtin.set_fact:
-    falcon_sensor_installed: "{{ falcon_sensor_installed_linux | default(falcon_sensor_installed_win | default(falcon_sensor_installed_mac | default(false))) }}"
+    falcon_sensor_installed: >-
+      {{
+        falcon_sensor_installed_linux | default(
+          falcon_sensor_installed_win | default(
+            falcon_sensor_installed_mac | default(false)
+          )
+        )
+      }}

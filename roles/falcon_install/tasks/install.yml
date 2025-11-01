@@ -39,11 +39,8 @@
     state: present
     maintenance_token: "{{ falcon_maintenance_token }}"
   when:
-    - falcon_maintenance_token is defined
-    - falcon_maintenance_token is not none
-    - falcon_maintenance_token | length > 0
+    - falcon_maintenance_token | default('', true) | length > 0
     - falcon_sensor_installed | default(false)
-
 
 - name: CrowdStrike Falcon | Install Falcon Sensor Package (Linux)
   ansible.builtin.package:
@@ -61,9 +58,7 @@
     stdin: "{{ falcon_maintenance_token }}"
   changed_when: false
   when:
-    - falcon_maintenance_token is defined
-    - falcon_maintenance_token is not none
-    - falcon_maintenance_token | length > 0
+    - falcon_maintenance_token | default('', true) | length > 0
     - falcon_sensor_installed | default(false)
     - ansible_facts['distribution'] == "MacOSX"
 
