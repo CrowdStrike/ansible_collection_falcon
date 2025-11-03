@@ -113,7 +113,6 @@ options:
       - Required for sensor versions 7.20+ when protection is armed.
       - Used to disable protection before uninstall, upgrade, or configuration changes.
     type: str
-    no_log: true
 """
 
 EXAMPLES = r"""
