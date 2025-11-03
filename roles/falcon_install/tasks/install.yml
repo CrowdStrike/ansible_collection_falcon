@@ -51,6 +51,24 @@
     state: present
   when:
     - ansible_facts['pkg_mgr'] in linux_packagers
+  register: falcon_package_install
+
+# Handle use case for debian based package upgrades/downgrades
+- name: CrowdStrike Falcon | DEB package operation service management
+  when:
+    - ansible_facts['pkg_mgr'] in dpkg_packagers          # Only Debian-based systems
+    - falcon_sensor_installed | default(false)            # Only if sensor was already installed
+    - falcon_package_install.changed | default(false)     # Only if package actually changed
+  block:
+    - name: CrowdStrike Falcon | Reload systemd daemon after DEB package operation
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: CrowdStrike Falcon | Restart Falcon Sensor service after DEB package operation
+      ansible.builtin.systemd:
+        name: falcon-sensor
+        state: restarted
+        enabled: true
 
 - name: CrowdStrike Falcon | Apply maintenance token (if sensor already installed - macOS)
   ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl unload --maintenance-token"
