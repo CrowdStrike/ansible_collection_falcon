@@ -63,9 +63,13 @@ falcon_localfile_path:
 #
 falcon_localfile_cleanup: false
 
-# Specify whether or not to verify the Falcon sensor Linux based packages.
+# Specify whether or not to verify the Falcon sensor packages via GPG signature verification.
 # By default, this is enabled - which will handle the installation and importing
-# of the CrowdStrike Falcon sensor GPG Key.
+# of the CrowdStrike Falcon sensor GPG Key for RPM-based systems only.
+#
+# Note: According to CrowdStrike's official installation documentation, GPG key
+# verification is only required for RPM-based systems (RHEL, CentOS, SLES, etc.).
+# DEB-based systems (Ubuntu, Debian) do not require GPG key verification.
 #
 falcon_gpg_key_check: true
 
