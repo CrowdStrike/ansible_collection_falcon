@@ -14,6 +14,7 @@
   loop: "{{ falcon_gpg_keys }}"
   when:
     - falcon_gpg_key_check | bool
+    - ansible_facts['pkg_mgr'] in rpm_packagers
 
 - name: CrowdStrike Falcon | Import CrowdStrike Falcon RPM GPG key from files
   ansible.builtin.rpm_key:
@@ -24,15 +25,6 @@
   when:
     - falcon_gpg_key_check | bool
     - ansible_facts['pkg_mgr'] in rpm_packagers
-
-- name: CrowdStrike Falcon | Import CrowdStrike Falcon APT GPG key from file
-  ansible.builtin.apt_key:
-    file: "{{ falcon_install_temp_directory.path }}/{{ latest_gpg_key }}"
-    state: present
-  changed_when: false
-  when:
-    - falcon_gpg_key_check | bool
-    - ansible_facts['pkg_mgr'] in dpkg_packagers
 
 - name: CrowdStrike Falcon | Apply maintenance token (if sensor already installed - Linux)
   crowdstrike.falcon.falconctl:
