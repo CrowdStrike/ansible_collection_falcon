@@ -34,6 +34,14 @@
     - falcon_gpg_key_check | bool
     - ansible_facts['pkg_mgr'] in dpkg_packagers
 
+- name: CrowdStrike Falcon | Apply maintenance token (if sensor already installed - Linux)
+  crowdstrike.falcon.falconctl:
+    state: present
+    maintenance_token: "{{ falcon_maintenance_token }}"
+  when:
+    - falcon_maintenance_token | default('', true) | length > 0
+    - falcon_sensor_installed | default(false)
+
 - name: CrowdStrike Falcon | Install Falcon Sensor Package (Linux)
   ansible.builtin.package:
     deb: "{{ falcon_sensor_pkg if (ansible_facts['pkg_mgr'] in dpkg_packagers) else omit }}"
@@ -43,6 +51,34 @@
     state: present
   when:
     - ansible_facts['pkg_mgr'] in linux_packagers
+  register: falcon_package_install
+
+# Handle use case for debian based package upgrades/downgrades
+- name: CrowdStrike Falcon | DEB package operation service management
+  when:
+    - ansible_facts['pkg_mgr'] in dpkg_packagers          # Only Debian-based systems
+    - falcon_sensor_installed | default(false)            # Only if sensor was already installed
+    - falcon_package_install.changed | default(false)     # Only if package actually changed
+  block:
+    - name: CrowdStrike Falcon | Reload systemd daemon after DEB package operation
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: CrowdStrike Falcon | Restart Falcon Sensor service after DEB package operation
+      ansible.builtin.systemd:
+        name: falcon-sensor
+        state: restarted
+        enabled: true
+
+- name: CrowdStrike Falcon | Apply maintenance token (if sensor already installed - macOS)
+  ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl unload --maintenance-token"
+  args:
+    stdin: "{{ falcon_maintenance_token }}"
+  changed_when: false
+  when:
+    - falcon_maintenance_token | default('', true) | length > 0
+    - falcon_sensor_installed | default(false)
+    - ansible_facts['distribution'] == "MacOSX"
 
 - name: CrowdStrike Falcon | Install Falcon Sensor .pkg Package (macOS)
   ansible.builtin.command: "/usr/sbin/installer -pkg {{ falcon_sensor_pkg }} -target /"

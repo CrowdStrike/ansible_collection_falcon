@@ -1,7 +1,7 @@
 ---
 # tasks file for falcon_uninstall
 - name: Uninstall pretasks
-  ansible.builtin.include_tasks: preuninstall.yml
+  ansible.builtin.include_tasks: check_sensor_installed.yml
   # noqa name[missing]
 
 - name: API block

@@ -129,3 +129,8 @@
   ansible.builtin.set_fact:
     falcon_sensor_version: "+version:'{{ falcon_sensor_version }}'"
   when: falcon_sensor_version | length > 0
+
+- name: CrowdStrike Falcon | Check if sensor is already installed
+  ansible.builtin.include_role:
+    name: crowdstrike.falcon.falcon_uninstall
+    tasks_from: check_sensor_installed

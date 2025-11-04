@@ -1,4 +1,13 @@
 ---
+- name: CrowdStrike Falcon | Disable sensor protection before uninstall (Linux)
+  crowdstrike.falcon.falconctl:
+    state: present
+    maintenance_token: "{{ falcon_maintenance_token }}"
+  when:
+    - ansible_facts['system'] == "Linux"
+    - falcon_maintenance_token | default('', true) | length > 0
+    - falcon_sensor_installed
+
 - name: CrowdStrike Falcon | Uninstalling Falcon Sensor (Linux)
   ansible.builtin.package:
     name: falcon-sensor
@@ -6,6 +15,16 @@
     purge: "{{ True if (ansible_facts['pkg_mgr'] == 'apt') else omit }}"
   when:
     - ansible_facts['system'] == "Linux"
+
+- name: CrowdStrike Falcon | Apply maintenance token (macOS)
+  ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl unload --maintenance-token"
+  args:
+    stdin: "{{ falcon_maintenance_token }}"
+  changed_when: false
+  when:
+    - falcon_maintenance_token | default('', true) | length > 0
+    - falcon_sensor_installed
+    - ansible_facts['distribution'] == "MacOSX"
 
 - name: CrowdStrike Falcon | Uninstalling Falcon Sensor (macOS)
   ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl uninstall"

@@ -1,0 +1,65 @@
+---
+# Check if sensor is installed (Linux)
+- name: Check if sensor is installed (Linux)
+  when: ansible_facts['system'] == "Linux"
+  block:
+    - name: Try package_facts
+      ansible.builtin.package_facts:
+        manager: auto
+      register: pkg_facts
+
+    - name: Set installed flag based on package_facts
+      ansible.builtin.set_fact:
+        falcon_sensor_installed_linux: "{{ 'falcon-sensor' in ansible_facts.packages }}"
+      when: pkg_facts is succeeded
+  rescue:
+    - name: Fallback to file-based detection
+      ansible.builtin.stat:
+        path: /opt/CrowdStrike/falconctl
+      register: falcon_binary
+
+    - name: Set installed flag based on file check
+      ansible.builtin.set_fact:
+        falcon_sensor_installed_linux: "{{ falcon_binary.stat.exists | default(false) }}"
+
+# Check if sensor is installed (macOS)
+- name: Check if sensor is installed (macOS)
+  ansible.builtin.stat:
+    path: "/Applications/Falcon.app/Contents/Resources/falconctl"
+  register: falcon_macos_installed
+  when: ansible_facts['system'] == "Darwin"
+
+# Check if sensor service exists (Windows)
+- name: Check if sensor service exists (Windows)
+  ansible.windows.win_service:
+    name: csfalconservice
+  register: falcon_windows_service
+  failed_when: false
+  when: ansible_facts['os_family'] == "Windows"
+
+# Set sensor installed flags
+- name: Set sensor installed flag (macOS)
+  ansible.builtin.set_fact:
+    falcon_sensor_installed_mac: true
+  when:
+    - ansible_facts['system'] == "Darwin"
+    - falcon_macos_installed.stat.exists | default(false)
+
+- name: Set sensor installed flag (Windows)
+  ansible.builtin.set_fact:
+    falcon_sensor_installed_win: true
+  when:
+    - ansible_facts['os_family'] == "Windows"
+    - falcon_windows_service.exists | default(false)
+
+# Check if sensor is installed (any platform)
+- name: Check if sensor is installed
+  ansible.builtin.set_fact:
+    falcon_sensor_installed: >-
+      {{
+        falcon_sensor_installed_linux | default(
+          falcon_sensor_installed_win | default(
+            falcon_sensor_installed_mac | default(false)
+          )
+        )
+      }}

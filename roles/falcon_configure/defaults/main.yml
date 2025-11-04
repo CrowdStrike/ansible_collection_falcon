@@ -41,6 +41,20 @@ falcon_client_secret:
 # https://falcon.crowdstrike.com/support/documentation/page/f4d593ca/installation-options-for-falcon-sensor-for-linux#l086f14c
 #
 falcon_provisioning_token:
+# Maintenance token for sensor operations when uninstall and maintenance protection is enabled.
+# Required for sensor versions 7.20+ when protection is armed.
+#
+# Examples:
+#   # Manual token
+#   falcon_maintenance_token: "your-token-here"
+#
+#   # Bulk token (recommended)
+#   falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token', bulk=true) }}"
+#
+#   # Host-specific token
+#   falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token', host_aid) }}"
+#
+falcon_maintenance_token:
 ######### Wait for AID generation #########
 # Number of retries to attempt when waiting to retrieve the Falcon Agent ID (AID)
 # after sensor restart.

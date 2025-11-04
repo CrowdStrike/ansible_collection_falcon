@@ -28,6 +28,20 @@ falcon_client_secret:
 #
 falcon_remove_host: false
 
+# Maintenance token for sensor operations when uninstall and maintenance protection is enabled.
+# Required for sensor versions 7.20+ when protection is armed.
+#
+# Examples:
+#   # Manual token
+#   falcon_maintenance_token: "your-token-here"
+#
+#   # Bulk token (recommended)
+#   falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token', bulk=true) }}"
+#
+#   # Host-specific token
+#   falcon_maintenance_token: "{{ lookup('crowdstrike.falcon.maintenance_token', host_aid) }}"
+#
+falcon_maintenance_token:
 # Additional arugments to uninstall the sensor.
 # You can add your maintenance token here by adding MAINTENANCE_TOKEN=<token>
 #
