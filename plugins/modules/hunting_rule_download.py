@@ -86,7 +86,7 @@ EXAMPLES = r"""
 - name: Download CQL hunting rules with FQL filter
   crowdstrike.falcon.hunting_rule_download:
     language: "cql"
-    filter: "adversary:'SPIDER'"
+    filter: "adversaries:'FANCY BEAR'"
     dest: "/tmp/hunting_rules"
     name: "spider_cql_rules.zip"
 
@@ -123,7 +123,7 @@ filter:
   description: The FQL filter applied to the rule selection (if any).
   returned: success
   type: str
-  sample: "adversary:'SPIDER'"
+  sample: "adversaries:'FANCY BEAR'"
 """
 
 import errno
