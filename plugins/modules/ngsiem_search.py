@@ -187,7 +187,6 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.common_args imp
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils import (
     authenticate,
     check_falconpy_version,
-    handle_return_errors,
 )
 
 FALCONPY_IMPORT_ERROR = None
@@ -358,9 +357,43 @@ def main():
         query_result = start_search(falcon, module)
 
         if query_result["status_code"] != 200:
-            handle_return_errors(module, result, query_result)
+            # Handle API errors from start_search
+            if "resources" in query_result and "errors" in query_result["resources"]:
+                errors = query_result["resources"]["errors"]
+                if errors:
+                    error_msg = errors[0].get("message", "Unknown API error")
+                    result["errors"] = errors
+                    module.fail_json(msg=error_msg, **result)
+            module.fail_json(
+                msg=f"API request failed with status {query_result['status_code']}",
+                api_response=query_result,
+                **result
+            )
 
-        job_id = query_result["body"]["id"]
+        # Check if the response has the expected structure
+        if "resources" not in query_result:
+            module.fail_json(
+                msg="Unexpected API response structure: missing 'resources' field",
+                api_response=query_result,
+                **result
+            )
+
+        if "id" not in query_result["resources"]:
+            # Check if there are errors in the resources
+            if "errors" in query_result["resources"]:
+                errors = query_result["resources"]["errors"]
+                if errors:
+                    error_msg = errors[0].get("message", "Query validation failed")
+                    result["errors"] = errors
+                    module.fail_json(msg=error_msg, **result)
+
+            module.fail_json(
+                msg="Unexpected API response structure: missing 'id' field in resources",
+                api_response=query_result,
+                **result
+            )
+
+        job_id = query_result["resources"]["id"]
         result["query_job_id"] = job_id
 
         # Wait for completion and get results

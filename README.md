@@ -59,6 +59,7 @@ Name | Description
 [crowdstrike.falcon.intel_rule_download](https://crowdstrike.github.io/ansible_collection_falcon/intel_rule_download_module.html)|Download CrowdStrike Falcon Intel rule files
 [crowdstrike.falcon.intel_rule_info](https://crowdstrike.github.io/ansible_collection_falcon/intel_rule_info_module.html)|Get information about CrowdStrike Falcon Intel rules
 [crowdstrike.falcon.kernel_support_info](https://crowdstrike.github.io/ansible_collection_falcon/kernel_support_info_module.html)|Get information about kernels supported by the Falcon Sensor for Linux
+[crowdstrike.falcon.ngsiem_search](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_search_module.html)|Execute CQL searches against Next-Gen SIEM repositories for incident response and threat hunting
 [crowdstrike.falcon.sensor_download](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_module.html)|Download Falcon Sensor Installer
 [crowdstrike.falcon.sensor_download_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_info_module.html)|Get information about Falcon Sensor Installers
 [crowdstrike.falcon.sensor_update_builds_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_builds_info_module.html)|Get a list of available sensor build versions
