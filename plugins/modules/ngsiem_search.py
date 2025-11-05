@@ -95,43 +95,41 @@ author:
 EXAMPLES = r"""
 - name: Search for all logs from a specific agent ID in the last 24 hours
   crowdstrike.falcon.ngsiem_search:
-    query_string: 'aid=abc123'
-    start: '1d'
-    end: 'now'
+    query_string: "aid=abc123"
+    start: "1d"
+    end: "now"
 
 - name: Find processes that initiated connections to a specific IP
   crowdstrike.falcon.ngsiem_search:
-    repository: investigate_view
+    repository: "investigate_view"
     query_string: |
-      #event_simpleName=ProcessRollup2
-      | join({#event_simpleName=NetworkConnectIP4 RemoteAddressIP4=?target_ip},
-             key=ContextProcessId, field=TargetProcessId)
-      | table([ImageFileName, CommandLine, ParentProcessId, RemoteAddressIP4])
+      #event_simpleName=ProcessRollup2 ImageFileName=?process_name
+      | join({{ '{' }}#event_simpleName=NetworkConnectIP4{{ '}' }},
+             key=ContextProcessId, field=TargetProcessId,
+             include=[RemoteAddressIP4, RemotePort])
+      | table([ImageFileName, CommandLine, ParentProcessId, RemoteAddressIP4, RemotePort])
     arguments:
-      target_ip: "192.168.1.50"
-    start: '24h'
+      process_name: "*"
+    start: "24h"
 
 - name: Search for network connections between specific IPs
   crowdstrike.falcon.ngsiem_search:
     query_string: |
-      #event_simpleName=NetworkConnectIP4
-      | LocalAddressIP4=?source_ip RemoteAddressIP4=?dest_ip
+      #event_simpleName=NetworkConnectIP4 LocalAddressIP4=?source_ip RemoteAddressIP4=?dest_ip
       | table([ImageFileName, CommandLine, LocalAddressIP4, RemoteAddressIP4, RemotePort])
     arguments:
       source_ip: "10.1.1.100"
       dest_ip: "192.168.1.50"
     timeout: 600
 
-- name: Find failed authentication attempts in the last hour
+- name: Find authentication events in the last hour
   crowdstrike.falcon.ngsiem_search:
-    repository: search-all
+    repository: "search-all"
     query_string: |
       #event_simpleName=UserLogon
-      | LogonType_decimal=?logon_type
-      | table([ComputerName, UserName, LogonTime, FailureReason])
-    arguments:
-      logon_type: "3"
-    start: '1h'
+      | head(25)
+      | table([ComputerName, UserName, LogonType, aid])
+    start: "1h"
     poll_interval: 5
 """
 
