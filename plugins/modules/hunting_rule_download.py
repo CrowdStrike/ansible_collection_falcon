@@ -14,6 +14,8 @@ module: hunting_rule_download
 
 short_description: Download CrowdStrike Falcon Hunting rule archives
 
+version_added: "4.10.0"
+
 description:
   - Downloads CrowdStrike Falcon Hunting rule archives with advanced filtering capabilities.
   - Supports downloading hunting rules for multiple languages including CQL, Snort, Suricata, and YARA.
