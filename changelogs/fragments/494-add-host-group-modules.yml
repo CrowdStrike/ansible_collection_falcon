@@ -1,0 +1,6 @@
+---
+minor_changes:
+  - host_group module - Add new module to manage CRUD operations for Falcon host groups including
+    create, update, delete, and host membership management (addresses # 494)
+  - host_group_info module - Add new module to retrieve information about Falcon host groups with
+    filtering, pagination, and optional member details (addresses # 494)
