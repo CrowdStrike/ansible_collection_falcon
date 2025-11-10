@@ -138,28 +138,14 @@ author:
 """
 
 EXAMPLES = r"""
-# First, get available build values for your tenant
-- name: Get available sensor builds
-  crowdstrike.falcon.sensor_update_builds_info:
-    client_id: "{{ falcon_client_id }}"
-    client_secret: "{{ falcon_client_secret }}"
-    cloud: "{{ falcon_cloud }}"
-  register: available_builds
-
-- name: Show Windows build values
-  debug:
-    msg: "{{ available_builds.builds | selectattr('platform', 'equalto', 'Windows') | map(attribute='build') | list }}"
-
 # PREFERRED IDEMPOTENT PATTERNS (using name + platform_name)
-# These examples demonstrate true Ansible idempotency where the same task
-# definition works for create, update, and delete operations.
 
 - name: Create a Windows sensor update policy (idempotent)
   crowdstrike.falcon.sensor_update_policy:
     name: "Windows Production Policy"
     platform_name: Windows
     description: "Windows hosts production sensor policy"
-    build: "20008|n-1|tagged|1"  # Use actual build from sensor_update_builds_info
+    build: "20008|n-1|tagged|1"
     uninstall_protection: ENABLED
     state: present
 
@@ -168,7 +154,7 @@ EXAMPLES = r"""
     name: "Windows Production Policy"
     platform_name: Windows
     description: "UPDATED: Windows hosts production sensor policy"
-    build: "19320|Auto"  # Use different build value
+    build: "19320|Auto"
     uninstall_protection: ENABLED
     enabled: true
     state: present
@@ -184,7 +170,7 @@ EXAMPLES = r"""
     name: "Linux Maintenance Policy"
     platform_name: Linux
     description: "Linux hosts with maintenance windows"
-    build: "18202|n-1|tagged|5"  # Use actual Linux build
+    build: "18202|n-1|tagged|5"
     scheduler:
       enabled: true
       timezone: "America/Chicago"
@@ -240,42 +226,6 @@ EXAMPLES = r"""
     host_groups:
       - "d78cd791785442a98ec75249d8c385dd"
     host_group_action: remove
-
-# COMPLETE LIFECYCLE EXAMPLE WITH DYNAMIC BUILD VALUES
-# This example shows how to get current builds and use them in policy management
-
-- name: Get current Windows builds for dynamic policy management
-  crowdstrike.falcon.sensor_update_builds_info:
-    client_id: "{{ falcon_client_id }}"
-    client_secret: "{{ falcon_client_secret }}"
-    cloud: "{{ falcon_cloud }}"
-  register: current_builds
-
-- name: Extract latest Windows n-1 build
-  set_fact:
-    windows_n1_build: "{{ current_builds.builds | selectattr('platform', 'equalto', 'Windows') |
-                          selectattr('build', 'match', '.*\\|n-1\\|.*') | list | first | default({}) }}"
-
-- name: Manage Mac development policy with current build
-  crowdstrike.falcon.sensor_update_policy:
-    name: "Mac Development Policy"
-    platform_name: Mac
-    description: "Mac hosts development sensor policy"
-    build: "{{ windows_n1_build.build | default(omit) }}"  # Use current n-1 build or omit for updates disabled
-    uninstall_protection: DISABLED
-    enabled: false
-    # Change 'state' to control the lifecycle:
-    # state: present  (create/update)
-    # state: absent   (delete)
-    state: present
-  register: mac_policy
-
-- name: Add host groups to the managed policy
-  crowdstrike.falcon.sensor_update_policy:
-    name: "Mac Development Policy"
-    platform_name: Mac
-    host_groups: "{{ mac_host_group_ids }}"
-    host_group_action: add
 """
 
 RETURN = r"""
@@ -407,12 +357,22 @@ def argspec():
             name=dict(type="str", required=False),
             sensor_update_policy=dict(type="str", required=False),
             description=dict(type="str", required=False),
-            platform_name=dict(type="str", choices=["Windows", "Mac", "Linux"], required=False),
+            platform_name=dict(
+                type="str",
+                choices=["Windows", "Mac", "Linux"],
+                required=False,
+            ),
             build=dict(type="str", required=False),
-            uninstall_protection=dict(type="str", choices=["ENABLED", "DISABLED", "MAINTENANCE_MODE"], required=False),
+            uninstall_protection=dict(
+                type="str",
+                choices=["ENABLED", "DISABLED", "MAINTENANCE_MODE"],
+                required=False,
+            ),
             scheduler=dict(type="dict", required=False),
             host_groups=dict(type="list", elements="str", required=False),
-            host_group_action=dict(type="str", choices=["add", "remove"], required=False),
+            host_group_action=dict(
+                type="str", choices=["add", "remove"], required=False
+            ),
             enabled=dict(type="bool", required=False),
         )
     )
@@ -551,15 +511,17 @@ def perform_host_group_action(falcon, module, policy_id):
     # Create action parameters for each host group
     action_parameters = []
     for group_id in module.params["host_groups"]:
-        action_parameters.append({
-            "name": "group_id",
-            "value": group_id
-        })
+        action_parameters.append(
+            {
+                "name": "group_id",
+                "value": group_id,
+            }
+        )
 
     return falcon.perform_policies_action(
         action_name=action_name,
         ids=[policy_id],
-        action_parameters=action_parameters
+        action_parameters=action_parameters,
     )
 
 
@@ -595,7 +557,10 @@ def policy_needs_update(current_policy, module):
     needs_update = False
 
     # Check name (only if provided and different)
-    if module.params.get("name") and current_policy.get("name") != module.params["name"]:
+    if (
+        module.params.get("name")
+        and current_policy.get("name") != module.params["name"]
+    ):
         needs_update = True
 
     # Check description (only if provided and different)
@@ -618,7 +583,8 @@ def policy_needs_update(current_policy, module):
     # Check uninstall protection setting
     if (
         module.params.get("uninstall_protection") is not None
-        and current_settings.get("uninstall_protection") != module.params["uninstall_protection"]
+        and current_settings.get("uninstall_protection")
+        != module.params["uninstall_protection"]
     ):
         needs_update = True
 
@@ -692,7 +658,9 @@ def main():
             if policy_id:
                 current_policy = get_existing_policy(falcon, policy_id)
                 if not current_policy:
-                    module.fail_json(msg=f"Sensor update policy with ID '{policy_id}' not found")
+                    module.fail_json(
+                        msg=f"Sensor update policy with ID '{policy_id}' not found"
+                    )
             # If name provided, check if policy exists
             elif name:
                 current_policy = find_policy_by_name(falcon, name, platform_name)
@@ -703,7 +671,9 @@ def main():
             if current_policy is None:
                 # Create new policy
                 if not name:
-                    module.fail_json(msg="Parameter 'name' is required when creating a new policy")
+                    module.fail_json(
+                        msg="Parameter 'name' is required when creating a new policy"
+                    )
 
                 if module.check_mode:
                     result["changed"] = True
@@ -727,19 +697,28 @@ def main():
                     if module.check_mode:
                         result["changed"] = True
                     else:
-                        update_result = update_sensor_update_policy(falcon, module, policy_id)
+                        update_result = update_sensor_update_policy(
+                            falcon,
+                            module,
+                            policy_id,
+                        )
                         if update_result["status_code"] != 200:
                             handle_return_errors(module, result, update_result)
                         current_policy = get_existing_policy(falcon, policy_id)
                         result["changed"] = True
 
             # Handle enable/disable if needed
-            needs_enable_disable, should_enable = policy_needs_enable_disable(current_policy, module)
+            needs_enable_disable, should_enable = policy_needs_enable_disable(
+                current_policy,
+                module,
+            )
             if needs_enable_disable:
                 if module.check_mode:
                     result["changed"] = True
                 else:
-                    enable_result = enable_disable_policy(falcon, policy_id, should_enable)
+                    enable_result = enable_disable_policy(
+                        falcon, policy_id, should_enable
+                    )
                     if enable_result["status_code"] != 200:
                         handle_return_errors(module, result, enable_result)
                     current_policy = get_existing_policy(falcon, policy_id)
@@ -751,7 +730,7 @@ def main():
                     result["changed"] = True
                     result["host_group_results"] = {
                         "successful_groups": host_groups,
-                        "failed_groups": []
+                        "failed_groups": [],
                     }
                 else:
                     hg_result = perform_host_group_action(falcon, module, policy_id)
@@ -776,7 +755,9 @@ def main():
             if policy_id:
                 current_policy = get_existing_policy(falcon, policy_id)
                 if not current_policy:
-                    module.fail_json(msg=f"Sensor update policy with ID '{policy_id}' not found")
+                    module.fail_json(
+                        msg=f"Sensor update policy with ID '{policy_id}' not found"
+                    )
             # If name provided, check if policy exists
             elif name:
                 current_policy = find_policy_by_name(falcon, name, platform_name)
@@ -800,7 +781,10 @@ def main():
                     result["changed"] = True
 
     except Exception as e:
-        module.fail_json(msg=f"Unexpected error: {str(e)}", exception=traceback.format_exc())
+        module.fail_json(
+            msg=f"Unexpected error: {str(e)}",
+            exception=traceback.format_exc(),
+        )
 
     module.exit_json(**result)
 
