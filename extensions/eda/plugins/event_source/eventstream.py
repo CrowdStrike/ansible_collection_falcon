@@ -184,7 +184,10 @@ class AIOFalconAPI:
         async with self.session.post(url, data=data) as resp:
             result = await resp.json()
             if not result.get("access_token"):
-                msg = "Failed to authenticate to CrowdStrike Falcon API. Check credentials/falcon_cloud and try again."
+                msg = (
+                    "Failed to authenticate to CrowdStrike Falcon API. "
+                    "Check credentials/falcon_cloud and try again."
+                )
                 raise ValueError(msg)
             return result["access_token"]
 
@@ -262,12 +265,12 @@ class AIOFalconAPI:
 class Stream:
     """Stream class for the CrowdStrike Falcon Event Stream API."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self: "Stream",
         client: AIOFalconAPI,
         stream_name: str,
         offset: int | None,
-        latest: bool,
+        latest: bool,  # ruff: noqa: FBT001
         include_event_types: list[str],
         stream: dict,
     ) -> None:
@@ -454,7 +457,7 @@ class Stream:
 
 
 # pylint: disable=too-many-locals
-async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
+async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:  # ruff: noqa: C901
     """Entrypoint for the eventstream event_source plugin.
 
     Parameters
@@ -500,12 +503,20 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
 
     if not available_streams["resources"]:
         logger.info(
-            "Unable to open stream, no streams available. Ensure you are using a unique stream_name.",
+            "Unable to open stream, no streams available. "
+            "Ensure you are using a unique stream_name.",
         )
         return
 
     streams: list[Stream] = [
-        Stream(falcon, stream_name, offset, latest, include_event_types, stream)
+        Stream(
+            falcon,
+            stream_name,
+            offset=offset,
+            latest=latest,
+            include_event_types=include_event_types,
+            stream=stream,
+        )
         for stream in available_streams["resources"]
     ]
 
