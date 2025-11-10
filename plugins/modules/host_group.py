@@ -35,14 +35,16 @@ options:
     description:
       - The name of the host group.
       - Required when I(state=present) and creating a new group.
+      - Can be used for I(state=absent) to delete by name (supports true idempotency).
       - Cannot be used to rename existing groups (use I(host_group) to identify the group).
     type: str
     required: false
   host_group:
     description:
       - The ID of an existing host group.
-      - Required when I(state=absent) or when updating an existing group.
+      - Can be used with I(state=absent) for deletion by ID.
       - If provided with I(state=present), the module will update the existing group.
+      - "B(Note): Either I(name) or I(host_group) is required for I(state=absent)."
     type: str
     required: false
   description:
@@ -109,56 +111,130 @@ author:
 """
 
 EXAMPLES = r"""
-- name: Create a static host group
+# PRIMARY WORKFLOW: Name-based Operations
+
+- name: Create a static host group using names (recommended)
   crowdstrike.falcon.host_group:
     name: "Web Servers"
-    description: "All web server hosts"
+    description: "All web server hosts in the environment"
     group_type: static
 
-- name: Create a dynamic host group
+- name: Create a dynamic host group with assignment rules
   crowdstrike.falcon.host_group:
-    name: "Linux Production"
-    description: "All Linux hosts in production"
+    name: "Linux Production Hosts"
+    description: "All Linux hosts with production tags"
     group_type: dynamic
     assignment_rule: "platform_name:'Linux'+tags:'production'"
 
-- name: Update an existing host group description
+- name: Create a staticByID host group for device ID management
   crowdstrike.falcon.host_group:
-    host_group: "12345678901234567890abcdef123456"
-    description: "Updated description for web servers"
+    name: "Critical Infrastructure"
+    description: "Manually assigned critical infrastructure hosts"
+    group_type: staticByID
 
-- name: Add hosts to an existing group
+- name: Update an existing group using name (detects changes automatically)
   crowdstrike.falcon.host_group:
-    host_group: "12345678901234567890abcdef123456"
-    hosts:
-      - "d78cd791785442a98ec75249d8c385dd"
-      - "a1b2c3d4e5f6789012345678901234ab"
-    host_action: add
+    name: "Web Servers"
+    description: "Updated description for all web server hosts"
 
-- name: Remove hosts from a group
+- name: Update dynamic group assignment rule using name
   crowdstrike.falcon.host_group:
-    host_group: "12345678901234567890abcdef123456"
-    hosts:
-      - "d78cd791785442a98ec75249d8c385dd"
-    host_action: remove
+    name: "Linux Production Hosts"
+    assignment_rule: "platform_name:'Linux'+(tags:'production'+tags:'web')"
 
-- name: Delete a host group
+- name: Delete a host group using name (true idempotency - recommended)
   crowdstrike.falcon.host_group:
-    host_group: "12345678901234567890abcdef123456"
+    name: "Web Servers"
     state: absent
 
-- name: Create or update a group (idempotent)
+# TRUE IDEMPOTENCY PATTERN: Same Task Definition for Entire Lifecycle
+
+- name: Manage host group lifecycle with identical task definition
+  crowdstrike.falcon.host_group:
+    name: "Application Servers"
+    description: "All application server hosts"
+    group_type: static
+    state: "{{ desired_state }}"  # 'present' for create/update, 'absent' for delete
+
+- name: Complete dynamic group lifecycle example
+  crowdstrike.falcon.host_group:
+    name: "Windows Domain Controllers"
+    description: "All Windows domain controller hosts"
+    group_type: dynamic
+    assignment_rule: "platform_name:'Windows'+tags:'domain-controller'"
+    state: "{{ lifecycle_state | default('present') }}"
+
+# HOST MANAGEMENT: Adding and Removing Hosts from Groups
+
+- name: Create group first, then manage hosts using returned ID
   crowdstrike.falcon.host_group:
     name: "Database Servers"
     description: "All database server hosts"
     group_type: static
-  register: db_group
+  register: db_group_result
 
-- name: Add hosts to the group created above
+- name: Add hosts to the database group
   crowdstrike.falcon.host_group:
-    host_group: "{{ db_group.host_group.id }}"
-    hosts: "{{ database_host_ids }}"
+    host_group: "{{ db_group_result.host_group.id }}"
+    hosts:
+      - "15dbb9d8f06b45fe9f61eb46e829d986"
+      - "2ae94761f78e4a6d9e2f8b5c4d1a7b3e"
     host_action: add
+
+- name: Remove specific hosts from the group
+  crowdstrike.falcon.host_group:
+    host_group: "{{ db_group_result.host_group.id }}"
+    hosts:
+      - "15dbb9d8f06b45fe9f61eb46e829d986"
+    host_action: remove
+
+# DYNAMIC HOST MANAGEMENT: Using host_ids Lookup Plugin
+
+- name: Create group and populate with Windows hosts dynamically
+  crowdstrike.falcon.host_group:
+    name: "Windows Production Servers"
+    description: "All Windows hosts in production environment"
+    group_type: static
+    hosts: "{{ lookup('crowdstrike.falcon.host_ids', 'platform_name:\"Windows\"+tags:\"production\"') }}"
+    host_action: add
+
+# ID-BASED OPERATIONS: When Working with Existing Groups
+
+- name: Update existing group using ID (when you have the group ID)
+  crowdstrike.falcon.host_group:
+    host_group: "a1b2c3d4e5f6789012345678901234ab"
+    description: "Updated description using group ID"
+
+- name: Delete a host group using ID (legacy approach)
+  crowdstrike.falcon.host_group:
+    host_group: "a1b2c3d4e5f6789012345678901234ab"
+    state: absent
+
+# ADVANCED PATTERNS: Complex Assignment Rules and Error Handling
+
+- name: Create dynamic group with complex FQL assignment rule
+  crowdstrike.falcon.host_group:
+    name: "High-Risk Linux Servers"
+    description: "Linux servers requiring enhanced monitoring"
+    group_type: dynamic
+    assignment_rule: "platform_name:'Linux'+(tags:'production'+tags:'database'+!tags:'patched')"
+
+- name: Conditional group management with error handling
+  crowdstrike.falcon.host_group:
+    name: "{{ group_name }}"
+    description: "{{ group_description | default('Managed by Ansible') }}"
+    group_type: "{{ group_type | default('static') }}"
+    assignment_rule: "{{ assignment_rule | default(omit) }}"
+    state: present
+  register: group_result
+  failed_when: false  # Handle errors gracefully
+
+- name: Verify group creation succeeded before proceeding
+  ansible.builtin.assert:
+    that:
+      - group_result is succeeded
+      - group_result.host_group.name == group_name
+    fail_msg: "Failed to create or update host group {{ group_name }}"
 """
 
 RETURN = r"""
@@ -310,9 +386,9 @@ def validate_params(module):
                 msg="Either 'name' (for new groups) or 'host_group' (for existing groups) is required when state=present"
             )
     elif state == "absent":
-        if not host_group:
+        if not host_group and not name:
             module.fail_json(
-                msg="Parameter 'host_group' is required when state=absent"
+                msg="Either 'host_group' (ID) or 'name' is required when state=absent"
             )
 
     # Validate dynamic group requirements
@@ -490,9 +566,7 @@ def main():
             if host_group:
                 current_group = get_existing_group(falcon, host_group)
                 if not current_group:
-                    module.fail_json(
-                        msg=f"Host group with ID '{host_group}' not found"
-                    )
+                    module.fail_json(msg=f"Host group with ID '{host_group}' not found")
             elif name:
                 current_group = find_group_by_name(falcon, name)
 
@@ -555,11 +629,19 @@ def main():
                             result["changed"] = True
 
         elif state == "absent":
-            # Check if group exists
-            current_group = get_existing_group(falcon, host_group)
+            current_group = None
+
+            # Find existing group by ID or name
+            if host_group:
+                current_group = get_existing_group(falcon, host_group)
+                if not current_group:
+                    module.fail_json(msg=f"Host group with ID '{host_group}' not found")
+            elif name:
+                current_group = find_group_by_name(falcon, name)
+
             if current_group:
                 # Delete the group
-                delete_result = delete_host_group(falcon, host_group)
+                delete_result = delete_host_group(falcon, current_group["id"])
                 if delete_result["status_code"] != 200:
                     handle_return_errors(module, result, delete_result)
                 result["changed"] = True
