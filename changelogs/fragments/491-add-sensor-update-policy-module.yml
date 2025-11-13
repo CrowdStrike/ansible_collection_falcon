@@ -1,4 +1,0 @@
----
-minor_changes:
-  - sensor_update_policy module - Manage Falcon sensor update policies with CRUD operations
-    (https://github.com/CrowdStrike/ansible_collection_falcon/issues/491)

@@ -1,3 +1,0 @@
----
-bugfixes:
-  - falcon_install role - Remove DEB-specific GPG key handling to fix Ubuntu 22.04 installation failures when falcon_gpg_key_check is true
