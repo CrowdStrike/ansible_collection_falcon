@@ -1,0 +1,13 @@
+# CODEOWNERS for CrowdStrike Falcon Ansible Collection
+#
+# This file defines code ownership for automatic reviewer assignment in pull requests.
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Format: path @github-username @team-name
+# Order matters: last matching pattern takes precedence
+
+# Global fallback - all files not covered by specific rules
+* @carlosmmatos @evanstoner @redhatrises
+
+# This CODEOWNERS file itself
+/.github/CODEOWNERS @CrowdStrike/solution-architects-cloud-integrations
