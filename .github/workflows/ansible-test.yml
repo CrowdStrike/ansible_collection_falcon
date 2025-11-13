@@ -12,6 +12,9 @@ on:
       - 'plugins/**'
       - '.github/workflows/ansible-test.yml'
 
+permissions:
+  contents: read
+
 jobs:
   ansible-test:
     runs-on: ubuntu-latest
