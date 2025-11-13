@@ -1,4 +1,5 @@
 """CrowdStrike Falcon Event Stream API event source plugin."""
+
 import asyncio
 import json
 import logging
@@ -153,9 +154,11 @@ class AIOFalconAPI:
         self.client_id = client_id
         self.client_secret = client_secret
         self.base_url = base_url or self.BASE_URL
-        self.session = aiohttp.ClientSession(headers={
-            "User-Agent": f"crowdstrike-ansible/eda/{VERSION}",
-        })
+        self.session = aiohttp.ClientSession(
+            headers={
+                "User-Agent": f"crowdstrike-ansible/eda/{VERSION}",
+            },
+        )
 
     async def close(self: "AIOFalconAPI") -> None:
         """Close the aiohttp session."""
@@ -270,7 +273,8 @@ class Stream:
         client: AIOFalconAPI,
         stream_name: str,
         offset: int | None,
-        latest: bool,  # ruff: noqa: FBT001
+        *,
+        latest: bool,
         include_event_types: list[str],
         stream: dict,
     ) -> None:
@@ -456,16 +460,20 @@ class Stream:
         return event_type not in exclude_event_types
 
 
-# pylint: disable=too-many-locals
-async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:  # ruff: noqa: C901
-    """Entrypoint for the eventstream event_source plugin.
+async def _validate_and_setup_client(
+    args: dict[str, Any],
+) -> tuple[AIOFalconAPI, str, int | None, bool, float, list[str], list[str]]:
+    """Validate arguments and setup falcon client.
 
     Parameters
     ----------
-    queue: asyncio.Queue
-        The queue to send events to
-    args: dict[str, Any]
+    args : dict[str, Any]
         The event_source arguments
+
+    Returns
+    -------
+    tuple
+        (falcon_client, stream_name, offset, latest, delay, include_event_types, exclude_event_types)
 
     Raises
     ------
@@ -498,6 +506,46 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:  # ruff: noq
         base_url=REGIONS[falcon_cloud],
     )
 
+    return (
+        falcon,
+        stream_name,
+        offset,
+        latest,
+        delay,
+        include_event_types,
+        exclude_event_types,
+    )
+
+
+async def _create_streams(
+    falcon: AIOFalconAPI,
+    stream_name: str,
+    offset: int | None,
+    *,
+    latest: bool,
+    include_event_types: list[str],
+) -> list[Stream] | None:
+    """Create stream objects from available streams.
+
+    Parameters
+    ----------
+    falcon : AIOFalconAPI
+        The falcon API client
+    stream_name : str
+        Name of the stream
+    offset : int | None
+        Stream offset
+    latest : bool
+        Whether to use latest events
+    include_event_types : list[str]
+        Event types to include
+
+    Returns
+    -------
+    list[Stream] | None
+        List of stream objects, or None if no streams available
+
+    """
     token = await falcon.authenticate()
     available_streams = await falcon.list_available_streams(token, stream_name)
 
@@ -506,7 +554,7 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:  # ruff: noq
             "Unable to open stream, no streams available. "
             "Ensure you are using a unique stream_name.",
         )
-        return
+        return None
 
     streams: list[Stream] = [
         Stream(
@@ -519,7 +567,29 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:  # ruff: noq
         )
         for stream in available_streams["resources"]
     ]
+    return streams
 
+
+async def _process_events(
+    streams: list[Stream],
+    queue: asyncio.Queue,
+    delay: float,
+    exclude_event_types: list[str],
+) -> None:
+    """Process events from streams.
+
+    Parameters
+    ----------
+    streams : list[Stream]
+        List of stream objects to process
+    queue : asyncio.Queue
+        The queue to send events to
+    delay : float
+        Delay between events
+    exclude_event_types : list[str]
+        Event types to exclude
+
+    """
     try:
         # Iterate over each stream in the streams list
         for stream in streams:
@@ -534,13 +604,63 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:  # ruff: noq
         logger.exception("Uncaught Plugin Task Error.")
     else:
         logger.info("All streams processed successfully.")
+
+
+async def _cleanup_streams(streams: list[Stream], falcon: AIOFalconAPI) -> None:
+    """Clean up streams and falcon client.
+
+    Parameters
+    ----------
+    streams : list[Stream]
+        List of stream objects to clean up
+    falcon : AIOFalconAPI
+        Falcon API client to close
+
+    """
+    logger.info("Plugin Task Finished..cleaning up")
+    # Close the stream and API session outside the loop
+    for stream in streams:
+        if stream.spigot:
+            await stream.spigot.close()
+    await falcon.close()
+
+
+# pylint: disable=too-many-locals
+async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
+    """Entrypoint for the eventstream event_source plugin.
+
+    Parameters
+    ----------
+    queue: asyncio.Queue
+        The queue to send events to
+    args: dict[str, Any]
+        The event_source arguments
+
+    """
+    (
+        falcon,
+        stream_name,
+        offset,
+        latest,
+        delay,
+        include_event_types,
+        exclude_event_types,
+    ) = await _validate_and_setup_client(args)
+
+    streams = await _create_streams(
+        falcon,
+        stream_name,
+        offset,
+        latest=latest,
+        include_event_types=include_event_types,
+    )
+    if streams is None:
+        return
+
+    try:
+        await _process_events(streams, queue, delay, exclude_event_types)
     finally:
-        logger.info("Plugin Task Finished..cleaning up")
-        # Close the stream and API session outside the loop
-        for stream in streams:
-            if stream.spigot:
-                await stream.spigot.close()
-        await falcon.close()
+        await _cleanup_streams(streams, falcon)
 
 
 if __name__ == "__main__":
