@@ -4,6 +4,44 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.10.0
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2025-11-13
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.10.0>`__
+
+Minor Changes
+-------------
+
+- falcon_configure role - Add maintenance token support for sensor configuration when protection is enabled
+- falcon_install role - Add maintenance token support for upgrade/downgrade scenarios when protection is enabled
+- falcon_install role - Fixes DEB system service management issue after package operation changes
+- falcon_uninstall role - Add maintenance token support for sensor versions 7.20+ with uninstall and maintenance protection enabled
+- falcon_uninstall role - Added shared check_sensor_installed.yml task for reusable sensor detection across roles
+- falconctl - add ability to pass in maintenance token
+- host_group module - Add new module to manage CRUD operations for Falcon host groups including create, update, delete, and host membership management (addresses
+- host_group_info module - Add new module to retrieve information about Falcon host groups with filtering, pagination, and optional member details (addresses
+- hunting_rule_download - Add new module for downloading CrowdStrike Falcon Hunting rule archives with advanced FQL filtering capabilities
+- ngsiem_search module - Add new module to execute CQL searches against Next-Gen SIEM repositories for incident response and threat hunting (addresses
+- sensor_update_policy module - Manage Falcon sensor update policies with CRUD operations (https://github.com/CrowdStrike/ansible_collection_falcon/issues/491)
+
+Bugfixes
+--------
+
+- falcon_install role - Remove DEB-specific GPG key handling to fix Ubuntu 22.04 installation failures when falcon_gpg_key_check is true
+
+New Modules
+-----------
+
+- crowdstrike.falcon.host_group - Manage Falcon host groups
+- crowdstrike.falcon.host_group_info - Get information about Falcon host groups
+- crowdstrike.falcon.hunting_rule_download - Download CrowdStrike Falcon Hunting rule archives
+- crowdstrike.falcon.ngsiem_search - Execute searches against CrowdStrike Next-Gen SIEM repositories
+- crowdstrike.falcon.sensor_update_policy - Manage Falcon sensor update policies
+
 v4.9.1
 ======
 

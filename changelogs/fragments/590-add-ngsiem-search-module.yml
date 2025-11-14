@@ -1,3 +1,0 @@
----
-minor_changes:
-  - ngsiem_search module - Add new module to execute CQL searches against Next-Gen SIEM repositories for incident response and threat hunting (addresses # 590)

@@ -1,3 +1,0 @@
----
-minor_changes:
-  - hunting_rule_download - Add new module for downloading CrowdStrike Falcon Hunting rule archives with advanced FQL filtering capabilities
