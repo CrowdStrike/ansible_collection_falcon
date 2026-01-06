@@ -69,13 +69,13 @@
 - name: CrowdStrike Falcon | Validate available sensor count > decrement (if applicable)
   ansible.builtin.assert:
     that:
-      - falcon_api_installer_list.installers | length > falcon_sensor_version_decrement
+      - falcon_api_installer_list.installers | length > falcon_sensor_version_decrement | int
     fail_msg: >-
       Not enough sensor versions available for the specified decrement value: N-{{ falcon_sensor_version_decrement }}.
       This may occur if your OS distribution/version is newly supported and fewer historical sensor versions exist.
   when:
     - falcon_sensor_version_decrement is defined
-    - falcon_sensor_version_decrement > 0
+    - falcon_sensor_version_decrement | int > 0
 
 - name: CrowdStrike Falcon | Ensure download path exists (local)
   ansible.builtin.file:
