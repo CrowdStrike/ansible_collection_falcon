@@ -147,7 +147,7 @@ class LookupModule(LookupBase):
 
             token = result["body"]["resources"][0]["uninstall_token"]
         except Exception as e:
-            raise AnsibleError(f"Failed to fetch bulk maintenance token: {e}") from e
+            raise AnsibleError(f"Failed to fetch maintenance token: {e}") from e
 
         return token
 
