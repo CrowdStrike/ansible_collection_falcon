@@ -123,7 +123,13 @@ class LookupModule(LookupBase):
         """Authenticate to the CrowdStrike Falcon API."""
         creds = self._credential_setup()
 
-        return SensorUpdatePolicy(**creds)
+        falcon = SensorUpdatePolicy(**creds)
+        if falcon.auth_object._token._status != 200:
+            raise AnsibleError(
+                f"Unable to obtain OAUTH token: {falcon.auth_object._token._fail_reason}"
+            )
+        
+        return falcon
 
     def _fetch_token(self, falcon, device_id):
         """Fetch maintenance token"""
