@@ -124,7 +124,7 @@ class LookupModule(LookupBase):
         creds = self._credential_setup()
 
         falcon = SensorUpdatePolicy(**creds)
-        if falcon.auth_object._token._status != 200:
+        if falcon.auth_object._token._status != 201:
             raise AnsibleError(
                 f"Unable to obtain OAUTH token: {falcon.auth_object._token._fail_reason}"
             )
