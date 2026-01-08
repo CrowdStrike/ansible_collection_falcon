@@ -1,0 +1,5 @@
+---
+bugfixes:
+  - >-
+    falcon_install role - Fix type comparison error when falcon_sensor_version_decrement
+    is passed as a string (https://github.com/CrowdStrike/ansible_collection_falcon/issues/655)
