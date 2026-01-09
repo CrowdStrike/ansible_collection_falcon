@@ -61,73 +61,38 @@ _raw:
   elements: str
 """
 
-import os
 import traceback
 from ansible.errors import AnsibleError
 from ansible.plugins.lookup import LookupBase
 from ansible.utils.display import Display
+from ansible_collections.crowdstrike.falcon.plugins.plugin_utils.falconpy_utils import (
+    authenticate,
+    check_falconpy,
+)
 
 
 FALCONPY_IMPORT_ERROR = None
 try:
     from falconpy import SensorUpdatePolicy
-    from falconpy._version import _VERSION
 
     HAS_FALCONPY = True
 except ImportError:
     HAS_FALCONPY = False
+    SensorUpdatePolicy = None
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
 
 display = Display()
 
 
 class LookupModule(LookupBase):
-    """Lookup plugin for fetching host IDs based on filter expressions."""
-
-    def _credential_setup(self):
-        """Setup credentials for FalconPy."""
-        cred_mapping = {
-            "client_id": "FALCON_CLIENT_ID",
-            "client_secret": "FALCON_CLIENT_SECRET",
-            "member_cid": "FALCON_MEMBER_CID",
-            "cloud": "FALCON_CLOUD",
-        }
-
-        creds = {}
-        for key, env in cred_mapping.items():
-            value = self.get_option(key) or os.getenv(env)
-            if value:
-                if key == "cloud":
-                    self._verify_cloud(value)
-                    creds["base_url"] = value
-                else:
-                    creds[key] = value
-
-        # Make sure we have client_id and client_secret
-        if "client_id" not in creds or "client_secret" not in creds:
-            raise AnsibleError(
-                "You must provide a client_id and client_secret to authenticate to the Falcon API."
-            )
-
-        return creds
-
-    def _verify_cloud(self, cloud):
-        """Verify the cloud region."""
-        valid_clouds = ["us-1", "us-2", "eu-1", "us-gov-1"]
-        if cloud not in valid_clouds:
-            raise AnsibleError(
-                f"Invalid cloud region: '{cloud}'. Valid values are {', '.join(valid_clouds)}"
-            )
+    """Lookup plugin for fetching maintenance tokens."""
 
     def _authenticate(self):
         """Authenticate to the CrowdStrike Falcon API."""
-        creds = self._credential_setup()
-
-        return SensorUpdatePolicy(**creds)
+        return authenticate(SensorUpdatePolicy, self.get_option)
 
     def _fetch_token(self, falcon, device_id):
-        """Fetch maintenance token"""
-        token = None
+        """Fetch maintenance token."""
         try:
             result = falcon.reveal_uninstall_token(
                 audit_message="Ansible maintenance token lookup",
@@ -139,33 +104,21 @@ class LookupModule(LookupBase):
                     f"Unable to fetch maintenance token: {result['body']['errors']}"
                 )
 
-            token = result["body"]["resources"][0]["uninstall_token"]
+            return result["body"]["resources"][0]["uninstall_token"]
+        except AnsibleError:
+            raise
         except Exception as e:
-            raise AnsibleError(f"Failed to fetch bulk maintenance token: {e}") from e
-
-        return token
+            raise AnsibleError(f"Failed to fetch maintenance token: {e}") from e
 
     def run(self, terms, variables=None, **kwargs):
-        """Fetch host IDs based on the provided filter expression."""
-
-        # Check if the 'falconpy' library is installed
-        if not HAS_FALCONPY:
-            raise AnsibleError(
-                "The 'crowdstrike.falcon.maintenance_token' lookup cannot be run because the 'falconpy' library is not installed."
-            )
-
-        # Check if the 'falconpy' library is compatible
-        if _VERSION < "1.3.0":
-            raise AnsibleError(
-                f"Unsupported FalconPy version: {_VERSION}. Upgrade to 1.3.0 or higher."
-            )
+        """Fetch maintenance tokens for the provided device IDs."""
+        check_falconpy("crowdstrike.falcon.maintenance_token")
 
         self.set_options(var_options=variables, direct=kwargs)
 
         falcon = self._authenticate()
         ret = []
 
-        # Check if we should fetch a bulk maintenance token
         if self.get_option("bulk"):
             display.debug("Fetching bulk maintenance token")
             ret.append(self._fetch_token(falcon, "MAINTENANCE"))
