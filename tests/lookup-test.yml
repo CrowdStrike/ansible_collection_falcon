@@ -1,0 +1,212 @@
+---
+# Test playbook for CrowdStrike Falcon lookup plugins
+#
+# This playbook tests the following lookup plugins:
+#   - crowdstrike.falcon.host_ids
+#   - crowdstrike.falcon.maintenance_token
+#   - crowdstrike.falcon.fctl_child_cids (requires Flight Control)
+#
+# Required environment variables:
+#   - FALCON_CLIENT_ID: CrowdStrike API client ID
+#   - FALCON_CLIENT_SECRET: CrowdStrike API client secret
+#   - FALCON_CLOUD: (optional) CrowdStrike cloud region (us-1, us-2, eu-1, us-gov-1, us-gov-2)
+#
+# Usage:
+#   ansible-playbook tests/lookup-test.yml -v
+#
+- name: Test CrowdStrike Falcon lookup plugins
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # Test filters for host_ids lookup
+    test_filter_windows: 'platform_name:"Windows"'
+    test_filter_linux: 'platform_name:"Linux"'
+    test_limit_filter: 'platform_name:"Windows"'
+
+  tasks:
+    # =========================================================================
+    # Prerequisite: Verify credentials are available
+    # =========================================================================
+    - name: Verify FALCON_CLIENT_ID is set
+      ansible.builtin.assert:
+        that:
+          - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+        fail_msg: "FALCON_CLIENT_ID environment variable must be set"
+        success_msg: "FALCON_CLIENT_ID is configured"
+
+    - name: Verify FALCON_CLIENT_SECRET is set
+      ansible.builtin.assert:
+        that:
+          - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+        fail_msg: "FALCON_CLIENT_SECRET environment variable must be set"
+        success_msg: "FALCON_CLIENT_SECRET is configured"
+
+    # =========================================================================
+    # Test: host_ids lookup plugin
+    # =========================================================================
+    - name: Test host_ids lookup - fetch all hosts (empty filter)
+      tags:
+        - host_ids
+        - all_hosts
+      block:
+        - name: Fetch all host IDs
+          ansible.builtin.set_fact:
+            all_host_ids: "{{ lookup('crowdstrike.falcon.host_ids', '') }}"
+
+        - name: Display host count
+          ansible.builtin.debug:
+            msg: "Found {{ all_host_ids | length }} hosts in the environment"
+
+        - name: Verify host_ids returns a list
+          ansible.builtin.assert:
+            that:
+              - all_host_ids is defined
+              - all_host_ids is iterable
+            success_msg: "host_ids lookup returned valid list"
+
+    - name: Test host_ids lookup - fetch with platform filter
+      tags:
+        - host_ids
+        - filtered
+      block:
+        - name: Fetch Windows host IDs
+          ansible.builtin.set_fact:
+            windows_host_ids: "{{ lookup('crowdstrike.falcon.host_ids', test_filter_windows) }}"
+
+        - name: Display Windows host count
+          ansible.builtin.debug:
+            msg: "Found {{ windows_host_ids | length }} Windows hosts"
+
+        - name: Fetch Linux host IDs
+          ansible.builtin.set_fact:
+            linux_host_ids: "{{ lookup('crowdstrike.falcon.host_ids', test_filter_linux) }}"
+
+        - name: Display Linux host count
+          ansible.builtin.debug:
+            msg: "Found {{ linux_host_ids | length }} Linux hosts"
+
+    - name: Test host_ids lookup - multiple filters in single call
+      tags:
+        - host_ids
+        - multi_filter
+      block:
+        - name: Fetch hosts with multiple filter terms
+          ansible.builtin.set_fact:
+            multi_filter_results: "{{ lookup('crowdstrike.falcon.host_ids', test_filter_windows, test_filter_linux) }}"
+
+        - name: Verify multiple filter results
+          ansible.builtin.debug:
+            msg: "Multi-filter lookup returned {{ multi_filter_results | length }} result sets"
+
+    # =========================================================================
+    # Test: maintenance_token lookup plugin
+    # =========================================================================
+    - name: Test maintenance_token lookup - bulk token
+      tags:
+        - maintenance_token
+        - bulk
+      block:
+        - name: Fetch bulk maintenance token
+          ansible.builtin.set_fact:
+            bulk_token: "{{ lookup('crowdstrike.falcon.maintenance_token', bulk=true) }}"
+
+        - name: Verify bulk token was retrieved
+          ansible.builtin.assert:
+            that:
+              - bulk_token is defined
+              - bulk_token | length > 0
+            success_msg: "Successfully retrieved bulk maintenance token"
+
+        - name: Display bulk token (masked)
+          ansible.builtin.debug:
+            msg: "Bulk token retrieved: {{ bulk_token[:4] }}...{{ bulk_token[-4:] }}"
+
+    - name: Test maintenance_token lookup - specific host token
+      when: all_host_ids | default([]) | length > 0
+      tags:
+        - maintenance_token
+        - host_specific
+      block:
+        - name: Get first host ID for testing
+          ansible.builtin.set_fact:
+            test_host_id: "{{ all_host_ids[0] }}"
+
+        - name: Fetch maintenance token for specific host
+          ansible.builtin.set_fact:
+            host_token: "{{ lookup('crowdstrike.falcon.maintenance_token', test_host_id) }}"
+
+        - name: Verify host-specific token was retrieved
+          ansible.builtin.assert:
+            that:
+              - host_token is defined
+              - host_token | length > 0
+            success_msg: "Successfully retrieved maintenance token for host {{ test_host_id }}"
+
+        - name: Display host token (masked)
+          ansible.builtin.debug:
+            msg: "Host token for {{ test_host_id }}: {{ host_token[:4] }}...{{ host_token[-4:] }}"
+
+    # =========================================================================
+    # Test: fctl_child_cids lookup plugin (Flight Control - MSSP only)
+    # =========================================================================
+    - name: Test fctl_child_cids lookup (Flight Control)
+      tags:
+        - fctl_child_cids
+        - flight_control
+      block:
+        - name: Attempt to fetch Flight Control child CIDs
+          ansible.builtin.set_fact:
+            child_cids: "{{ lookup('crowdstrike.falcon.fctl_child_cids') }}"
+
+        - name: Display child CID count
+          ansible.builtin.debug:
+            msg: "Found {{ child_cids | length }} Flight Control child CIDs"
+
+        - name: Verify fctl_child_cids returns a list
+          ansible.builtin.assert:
+            that:
+              - child_cids is defined
+              - child_cids is iterable
+            success_msg: "fctl_child_cids lookup returned valid list"
+      rescue:
+        - name: Flight Control not available
+          ansible.builtin.debug:
+            msg: >-
+              Flight Control lookup failed - this is expected if your API credentials
+              do not have Flight Control scope or you are not an MSSP.
+              Error details are logged above.
+
+    # =========================================================================
+    # Test: Error handling - invalid credentials
+    # =========================================================================
+    - name: Test authentication error handling
+      tags:
+        - error_handling
+        - never
+      block:
+        - name: Attempt lookup with invalid cloud region
+          ansible.builtin.set_fact:
+            bad_result: "{{ lookup('crowdstrike.falcon.host_ids', '', cloud='invalid-cloud') }}"
+
+        - name: This should not be reached
+          ansible.builtin.fail:
+            msg: "Expected AnsibleError for invalid cloud region"
+      rescue:
+        - name: Verify proper error was raised
+          ansible.builtin.debug:
+            msg: "Correctly received error for invalid cloud region"
+
+    # =========================================================================
+    # Summary
+    # =========================================================================
+    - name: Test summary
+      tags:
+        - summary
+      ansible.builtin.debug:
+        msg:
+          - "===== Lookup Plugin Test Summary ====="
+          - "host_ids: {{ all_host_ids | default([]) | length }} hosts found"
+          - "maintenance_token (bulk): {{ 'Retrieved' if bulk_token | default('') | length > 0 else 'Not tested' }}"
+          - "fctl_child_cids: {{ child_cids | default([]) | length }} child CIDs found"

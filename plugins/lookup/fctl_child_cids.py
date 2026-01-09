@@ -61,69 +61,35 @@ _raw:
   elements: str
 """
 
-import os
 import traceback
 from ansible.errors import AnsibleError
 from ansible.plugins.lookup import LookupBase
 from ansible.utils.display import Display
+from ansible_collections.crowdstrike.falcon.plugins.plugin_utils.falconpy_utils import (
+    authenticate,
+    check_falconpy,
+)
 
 
 FALCONPY_IMPORT_ERROR = None
 try:
     from falconpy import FlightControl
-    from falconpy._version import _VERSION
 
     HAS_FALCONPY = True
 except ImportError:
     HAS_FALCONPY = False
+    FlightControl = None
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
 
 display = Display()
 
 
 class LookupModule(LookupBase):
-    """Lookup plugin for fetching host IDs based on filter expressions."""
-
-    def _credential_setup(self):
-        """Setup credentials for FalconPy."""
-        cred_mapping = {
-            "client_id": "FALCON_CLIENT_ID",
-            "client_secret": "FALCON_CLIENT_SECRET",
-            "member_cid": "FALCON_MEMBER_CID",
-            "cloud": "FALCON_CLOUD",
-        }
-
-        creds = {}
-        for key, env in cred_mapping.items():
-            value = self.get_option(key) or os.getenv(env)
-            if value:
-                if key == "cloud":
-                    self._verify_cloud(value)
-                    creds["base_url"] = value
-                else:
-                    creds[key] = value
-
-        # Make sure we have client_id and client_secret
-        if "client_id" not in creds or "client_secret" not in creds:
-            raise AnsibleError(
-                "You must provide a client_id and client_secret to authenticate to the Falcon API."
-            )
-
-        return creds
-
-    def _verify_cloud(self, cloud):
-        """Verify the cloud region."""
-        valid_clouds = ["us-1", "us-2", "eu-1", "us-gov-1"]
-        if cloud not in valid_clouds:
-            raise AnsibleError(
-                f"Invalid cloud region: '{cloud}'. Valid values are {', '.join(valid_clouds)}"
-            )
+    """Lookup plugin for fetching Flight Control child CIDs."""
 
     def _authenticate(self):
         """Authenticate to the CrowdStrike Falcon API."""
-        creds = self._credential_setup()
-
-        return FlightControl(**creds)
+        return authenticate(FlightControl, self.get_option)
 
     def _get_child_cids(self, falcon, term):
         """Fetch Flight Control child CIDs based on the provided filter expression."""
@@ -143,7 +109,6 @@ class LookupModule(LookupBase):
             else:
                 return child_cids
 
-            # Check if we need to continue
             offset = child_lookup["body"]["meta"]["pagination"]["offset"]
             if child_lookup["body"]["meta"]["pagination"]["total"] <= len(child_cids):
                 running = False
@@ -151,42 +116,32 @@ class LookupModule(LookupBase):
         return child_cids
 
     def run(self, terms, variables=None, **kwargs):
-        """Fetch host IDs based on the provided filter expression."""
-
-        # Check if the 'falconpy' library is installed
-        if not HAS_FALCONPY:
-            raise AnsibleError(
-                "The 'crowdstrike.falcon.host_ids' lookup cannot be run because the 'falconpy' library is not installed."
-            )
-
-        # Check if the 'falconpy' library is compatible
-        if _VERSION < "1.3.0":
-            raise AnsibleError(
-                f"Unsupported FalconPy version: {_VERSION}. Upgrade to 1.3.0 or higher."
-            )
+        """Fetch Flight Control child CIDs."""
+        check_falconpy("crowdstrike.falcon.fctl_child_cids")
 
         self.set_options(var_options=variables, direct=kwargs)
 
         falcon = self._authenticate()
         ret = []
 
-        # Handle case where no terms are provided
         if not terms:
             display.debug("Fetching all child CIDs")
             try:
                 ret = self._get_child_cids(falcon, None)
-            except Exception as e:  # pylint: disable=broad-except
+            except AnsibleError:
+                raise
+            except Exception as e:
                 raise AnsibleError(f"Failed to fetch child CIDs: {e}") from e
         else:
             for term in terms:
-                # Fetch child CIDs based on the provided filter expression
                 cid_term = f"cid:'{term}'"
                 display.debug(f"Fetching child CIDs with filter expression: {cid_term}")
                 try:
-                    # Fetch child CIDs based on the provided filter expression
                     display.vvv(f"FQL Filter used: {cid_term}")
                     ret.append(self._get_child_cids(falcon, cid_term))
-                except Exception as e:  # pylint: disable=broad-except
+                except AnsibleError:
+                    raise
+                except Exception as e:
                     raise AnsibleError(f"Failed to fetch child CIDs: {e}") from e
 
         return ret
