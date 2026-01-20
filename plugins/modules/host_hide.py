@@ -202,7 +202,7 @@ def process_hosts(module, falcon, action_name, hosts, result):
 
     # If we get nothing back, handle the error
     if not good and not bad:
-        handle_return_errors(module, falcon, query_result)
+        handle_return_errors(module, result, query_result)
 
     # Create a mapping for passed-in host IDs to manage their states
     host_mapping = {host_id: "" for host_id in hosts}
