@@ -510,6 +510,34 @@ releases:
         name: sensor_update_policy
         namespace: ''
     release_date: '2025-11-13'
+  4.10.1:
+    changes:
+      bugfixes:
+        - falcon_install role - Fix type comparison error when falcon_sensor_version_decrement
+          is passed as a string (https://github.com/CrowdStrike/ansible_collection_falcon/issues/655)
+        - host_contain module - Fix TypeError when calling handle_return_errors with
+          wrong argument type (https://github.com/CrowdStrike/ansible_collection_falcon/issues/666).
+        - host_hide module - Fix TypeError when calling handle_return_errors with
+          wrong argument type (https://github.com/CrowdStrike/ansible_collection_falcon/issues/666).
+        - lookup plugins - Add early authentication validation to provide clear error
+          messages when OAuth credentials are invalid, instead of failing on subsequent
+          API calls (https://github.com/CrowdStrike/ansible_collection_falcon/issues/664)
+      minor_changes:
+        - lookup plugins - Add us-gov-2 to valid cloud regions
+        - lookup plugins - Refactor shared authentication logic into plugin_utils/falconpy_utils.py
+          for DRY compliance across host_ids, maintenance_token, and fctl_child_cids
+          plugins
+      release_summary: '| Release Date: 2026-01-20
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.10.1>`__
+
+        '
+    fragments:
+      - 4.10.1.yml
+      - 655-fix-sensor-version-decrement-type-error.yml
+      - 664-lookup-plugin-auth-validation.yml
+      - 666-fix-host-hide-host-contain-handle-return-errors.yml
+    release_date: '2026-01-20'
   4.2.0:
     changes:
       minor_changes:
