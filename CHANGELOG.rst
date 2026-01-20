@@ -4,6 +4,29 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.10.1
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2026-01-20
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.10.1>`__
+
+Minor Changes
+-------------
+
+- lookup plugins - Add us-gov-2 to valid cloud regions
+- lookup plugins - Refactor shared authentication logic into plugin_utils/falconpy_utils.py for DRY compliance across host_ids, maintenance_token, and fctl_child_cids plugins
+
+Bugfixes
+--------
+
+- falcon_install role - Fix type comparison error when falcon_sensor_version_decrement is passed as a string (https://github.com/CrowdStrike/ansible_collection_falcon/issues/655)
+- host_contain module - Fix TypeError when calling handle_return_errors with wrong argument type (https://github.com/CrowdStrike/ansible_collection_falcon/issues/666).
+- host_hide module - Fix TypeError when calling handle_return_errors with wrong argument type (https://github.com/CrowdStrike/ansible_collection_falcon/issues/666).
+- lookup plugins - Add early authentication validation to provide clear error messages when OAuth credentials are invalid, instead of failing on subsequent API calls (https://github.com/CrowdStrike/ansible_collection_falcon/issues/664)
+
 v4.10.0
 =======
 
