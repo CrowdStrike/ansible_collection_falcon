@@ -5,7 +5,7 @@
     yara_signatures_path: "/etc/insights-client/signatures"
   tasks:
     - name: Create temporary download directory (local)
-      tempfile:
+      ansible.builtin.tempfile:
         state: directory
         suffix: _yara_download
       register: temp_download_dir
@@ -22,33 +22,32 @@
       run_once: true
 
     - name: Install unzip utility
-      package:
+      ansible.builtin.package:
         name: unzip
         state: present
-      become: yes
+      become: true
 
     - name: Ensure signatures directory exists
-      file:
+      ansible.builtin.file:
         path: "{{ yara_signatures_path }}"
         state: directory
         mode: '0755'
         owner: root
         group: root
-      become: yes
+      become: true
 
     - name: Extract YARA rules zip file to remote hosts
-      unarchive:
+      ansible.builtin.unarchive:
         src: "{{ yara_download_result.path }}"
         dest: "{{ yara_signatures_path }}"
-        remote_src: no
+        remote_src: false
         owner: root
         group: root
         mode: '0644'
-      become: yes
-      delegate_to: "{{ inventory_hostname }}"
+      become: true
 
     - name: Cleanup - Remove temporary download directory (local)
-      file:
+      ansible.builtin.file:
         path: "{{ temp_download_dir.path }}"
         state: absent
       delegate_to: localhost
