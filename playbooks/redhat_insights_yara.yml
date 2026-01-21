@@ -1,0 +1,55 @@
+---
+- name: Example playbook to download YARA hunting rules for Red Hat Insights Client
+  hosts: yara
+  vars:
+    yara_signatures_path: "/etc/insights-client/signatures"
+  tasks:
+    - name: Create temporary download directory (local)
+      tempfile:
+        state: directory
+        suffix: _yara_download
+      register: temp_download_dir
+      delegate_to: localhost
+      run_once: true
+
+    - name: Download YARA rules for Linux (local)
+      crowdstrike.falcon.hunting_rule_download:
+        language: yara
+        filter: "environment:'Linux'"
+        dest: "{{ temp_download_dir.path }}"
+      register: yara_download_result
+      delegate_to: localhost
+      run_once: true
+
+    - name: Install unzip utility
+      package:
+        name: unzip
+        state: present
+      become: yes
+
+    - name: Ensure signatures directory exists
+      file:
+        path: "{{ yara_signatures_path }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+      become: yes
+
+    - name: Extract YARA rules zip file to remote hosts
+      unarchive:
+        src: "{{ yara_download_result.path }}"
+        dest: "{{ yara_signatures_path }}"
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      become: yes
+      delegate_to: "{{ inventory_hostname }}"
+
+    - name: Cleanup - Remove temporary download directory (local)
+      file:
+        path: "{{ temp_download_dir.path }}"
+        state: absent
+      delegate_to: localhost
+      run_once: true
