@@ -1,5 +1,14 @@
 ---
 extends: default
+
+ignore: |
+  .github/
+  .devcontainer/
+  .venv/
+  changelogs/
+  molecule/
+  .ansible/
+
 rules:
   comments:
     # https://github.com/prettier/prettier/issues/6780

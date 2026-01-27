@@ -1,2 +1,0 @@
-[flake8]
-ignore = E501,E402,DAR101,DAR201,DAR401
