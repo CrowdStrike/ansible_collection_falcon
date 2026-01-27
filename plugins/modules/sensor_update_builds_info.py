@@ -103,6 +103,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils 
     authenticate,
     check_falconpy_version,
     handle_return_errors,
+    sanitize_sensor_version,
 )
 
 FALCONPY_IMPORT_ERROR = None
@@ -165,9 +166,12 @@ def main():
     )
 
     if query_result["status_code"] == 200:
-        result.update(
-            builds=query_result["body"]["resources"],
-        )
+        builds = query_result["body"]["resources"]
+        # Sanitize sensor_version fields to handle LTS suffixes
+        for build in builds:
+            if "sensor_version" in build:
+                build["sensor_version"] = sanitize_sensor_version(build["sensor_version"])
+        result.update(builds=builds)
 
     handle_return_errors(module, result, query_result)
 

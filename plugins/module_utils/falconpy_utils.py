@@ -145,6 +145,24 @@ def get_paginated_results_info(module, args, limit, method, list_name):
     return result
 
 
+def sanitize_sensor_version(version):
+    """
+    Sanitize a sensor version string by removing any suffix (e.g., LTS designation).
+
+    The sensor update policy API may return versions with suffixes like "(LTS)".
+    The sensor download API requires clean version numbers without suffixes.
+
+    Args:
+        version: Version string (e.g., "7.32.20403 (LTS)" or "7.32.20403")
+
+    Returns:
+        Clean version string (e.g., "7.32.20403")
+    """
+    if not version or not isinstance(version, str):
+        return version
+    return version.split(" ")[0]
+
+
 def get_cloud_from_url(module, base_url):
     """Return the cloud name from a base URL."""
     mapping = {

@@ -1,0 +1,13 @@
+---
+bugfixes:
+  - >-
+    sensor_update_policy_info module - Sanitize sensor_version fields to remove LTS suffix
+    that causes sensor download API failures
+    (https://github.com/CrowdStrike/falcon-scripts/issues/460).
+  - >-
+    sensor_update_builds_info module - Sanitize sensor_version fields to remove LTS suffix
+    that causes sensor download API failures
+    (https://github.com/CrowdStrike/falcon-scripts/issues/460).
+  - >-
+    sensor_update_policy_info module - Fix NoneType error when policy variants field is null
+    (https://github.com/CrowdStrike/falcon-scripts/issues/460).
