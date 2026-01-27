@@ -185,6 +185,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils 
     authenticate,
     check_falconpy_version,
     get_paginated_results_info,
+    sanitize_sensor_version,
 )
 
 FALCONPY_IMPORT_ERROR = None
@@ -200,6 +201,28 @@ POLICY_ARGS = {
     "filter": {"type": "str", "required": False},
     "sort": {"type": "str", "required": False},
 }
+
+
+def _sanitize_policy_versions(policies):
+    """Sanitize sensor_version fields in policy response data."""
+    if not policies:
+        return policies
+
+    for policy in policies:
+        settings = policy.get("settings", {})
+
+        if "sensor_version" in settings:
+            settings["sensor_version"] = sanitize_sensor_version(
+                settings["sensor_version"]
+            )
+
+        for variant in settings.get("variants") or []:
+            if "sensor_version" in variant:
+                variant["sensor_version"] = sanitize_sensor_version(
+                    variant["sensor_version"]
+                )
+
+    return policies
 
 
 def argspec():
@@ -240,6 +263,9 @@ def main():
         falcon.query_combined_policies_v2,
         list_name="policies"
     )
+
+    # Sanitize sensor_version fields to handle LTS suffixes
+    result["policies"] = _sanitize_policy_versions(result.get("policies", []))
 
     module.exit_json(**result)
 
