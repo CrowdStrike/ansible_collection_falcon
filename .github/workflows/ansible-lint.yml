@@ -15,4 +15,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-    - uses: ansible/ansible-lint@50373efb440dd3b524956c075af715cd00eaf20b # v25.8.2
+    - uses: ansible/ansible-lint@61a8e7bad82cc7aee6d0981ea59831a95745795a # v25.11.1
