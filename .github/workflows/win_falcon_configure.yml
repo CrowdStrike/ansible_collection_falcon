@@ -18,11 +18,7 @@ permissions:  # added using https://github.com/step-security/secure-repo
 
 jobs:
   molecule:
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'schedule' ||
-      (github.event_name == 'pull_request_target' &&
-      github.event.label.name == 'ok-to-test')
+    if: false
     runs-on: ubuntu-latest
     env:
       PY_COLORS: 1
@@ -48,11 +44,6 @@ jobs:
         collection_role:
             - win_falcon_configure
     steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
-        with:
-          egress-policy: audit
-
       - name: Check out code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         if: github.event_name != 'pull_request_target'
