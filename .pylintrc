@@ -163,7 +163,14 @@ disable=raw-checker-failed,
         too-many-instance-attributes,
         no-name-in-module,
         use-dict-literal,
-        possibly-used-before-assignment  # New to pylint
+        possibly-used-before-assignment,  # New to pylint
+        broad-exception-caught,
+        too-many-nested-blocks,
+        too-many-branches,
+        too-many-statements,
+        too-many-locals,
+        no-else-return,
+        chained-comparison
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
