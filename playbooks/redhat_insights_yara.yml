@@ -1,0 +1,54 @@
+---
+- name: Example playbook to download YARA hunting rules for Red Hat Insights Client
+  hosts: yara
+  vars:
+    yara_signatures_path: "/etc/insights-client/signatures"
+  tasks:
+    - name: Create temporary download directory (local)
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: _yara_download
+      register: temp_download_dir
+      delegate_to: localhost
+      run_once: true
+
+    - name: Download YARA rules for Linux (local)
+      crowdstrike.falcon.hunting_rule_download:
+        language: yara
+        filter: "environment:'Linux'"
+        dest: "{{ temp_download_dir.path }}"
+      register: yara_download_result
+      delegate_to: localhost
+      run_once: true
+
+    - name: Install unzip utility
+      ansible.builtin.package:
+        name: unzip
+        state: present
+      become: true
+
+    - name: Ensure signatures directory exists
+      ansible.builtin.file:
+        path: "{{ yara_signatures_path }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+      become: true
+
+    - name: Extract YARA rules zip file to remote hosts
+      ansible.builtin.unarchive:
+        src: "{{ yara_download_result.path }}"
+        dest: "{{ yara_signatures_path }}"
+        remote_src: false
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Cleanup - Remove temporary download directory (local)
+      ansible.builtin.file:
+        path: "{{ temp_download_dir.path }}"
+        state: absent
+      delegate_to: localhost
+      run_once: true
