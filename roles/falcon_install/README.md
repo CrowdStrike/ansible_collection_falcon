@@ -77,6 +77,8 @@ The following variables are currently supported:
 - `falcon_windows_install_delay` - Number of seconds to wait to retry sensor install on windows in the event of a failure (int, default: ***120***)
 - `falcon_windows_tmp_dir` - Temporary Windows installation directory for the Falson Sensor (string, default: ***%SYSTEMROOT%\\Temp\\falcon-sensor***)
 - `falcon_windows_install_args` - Additional Windows install arguments (string, default: ***/norestart***)
+  - Supports `GROUPING_TAGS=tag1,tag2` for setting tags at install time
+  - For post-installation tag management, use `falcon_tags` in the [falcon_configure](../falcon_configure/) role
 - `falcon_windows_uninstall_args` - Additional Windows uninstall arguments (string, default: ***/norestart***)
 - `falcon_windows_become` - Whether to become a privileged user on Windows (bool, default: ***true***)
 - `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: ***runas***)

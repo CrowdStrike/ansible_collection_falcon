@@ -62,6 +62,9 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 - `falcon_windows_become` - Whether to become a privileged user on Windows (bool, default: ***true***)
 - `falcon_windows_become_method` - The way to become a privileged user on Windows (string, default: ***runas***)
 - `falcon_windows_become_user` - The privileged user to install the sensor on Windows (string, default: ***SYSTEM***)
+- `falcon_tags` - Sensor grouping tags (string, default: ***null***)
+  - Requires sensor version 6.42+ (uses `CsSensorSettings.exe` utility)
+  - See [Grouping Tags on Windows](#grouping-tags-on-windows) for details
 
 ### macOS Specific Variables
 
@@ -113,6 +116,55 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 
 Apple platforms require Mobile Device Management (MDM) software to install kernel extensions without user prompting.
 Ansible is only able to run on macOS in an interactive session, which means end-users will receive prompts to accept the CrowdStrike kernel modules without an MDM profile already established.
+
+## Grouping Tags on Windows
+
+Starting with sensor version 6.42+, Windows supports post-installation grouping tag management using the `CsSensorSettings.exe` utility.
+
+### Methods for Setting Grouping Tags on Windows
+
+1. **During Installation** (via `falcon_install` role):
+   ```yaml
+   falcon_windows_install_args: "/norestart GROUPING_TAGS=tag1,tag2"
+   ```
+
+2. **Post-Installation** (via `falcon_configure` role):
+   ```yaml
+   falcon_tags: "tag1,tag2"
+   ```
+
+### Behavior Notes
+
+- The `falcon_configure` role checks current tags before making changes (idempotent)
+- If `falcon_tags` matches existing tags, no changes are made
+- Setting `falcon_option_set: false` with `falcon_tags` defined will clear existing tags
+
+### Mixed Environment Considerations
+
+> [!IMPORTANT]
+> If you use a top-level `falcon_tags` variable in a mixed Linux/macOS/Windows environment,
+> Windows hosts will now be affected (sensor 6.42+). Previously, `falcon_tags` only applied
+> to Linux and macOS.
+
+To set different tags per OS, use inventory group variables:
+
+```yaml
+# group_vars/linux.yml
+falcon_tags: "linux-servers,production"
+
+# group_vars/windows.yml
+falcon_tags: "windows-servers,production"
+```
+
+Or use conditionals in your playbook:
+
+```yaml
+- hosts: all
+  roles:
+  - role: crowdstrike.falcon.falcon_configure
+    vars:
+      falcon_tags: "{{ 'windows-tag' if ansible_os_family == 'Windows' else 'linux-tag' }}"
+```
 
 ## Falcon API Permissions
 
