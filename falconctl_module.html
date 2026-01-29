@@ -1,0 +1,420 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="2.24.0" name="antsibull-docs" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor &mdash; Ansible collections  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=41de9001" />
+      <link rel="stylesheet" type="text/css" href="_static/css/ansible.css?v=b54c304f" />
+      <link rel="stylesheet" type="text/css" href="_static/antsibull-minimal.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd-ethical-ads.css?v=289b023e" />
+
+  
+    <link rel="shortcut icon" href="_static/images/Ansible-Mark-RGB_Black.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=7f41d439"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor." href="falconctl_info_module.html" />
+    <link rel="prev" title="crowdstrike.falcon.cid_info module – Get CID with checksum" href="cid_info_module.html" /><!-- extra head elements for Ansible beyond RTD Sphinx Theme -->
+
+
+
+
+</head>
+
+<body class="wy-body-for-nav"><!-- extra body elements for Ansible beyond RTD Sphinx Theme -->
+
+<div class="DocSite-globalNav ansibleNav">
+  <ul>
+    <li><a href="https://www.ansible.com/blog" target="_blank">Blog</a></li>
+    <li><a href="https://forum.ansible.com/" target="_blank">Ansible community forum</a></li>
+    <li><a href="https://docs.ansible.com/" target="_blank">Documentation</a></li>
+  </ul>
+</div>
+
+<a class="DocSite-nav" href="/" style="padding-bottom: 30px;">
+
+  <img class="DocSiteNav-logo"
+    src="_static/images/Ansible-Mark-RGB_White.png"
+    alt="Ansible Logo">
+  <div class="DocSiteNav-title">Ansible Collections Documentation</div>
+</a>
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Ansible collections
+          </a><!--- Based on https://github.com/rtfd/sphinx_rtd_theme/pull/438/files -->
+
+<div class="version">
+  
+    
+  
+</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <label class="sr-only" for="q">Search docs:</label>
+    <input type="text" class="st-default-search-input" id="q" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="auth_module.html">crowdstrike.falcon.auth module – Manage authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cid_info_module.html">crowdstrike.falcon.cid_info module – Get CID with checksum</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#authors">Authors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collection-links">Collection links</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_info_module.html">crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fctl_child_cid_info_module.html">crowdstrike.falcon.fctl_child_cid_info module – Retrieve details about Flight Control child CIDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_contain_module.html">crowdstrike.falcon.host_contain module – Network contain hosts in Falcon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_module.html">crowdstrike.falcon.host_group module – Manage Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_info_module.html">crowdstrike.falcon.host_group_info module – Get information about Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_hide_module.html">crowdstrike.falcon.host_hide module – Hide/Unhide hosts from the Falcon console</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_info_module.html">crowdstrike.falcon.host_info module – Get information about Falcon hosts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hunting_rule_download_module.html">crowdstrike.falcon.hunting_rule_download module – Download CrowdStrike Falcon Hunting rule archives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_download_module.html">crowdstrike.falcon.intel_rule_download module – Download CrowdStrike Falcon Intel rule files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_info_module.html">crowdstrike.falcon.intel_rule_info module – Get information about CrowdStrike Falcon Intel rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kernel_support_info_module.html">crowdstrike.falcon.kernel_support_info module – Get information about kernels supported by the Falcon Sensor for Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ngsiem_search_module.html">crowdstrike.falcon.ngsiem_search module – Execute searches against CrowdStrike Next-Gen SIEM repositories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_module.html">crowdstrike.falcon.sensor_download module – Download Falcon Sensor Installer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_info_module.html">crowdstrike.falcon.sensor_download_info module – Get information about Falcon Sensor Installers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_builds_info_module.html">crowdstrike.falcon.sensor_update_builds_info module – Get a list of available sensor build versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_policy_module.html">crowdstrike.falcon.sensor_update_policy module – Manage Falcon sensor update policies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_policy_info_module.html">crowdstrike.falcon.sensor_update_policy_info module – Get information about Falcon Update Sensor Policies</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="falcon_discover_inventory.html">crowdstrike.falcon.falcon_discover inventory – CrowdStrike Falcon Discover inventory source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falcon_hosts_inventory.html">crowdstrike.falcon.falcon_hosts inventory – CrowdStrike Falcon Hosts inventory source</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fctl_child_cids_lookup.html">crowdstrike.falcon.fctl_child_cids lookup – fetch Flight Control child CIDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_ids_lookup.html">crowdstrike.falcon.host_ids lookup – fetch host IDs (AIDs)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="maintenance_token_lookup.html">crowdstrike.falcon.maintenance_token lookup – fetch maintenance token</a></li>
+</ul>
+<!-- extra nav elements for Ansible beyond RTD Sphinx Theme -->
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Ansible collections</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+
+  
+           <div itemprop="articleBody">
+             
+  <span class="target" id="ansible-collections-crowdstrike-falcon-falconctl-module"></span><section id="crowdstrike-falcon-falconctl-module-configure-crowdstrike-falcon-sensor">
+<h1>crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor<a class="headerlink" href="#crowdstrike-falcon-falconctl-module-configure-crowdstrike-falcon-sensor" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This module is part of the <a class="reference external" href="https://galaxy.ansible.com/ui/repo/published/crowdstrike/falcon/">crowdstrike.falcon collection</a> (version 4.11.0).</p>
+<p>It is not included in <code class="docutils literal notranslate"><span class="pre">ansible-core</span></code>.
+To check whether it is installed, run <code class="code docutils literal notranslate"><span class="pre">ansible-galaxy</span> <span class="pre">collection</span> <span class="pre">list</span></code>.</p>
+<p>To install it, use: <code class="code docutils literal notranslate"><span class="pre">ansible-galaxy</span> <span class="pre">collection</span> <span class="pre">install</span> <span class="pre">crowdstrike.falcon</span></code>.</p>
+<p>To use it in a playbook, specify: <code class="code docutils literal notranslate"><span class="pre">crowdstrike.falcon.falconctl</span></code>.</p>
+</div>
+<p class="ansible-version-added">New in crowdstrike.falcon 3.2.0</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#synopsis" id="id1">Synopsis</a></p></li>
+<li><p><a class="reference internal" href="#parameters" id="id2">Parameters</a></p></li>
+<li><p><a class="reference internal" href="#examples" id="id3">Examples</a></p></li>
+</ul>
+</nav>
+<section id="synopsis">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Synopsis</a><a class="headerlink" href="#synopsis" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Configures CrowdStrike Falcon Sensor on Linux systems</p></li>
+</ul>
+</section>
+<section id="parameters">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Parameters</a><a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
+<table class="longtable ansible-option-table docutils align-default" style="width: 100%">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Comments</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-aid"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-aid"><strong>aid</strong></p>
+<a class="ansibleOptionLink" href="#parameter-aid" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">boolean</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Whether or not you would like to delete the associated Agent ID.</p>
+<p>Useful when preparing a host as a master image for cloning or virtualization.</p>
+<p>This applies only to <code class="docutils literal notranslate"><span class="pre">state=absent</span></code>.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">false</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">true</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-apd"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-apd"><strong>apd</strong></p>
+<a class="ansibleOptionLink" href="#parameter-apd" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Whether to enable or disable the Falcon sensor to use a proxy.</p>
+<p>To enable the proxy, set to <code class="docutils literal notranslate"><span class="pre">'false'</span></code>.</p>
+<p>Valid Options are: <code class="docutils literal notranslate"><span class="pre">'true'|'false'|''</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-aph"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-aph"><strong>aph</strong></p>
+<a class="ansibleOptionLink" href="#parameter-aph" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Specifies the application proxy host to use for Falcon sensor proxy configuration.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-app"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-app"><strong>app</strong></p>
+<a class="ansibleOptionLink" href="#parameter-app" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Specifies the application proxy port to use for Falcon sensor proxy configuration.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-backend"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-backend"><strong>backend</strong></p>
+<a class="ansibleOptionLink" href="#parameter-backend" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Configure the backend for the Falcon sensor. This was introduced to support the BPF backend.</p>
+<p><code class="docutils literal notranslate"><span class="pre">backend</span></code> is only available in sensor versions that support the <code class="docutils literal notranslate"><span class="pre">--backend</span></code> option (&gt;6.46.0).</p>
+<p>Valid Options are: <code class="docutils literal notranslate"><span class="pre">'auto'|'bpf'|'kernel'</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-billing"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-billing"><strong>billing</strong></p>
+<a class="ansibleOptionLink" href="#parameter-billing" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Specify the (Pay-As-You-Go) billing model for Cloud Workloads.</p>
+<p>Falcon for Cloud Workloads (Pay-As-You-Go) is a billing model for your hosts that run in Amazon Web Services (AWS), Google Cloud Platform (GCP), and Microsoft Azure.</p>
+<p>For ephemeral workloads in these cloud environments, you pay only for the hours that hosts are active each month <code class="docutils literal notranslate"><span class="pre">metered</span></code>, rather than a full annual contract price per sensor <code class="docutils literal notranslate"><span class="pre">default</span></code>.</p>
+<p>Valid Options are: <code class="docutils literal notranslate"><span class="pre">'metered'|'default'|''</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-cid"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-cid"><strong>cid</strong></p>
+<a class="ansibleOptionLink" href="#parameter-cid" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>CrowdStrike Falcon Customer ID (CID).</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-cloud"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-cloud"><strong>cloud</strong></p>
+<a class="ansibleOptionLink" href="#parameter-cloud" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Specify the cloud region for the Falcon sensor to connect to.</p>
+<p><code class="docutils literal notranslate"><span class="pre">cloud</span></code> is only available in sensor versions 7.28.0 and above with unified installer support.</p>
+<p>This parameter helps the sensor connect to the correct cloud region and can resolve AID generation timeouts.</p>
+<p>Valid Options are: <code class="docutils literal notranslate"><span class="pre">'us-1'|'us-2'|'eu-1'|'us-gov-1'|'us-gov-2'</span></code></p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-1&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-2&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;eu-1&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-gov-1&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-gov-2&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-feature"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-feature"><strong>feature</strong></p>
+<a class="ansibleOptionLink" href="#parameter-feature" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Configure the Falcon sensor feature flags.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;enableLog&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;disableLogBuffer&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-maintenance_token"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-maintenance-token"><strong>maintenance_token</strong></p>
+<a class="ansibleOptionLink" href="#parameter-maintenance_token" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Maintenance token required for sensor operations when uninstall and maintenance protection is enabled.</p>
+<p>Required for sensor versions 7.20+ when protection is armed.</p>
+<p>Used to disable protection before uninstall, upgrade, or configuration changes.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-message_log"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-message-log"><strong>message_log</strong></p>
+<a class="ansibleOptionLink" href="#parameter-message_log" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Whether or not you would like to log messages to disk.</p>
+<p>Valid Options are: <code class="docutils literal notranslate"><span class="pre">'true'|'false'|''</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-provisioning_token"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-provisioning-token"><strong>provisioning_token</strong></p>
+<a class="ansibleOptionLink" href="#parameter-provisioning_token" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Installation tokens prevent unauthorized hosts from being accidentally or maliciously added to your customer ID (CID).</p>
+<p>Optional security measure for your CID.</p>
+<p>This parameter requires supplying a <code class="docutils literal notranslate"><span class="pre">cid</span></code>.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-state"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-state"><strong>state</strong></p>
+<a class="ansibleOptionLink" href="#parameter-state" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span> / <span class="ansible-option-required">required</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Ensures that requested parameters are removed (absent) or added (present) to the Falcon sensor.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;absent&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;present&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-tags"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-tags"><strong>tags</strong></p>
+<a class="ansibleOptionLink" href="#parameter-tags" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.</p>
+<p>To assign multiple tags, separate tags with commas.</p>
+<p><em>The combined length of all tags for a host, including comma separators, cannot exceed 256 characters</em>.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-trace"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-falconctl-module-parameter-trace"><strong>trace</strong></p>
+<a class="ansibleOptionLink" href="#parameter-trace" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Configure the appropriate trace level.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;err&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;info&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;debug&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Examples</a><a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-yaml+jinja notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Set CrowdStrike Falcon CID</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.falconctl</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">present</span>
+<span class="w">    </span><span class="nt">cid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1234567890ABCDEF1234567890ABCDEF-12</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Set CrowdStrike Falcon CID with Provisioning Token</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.falconctl</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">present</span>
+<span class="w">    </span><span class="nt">cid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1234567890ABCDEF1234567890ABCDEF-12</span>
+<span class="w">    </span><span class="nt">provisioning_token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12345678</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Set CrowdStrike Falcon CID with Cloud Region (Sensor v7.28+)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.falconctl</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">present</span>
+<span class="w">    </span><span class="nt">cid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1234567890ABCDEF1234567890ABCDEF-12</span>
+<span class="w">    </span><span class="nt">cloud</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">us-2</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Delete CrowdStrike Falcon CID</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.falconctl</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">absent</span>
+<span class="w">    </span><span class="nt">cid</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Delete Agent ID to Prep Master Image</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.falconctl</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">absent</span>
+<span class="w">    </span><span class="nt">aid</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Configure Falcon Sensor Proxy</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.falconctl</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">present</span>
+<span class="w">    </span><span class="nt">apd</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">    </span><span class="nt">aph</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example.com</span>
+<span class="w">    </span><span class="nt">app</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+</pre></div>
+</div>
+<section id="authors">
+<h3>Authors<a class="headerlink" href="#authors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Gabriel Alford (&#64;redhatrises)</p></li>
+<li><p>Carlos Matos (&#64;carlosmmatos)</p></li>
+</ul>
+</section>
+<section id="collection-links">
+<h3>Collection links<a class="headerlink" href="#collection-links" title="Link to this heading"></a></h3>
+<ul class="ansible-links">
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike/issues" rel="noopener external" target="_blank">Issue Tracker</a></span></li>
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike" rel="noopener external" target="_blank">Repository (Sources)</a></span></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+
+<footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cid_info_module.html" class="btn btn-neutral float-left" title="crowdstrike.falcon.cid_info module – Get CID with checksum" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="falconctl_info_module.html" class="btn btn-neutral float-right" title="crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor." accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Ansible contributors.</p>
+  </div>
+
+  
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script><!-- extra footer elements for Ansible beyond RTD Sphinx Theme -->
+
+</body>
+</html>

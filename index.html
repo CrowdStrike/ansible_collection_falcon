@@ -1,0 +1,242 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="2.24.0" name="antsibull-docs" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crowdstrike.Falcon &mdash; Ansible collections  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=41de9001" />
+      <link rel="stylesheet" type="text/css" href="_static/css/ansible.css?v=b54c304f" />
+      <link rel="stylesheet" type="text/css" href="_static/antsibull-minimal.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd-ethical-ads.css?v=289b023e" />
+
+  
+    <link rel="shortcut icon" href="_static/images/Ansible-Mark-RGB_Black.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=7f41d439"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="crowdstrike.falcon.auth module – Manage authentication" href="auth_module.html" /><!-- extra head elements for Ansible beyond RTD Sphinx Theme -->
+
+
+
+
+</head>
+
+<body class="wy-body-for-nav"><!-- extra body elements for Ansible beyond RTD Sphinx Theme -->
+
+<div class="DocSite-globalNav ansibleNav">
+  <ul>
+    <li><a href="https://www.ansible.com/blog" target="_blank">Blog</a></li>
+    <li><a href="https://forum.ansible.com/" target="_blank">Ansible community forum</a></li>
+    <li><a href="https://docs.ansible.com/" target="_blank">Documentation</a></li>
+  </ul>
+</div>
+
+<a class="DocSite-nav" href="/" style="padding-bottom: 30px;">
+
+  <img class="DocSiteNav-logo"
+    src="_static/images/Ansible-Mark-RGB_White.png"
+    alt="Ansible Logo">
+  <div class="DocSiteNav-title">Ansible Collections Documentation</div>
+</a>
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Ansible collections
+          </a><!--- Based on https://github.com/rtfd/sphinx_rtd_theme/pull/438/files -->
+
+<div class="version">
+  
+    
+  
+</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <label class="sr-only" for="q">Search docs:</label>
+    <input type="text" class="st-default-search-input" id="q" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="auth_module.html">crowdstrike.falcon.auth module – Manage authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cid_info_module.html">crowdstrike.falcon.cid_info module – Get CID with checksum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_module.html">crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_info_module.html">crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fctl_child_cid_info_module.html">crowdstrike.falcon.fctl_child_cid_info module – Retrieve details about Flight Control child CIDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_contain_module.html">crowdstrike.falcon.host_contain module – Network contain hosts in Falcon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_module.html">crowdstrike.falcon.host_group module – Manage Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_info_module.html">crowdstrike.falcon.host_group_info module – Get information about Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_hide_module.html">crowdstrike.falcon.host_hide module – Hide/Unhide hosts from the Falcon console</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_info_module.html">crowdstrike.falcon.host_info module – Get information about Falcon hosts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hunting_rule_download_module.html">crowdstrike.falcon.hunting_rule_download module – Download CrowdStrike Falcon Hunting rule archives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_download_module.html">crowdstrike.falcon.intel_rule_download module – Download CrowdStrike Falcon Intel rule files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_info_module.html">crowdstrike.falcon.intel_rule_info module – Get information about CrowdStrike Falcon Intel rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kernel_support_info_module.html">crowdstrike.falcon.kernel_support_info module – Get information about kernels supported by the Falcon Sensor for Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ngsiem_search_module.html">crowdstrike.falcon.ngsiem_search module – Execute searches against CrowdStrike Next-Gen SIEM repositories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_module.html">crowdstrike.falcon.sensor_download module – Download Falcon Sensor Installer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_info_module.html">crowdstrike.falcon.sensor_download_info module – Get information about Falcon Sensor Installers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_builds_info_module.html">crowdstrike.falcon.sensor_update_builds_info module – Get a list of available sensor build versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_policy_module.html">crowdstrike.falcon.sensor_update_policy module – Manage Falcon sensor update policies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_policy_info_module.html">crowdstrike.falcon.sensor_update_policy_info module – Get information about Falcon Update Sensor Policies</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="falcon_discover_inventory.html">crowdstrike.falcon.falcon_discover inventory – CrowdStrike Falcon Discover inventory source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falcon_hosts_inventory.html">crowdstrike.falcon.falcon_hosts inventory – CrowdStrike Falcon Hosts inventory source</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fctl_child_cids_lookup.html">crowdstrike.falcon.fctl_child_cids lookup – fetch Flight Control child CIDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_ids_lookup.html">crowdstrike.falcon.host_ids lookup – fetch host IDs (AIDs)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="maintenance_token_lookup.html">crowdstrike.falcon.maintenance_token lookup – fetch maintenance token</a></li>
+</ul>
+<!-- extra nav elements for Ansible beyond RTD Sphinx Theme -->
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Ansible collections</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Crowdstrike.Falcon</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+
+  
+           <div itemprop="articleBody">
+             
+  <section id="crowdstrike-falcon">
+<span id="plugins-in-crowdstrike-falcon"></span><h1>Crowdstrike.Falcon<a class="headerlink" href="#crowdstrike-falcon" title="Link to this heading"></a></h1>
+<p>Collection version 4.11.0</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#description" id="id1">Description</a></p></li>
+<li><p><a class="reference internal" href="#plugin-index" id="id2">Plugin Index</a></p></li>
+</ul>
+</nav>
+<section id="description">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Description</a><a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>The Falcon Ansible Collection serves as a comprehensive toolkit for streamlining your interactions with the CrowdStrike Falcon platform.</p>
+<p><strong>Author:</strong></p>
+<ul class="simple">
+<li><p>CRWD Solutions Architecture &lt;<a class="reference external" href="mailto:integrations&#37;&#52;&#48;crowdstrike&#46;com">integrations<span>&#64;</span>crowdstrike<span>&#46;</span>com</a>&gt;</p></li>
+</ul>
+<p><strong>Supported ansible-core versions:</strong></p>
+<ul class="simple">
+<li><p>2.15.0 or newer</p></li>
+</ul>
+<ul class="ansible-links">
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike/issues" rel="noopener external" target="_blank">Issue Tracker</a></span></li>
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike" rel="noopener external" target="_blank">Repository (Sources)</a></span></li>
+</ul>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="plugin-index">
+<span id="plugin-index-for-crowdstrike-falcon"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Plugin Index</a><a class="headerlink" href="#plugin-index" title="Link to this heading"></a></h2>
+<p>These are the plugins in the crowdstrike.falcon collection:</p>
+<section id="modules">
+<span id="module-plugins-in-crowdstrike-falcon"></span><h3>Modules<a class="headerlink" href="#modules" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="auth_module.html#ansible-collections-crowdstrike-falcon-auth-module"><span class="std std-ref">auth module</span></a> – Manage authentication</p></li>
+<li><p><a class="reference internal" href="cid_info_module.html#ansible-collections-crowdstrike-falcon-cid-info-module"><span class="std std-ref">cid_info module</span></a> – Get CID with checksum</p></li>
+<li><p><a class="reference internal" href="falconctl_module.html#ansible-collections-crowdstrike-falcon-falconctl-module"><span class="std std-ref">falconctl module</span></a> – Configure CrowdStrike Falcon Sensor</p></li>
+<li><p><a class="reference internal" href="falconctl_info_module.html#ansible-collections-crowdstrike-falcon-falconctl-info-module"><span class="std std-ref">falconctl_info module</span></a> – Get values associated with Falcon sensor.</p></li>
+<li><p><a class="reference internal" href="fctl_child_cid_info_module.html#ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module"><span class="std std-ref">fctl_child_cid_info module</span></a> – Retrieve details about Flight Control child CIDs</p></li>
+<li><p><a class="reference internal" href="host_contain_module.html#ansible-collections-crowdstrike-falcon-host-contain-module"><span class="std std-ref">host_contain module</span></a> – Network contain hosts in Falcon</p></li>
+<li><p><a class="reference internal" href="host_group_module.html#ansible-collections-crowdstrike-falcon-host-group-module"><span class="std std-ref">host_group module</span></a> – Manage Falcon host groups</p></li>
+<li><p><a class="reference internal" href="host_group_info_module.html#ansible-collections-crowdstrike-falcon-host-group-info-module"><span class="std std-ref">host_group_info module</span></a> – Get information about Falcon host groups</p></li>
+<li><p><a class="reference internal" href="host_hide_module.html#ansible-collections-crowdstrike-falcon-host-hide-module"><span class="std std-ref">host_hide module</span></a> – Hide/Unhide hosts from the Falcon console</p></li>
+<li><p><a class="reference internal" href="host_info_module.html#ansible-collections-crowdstrike-falcon-host-info-module"><span class="std std-ref">host_info module</span></a> – Get information about Falcon hosts</p></li>
+<li><p><a class="reference internal" href="hunting_rule_download_module.html#ansible-collections-crowdstrike-falcon-hunting-rule-download-module"><span class="std std-ref">hunting_rule_download module</span></a> – Download CrowdStrike Falcon Hunting rule archives</p></li>
+<li><p><a class="reference internal" href="intel_rule_download_module.html#ansible-collections-crowdstrike-falcon-intel-rule-download-module"><span class="std std-ref">intel_rule_download module</span></a> – Download CrowdStrike Falcon Intel rule files</p></li>
+<li><p><a class="reference internal" href="intel_rule_info_module.html#ansible-collections-crowdstrike-falcon-intel-rule-info-module"><span class="std std-ref">intel_rule_info module</span></a> – Get information about CrowdStrike Falcon Intel rules</p></li>
+<li><p><a class="reference internal" href="kernel_support_info_module.html#ansible-collections-crowdstrike-falcon-kernel-support-info-module"><span class="std std-ref">kernel_support_info module</span></a> – Get information about kernels supported by the Falcon Sensor for Linux</p></li>
+<li><p><a class="reference internal" href="ngsiem_search_module.html#ansible-collections-crowdstrike-falcon-ngsiem-search-module"><span class="std std-ref">ngsiem_search module</span></a> – Execute searches against CrowdStrike Next-Gen SIEM repositories</p></li>
+<li><p><a class="reference internal" href="sensor_download_module.html#ansible-collections-crowdstrike-falcon-sensor-download-module"><span class="std std-ref">sensor_download module</span></a> – Download Falcon Sensor Installer</p></li>
+<li><p><a class="reference internal" href="sensor_download_info_module.html#ansible-collections-crowdstrike-falcon-sensor-download-info-module"><span class="std std-ref">sensor_download_info module</span></a> – Get information about Falcon Sensor Installers</p></li>
+<li><p><a class="reference internal" href="sensor_update_builds_info_module.html#ansible-collections-crowdstrike-falcon-sensor-update-builds-info-module"><span class="std std-ref">sensor_update_builds_info module</span></a> – Get a list of available sensor build versions</p></li>
+<li><p><a class="reference internal" href="sensor_update_policy_module.html#ansible-collections-crowdstrike-falcon-sensor-update-policy-module"><span class="std std-ref">sensor_update_policy module</span></a> – Manage Falcon sensor update policies</p></li>
+<li><p><a class="reference internal" href="sensor_update_policy_info_module.html#ansible-collections-crowdstrike-falcon-sensor-update-policy-info-module"><span class="std std-ref">sensor_update_policy_info module</span></a> – Get information about Falcon Update Sensor Policies</p></li>
+</ul>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="inventory-plugins">
+<span id="inventory-plugins-in-crowdstrike-falcon"></span><h3>Inventory Plugins<a class="headerlink" href="#inventory-plugins" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="falcon_discover_inventory.html#ansible-collections-crowdstrike-falcon-falcon-discover-inventory"><span class="std std-ref">falcon_discover inventory</span></a> – CrowdStrike Falcon Discover inventory source</p></li>
+<li><p><a class="reference internal" href="falcon_hosts_inventory.html#ansible-collections-crowdstrike-falcon-falcon-hosts-inventory"><span class="std std-ref">falcon_hosts inventory</span></a> – CrowdStrike Falcon Hosts inventory source</p></li>
+</ul>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="lookup-plugins">
+<span id="lookup-plugins-in-crowdstrike-falcon"></span><h3>Lookup Plugins<a class="headerlink" href="#lookup-plugins" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="fctl_child_cids_lookup.html#ansible-collections-crowdstrike-falcon-fctl-child-cids-lookup"><span class="std std-ref">fctl_child_cids lookup</span></a> – fetch Flight Control child CIDs</p></li>
+<li><p><a class="reference internal" href="host_ids_lookup.html#ansible-collections-crowdstrike-falcon-host-ids-lookup"><span class="std std-ref">host_ids lookup</span></a> – fetch host IDs (AIDs)</p></li>
+<li><p><a class="reference internal" href="maintenance_token_lookup.html#ansible-collections-crowdstrike-falcon-maintenance-token-lookup"><span class="std std-ref">maintenance_token lookup</span></a> – fetch maintenance token</p></li>
+</ul>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+
+<footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="auth_module.html" class="btn btn-neutral float-right" title="crowdstrike.falcon.auth module – Manage authentication" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Ansible contributors.</p>
+  </div>
+
+  
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script><!-- extra footer elements for Ansible beyond RTD Sphinx Theme -->
+
+</body>
+</html>
