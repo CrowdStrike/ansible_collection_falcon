@@ -12,6 +12,7 @@ skip_list:
   - "204"
   - "ignore-errors"
   - "var-naming[no-role-prefix]"
+  - "run-once[task]"
 
 warn_list:
   - experimental

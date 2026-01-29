@@ -117,6 +117,13 @@ falcon_billing:
 #   * To assign multiple tags, separate tags with commas.
 #   * The combined length of all tags for a host, including comma separators, cannot exceed 256 characters.
 #
+# Platform Support:
+#   * Linux/macOS: Uses falconctl
+#   * Windows: Requires sensor version 6.42+ (uses CsSensorSettings utility)
+#
+# Note: In mixed environments, setting falcon_tags will affect all platforms.
+# Use inventory group_vars or conditionals if you need different tags per OS.
+#
 # Example
 #   falcon_tags: 'Washington/DC_USA,Production'
 falcon_tags:

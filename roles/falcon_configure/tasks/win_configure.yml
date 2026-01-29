@@ -19,3 +19,55 @@
         - "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\CSAgent\\Sim\\AG"
       when:
         - falcon_remove_aid is defined and falcon_remove_aid | bool
+
+    # CsSensorSettings support for sensor 6.42+ (grouping tags)
+    - name: CrowdStrike Falcon | Check if CsSensorSettings exists (Windows)
+      ansible.windows.win_stat:
+        path: "C:\\Program Files\\CrowdStrike\\CsSensorSettings.exe"
+      register: cssensorsettings_stat
+
+    - name: CrowdStrike Falcon | Configure Grouping Tags (Windows)
+      when:
+        - cssensorsettings_stat.stat.exists
+        - falcon_tags is defined and falcon_tags != None
+      block:
+        - name: CrowdStrike Falcon | Get current Grouping Tags (Windows)
+          ansible.windows.win_powershell:
+            script: |
+              $regPath = 'HKLM:\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\{16e0423f-7058-48c9-a204-725362b67639}\Default'
+              try {
+                $bytes = (Get-ItemProperty -Path $regPath -ErrorAction Stop).GroupingTags
+                if ($bytes) {
+                  [System.Text.Encoding]::Unicode.GetString($bytes).TrimEnd([char]0)
+                }
+              } catch {
+                # No tags configured or registry key doesn't exist
+              }
+          register: win_current_tags
+          changed_when: false
+
+        - name: CrowdStrike Falcon | Set Grouping Tags (Windows)
+          ansible.windows.win_shell: |
+            {% if falcon_maintenance_token | default('', true) | length > 0 %}
+            echo "{{ falcon_maintenance_token }}" | & "C:\Program Files\CrowdStrike\CsSensorSettings.exe" set --grouping-tags "{{ falcon_tags }}"
+            {% else %}
+            & "C:\Program Files\CrowdStrike\CsSensorSettings.exe" set --grouping-tags "{{ falcon_tags }}"
+            {% endif %}
+          when:
+            - falcon_option_set | bool
+            - (win_current_tags.output | first | default('')) != falcon_tags
+          register: win_tags_set
+          changed_when: win_tags_set.rc == 0
+
+        - name: CrowdStrike Falcon | Clear Grouping Tags (Windows)
+          ansible.windows.win_shell: |
+            {% if falcon_maintenance_token | default('', true) | length > 0 %}
+            echo "{{ falcon_maintenance_token }}" | & "C:\Program Files\CrowdStrike\CsSensorSettings.exe" clear --grouping-tags
+            {% else %}
+            & "C:\Program Files\CrowdStrike\CsSensorSettings.exe" clear --grouping-tags
+            {% endif %}
+          when:
+            - not falcon_option_set | bool
+            - (win_current_tags.output | first | default('')) | length > 0
+          register: win_tags_clear
+          changed_when: win_tags_clear.rc == 0
