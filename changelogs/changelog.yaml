@@ -538,6 +538,28 @@ releases:
       - 664-lookup-plugin-auth-validation.yml
       - 666-fix-host-hide-host-contain-handle-return-errors.yml
     release_date: '2026-01-20'
+  4.11.0:
+    changes:
+      bugfixes:
+        - sensor_update_builds_info module - Sanitize sensor_version fields to remove
+          LTS suffix that causes sensor download API failures (https://github.com/CrowdStrike/falcon-scripts/issues/460).
+        - sensor_update_policy_info module - Fix NoneType error when policy variants
+          field is null (https://github.com/CrowdStrike/falcon-scripts/issues/460).
+        - sensor_update_policy_info module - Sanitize sensor_version fields to remove
+          LTS suffix that causes sensor download API failures (https://github.com/CrowdStrike/falcon-scripts/issues/460).
+      minor_changes:
+        - falcon_configure role - Add support for CsSensorSettings utility on Windows
+          sensor 6.42+ to configure grouping tags post-installation (https://github.com/CrowdStrike/ansible_collection_falcon/issues/304)
+      release_summary: '| Release Date: 2026-01-29
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.11.0>`__
+
+        '
+    fragments:
+      - 304-cssensorsettings-support.yml
+      - 4.11.0.yml
+      - lts-version-suffix-fix.yml
+    release_date: '2026-01-29'
   4.2.0:
     changes:
       minor_changes:
