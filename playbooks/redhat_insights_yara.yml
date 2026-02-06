@@ -12,10 +12,13 @@
       delegate_to: localhost
       run_once: true
 
-    - name: Download YARA rules for Linux (local)
+    - name: Download YARA rules for Any + Linux environments (local)
       crowdstrike.falcon.hunting_rule_download:
         language: yara
-        filter: "environment:'Linux'"
+        # Filter for rules applicable to Linux:
+        # - environment:null = "Any" environment (rules with no specific environment)
+        # - environment:'Linux' = Rules targeting Linux (includes cross-platform rules)
+        filter: "environment:null,environment:'Linux'"
         dest: "{{ temp_download_dir.path }}"
       register: yara_download_result
       delegate_to: localhost
