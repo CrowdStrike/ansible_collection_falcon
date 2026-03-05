@@ -43,7 +43,7 @@
 
 - name: "CrowdStrike Falcon | Override OS version for Amazon Linux 2"
   ansible.builtin.set_fact:
-    falcon_os_version: "{{ ansible_facts['distribution_major_version'] }}"
+    falcon_os_version: "{{ '2 - arm64' if ansible_facts['architecture'] == 'aarch64' else '2' }}"
   when:
     - ansible_facts['distribution'] == "Amazon"
     - ansible_facts['distribution_major_version'] | int == 2
