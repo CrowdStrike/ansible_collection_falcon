@@ -1,0 +1,899 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="2.24.0" name="antsibull-docs" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>crowdstrike.falcon.host_info module – Get information about Falcon hosts &mdash; Ansible collections  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=41de9001" />
+      <link rel="stylesheet" type="text/css" href="_static/css/ansible.css?v=b54c304f" />
+      <link rel="stylesheet" type="text/css" href="_static/antsibull-minimal.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd-ethical-ads.css?v=289b023e" />
+
+  
+    <link rel="shortcut icon" href="_static/images/Ansible-Mark-RGB_Black.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=7f41d439"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="crowdstrike.falcon.hunting_rule_download module – Download CrowdStrike Falcon Hunting rule archives" href="hunting_rule_download_module.html" />
+    <link rel="prev" title="crowdstrike.falcon.host_hide module – Hide/Unhide hosts from the Falcon console" href="host_hide_module.html" /><!-- extra head elements for Ansible beyond RTD Sphinx Theme -->
+
+
+
+
+</head>
+
+<body class="wy-body-for-nav"><!-- extra body elements for Ansible beyond RTD Sphinx Theme -->
+
+<div class="DocSite-globalNav ansibleNav">
+  <ul>
+    <li><a href="https://www.ansible.com/blog" target="_blank">Blog</a></li>
+    <li><a href="https://forum.ansible.com/" target="_blank">Ansible community forum</a></li>
+    <li><a href="https://docs.ansible.com/" target="_blank">Documentation</a></li>
+  </ul>
+</div>
+
+<a class="DocSite-nav" href="/" style="padding-bottom: 30px;">
+
+  <img class="DocSiteNav-logo"
+    src="_static/images/Ansible-Mark-RGB_White.png"
+    alt="Ansible Logo">
+  <div class="DocSiteNav-title">Ansible Collections Documentation</div>
+</a>
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Ansible collections
+          </a><!--- Based on https://github.com/rtfd/sphinx_rtd_theme/pull/438/files -->
+
+<div class="version">
+  
+    
+  
+</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <label class="sr-only" for="q">Search docs:</label>
+    <input type="text" class="st-default-search-input" id="q" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="auth_module.html">crowdstrike.falcon.auth module – Manage authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cid_info_module.html">crowdstrike.falcon.cid_info module – Get CID with checksum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_module.html">crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_info_module.html">crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fctl_child_cid_info_module.html">crowdstrike.falcon.fctl_child_cid_info module – Retrieve details about Flight Control child CIDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_contain_module.html">crowdstrike.falcon.host_contain module – Network contain hosts in Falcon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_module.html">crowdstrike.falcon.host_group module – Manage Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_info_module.html">crowdstrike.falcon.host_group_info module – Get information about Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_hide_module.html">crowdstrike.falcon.host_hide module – Hide/Unhide hosts from the Falcon console</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">crowdstrike.falcon.host_info module – Get information about Falcon hosts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#return-values">Return Values</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#authors">Authors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collection-links">Collection links</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hunting_rule_download_module.html">crowdstrike.falcon.hunting_rule_download module – Download CrowdStrike Falcon Hunting rule archives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_download_module.html">crowdstrike.falcon.intel_rule_download module – Download CrowdStrike Falcon Intel rule files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_info_module.html">crowdstrike.falcon.intel_rule_info module – Get information about CrowdStrike Falcon Intel rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kernel_support_info_module.html">crowdstrike.falcon.kernel_support_info module – Get information about kernels supported by the Falcon Sensor for Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ngsiem_search_module.html">crowdstrike.falcon.ngsiem_search module – Execute searches against CrowdStrike Next-Gen SIEM repositories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_module.html">crowdstrike.falcon.sensor_download module – Download Falcon Sensor Installer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_info_module.html">crowdstrike.falcon.sensor_download_info module – Get information about Falcon Sensor Installers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_builds_info_module.html">crowdstrike.falcon.sensor_update_builds_info module – Get a list of available sensor build versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_policy_module.html">crowdstrike.falcon.sensor_update_policy module – Manage Falcon sensor update policies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_policy_info_module.html">crowdstrike.falcon.sensor_update_policy_info module – Get information about Falcon Update Sensor Policies</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="falcon_discover_inventory.html">crowdstrike.falcon.falcon_discover inventory – CrowdStrike Falcon Discover inventory source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falcon_hosts_inventory.html">crowdstrike.falcon.falcon_hosts inventory – CrowdStrike Falcon Hosts inventory source</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fctl_child_cids_lookup.html">crowdstrike.falcon.fctl_child_cids lookup – fetch Flight Control child CIDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_ids_lookup.html">crowdstrike.falcon.host_ids lookup – fetch host IDs (AIDs)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="maintenance_token_lookup.html">crowdstrike.falcon.maintenance_token lookup – fetch maintenance token</a></li>
+</ul>
+<!-- extra nav elements for Ansible beyond RTD Sphinx Theme -->
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Ansible collections</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">crowdstrike.falcon.host_info module – Get information about Falcon hosts</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+
+  
+           <div itemprop="articleBody">
+             
+  <span class="target" id="ansible-collections-crowdstrike-falcon-host-info-module"></span><section id="crowdstrike-falcon-host-info-module-get-information-about-falcon-hosts">
+<h1>crowdstrike.falcon.host_info module – Get information about Falcon hosts<a class="headerlink" href="#crowdstrike-falcon-host-info-module-get-information-about-falcon-hosts" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This module is part of the <a class="reference external" href="https://galaxy.ansible.com/ui/repo/published/crowdstrike/falcon/">crowdstrike.falcon collection</a> (version 4.11.0).</p>
+<p>It is not included in <code class="docutils literal notranslate"><span class="pre">ansible-core</span></code>.
+To check whether it is installed, run <code class="code docutils literal notranslate"><span class="pre">ansible-galaxy</span> <span class="pre">collection</span> <span class="pre">list</span></code>.</p>
+<p>To install it, use: <code class="code docutils literal notranslate"><span class="pre">ansible-galaxy</span> <span class="pre">collection</span> <span class="pre">install</span> <span class="pre">crowdstrike.falcon</span></code>.
+You need further requirements to be able to use this module,
+see <a class="reference internal" href="#ansible-collections-crowdstrike-falcon-host-info-module-requirements"><span class="std std-ref">Requirements</span></a> for details.</p>
+<p>To use it in a playbook, specify: <code class="code docutils literal notranslate"><span class="pre">crowdstrike.falcon.host_info</span></code>.</p>
+</div>
+<p class="ansible-version-added">New in crowdstrike.falcon 4.4.0</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#synopsis" id="id1">Synopsis</a></p></li>
+<li><p><a class="reference internal" href="#requirements" id="id2">Requirements</a></p></li>
+<li><p><a class="reference internal" href="#parameters" id="id3">Parameters</a></p></li>
+<li><p><a class="reference internal" href="#examples" id="id4">Examples</a></p></li>
+<li><p><a class="reference internal" href="#return-values" id="id5">Return Values</a></p></li>
+</ul>
+</nav>
+<section id="synopsis">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Synopsis</a><a class="headerlink" href="#synopsis" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Returns detailed information for one or more hosts.</p></li>
+<li><p>Some of the details returned include software information, such as platform, OS version, kernel version, and OS build ID (OS build ID available for Windows and macOS only); network information, such as IP addresses and MAC addresses; sensor information, such as its version; status information, such as last seen time and network containment status; and more.</p></li>
+</ul>
+</section>
+<section id="requirements">
+<span id="ansible-collections-crowdstrike-falcon-host-info-module-requirements"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Requirements</a><a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<p>The below requirements are needed on the host that executes this module.</p>
+<ul class="simple">
+<li><p>Hosts [<strong>READ</strong>] API scope</p></li>
+<li><p>crowdstrike-falconpy &gt;= 1.3.0</p></li>
+<li><p>python &gt;= 3.6</p></li>
+</ul>
+</section>
+<section id="parameters">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Parameters</a><a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
+<table class="longtable ansible-option-table docutils align-default" style="width: 100%">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Comments</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-auth"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-auth"><strong>auth</strong></p>
+<a class="ansibleOptionLink" href="#parameter-auth" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The registered result of the <a class="reference internal" href="auth_module.html#ansible-collections-crowdstrike-falcon-auth-module"><span class="std std-ref">crowdstrike.falcon.auth</span></a> module, or a dictionary containing the <em>access_token</em> and <em>cloud</em> keys.</p>
+<p>If provided, the <em>client_id</em>, <em>client_secret</em>, <em>member_cid</em>, and <em>cloud</em> options are ignored.</p>
+<p>Useful when needing to make multiple API calls to avoid rate limiting issues.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-auth/access_token"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-auth-access-token"><strong>access_token</strong></p>
+<a class="ansibleOptionLink" href="#parameter-auth/access_token" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The OAuth2 access token to use for authentication.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-auth/cloud"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-auth-cloud"><strong>cloud</strong></p>
+<a class="ansibleOptionLink" href="#parameter-auth/cloud" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The CrowdStrike cloud region to use.</p>
+<p>This can differ from the module’s <em>cloud</em> argument due to autodiscovery.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-client_id"></div>
+<div class="ansibleOptionAnchor" id="parameter-falcon_client_id"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-falcon-client-id"><span id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-client-id"></span><strong>client_id</strong></p>
+<a class="ansibleOptionLink" href="#parameter-client_id" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-aliases">aliases: falcon_client_id</span></p>
+<p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike API client ID to use.</p>
+<p>See the <a class="reference external" href="https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients">Falcon documentation</a> for more information about API clients.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_CLIENT_ID</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-client_secret"></div>
+<div class="ansibleOptionAnchor" id="parameter-falcon_client_secret"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-falcon-client-secret"><span id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-client-secret"></span><strong>client_secret</strong></p>
+<a class="ansibleOptionLink" href="#parameter-client_secret" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-aliases">aliases: falcon_client_secret</span></p>
+<p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike API secret that corresponds to the client ID.</p>
+<p>See the <a class="reference external" href="https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients">Falcon documentation</a> for more information about API clients.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_CLIENT_SECRET</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-cloud"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-cloud"><strong>cloud</strong></p>
+<a class="ansibleOptionLink" href="#parameter-cloud" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike cloud region to use.</p>
+<p>All clouds are automatically discovered if not specified, except for the <code class="docutils literal notranslate"><span class="pre">us-gov-1</span></code> cloud.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_CLOUD</span></code> environment variable can also be used.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-default-bold docutils literal notranslate"><strong><span class="pre">&quot;us-1&quot;</span></strong></code> <span class="ansible-option-choices-default-mark">← (default)</span></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-2&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-gov-1&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;eu-1&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-ext_headers"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-ext-headers"><strong>ext_headers</strong></p>
+<a class="ansibleOptionLink" href="#parameter-ext_headers" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Extended headers that are prepended to the default headers dictionary.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-hosts"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-hosts"><strong>hosts</strong></p>
+<a class="ansibleOptionLink" href="#parameter-hosts" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=string</span> / <span class="ansible-option-required">required</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>A list of host agent IDs (AIDs) to get information about.</p>
+<p>Use the <a class="reference internal" href="host_ids_lookup.html#ansible-collections-crowdstrike-falcon-host-ids-lookup"><span class="std std-ref">crowdstrike.falcon.host_ids</span></a> lookup plugin to get a list of host IDs matching specific criteria.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-member_cid"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-member-cid"><strong>member_cid</strong></p>
+<a class="ansibleOptionLink" href="#parameter-member_cid" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike member CID for MSSP authentication.</p>
+<p>See the <a class="reference external" href="https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients">Falcon documentation</a> for more information about API clients.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_MEMBER_CID</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-user_agent"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-parameter-user-agent"><strong>user_agent</strong></p>
+<a class="ansibleOptionLink" href="#parameter-user_agent" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Custom User-Agent string to use for requests to the API.</p>
+<p>The user agent string is prepended to the default user agent string (<code class="docutils literal notranslate"><span class="pre">crowdstrike-ansible/&lt;version&gt;</span></code>).</p>
+<p>See <a class="reference external" href="https://tools.ietf.org/html/rfc7231#section-5.5.3">RFC 7231</a> for more information.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_USER_AGENT</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Examples</a><a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-yaml+jinja notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Get information about a single host</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.host_info</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">hosts</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;12345678901234567890&quot;</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Get information about more than one host</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.host_info</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">hosts</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;12345678901234567890&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;09876543210987654321&quot;</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Get information about all Windows hosts (using host_ids lookup)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.host_info</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">hosts</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;</span><span class="cp">{{</span> <span class="nv">lookup</span><span class="o">(</span><span class="s1">&#39;crowdstrike.falcon.host_ids&#39;</span><span class="o">,</span> <span class="nv">windows_host_filter</span><span class="o">)</span> <span class="cp">}}</span><span class="s">&quot;</span>
+<span class="w">  </span><span class="nt">vars</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">windows_host_filter</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;platform_name:&quot;Windows&quot;&#39;</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Get information about all Linux hosts in reduced functionality mode (using host_ids lookup)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.host_info</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">hosts</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;</span>
+<span class="w">      </span><span class="cp">{{</span>
+        <span class="nv">lookup</span><span class="o">(</span><span class="s1">&#39;crowdstrike.falcon.host_ids&#39;</span><span class="o">,</span>
+          <span class="s1">&#39;platform_name:&quot;Linux&quot;</span>
+<span class="s1">          + reduced_functionality_mode:&quot;yes&quot;&#39;</span><span class="o">)</span>
+      <span class="cp">}}</span>
+</pre></div>
+</div>
+</section>
+<section id="return-values">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Return Values</a><a class="headerlink" href="#return-values" title="Link to this heading"></a></h2>
+<p>Common return values are documented <a class="reference external" href="https://docs.ansible.com/projects/ansible/devel/reference_appendices/common_return_values.html#common-return-values" title="(in Ansible devel)"><span class="xref std std-ref">here</span></a>, the following are the fields unique to this module:</p>
+<table class="longtable ansible-option-table docutils align-default" style="width: 100%">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts"><strong>hosts</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>A list of host IDs (AIDs) that match the search criteria.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/agent_load_flags"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-agent-load-flags"><strong>agent_load_flags</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/agent_load_flags" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>Flags indicating the load state of the agent.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;0&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/agent_local_time"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-agent-local-time"><strong>agent_local_time</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/agent_local_time" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The local time of the agent.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;2024-03-15T03:06:29.257Z&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/agent_version"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-agent-version"><strong>agent_version</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/agent_version" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The version of the agent.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;7.11.16405.0&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/bios_manufacturer"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-bios-manufacturer"><strong>bios_manufacturer</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/bios_manufacturer" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The manufacturer of the BIOS.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Xen&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/bios_version"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-bios-version"><strong>bios_version</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/bios_version" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The version of the BIOS.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;4.11.amazon&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/chassis_type"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-chassis-type"><strong>chassis_type</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/chassis_type" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The type of chassis.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;1&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/chassis_type_desc"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-chassis-type-desc"><strong>chassis_type_desc</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/chassis_type_desc" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The description of the chassis type.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Other&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/cid"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-cid"><strong>cid</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/cid" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The unique identifier of the customer.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;d78cd791785442a98ec75249d8c385dd&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/config_id_base"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-config-id-base"><strong>config_id_base</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/config_id_base" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The base configuration ID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;65994763&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/config_id_build"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-config-id-build"><strong>config_id_build</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/config_id_build" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The build configuration ID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;16405&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/config_id_platform"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-config-id-platform"><strong>config_id_platform</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/config_id_platform" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The platform configuration ID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;8&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/connection_ip"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-connection-ip"><strong>connection_ip</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/connection_ip" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The IP address used for connection.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;10.10.10.10&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/connection_mac_address"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-connection-mac-address"><strong>connection_mac_address</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/connection_mac_address" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The MAC address used for connection.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;11-11-b0-44-4e-a5&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/cpu_signature"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-cpu-signature"><strong>cpu_signature</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/cpu_signature" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The signature of the CPU.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;198386&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/cpu_vendor"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-cpu-vendor"><strong>cpu_vendor</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/cpu_vendor" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The vendor of the CPU.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;0&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/default_gateway_ip"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-default-gateway-ip"><strong>default_gateway_ip</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/default_gateway_ip" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The IP address of the default gateway.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;10.10.10.10&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/deployment_type"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-deployment-type"><strong>deployment_type</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/deployment_type" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The type of Linux deployment.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Standard&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/device_id"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-device-id"><strong>device_id</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/device_id" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The host ID (AID).</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;d78cd791785442a98ec75249d8c385dd&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/device_policies"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-device-policies"><strong>device_policies</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/device_policies" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The policies applied to the device.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">{&quot;prevention&quot;:</span> <span class="pre">{&quot;applied&quot;:</span> <span class="pre">true,</span> <span class="pre">&quot;applied_date&quot;:</span> <span class="pre">&quot;2017-09-14T13:03:45.823683755Z&quot;,</span> <span class="pre">&quot;assigned_date&quot;:</span> <span class="pre">&quot;2017-09-14T13:03:33.038805882Z&quot;,</span> <span class="pre">&quot;policy_id&quot;:</span> <span class="pre">&quot;aaabbbdddcccddd&quot;,</span> <span class="pre">&quot;policy_type&quot;:</span> <span class="pre">&quot;prevention&quot;,</span> <span class="pre">&quot;settings_hash&quot;:</span> <span class="pre">&quot;ed4a7460&quot;},</span> <span class="pre">&quot;sensor_update&quot;:</span> <span class="pre">{&quot;applied&quot;:</span> <span class="pre">true,</span> <span class="pre">&quot;applied_date&quot;:</span> <span class="pre">&quot;2017-09-14T05:16:20.847887649Z&quot;,</span> <span class="pre">&quot;assigned_date&quot;:</span> <span class="pre">&quot;2017-09-14T05:15:40.878196578Z&quot;,</span> <span class="pre">&quot;policy_id&quot;:</span> <span class="pre">&quot;aaabbbdddcccddd&quot;,</span> <span class="pre">&quot;policy_type&quot;:</span> <span class="pre">&quot;sensor-update&quot;,</span> <span class="pre">&quot;settings_hash&quot;:</span> <span class="pre">&quot;65994753|3|2|automatic&quot;}}</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/external_ip"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-external-ip"><strong>external_ip</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/external_ip" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The external IP address of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;10.10.10.10&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/first_seen"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-first-seen"><strong>first_seen</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/first_seen" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The timestamp of when the host was first seen.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;2024-03-15T03:06:30Z&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/group_hash"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-group-hash"><strong>group_hash</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/group_hash" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The hash of the groups the host belongs to.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;aaabbbdddcccdddeeefff&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/groups"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-groups"><strong>groups</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/groups" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The list of groups the host belongs to.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">[]</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/hostname"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-hostname"><strong>hostname</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/hostname" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The hostname of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;example.local&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/instance_id"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-instance-id"><strong>instance_id</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/instance_id" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The cloud ID of the instance.</p>
+<p>This field is only available for cloud-based hosts.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;i-ab89723sdf87&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/kernel_version"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-kernel-version"><strong>kernel_version</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/kernel_version" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The version of the kernel.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;6.1.79-99.164.amzn2023.x86_64&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/last_seen"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-last-seen"><strong>last_seen</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/last_seen" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The timestamp of when the host was last seen.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;2024-03-15T03:06:41Z&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/linux_sensor_mode"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-linux-sensor-mode"><strong>linux_sensor_mode</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/linux_sensor_mode" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The mode of the Linux sensor.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Kernel</span> <span class="pre">Mode&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/local_ip"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-local-ip"><strong>local_ip</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/local_ip" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The local IP address of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;10.10.10.10&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/mac_address"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-mac-address"><strong>mac_address</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/mac_address" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The MAC address of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;11-11-b0-44-4e-a5&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/major_version"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-major-version"><strong>major_version</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/major_version" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The major version of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;6&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/meta"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-meta"><strong>meta</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/meta" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>Additional metadata about the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/meta/version"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-meta-version"><strong>version</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/meta/version" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>Version metadata.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;6&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/meta/version_string"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-meta-version-string"><strong>version_string</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/meta/version_string" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>Version string metadata.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;1:1239010923&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/minor_version"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-minor-version"><strong>minor_version</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/minor_version" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The minor version of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;1&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/modified_timestamp"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-modified-timestamp"><strong>modified_timestamp</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/modified_timestamp" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The timestamp of when the host was last modified.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;2024-03-15T03:08:21Z&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/os_version"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-os-version"><strong>os_version</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/os_version" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The version of the operating system.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Amazon</span> <span class="pre">Linux</span> <span class="pre">2023&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/platform_id"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-platform-id"><strong>platform_id</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/platform_id" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The platform ID of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;3&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/platform_name"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-platform-name"><strong>platform_name</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/platform_name" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The platform name of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Linux&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/policies"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-policies"><strong>policies</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/policies" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The list of policies applied to the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/policies/applied"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-policies-applied"><strong>applied</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/policies/applied" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">boolean</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>Indicates if the policy is applied.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">false</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/policies/applied_date"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-policies-applied-date"><strong>applied_date</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/policies/applied_date" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The timestamp of when the policy was applied.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/policies/assigned_date"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-policies-assigned-date"><strong>assigned_date</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/policies/assigned_date" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The timestamp of when the policy was assigned.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;2024-03-15T03:06:41.651213667Z&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/policies/policy_id"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-policies-policy-id"><strong>policy_id</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/policies/policy_id" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The ID of the policy.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;aaabbbdddcccddd&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/policies/policy_type"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-policies-policy-type"><strong>policy_type</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/policies/policy_type" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The type of policy.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;prevention&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/policies/rule_groups"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-policies-rule-groups"><strong>rule_groups</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/policies/rule_groups" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The list of rule groups within the policy.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">[]</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/policies/settings_hash"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-policies-settings-hash"><strong>settings_hash</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/policies/settings_hash" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The hash of the policy settings.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;aaabbbdddcccdddeee&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/product_type_desc"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-product-type-desc"><strong>product_type_desc</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/product_type_desc" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The description of the product type.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Server&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/reduced_functionality_mode"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-reduced-functionality-mode"><strong>reduced_functionality_mode</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/reduced_functionality_mode" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>Indicates if the host is in reduced functionality mode.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;yes&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/serial_number"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-serial-number"><strong>serial_number</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/serial_number" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The serial number of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;aaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/service_provider"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-service-provider"><strong>service_provider</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/service_provider" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The cloud service provider of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;AWS_EC2_V2&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/service_provider_account_id"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-service-provider-account-id"><strong>service_provider_account_id</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/service_provider_account_id" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The account ID of the cloud service provider.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;112233445566&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/status"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-status"><strong>status</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/status" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The containment status of the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;normal&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/system_manufacturer"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-system-manufacturer"><strong>system_manufacturer</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/system_manufacturer" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The manufacturer of the system.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;VMware,</span> <span class="pre">Inc.&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/system_product_name"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-system-product-name"><strong>system_product_name</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/system_product_name" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The product name of the system.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;VMware</span> <span class="pre">Virtual</span> <span class="pre">Platform&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/tags"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-tags"><strong>tags</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/tags" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The list of tags associated with the host.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">[&quot;Example/tag1&quot;,</span> <span class="pre">&quot;Example/tag2&quot;]</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-hosts/zone_group"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-host-info-module-return-hosts-zone-group"><strong>zone_group</strong></p>
+<a class="ansibleOptionLink" href="#return-hosts/zone_group" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The cloud zone the host belongs to.</p>
+<p>This field is only available for cloud-based hosts.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;us-west-2a&quot;</span></code></p>
+</div></td>
+</tr>
+</tbody>
+</table>
+<section id="authors">
+<h3>Authors<a class="headerlink" href="#authors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Carlos Matos (&#64;carlosmmatos)</p></li>
+</ul>
+</section>
+<section id="collection-links">
+<h3>Collection links<a class="headerlink" href="#collection-links" title="Link to this heading"></a></h3>
+<ul class="ansible-links">
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike/issues" rel="noopener external" target="_blank">Issue Tracker</a></span></li>
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike" rel="noopener external" target="_blank">Repository (Sources)</a></span></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+
+<footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="host_hide_module.html" class="btn btn-neutral float-left" title="crowdstrike.falcon.host_hide module – Hide/Unhide hosts from the Falcon console" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hunting_rule_download_module.html" class="btn btn-neutral float-right" title="crowdstrike.falcon.hunting_rule_download module – Download CrowdStrike Falcon Hunting rule archives" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Ansible contributors.</p>
+  </div>
+
+  
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script><!-- extra footer elements for Ansible beyond RTD Sphinx Theme -->
+
+</body>
+</html>

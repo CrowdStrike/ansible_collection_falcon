@@ -1,0 +1,442 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="2.24.0" name="antsibull-docs" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>crowdstrike.falcon.fctl_child_cid_info module – Retrieve details about Flight Control child CIDs &mdash; Ansible collections  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=41de9001" />
+      <link rel="stylesheet" type="text/css" href="_static/css/ansible.css?v=b54c304f" />
+      <link rel="stylesheet" type="text/css" href="_static/antsibull-minimal.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd-ethical-ads.css?v=289b023e" />
+
+  
+    <link rel="shortcut icon" href="_static/images/Ansible-Mark-RGB_Black.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=7f41d439"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="crowdstrike.falcon.host_contain module – Network contain hosts in Falcon" href="host_contain_module.html" />
+    <link rel="prev" title="crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor." href="falconctl_info_module.html" /><!-- extra head elements for Ansible beyond RTD Sphinx Theme -->
+
+
+
+
+</head>
+
+<body class="wy-body-for-nav"><!-- extra body elements for Ansible beyond RTD Sphinx Theme -->
+
+<div class="DocSite-globalNav ansibleNav">
+  <ul>
+    <li><a href="https://www.ansible.com/blog" target="_blank">Blog</a></li>
+    <li><a href="https://forum.ansible.com/" target="_blank">Ansible community forum</a></li>
+    <li><a href="https://docs.ansible.com/" target="_blank">Documentation</a></li>
+  </ul>
+</div>
+
+<a class="DocSite-nav" href="/" style="padding-bottom: 30px;">
+
+  <img class="DocSiteNav-logo"
+    src="_static/images/Ansible-Mark-RGB_White.png"
+    alt="Ansible Logo">
+  <div class="DocSiteNav-title">Ansible Collections Documentation</div>
+</a>
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Ansible collections
+          </a><!--- Based on https://github.com/rtfd/sphinx_rtd_theme/pull/438/files -->
+
+<div class="version">
+  
+    
+  
+</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <label class="sr-only" for="q">Search docs:</label>
+    <input type="text" class="st-default-search-input" id="q" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="auth_module.html">crowdstrike.falcon.auth module – Manage authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cid_info_module.html">crowdstrike.falcon.cid_info module – Get CID with checksum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_module.html">crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_info_module.html">crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor.</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">crowdstrike.falcon.fctl_child_cid_info module – Retrieve details about Flight Control child CIDs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#return-values">Return Values</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#authors">Authors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collection-links">Collection links</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="host_contain_module.html">crowdstrike.falcon.host_contain module – Network contain hosts in Falcon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_module.html">crowdstrike.falcon.host_group module – Manage Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_info_module.html">crowdstrike.falcon.host_group_info module – Get information about Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_hide_module.html">crowdstrike.falcon.host_hide module – Hide/Unhide hosts from the Falcon console</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_info_module.html">crowdstrike.falcon.host_info module – Get information about Falcon hosts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hunting_rule_download_module.html">crowdstrike.falcon.hunting_rule_download module – Download CrowdStrike Falcon Hunting rule archives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_download_module.html">crowdstrike.falcon.intel_rule_download module – Download CrowdStrike Falcon Intel rule files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_info_module.html">crowdstrike.falcon.intel_rule_info module – Get information about CrowdStrike Falcon Intel rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kernel_support_info_module.html">crowdstrike.falcon.kernel_support_info module – Get information about kernels supported by the Falcon Sensor for Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ngsiem_search_module.html">crowdstrike.falcon.ngsiem_search module – Execute searches against CrowdStrike Next-Gen SIEM repositories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_module.html">crowdstrike.falcon.sensor_download module – Download Falcon Sensor Installer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_info_module.html">crowdstrike.falcon.sensor_download_info module – Get information about Falcon Sensor Installers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_builds_info_module.html">crowdstrike.falcon.sensor_update_builds_info module – Get a list of available sensor build versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_policy_module.html">crowdstrike.falcon.sensor_update_policy module – Manage Falcon sensor update policies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_policy_info_module.html">crowdstrike.falcon.sensor_update_policy_info module – Get information about Falcon Update Sensor Policies</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="falcon_discover_inventory.html">crowdstrike.falcon.falcon_discover inventory – CrowdStrike Falcon Discover inventory source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falcon_hosts_inventory.html">crowdstrike.falcon.falcon_hosts inventory – CrowdStrike Falcon Hosts inventory source</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fctl_child_cids_lookup.html">crowdstrike.falcon.fctl_child_cids lookup – fetch Flight Control child CIDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_ids_lookup.html">crowdstrike.falcon.host_ids lookup – fetch host IDs (AIDs)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="maintenance_token_lookup.html">crowdstrike.falcon.maintenance_token lookup – fetch maintenance token</a></li>
+</ul>
+<!-- extra nav elements for Ansible beyond RTD Sphinx Theme -->
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Ansible collections</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">crowdstrike.falcon.fctl_child_cid_info module – Retrieve details about Flight Control child CIDs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+
+  
+           <div itemprop="articleBody">
+             
+  <span class="target" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module"></span><section id="crowdstrike-falcon-fctl-child-cid-info-module-retrieve-details-about-flight-control-child-cids">
+<h1>crowdstrike.falcon.fctl_child_cid_info module – Retrieve details about Flight Control child CIDs<a class="headerlink" href="#crowdstrike-falcon-fctl-child-cid-info-module-retrieve-details-about-flight-control-child-cids" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This module is part of the <a class="reference external" href="https://galaxy.ansible.com/ui/repo/published/crowdstrike/falcon/">crowdstrike.falcon collection</a> (version 4.11.0).</p>
+<p>It is not included in <code class="docutils literal notranslate"><span class="pre">ansible-core</span></code>.
+To check whether it is installed, run <code class="code docutils literal notranslate"><span class="pre">ansible-galaxy</span> <span class="pre">collection</span> <span class="pre">list</span></code>.</p>
+<p>To install it, use: <code class="code docutils literal notranslate"><span class="pre">ansible-galaxy</span> <span class="pre">collection</span> <span class="pre">install</span> <span class="pre">crowdstrike.falcon</span></code>.
+You need further requirements to be able to use this module,
+see <a class="reference internal" href="#ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-requirements"><span class="std std-ref">Requirements</span></a> for details.</p>
+<p>To use it in a playbook, specify: <code class="code docutils literal notranslate"><span class="pre">crowdstrike.falcon.fctl_child_cid_info</span></code>.</p>
+</div>
+<p class="ansible-version-added">New in crowdstrike.falcon 4.5.0</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#synopsis" id="id1">Synopsis</a></p></li>
+<li><p><a class="reference internal" href="#requirements" id="id2">Requirements</a></p></li>
+<li><p><a class="reference internal" href="#parameters" id="id3">Parameters</a></p></li>
+<li><p><a class="reference internal" href="#examples" id="id4">Examples</a></p></li>
+<li><p><a class="reference internal" href="#return-values" id="id5">Return Values</a></p></li>
+</ul>
+</nav>
+<section id="synopsis">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Synopsis</a><a class="headerlink" href="#synopsis" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>This module fetches and returns detailed information about specified Flight Control child CIDs.</p></li>
+</ul>
+</section>
+<section id="requirements">
+<span id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-requirements"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Requirements</a><a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<p>The below requirements are needed on the host that executes this module.</p>
+<ul class="simple">
+<li><p>Flight Control [<strong>READ</strong>] API scope</p></li>
+<li><p>crowdstrike-falconpy &gt;= 1.3.0</p></li>
+<li><p>python &gt;= 3.6</p></li>
+</ul>
+</section>
+<section id="parameters">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Parameters</a><a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
+<table class="longtable ansible-option-table docutils align-default" style="width: 100%">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Comments</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-auth"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-auth"><strong>auth</strong></p>
+<a class="ansibleOptionLink" href="#parameter-auth" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The registered result of the <a class="reference internal" href="auth_module.html#ansible-collections-crowdstrike-falcon-auth-module"><span class="std std-ref">crowdstrike.falcon.auth</span></a> module, or a dictionary containing the <em>access_token</em> and <em>cloud</em> keys.</p>
+<p>If provided, the <em>client_id</em>, <em>client_secret</em>, <em>member_cid</em>, and <em>cloud</em> options are ignored.</p>
+<p>Useful when needing to make multiple API calls to avoid rate limiting issues.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-auth/access_token"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-auth-access-token"><strong>access_token</strong></p>
+<a class="ansibleOptionLink" href="#parameter-auth/access_token" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The OAuth2 access token to use for authentication.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-auth/cloud"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-auth-cloud"><strong>cloud</strong></p>
+<a class="ansibleOptionLink" href="#parameter-auth/cloud" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The CrowdStrike cloud region to use.</p>
+<p>This can differ from the module’s <em>cloud</em> argument due to autodiscovery.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-cids"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-cids"><strong>cids</strong></p>
+<a class="ansibleOptionLink" href="#parameter-cids" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=string</span> / <span class="ansible-option-required">required</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>A list of child CIDs to retrieve information for.</p>
+<p>Consider using the <a class="reference internal" href="fctl_child_cids_lookup.html#ansible-collections-crowdstrike-falcon-fctl-child-cids-lookup"><span class="std std-ref">crowdstrike.falcon.fctl_child_cids</span></a> lookup plugin to obtain a list of child CIDs.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-client_id"></div>
+<div class="ansibleOptionAnchor" id="parameter-falcon_client_id"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-falcon-client-id"><span id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-client-id"></span><strong>client_id</strong></p>
+<a class="ansibleOptionLink" href="#parameter-client_id" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-aliases">aliases: falcon_client_id</span></p>
+<p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike API client ID to use.</p>
+<p>See the <a class="reference external" href="https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients">Falcon documentation</a> for more information about API clients.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_CLIENT_ID</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-client_secret"></div>
+<div class="ansibleOptionAnchor" id="parameter-falcon_client_secret"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-falcon-client-secret"><span id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-client-secret"></span><strong>client_secret</strong></p>
+<a class="ansibleOptionLink" href="#parameter-client_secret" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-aliases">aliases: falcon_client_secret</span></p>
+<p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike API secret that corresponds to the client ID.</p>
+<p>See the <a class="reference external" href="https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients">Falcon documentation</a> for more information about API clients.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_CLIENT_SECRET</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-cloud"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-cloud"><strong>cloud</strong></p>
+<a class="ansibleOptionLink" href="#parameter-cloud" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike cloud region to use.</p>
+<p>All clouds are automatically discovered if not specified, except for the <code class="docutils literal notranslate"><span class="pre">us-gov-1</span></code> cloud.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_CLOUD</span></code> environment variable can also be used.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-default-bold docutils literal notranslate"><strong><span class="pre">&quot;us-1&quot;</span></strong></code> <span class="ansible-option-choices-default-mark">← (default)</span></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-2&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-gov-1&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;eu-1&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-ext_headers"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-ext-headers"><strong>ext_headers</strong></p>
+<a class="ansibleOptionLink" href="#parameter-ext_headers" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Extended headers that are prepended to the default headers dictionary.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-member_cid"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-member-cid"><strong>member_cid</strong></p>
+<a class="ansibleOptionLink" href="#parameter-member_cid" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike member CID for MSSP authentication.</p>
+<p>See the <a class="reference external" href="https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients">Falcon documentation</a> for more information about API clients.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_MEMBER_CID</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-user_agent"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-parameter-user-agent"><strong>user_agent</strong></p>
+<a class="ansibleOptionLink" href="#parameter-user_agent" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Custom User-Agent string to use for requests to the API.</p>
+<p>The user agent string is prepended to the default user agent string (<code class="docutils literal notranslate"><span class="pre">crowdstrike-ansible/&lt;version&gt;</span></code>).</p>
+<p>See <a class="reference external" href="https://tools.ietf.org/html/rfc7231#section-5.5.3">RFC 7231</a> for more information.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_USER_AGENT</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Examples</a><a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-yaml+jinja notranslate"><div class="highlight"><pre><span></span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Get information about a single child CID</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.fctl_child_cid_info</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cids</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;12345678901234567890&quot;</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Get information about more than one child CID</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.fctl_child_cid_info</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cids</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;12345678901234567890&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;09876543210987654321&quot;</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Get information about all child CIDs (using fctl_child_cids lookup)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.fctl_child_cid_info</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cids</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;</span><span class="cp">{{</span> <span class="nv">lookup</span><span class="o">(</span><span class="s1">&#39;crowdstrike.falcon.fctl_child_cids&#39;</span><span class="o">)</span> <span class="cp">}}</span><span class="s">&quot;</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Get information about all child CIDs from a secondary parent CID (using fctl_child_cids lookup)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.fctl_child_cid_info</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">cids</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;</span><span class="cp">{{</span> <span class="nv">lookup</span><span class="o">(</span><span class="s1">&#39;crowdstrike.falcon.fctl_child_cids&#39;</span><span class="o">,</span> <span class="s1">&#39;12345678901234567890&#39;</span><span class="o">)</span> <span class="cp">}}</span><span class="s">&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="return-values">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Return Values</a><a class="headerlink" href="#return-values" title="Link to this heading"></a></h2>
+<p>Common return values are documented <a class="reference external" href="https://docs.ansible.com/projects/ansible/devel/reference_appendices/common_return_values.html#common-return-values" title="(in Ansible devel)"><span class="xref std std-ref">here</span></a>, the following are the fields unique to this module:</p>
+<table class="longtable ansible-option-table docutils align-default" style="width: 100%">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-child_cids"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-return-child-cids"><strong>child_cids</strong></p>
+<a class="ansibleOptionLink" href="#return-child_cids" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>A list of dictionaries containing information about the child CIDs.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-child_cids/checksum"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-return-child-cids-checksum"><strong>checksum</strong></p>
+<a class="ansibleOptionLink" href="#return-child_cids/checksum" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The checksum of the child CID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;xy&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-child_cids/child_cid"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-return-child-cids-child-cid"><strong>child_cid</strong></p>
+<a class="ansibleOptionLink" href="#return-child_cids/child_cid" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The unique identifier of the child CID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;12345678901234567890&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-child_cids/child_gcid"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-return-child-cids-child-gcid"><strong>child_gcid</strong></p>
+<a class="ansibleOptionLink" href="#return-child_cids/child_gcid" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The global CID of the child CID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;g12345678901234567890&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-child_cids/child_of"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-return-child-cids-child-of"><strong>child_of</strong></p>
+<a class="ansibleOptionLink" href="#return-child_cids/child_of" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The unique identifier of the parent CID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;09876543210987654321&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-child_cids/domains"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-return-child-cids-domains"><strong>domains</strong></p>
+<a class="ansibleOptionLink" href="#return-child_cids/domains" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>A list of domains associated with the child CID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">[&quot;example.com&quot;]</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-child_cids/name"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-return-child-cids-name"><strong>name</strong></p>
+<a class="ansibleOptionLink" href="#return-child_cids/name" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The name of the child CID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Flight</span> <span class="pre">Control</span> <span class="pre">Child</span> <span class="pre">1&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-child_cids/status"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-fctl-child-cid-info-module-return-child-cids-status"><strong>status</strong></p>
+<a class="ansibleOptionLink" href="#return-child_cids/status" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The status of the child CID.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;active&quot;</span></code></p>
+</div></td>
+</tr>
+</tbody>
+</table>
+<section id="authors">
+<h3>Authors<a class="headerlink" href="#authors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Carlos Matos (&#64;carlosmmatos)</p></li>
+</ul>
+</section>
+<section id="collection-links">
+<h3>Collection links<a class="headerlink" href="#collection-links" title="Link to this heading"></a></h3>
+<ul class="ansible-links">
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike/issues" rel="noopener external" target="_blank">Issue Tracker</a></span></li>
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike" rel="noopener external" target="_blank">Repository (Sources)</a></span></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+
+<footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="falconctl_info_module.html" class="btn btn-neutral float-left" title="crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor." accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="host_contain_module.html" class="btn btn-neutral float-right" title="crowdstrike.falcon.host_contain module – Network contain hosts in Falcon" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Ansible contributors.</p>
+  </div>
+
+  
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script><!-- extra footer elements for Ansible beyond RTD Sphinx Theme -->
+
+</body>
+</html>

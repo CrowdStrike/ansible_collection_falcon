@@ -1,0 +1,744 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="2.24.0" name="antsibull-docs" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>crowdstrike.falcon.sensor_update_policy module – Manage Falcon sensor update policies &mdash; Ansible collections  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=41de9001" />
+      <link rel="stylesheet" type="text/css" href="_static/css/ansible.css?v=b54c304f" />
+      <link rel="stylesheet" type="text/css" href="_static/antsibull-minimal.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd-ethical-ads.css?v=289b023e" />
+
+  
+    <link rel="shortcut icon" href="_static/images/Ansible-Mark-RGB_Black.png"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=7f41d439"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="crowdstrike.falcon.sensor_update_policy_info module – Get information about Falcon Update Sensor Policies" href="sensor_update_policy_info_module.html" />
+    <link rel="prev" title="crowdstrike.falcon.sensor_update_builds_info module – Get a list of available sensor build versions" href="sensor_update_builds_info_module.html" /><!-- extra head elements for Ansible beyond RTD Sphinx Theme -->
+
+
+
+
+</head>
+
+<body class="wy-body-for-nav"><!-- extra body elements for Ansible beyond RTD Sphinx Theme -->
+
+<div class="DocSite-globalNav ansibleNav">
+  <ul>
+    <li><a href="https://www.ansible.com/blog" target="_blank">Blog</a></li>
+    <li><a href="https://forum.ansible.com/" target="_blank">Ansible community forum</a></li>
+    <li><a href="https://docs.ansible.com/" target="_blank">Documentation</a></li>
+  </ul>
+</div>
+
+<a class="DocSite-nav" href="/" style="padding-bottom: 30px;">
+
+  <img class="DocSiteNav-logo"
+    src="_static/images/Ansible-Mark-RGB_White.png"
+    alt="Ansible Logo">
+  <div class="DocSiteNav-title">Ansible Collections Documentation</div>
+</a>
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Ansible collections
+          </a><!--- Based on https://github.com/rtfd/sphinx_rtd_theme/pull/438/files -->
+
+<div class="version">
+  
+    
+  
+</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <label class="sr-only" for="q">Search docs:</label>
+    <input type="text" class="st-default-search-input" id="q" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="auth_module.html">crowdstrike.falcon.auth module – Manage authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cid_info_module.html">crowdstrike.falcon.cid_info module – Get CID with checksum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_module.html">crowdstrike.falcon.falconctl module – Configure CrowdStrike Falcon Sensor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falconctl_info_module.html">crowdstrike.falcon.falconctl_info module – Get values associated with Falcon sensor.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fctl_child_cid_info_module.html">crowdstrike.falcon.fctl_child_cid_info module – Retrieve details about Flight Control child CIDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_contain_module.html">crowdstrike.falcon.host_contain module – Network contain hosts in Falcon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_module.html">crowdstrike.falcon.host_group module – Manage Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_group_info_module.html">crowdstrike.falcon.host_group_info module – Get information about Falcon host groups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_hide_module.html">crowdstrike.falcon.host_hide module – Hide/Unhide hosts from the Falcon console</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_info_module.html">crowdstrike.falcon.host_info module – Get information about Falcon hosts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hunting_rule_download_module.html">crowdstrike.falcon.hunting_rule_download module – Download CrowdStrike Falcon Hunting rule archives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_download_module.html">crowdstrike.falcon.intel_rule_download module – Download CrowdStrike Falcon Intel rule files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intel_rule_info_module.html">crowdstrike.falcon.intel_rule_info module – Get information about CrowdStrike Falcon Intel rules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="kernel_support_info_module.html">crowdstrike.falcon.kernel_support_info module – Get information about kernels supported by the Falcon Sensor for Linux</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ngsiem_search_module.html">crowdstrike.falcon.ngsiem_search module – Execute searches against CrowdStrike Next-Gen SIEM repositories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_module.html">crowdstrike.falcon.sensor_download module – Download Falcon Sensor Installer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_download_info_module.html">crowdstrike.falcon.sensor_download_info module – Get information about Falcon Sensor Installers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_builds_info_module.html">crowdstrike.falcon.sensor_update_builds_info module – Get a list of available sensor build versions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">crowdstrike.falcon.sensor_update_policy module – Manage Falcon sensor update policies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#notes">Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#return-values">Return Values</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#authors">Authors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collection-links">Collection links</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sensor_update_policy_info_module.html">crowdstrike.falcon.sensor_update_policy_info module – Get information about Falcon Update Sensor Policies</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="falcon_discover_inventory.html">crowdstrike.falcon.falcon_discover inventory – CrowdStrike Falcon Discover inventory source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="falcon_hosts_inventory.html">crowdstrike.falcon.falcon_hosts inventory – CrowdStrike Falcon Hosts inventory source</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fctl_child_cids_lookup.html">crowdstrike.falcon.fctl_child_cids lookup – fetch Flight Control child CIDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="host_ids_lookup.html">crowdstrike.falcon.host_ids lookup – fetch host IDs (AIDs)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="maintenance_token_lookup.html">crowdstrike.falcon.maintenance_token lookup – fetch maintenance token</a></li>
+</ul>
+<!-- extra nav elements for Ansible beyond RTD Sphinx Theme -->
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Ansible collections</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">crowdstrike.falcon.sensor_update_policy module – Manage Falcon sensor update policies</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+
+  
+           <div itemprop="articleBody">
+             
+  <span class="target" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module"></span><section id="crowdstrike-falcon-sensor-update-policy-module-manage-falcon-sensor-update-policies">
+<h1>crowdstrike.falcon.sensor_update_policy module – Manage Falcon sensor update policies<a class="headerlink" href="#crowdstrike-falcon-sensor-update-policy-module-manage-falcon-sensor-update-policies" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This module is part of the <a class="reference external" href="https://galaxy.ansible.com/ui/repo/published/crowdstrike/falcon/">crowdstrike.falcon collection</a> (version 4.11.0).</p>
+<p>It is not included in <code class="docutils literal notranslate"><span class="pre">ansible-core</span></code>.
+To check whether it is installed, run <code class="code docutils literal notranslate"><span class="pre">ansible-galaxy</span> <span class="pre">collection</span> <span class="pre">list</span></code>.</p>
+<p>To install it, use: <code class="code docutils literal notranslate"><span class="pre">ansible-galaxy</span> <span class="pre">collection</span> <span class="pre">install</span> <span class="pre">crowdstrike.falcon</span></code>.
+You need further requirements to be able to use this module,
+see <a class="reference internal" href="#ansible-collections-crowdstrike-falcon-sensor-update-policy-module-requirements"><span class="std std-ref">Requirements</span></a> for details.</p>
+<p>To use it in a playbook, specify: <code class="code docutils literal notranslate"><span class="pre">crowdstrike.falcon.sensor_update_policy</span></code>.</p>
+</div>
+<p class="ansible-version-added">New in crowdstrike.falcon 4.10.0</p>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#synopsis" id="id1">Synopsis</a></p></li>
+<li><p><a class="reference internal" href="#requirements" id="id2">Requirements</a></p></li>
+<li><p><a class="reference internal" href="#parameters" id="id3">Parameters</a></p></li>
+<li><p><a class="reference internal" href="#notes" id="id4">Notes</a></p></li>
+<li><p><a class="reference internal" href="#examples" id="id5">Examples</a></p></li>
+<li><p><a class="reference internal" href="#return-values" id="id6">Return Values</a></p></li>
+</ul>
+</nav>
+<section id="synopsis">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Synopsis</a><a class="headerlink" href="#synopsis" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Create, update, delete, and manage Falcon sensor update policies.</p></li>
+<li><p>Control sensor version updates, uninstall protection, and update schedules.</p></li>
+<li><p>Manage host group assignments for sensor update policies.</p></li>
+<li><p>Provides idempotent operations that only make changes when necessary.</p></li>
+</ul>
+</section>
+<section id="requirements">
+<span id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-requirements"></span><h2><a class="toc-backref" href="#id2" role="doc-backlink">Requirements</a><a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<p>The below requirements are needed on the host that executes this module.</p>
+<ul class="simple">
+<li><p>Sensor update policies [<strong>READ</strong>, <strong>WRITE</strong>] API scope</p></li>
+<li><p>crowdstrike-falconpy &gt;= 1.3.0</p></li>
+<li><p>python &gt;= 3.6</p></li>
+</ul>
+</section>
+<section id="parameters">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Parameters</a><a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
+<table class="longtable ansible-option-table docutils align-default" style="width: 100%">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Comments</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-auth"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-auth"><strong>auth</strong></p>
+<a class="ansibleOptionLink" href="#parameter-auth" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The registered result of the <a class="reference internal" href="auth_module.html#ansible-collections-crowdstrike-falcon-auth-module"><span class="std std-ref">crowdstrike.falcon.auth</span></a> module, or a dictionary containing the <em>access_token</em> and <em>cloud</em> keys.</p>
+<p>If provided, the <em>client_id</em>, <em>client_secret</em>, <em>member_cid</em>, and <em>cloud</em> options are ignored.</p>
+<p>Useful when needing to make multiple API calls to avoid rate limiting issues.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-auth/access_token"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-auth-access-token"><strong>access_token</strong></p>
+<a class="ansibleOptionLink" href="#parameter-auth/access_token" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The OAuth2 access token to use for authentication.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-auth/cloud"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-auth-cloud"><strong>cloud</strong></p>
+<a class="ansibleOptionLink" href="#parameter-auth/cloud" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The CrowdStrike cloud region to use.</p>
+<p>This can differ from the module’s <em>cloud</em> argument due to autodiscovery.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-build"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-build"><strong>build</strong></p>
+<a class="ansibleOptionLink" href="#parameter-build" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The sensor version setting for the policy.</p>
+<p>Can be a specific sensor build string or version number from the builds API.</p>
+<p>Use sensor_update_builds_info module to get available build values for your tenant.</p>
+<p>Build format examples: <code class="docutils literal notranslate"><span class="pre">20008|n-1|tagged|1</span></code>, <code class="docutils literal notranslate"><span class="pre">19320|Auto</span></code>, <code class="docutils literal notranslate"><span class="pre">17804</span></code>.</p>
+<p>For sensor updates disabled, omit this parameter entirely.</p>
+<p><strong>Note</strong>: Simple values like <code class="docutils literal notranslate"><span class="pre">n-1</span></code>, <code class="docutils literal notranslate"><span class="pre">tagged</span></code> are not supported by the API.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-client_id"></div>
+<div class="ansibleOptionAnchor" id="parameter-falcon_client_id"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-falcon-client-id"><span id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-client-id"></span><strong>client_id</strong></p>
+<a class="ansibleOptionLink" href="#parameter-client_id" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-aliases">aliases: falcon_client_id</span></p>
+<p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike API client ID to use.</p>
+<p>See the <a class="reference external" href="https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients">Falcon documentation</a> for more information about API clients.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_CLIENT_ID</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-client_secret"></div>
+<div class="ansibleOptionAnchor" id="parameter-falcon_client_secret"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-falcon-client-secret"><span id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-client-secret"></span><strong>client_secret</strong></p>
+<a class="ansibleOptionLink" href="#parameter-client_secret" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-aliases">aliases: falcon_client_secret</span></p>
+<p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike API secret that corresponds to the client ID.</p>
+<p>See the <a class="reference external" href="https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients">Falcon documentation</a> for more information about API clients.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_CLIENT_SECRET</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-cloud"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-cloud"><strong>cloud</strong></p>
+<a class="ansibleOptionLink" href="#parameter-cloud" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike cloud region to use.</p>
+<p>All clouds are automatically discovered if not specified, except for the <code class="docutils literal notranslate"><span class="pre">us-gov-1</span></code> cloud.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_CLOUD</span></code> environment variable can also be used.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-default-bold docutils literal notranslate"><strong><span class="pre">&quot;us-1&quot;</span></strong></code> <span class="ansible-option-choices-default-mark">← (default)</span></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-2&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;us-gov-1&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;eu-1&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-description"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-description"><strong>description</strong></p>
+<a class="ansibleOptionLink" href="#parameter-description" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>A description for the sensor update policy.</p>
+<p>Only used when <em>state=present</em>.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-enabled"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-enabled"><strong>enabled</strong></p>
+<a class="ansibleOptionLink" href="#parameter-enabled" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">boolean</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Whether the policy should be enabled.</p>
+<p>Policies must be enabled to affect hosts.</p>
+<p>New policies are disabled by default.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">false</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">true</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-ext_headers"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-ext-headers"><strong>ext_headers</strong></p>
+<a class="ansibleOptionLink" href="#parameter-ext_headers" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Extended headers that are prepended to the default headers dictionary.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-host_group_action"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-host-group-action"><strong>host_group_action</strong></p>
+<a class="ansibleOptionLink" href="#parameter-host_group_action" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The action to perform with the host groups specified in <em>host_groups</em>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">add</span></code> assigns host groups to the policy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">remove</span></code> unassigns host groups from the policy.</p>
+<p>Requires <em>host_groups</em> to be specified.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;add&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;remove&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-host_groups"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-host-groups"><strong>host_groups</strong></p>
+<a class="ansibleOptionLink" href="#parameter-host_groups" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>List of host group IDs to add to or remove from the policy.</p>
+<p>Use with <em>host_group_action</em> to specify the operation.</p>
+<p>Only applicable for existing policies and when <em>state=present</em>.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-member_cid"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-member-cid"><strong>member_cid</strong></p>
+<a class="ansibleOptionLink" href="#parameter-member_cid" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The CrowdStrike member CID for MSSP authentication.</p>
+<p>See the <a class="reference external" href="https://falcon.crowdstrike.com/documentation/46/crowdstrike-oauth2-based-apis#understanding-api-clients">Falcon documentation</a> for more information about API clients.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_MEMBER_CID</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-name"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-name"><strong>name</strong></p>
+<a class="ansibleOptionLink" href="#parameter-name" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The name of the sensor update policy.</p>
+<p><strong>Preferred method</strong> for idempotent operations - works for create, update, and delete.</p>
+<p>When used with <em>platform_name</em>, provides true Ansible idempotency across the entire policy lifecycle.</p>
+<p>Cannot be used to rename existing policies.</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-platform_name"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-platform-name"><strong>platform_name</strong></p>
+<a class="ansibleOptionLink" href="#parameter-platform_name" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The operating system platform for the policy.</p>
+<p>Required when using <em>name</em> for policy identification (create, update, or delete).</p>
+<p>Cannot be changed after policy creation.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;Windows&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;Mac&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;Linux&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-scheduler"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-scheduler"><strong>scheduler</strong></p>
+<a class="ansibleOptionLink" href="#parameter-scheduler" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Time blocks during which to prohibit sensor cloud updates.</p>
+<p>Dictionary containing scheduler configuration.</p>
+<p>Keys: <code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool), <code class="docutils literal notranslate"><span class="pre">timezone</span></code> (str), <code class="docutils literal notranslate"><span class="pre">schedules</span></code> (list).</p>
+<p>Each schedule contains <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">end</span></code>, and <code class="docutils literal notranslate"><span class="pre">days</span></code> (0=Sunday, 6=Saturday).</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-sensor_update_policy"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-sensor-update-policy"><strong>sensor_update_policy</strong></p>
+<a class="ansibleOptionLink" href="#parameter-sensor_update_policy" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The ID of an existing sensor update policy.</p>
+<p>Alternative to <em>name</em> + <em>platform_name</em> for identifying existing policies.</p>
+<p>Provided for backward compatibility and when the policy ID is already known.</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-state"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-state"><strong>state</strong></p>
+<a class="ansibleOptionLink" href="#parameter-state" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The desired state of the sensor update policy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">present</span></code> ensures the sensor update policy exists with the specified configuration.</p>
+<p><code class="docutils literal notranslate"><span class="pre">absent</span></code> ensures the sensor update policy does not exist.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-default-bold docutils literal notranslate"><strong><span class="pre">&quot;present&quot;</span></strong></code> <span class="ansible-option-choices-default-mark">← (default)</span></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;absent&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-uninstall_protection"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-uninstall-protection"><strong>uninstall_protection</strong></p>
+<a class="ansibleOptionLink" href="#parameter-uninstall_protection" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>The uninstall protection setting for hosts with this policy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ENABLED</span></code> protects the sensor from unauthorized uninstallation.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DISABLED</span></code> allows end users to uninstall the sensor.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MAINTENANCE_MODE</span></code> enables maintenance mode for the sensor.</p>
+<p class="ansible-option-line"><strong class="ansible-option-choices">Choices:</strong></p>
+<ul class="simple">
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;ENABLED&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;DISABLED&quot;</span></code></p></li>
+<li><p><code class="ansible-option-choices-entry docutils literal notranslate"><span class="pre">&quot;MAINTENANCE_MODE&quot;</span></code></p></li>
+</ul>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="parameter-user_agent"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-parameter-user-agent"><strong>user_agent</strong></p>
+<a class="ansibleOptionLink" href="#parameter-user_agent" title="Permalink to this option"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Custom User-Agent string to use for requests to the API.</p>
+<p>The user agent string is prepended to the default user agent string (<code class="docutils literal notranslate"><span class="pre">crowdstrike-ansible/&lt;version&gt;</span></code>).</p>
+<p>See <a class="reference external" href="https://tools.ietf.org/html/rfc7231#section-5.5.3">RFC 7231</a> for more information.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FALCON_USER_AGENT</span></code> environment variable can also be used.</p>
+</div></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="notes">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Notes</a><a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p><strong>Idempotency:</strong> This module is idempotent and will only make changes when the current state differs from the desired state.</p></li>
+<li><p><strong>Preferred Pattern:</strong> Use <em>name</em> + <em>platform_name</em> for true Ansible idempotency. The same task definition can handle create, update, and delete operations by changing only the <em>state</em> parameter.</p></li>
+<li><p><strong>Alternative Pattern:</strong> Use <em>sensor_update_policy</em> ID for direct policy identification when the policy ID is already known or for backward compatibility.</p></li>
+<li><p><strong>Platform Types:</strong> The platform type cannot be changed after creation. To change a policy’s platform, delete the existing policy and create a new one.</p></li>
+<li><p><strong>Policy Deletion:</strong> Policies must be disabled before they can be deleted. The module handles this automatically.</p></li>
+<li><p><strong>Host Group Management:</strong> Adding or removing host groups only works with existing policies. Host group operations are performed after policy creation/update operations.</p></li>
+</ul>
+</div>
+</section>
+<section id="examples">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Examples</a><a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-yaml+jinja notranslate"><div class="highlight"><pre><span></span><span class="c1"># PREFERRED IDEMPOTENT PATTERNS (using name + platform_name)</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Create a Windows sensor update policy (idempotent)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Windows</span><span class="nv"> </span><span class="s">Production</span><span class="nv"> </span><span class="s">Policy&quot;</span>
+<span class="w">    </span><span class="nt">platform_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Windows</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Windows</span><span class="nv"> </span><span class="s">hosts</span><span class="nv"> </span><span class="s">production</span><span class="nv"> </span><span class="s">sensor</span><span class="nv"> </span><span class="s">policy&quot;</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;20008|n-1|tagged|1&quot;</span>
+<span class="w">    </span><span class="nt">uninstall_protection</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ENABLED</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">present</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Update the same policy (same task definition, just different values)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Windows</span><span class="nv"> </span><span class="s">Production</span><span class="nv"> </span><span class="s">Policy&quot;</span>
+<span class="w">    </span><span class="nt">platform_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Windows</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;UPDATED:</span><span class="nv"> </span><span class="s">Windows</span><span class="nv"> </span><span class="s">hosts</span><span class="nv"> </span><span class="s">production</span><span class="nv"> </span><span class="s">sensor</span><span class="nv"> </span><span class="s">policy&quot;</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;19320|Auto&quot;</span>
+<span class="w">    </span><span class="nt">uninstall_protection</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ENABLED</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">present</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Delete the same policy (same task definition, just state=absent)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Windows</span><span class="nv"> </span><span class="s">Production</span><span class="nv"> </span><span class="s">Policy&quot;</span>
+<span class="w">    </span><span class="nt">platform_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Windows</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">absent</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Create a Linux policy with scheduler (idempotent)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Linux</span><span class="nv"> </span><span class="s">Maintenance</span><span class="nv"> </span><span class="s">Policy&quot;</span>
+<span class="w">    </span><span class="nt">platform_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Linux</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Linux</span><span class="nv"> </span><span class="s">hosts</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">maintenance</span><span class="nv"> </span><span class="s">windows&quot;</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;18202|n-1|tagged|5&quot;</span>
+<span class="w">    </span><span class="nt">scheduler</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">timezone</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;America/Chicago&quot;</span>
+<span class="w">      </span><span class="nt">schedules</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">start</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;08:00&quot;</span>
+<span class="w">          </span><span class="nt">end</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;14:00&quot;</span>
+<span class="w">          </span><span class="nt">days</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">4</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># Weekdays</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">present</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Create policy with sensor updates disabled (omit build parameter)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;No</span><span class="nv"> </span><span class="s">Updates</span><span class="nv"> </span><span class="s">Policy&quot;</span>
+<span class="w">    </span><span class="nt">platform_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Mac&quot;</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Mac</span><span class="nv"> </span><span class="s">hosts</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">updates</span><span class="nv"> </span><span class="s">disabled&quot;</span>
+<span class="w">    </span><span class="nt">uninstall_protection</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ENABLED</span>
+<span class="w">    </span><span class="c1"># Omit &#39;build&#39; parameter to disable sensor updates</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">present</span>
+
+<span class="c1"># ALTERNATIVE PATTERNS (using sensor_update_policy ID)</span>
+<span class="c1"># These examples show the alternative approach using policy IDs</span>
+<span class="c1"># for backward compatibility or when the ID is already known.</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Update an existing policy by ID</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">sensor_update_policy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;12345678901234567890abcdef123456&quot;</span>
+<span class="w">    </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Updated</span><span class="nv"> </span><span class="s">description</span><span class="nv"> </span><span class="s">for</span><span class="nv"> </span><span class="s">production</span><span class="nv"> </span><span class="s">policy&quot;</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Enable a sensor update policy by ID</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">sensor_update_policy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;12345678901234567890abcdef123456&quot;</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Delete a sensor update policy by ID</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">sensor_update_policy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;12345678901234567890abcdef123456&quot;</span>
+<span class="w">    </span><span class="nt">state</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">absent</span>
+
+<span class="c1"># HOST GROUP MANAGEMENT</span>
+<span class="c1"># Host group operations work with both identification patterns</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Add host groups to a policy (using name)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Windows</span><span class="nv"> </span><span class="s">Production</span><span class="nv"> </span><span class="s">Policy&quot;</span>
+<span class="w">    </span><span class="nt">platform_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Windows</span>
+<span class="w">    </span><span class="nt">host_groups</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;d78cd791785442a98ec75249d8c385dd&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;a1b2c3d4e5f6789012345678901234ab&quot;</span>
+<span class="w">    </span><span class="nt">host_group_action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">add</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Remove host groups from a policy (using ID)</span>
+<span class="w">  </span><span class="nt">crowdstrike.falcon.sensor_update_policy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">sensor_update_policy</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;12345678901234567890abcdef123456&quot;</span>
+<span class="w">    </span><span class="nt">host_groups</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;d78cd791785442a98ec75249d8c385dd&quot;</span>
+<span class="w">    </span><span class="nt">host_group_action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">remove</span>
+</pre></div>
+</div>
+</section>
+<section id="return-values">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Return Values</a><a class="headerlink" href="#return-values" title="Link to this heading"></a></h2>
+<p>Common return values are documented <a class="reference external" href="https://docs.ansible.com/projects/ansible/devel/reference_appendices/common_return_values.html#common-return-values" title="(in Ansible devel)"><span class="xref std std-ref">here</span></a>, the following are the fields unique to this module:</p>
+<table class="longtable ansible-option-table docutils align-default" style="width: 100%">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-host_group_results"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-host-group-results"><strong>host_group_results</strong></p>
+<a class="ansibleOptionLink" href="#return-host_group_results" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Results of host group add/remove operations.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> when host_group_action is performed</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-host_group_results/failed_groups"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-host-group-results-failed-groups"><strong>failed_groups</strong></p>
+<a class="ansibleOptionLink" href="#return-host_group_results/failed_groups" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>List of errors for host groups that failed to be processed.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> when there are failures</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">[{&quot;code&quot;:</span> <span class="pre">404,</span> <span class="pre">&quot;message&quot;:</span> <span class="pre">&quot;Host</span> <span class="pre">group</span> <span class="pre">not</span> <span class="pre">found&quot;}]</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-host_group_results/successful_groups"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-host-group-results-successful-groups"><strong>successful_groups</strong></p>
+<a class="ansibleOptionLink" href="#return-host_group_results/successful_groups" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>List of host group IDs that were successfully processed.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">[&quot;d78cd791785442a98ec75249d8c385dd&quot;]</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy"><strong>sensor_update_policy</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-cell"><p>Information about the sensor update policy that was created, updated, or managed.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> when state=present</p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/created_by"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-created-by"><strong>created_by</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/created_by" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The user who created the policy.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;user&#64;example.com&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/created_timestamp"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-created-timestamp"><strong>created_timestamp</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/created_timestamp" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The timestamp when the policy was created.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;2025-01-01T00:00:00Z&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/description"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-description"><strong>description</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/description" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The description of the sensor update policy.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Windows</span> <span class="pre">hosts</span> <span class="pre">production</span> <span class="pre">sensor</span> <span class="pre">policy&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/enabled"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-enabled"><strong>enabled</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/enabled" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">boolean</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>Whether the policy is enabled.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">true</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/groups"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-groups"><strong>groups</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/groups" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">list</span> / <span class="ansible-option-elements">elements=dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The host groups assigned to the policy.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">[]</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/id"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-id"><strong>id</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/id" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The unique identifier of the sensor update policy.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;12345678901234567890abcdef123456&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/modified_by"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-modified-by"><strong>modified_by</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/modified_by" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The user who last modified the policy.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;user&#64;example.com&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/modified_timestamp"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-modified-timestamp"><strong>modified_timestamp</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/modified_timestamp" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The timestamp when the policy was last modified.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;2025-01-01T00:00:00Z&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/name"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-name"><strong>name</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/name" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The name of the sensor update policy.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Windows</span> <span class="pre">Production</span> <span class="pre">Policy&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/platform_name"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-platform-name"><strong>platform_name</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/platform_name" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The operating system platform the policy applies to.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;Windows&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/settings"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-settings"><strong>settings</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/settings" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The policy settings configuration.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/settings/build"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-settings-build"><strong>build</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/settings/build" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The sensor version setting.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;n-1&quot;</span></code></p>
+</div></td>
+</tr>
+<tr class="row-even"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/settings/scheduler"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-settings-scheduler"><strong>scheduler</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/settings/scheduler" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">dictionary</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The update scheduler configuration.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> when configured</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">{&quot;enabled&quot;:</span> <span class="pre">true,</span> <span class="pre">&quot;timezone&quot;:</span> <span class="pre">&quot;America/Chicago&quot;}</span></code></p>
+</div></td>
+</tr>
+<tr class="row-odd"><td><div class="ansible-option-indent"></div><div class="ansible-option-indent"></div><div class="ansible-option-cell">
+<div class="ansibleOptionAnchor" id="return-sensor_update_policy/settings/uninstall_protection"></div><p class="ansible-option-title" id="ansible-collections-crowdstrike-falcon-sensor-update-policy-module-return-sensor-update-policy-settings-uninstall-protection"><strong>uninstall_protection</strong></p>
+<a class="ansibleOptionLink" href="#return-sensor_update_policy/settings/uninstall_protection" title="Permalink to this return value"></a><p class="ansible-option-type-line"><span class="ansible-option-type">string</span></p>
+</div></td>
+<td><div class="ansible-option-indent-desc"></div><div class="ansible-option-indent-desc"></div><div class="ansible-option-cell"><p>The uninstall protection setting.</p>
+<p class="ansible-option-line"><strong class="ansible-option-returned-bold">Returned:</strong> success</p>
+<p class="ansible-option-line ansible-option-sample"><strong class="ansible-option-sample-bold">Sample:</strong> <code class="ansible-option-sample docutils literal notranslate"><span class="pre">&quot;ENABLED&quot;</span></code></p>
+</div></td>
+</tr>
+</tbody>
+</table>
+<section id="authors">
+<h3>Authors<a class="headerlink" href="#authors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Carlos Matos (&#64;carlosmmatos)</p></li>
+</ul>
+</section>
+<section id="collection-links">
+<h3>Collection links<a class="headerlink" href="#collection-links" title="Link to this heading"></a></h3>
+<ul class="ansible-links">
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike/issues" rel="noopener external" target="_blank">Issue Tracker</a></span></li>
+<li><span><a aria-role="button" class="ansible-link reference external" href="https://github.com/CrowdStrike/ansible_collection_crowdstrike" rel="noopener external" target="_blank">Repository (Sources)</a></span></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+
+<footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="sensor_update_builds_info_module.html" class="btn btn-neutral float-left" title="crowdstrike.falcon.sensor_update_builds_info module – Get a list of available sensor build versions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sensor_update_policy_info_module.html" class="btn btn-neutral float-right" title="crowdstrike.falcon.sensor_update_policy_info module – Get information about Falcon Update Sensor Policies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Ansible contributors.</p>
+  </div>
+
+  
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script><!-- extra footer elements for Ansible beyond RTD Sphinx Theme -->
+
+</body>
+</html>
