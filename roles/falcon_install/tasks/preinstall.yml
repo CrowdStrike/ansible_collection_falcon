@@ -125,9 +125,9 @@
     falcon_sensor_version_decrement: 0
   when: (falcon_sensor_update_policy_name | length > 0) or (falcon_sensor_version | length > 0)
 
-- name: CrowdStrike Falcon | Override falcon_sensor_version when set
+- name: CrowdStrike Falcon | Build falcon_sensor_version_filter when falcon_sensor_version is set
   ansible.builtin.set_fact:
-    falcon_sensor_version: "+version:'{{ falcon_sensor_version }}'"
+    falcon_sensor_version_filter: "+version:'{{ falcon_sensor_version }}'"
   when: falcon_sensor_version | length > 0
 
 - name: CrowdStrike Falcon | Check if sensor is already installed
