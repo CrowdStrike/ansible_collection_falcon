@@ -304,7 +304,7 @@ class Stream:
         self.token: str = stream["sessionToken"]["token"]
         self.refresh_url: str = stream["refreshActiveSessionURL"]
         self.partition: str = re.findall(r"v1/(\d+)", self.refresh_url)[0]
-        self.offset: int = offset if offset else 0
+        self.offset: int = offset or 0
         self.latest: bool = latest
         self.include_event_types: list[str] = include_event_types
         self.epoch: int = int(time.time())
