@@ -4,6 +4,22 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.11.1
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2026-03-09
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.11.1>`__
+
+Bugfixes
+--------
+
+- falcon_install role - Fix ``ansible_facts['machine']`` undefined error on Windows hosts when using Sensor Update Policy (https://github.com/CrowdStrike/ansible_collection_falcon/issues/680)
+- falcon_install role - Fix incorrect falcon_os_version for Amazon Linux 2 arm64 by setting the API-expected value '2 - arm64' for aarch64 architecture (https://github.com/CrowdStrike/ansible_collection_falcon/issues/682).
+- falcon_install role - Fix malformed API filter when ``falcon_sensor_version`` is passed via extra args (https://github.com/CrowdStrike/ansible_collection_falcon/issues/679)
+
 v4.11.0
 =======
 
