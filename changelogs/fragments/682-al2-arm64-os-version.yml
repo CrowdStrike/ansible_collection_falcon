@@ -1,6 +1,0 @@
----
-bugfixes:
-  - >-
-    falcon_install role - Fix incorrect falcon_os_version for Amazon Linux 2 arm64
-    by setting the API-expected value '2 - arm64' for aarch64 architecture
-    (https://github.com/CrowdStrike/ansible_collection_falcon/issues/682).
