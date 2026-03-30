@@ -197,10 +197,17 @@ def main():
 
     query_result = falcon.perform_action(action_name=action_name, ids=hosts)
 
+    body = query_result.get("body", {})
+
+    if query_result["status_code"] == 403:
+        module.fail_json(
+            msg=f"Unable to contain/lift containment on hosts: {body.get('errors', [])}"
+        )
+
     # The API returns both successful and failed hosts in the same response. This
     # means we need to handle errors differently than we normally would.
-    good = query_result["body"]["resources"]
-    bad = query_result["body"]["errors"]
+    good = body.get("resources", [])
+    bad = body.get("errors", [])
 
     # If we get nothing back, handle the error
     if not good and not bad:
