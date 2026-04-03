@@ -21,14 +21,26 @@ jobs:
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
+      COLLECTION_PATH: ansible_collections/crowdstrike/falcon
 
     steps:
       - name: Check out code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-
-      - name: Perform sanity testing with ansible-test
-        uses: ansible-community/ansible-test-gh-action@d3a8ec7a59694e25e210fcd44738910149537f0e # release/v1
         with:
-          ansible-core-version: stable-2.18
-          testing-type: sanity
-          pre-test-cmd: 'rm -rf .devcontainer/ .git* .pre-commit-config.yaml'
+          path: ${{ env.COLLECTION_PATH }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.13'
+
+      - name: Install ansible-core (stable-2.18)
+        run: pip install https://github.com/ansible/ansible/archive/stable-2.18.tar.gz
+
+      - name: Clean non-collection files
+        working-directory: ${{ env.COLLECTION_PATH }}
+        run: rm -rf .devcontainer/ .git* .pre-commit-config.yaml
+
+      - name: Run sanity tests
+        working-directory: ${{ env.COLLECTION_PATH }}
+        run: ansible-test sanity -v --docker
