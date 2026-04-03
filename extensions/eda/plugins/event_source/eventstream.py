@@ -69,7 +69,7 @@ EXAMPLES = r"""
         stream_name: eda
         latest: true
         include_event_types:
-          - EPPDetectionSummaryEvent
+          - EppDetectionSummaryEvent
 """
 
 RETURN = r"""
@@ -99,6 +99,10 @@ REGIONS: dict[str, str] = {
 
 # Keep this in sync with galaxy.yml
 VERSION = "4.2.1"
+
+# Maximum seconds to wait for stream data before checking token expiry.
+# Ensures timely token refresh even when no events or heartbeats arrive.
+_STREAM_POLL_INTERVAL = 30
 
 
 class AIOFalconAPI:
@@ -262,6 +266,11 @@ class AIOFalconAPI:
             "Content-Type": "application/json",
         }
         async with self.session.post(url, headers=headers, params=params) as resp:
+            if resp.status != ok_response:
+                logger.warning(
+                    "Failed to refresh stream session (HTTP %s)",
+                    resp.status,
+                )
             return resp.status == ok_response
 
 
@@ -416,25 +425,40 @@ class Stream:
         """
         # Open the stream
         await self.open_stream()
-        # Asynchronously iterate over the lines in the stream
-        async for line in self.spigot.content:
-            # Decode the line from bytes to a string and remove trailing whitespace
+        # Poll for data with a timeout so token refresh is never starved
+        while True:
+            try:
+                line = await asyncio.wait_for(
+                    self.spigot.content.readline(),
+                    timeout=_STREAM_POLL_INTERVAL,
+                )
+            except TimeoutError:
+                # No data arrived — check if a token refresh is needed
+                if self.token_expired():
+                    refresh = await self.refresh()
+                    if not refresh:
+                        msg = "Failed to refresh token."
+                        raise ValueError(msg) from None
+                continue
+
+            # EOF — server closed the connection
+            if not line:
+                break
+
             decoded_line = line.decode().rstrip()
             if decoded_line:
-                # Load the event as a JSON object
                 json_event = json.loads(decoded_line)
                 event_type = json_event["metadata"]["eventType"]
                 self.offset = json_event["metadata"]["offset"]
-                # If the event is valid, yield it
                 if self.is_valid_event(event_type, exclude_event_types):
                     yield {"falcon": json_event}
-            # If the token has expired, refresh it and reopen the stream
+
+            # Check after every received line as well
             if self.token_expired():
                 refresh = await self.refresh()
-                if refresh:
-                    continue
-                msg = "Failed to refresh token."
-                raise ValueError(msg)
+                if not refresh:
+                    msg = "Failed to refresh token."
+                    raise ValueError(msg)
 
     def is_valid_event(
         self: "Stream",

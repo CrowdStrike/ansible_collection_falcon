@@ -5,14 +5,17 @@
     - crowdstrike.falcon.eventstream:
         falcon_client_id: "{{ FALCON_CLIENT_ID }}"
         falcon_client_secret: "{{ FALCON_CLIENT_SECRET }}"
-        falcon_cloud: "us-2"
-        # offset: 12345
+        falcon_cloud: "us-1"
+        # latest = true will always start from the latest entry.
+        # If you want to start from an offset, use offset instead.
+        # If you want to start from the beginning, set latest = false
+        latest: true
         stream_name: "eda-example"
         include_event_types:
-          - "DetectionSummaryEvent"
+          - EppDetectionSummaryEvent
 
   rules:
     - name: Print High and Critical Severity Detection Events
-      condition: event.falcon.event.Severity > 3
+      condition: event.falcon.event.Severity >= 60
       action:
         debug:
