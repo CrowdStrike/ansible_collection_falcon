@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - eventstream event source - Fix token refresh never triggering on quiet streams by polling with a timeout instead of blocking indefinitely (https://github.com/CrowdStrike/ansible_collection_falcon/issues/691).
