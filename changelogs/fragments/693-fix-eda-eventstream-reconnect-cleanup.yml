@@ -1,6 +1,6 @@
 ---
 bugfixes:
-  - eventstream event source - Reconnect instead of crashing when stream session refresh returns HTTP 404 (https://github.com/CrowdStrike/ansible_collection_falcon/issues/692).
+  - eventstream event source - Reconnect instead of crashing when stream session refresh returns HTTP 404 (https://github.com/CrowdStrike/ansible_collection_falcon/issues/691).
   - eventstream event source - Fix TypeError in stream cleanup by removing erroneous await on synchronous ``aiohttp.ClientResponse.close()`` call.
   - >-
     eventstream event source - Show clear error message instead of
