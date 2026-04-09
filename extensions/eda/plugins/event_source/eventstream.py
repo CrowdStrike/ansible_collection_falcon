@@ -356,6 +356,43 @@ class Stream:
 
         return refreshed
 
+    async def reconnect(self: "Stream") -> None:
+        """Re-establish an expired stream session.
+
+        Re-authenticates, fetches a fresh stream listing, updates
+        session token / data-feed URL / refresh URL, and reopens the
+        connection.  Called when a periodic refresh returns HTTP 404,
+        indicating the server has expired the session.
+
+        Raises
+        ------
+        ValueError
+            If the expected partition is not found in the stream resources.
+
+        """
+        token = await self.client.authenticate()
+        streams = await self.client.list_available_streams(
+            token, self.stream_name,
+        )
+
+        resources = streams.get("resources", [])
+        partition_idx = int(self.partition)
+        if partition_idx >= len(resources):
+            msg = (
+                f"Partition {self.partition} not found in stream "
+                f"resources (got {len(resources)} partitions)"
+            )
+            raise ValueError(msg)
+
+        stream = resources[partition_idx]
+        self.data_feed = stream["dataFeedURL"]
+        self.token = stream["sessionToken"]["token"]
+        self.refresh_url = stream["refreshActiveSessionURL"]
+        self.epoch = int(time.time())
+        self.refresh_interval = int(stream["refreshActiveSessionInterval"])
+
+        await self.open_stream()
+
     async def open_stream(self: "Stream") -> aiohttp.ClientResponse:
         """Open a long-lived async HTTP connection to the CrowdStrike Falcon Event Stream.
 
@@ -417,11 +454,6 @@ class Stream:
             A dictionary containing the event data from the Falcon API and a
             count of event types seen so far.
 
-        Raises
-        ------
-        ValueError
-            If client authentication fails during the token refresh process.
-
         """
         # Open the stream
         await self.open_stream()
@@ -437,8 +469,10 @@ class Stream:
                 if self.token_expired():
                     refresh = await self.refresh()
                     if not refresh:
-                        msg = "Failed to refresh token."
-                        raise ValueError(msg) from None
+                        logger.warning(
+                            "Stream session expired, reconnecting...",
+                        )
+                        await self.reconnect()
                 continue
 
             # EOF — server closed the connection
@@ -457,8 +491,10 @@ class Stream:
             if self.token_expired():
                 refresh = await self.refresh()
                 if not refresh:
-                    msg = "Failed to refresh token."
-                    raise ValueError(msg)
+                    logger.warning(
+                        "Stream session expired, reconnecting...",
+                    )
+                    await self.reconnect()
 
     def is_valid_event(
         self: "Stream",
@@ -573,6 +609,18 @@ async def _create_streams(
     token = await falcon.authenticate()
     available_streams = await falcon.list_available_streams(token, stream_name)
 
+    if "resources" not in available_streams:
+        errors = available_streams.get("errors", [])
+        error_details = "; ".join(
+            e.get("message", str(e)) for e in errors
+        ) if errors else "unknown error"
+        logger.error(
+            "Failed to list streams from CrowdStrike API: %s. "
+            "Check your falcon_cloud region and credentials.",
+            error_details,
+        )
+        return None
+
     if not available_streams["resources"]:
         logger.info(
             "Unable to open stream, no streams available. "
@@ -645,7 +693,7 @@ async def _cleanup_streams(streams: list[Stream], falcon: AIOFalconAPI) -> None:
     # Close the stream and API session outside the loop
     for stream in streams:
         if stream.spigot:
-            await stream.spigot.close()
+            stream.spigot.close()
     await falcon.close()
 
 
@@ -679,6 +727,7 @@ async def main(queue: asyncio.Queue, args: dict[str, Any]) -> None:
         include_event_types=include_event_types,
     )
     if streams is None:
+        await falcon.close()
         return
 
     try:
