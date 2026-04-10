@@ -4,6 +4,31 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.11.2
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2026-04-10
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.11.2>`__
+
+Minor Changes
+-------------
+
+- The minimum supported version of ansible-core has been bumped from 2.15 to 2.16 and Python from 3.6 to 3.12.
+
+Bugfixes
+--------
+
+- eventstream event source - Fix 401 Unauthorized on reconnect by re-establishing the full stream session instead of reusing stale session tokens.
+- eventstream event source - Fix TypeError in stream cleanup by removing erroneous await on synchronous ``aiohttp.ClientResponse.close()`` call.
+- eventstream event source - Fix token refresh never triggering on quiet streams by polling with a timeout instead of blocking indefinitely (https://github.com/CrowdStrike/ansible_collection_falcon/issues/691).
+- eventstream event source - Reconnect instead of crashing when stream session refresh returns HTTP 404 (https://github.com/CrowdStrike/ansible_collection_falcon/issues/691).
+- eventstream event source - Show clear error message instead of ``KeyError: 'resources'`` when API returns an error (e.g. wrong ``falcon_cloud`` region).
+- host_contain module - Fix identical unsafe dictionary access that could cause ``KeyError`` on unexpected API responses (https://github.com/CrowdStrike/ansible_collection_falcon/issues/689).
+- host_hide module - Fix intermittent ``KeyError`` when API response omits ``resources`` key during idempotent operations (https://github.com/CrowdStrike/ansible_collection_falcon/issues/689).
+
 v4.11.1
 =======
 
