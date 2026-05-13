@@ -6,8 +6,12 @@
 #   - API client must have Correlation Rules [READ, WRITE] and Sensor Download [READ] scopes
 #
 # Usage:
-#   source .env
-#   ANSIBLE_COLLECTIONS_PATH=.ansible/collections .venv/bin/ansible-playbook tests/test_correlation_rule.yml -v
+#   ansible-playbook tests/test_correlation_rule.yml -v
+#
+# Environment variables:
+#   FALCON_CLIENT_ID     - API client ID (required)
+#   FALCON_CLIENT_SECRET - API client secret (required)
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
 #
 # Note: The Correlation Rules API has a backend provisioning phase where newly created
 # rules enter a "creating" transition state. During this period, rules cannot be updated
