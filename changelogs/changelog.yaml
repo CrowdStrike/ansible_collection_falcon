@@ -613,6 +613,29 @@ releases:
       - 693-fix-eda-eventstream-reconnect-cleanup.yml
       - bump-ansible-core-2.16-python-3.12.yml
     release_date: '2026-04-10'
+  4.12.0:
+    changes:
+      minor_changes:
+        - correlation_rule module - New module to create, update, and delete NG-SIEM
+          correlation rules (https://github.com/CrowdStrike/ansible_collection_falcon/issues/695).
+        - correlation_rule_info module - New module to query and retrieve NG-SIEM
+          correlation rule information (https://github.com/CrowdStrike/ansible_collection_falcon/issues/695).
+      release_summary: '| Release Date: 2026-05-17
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.12.0>`__
+
+        '
+    fragments:
+      - 4.12.0.yaml
+      - 695-add-correlation-rule-modules.yml
+    modules:
+      - description: Manage NG\-SIEM correlation rules
+        name: correlation_rule
+        namespace: ''
+      - description: Get information about NG\-SIEM correlation rules
+        name: correlation_rule_info
+        namespace: ''
+    release_date: '2026-05-17'
   4.2.0:
     changes:
       minor_changes:

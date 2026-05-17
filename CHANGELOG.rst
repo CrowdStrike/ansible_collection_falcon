@@ -4,6 +4,27 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.12.0
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2026-05-17
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.12.0>`__
+
+Minor Changes
+-------------
+
+- correlation_rule module - New module to create, update, and delete NG-SIEM correlation rules (https://github.com/CrowdStrike/ansible_collection_falcon/issues/695).
+- correlation_rule_info module - New module to query and retrieve NG-SIEM correlation rule information (https://github.com/CrowdStrike/ansible_collection_falcon/issues/695).
+
+New Modules
+-----------
+
+- crowdstrike.falcon.correlation_rule - Manage NG\-SIEM correlation rules
+- crowdstrike.falcon.correlation_rule_info - Get information about NG\-SIEM correlation rules
+
 v4.11.2
 =======
 
