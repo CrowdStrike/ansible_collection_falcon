@@ -1,6 +1,0 @@
----
-minor_changes:
-  - correlation_rule module - New module to create, update, and delete NG-SIEM correlation rules
-    (https://github.com/CrowdStrike/ansible_collection_falcon/issues/695).
-  - correlation_rule_info module - New module to query and retrieve NG-SIEM correlation rule information
-    (https://github.com/CrowdStrike/ansible_collection_falcon/issues/695).
