@@ -93,8 +93,10 @@ logger = logging.getLogger()
 REGIONS: dict[str, str] = {
     "us-1": "https://api.crowdstrike.com",
     "us-2": "https://api.us-2.crowdstrike.com",
+    "us-3": "https://api.us-3.crowdstrike.com",
     "eu-1": "https://api.eu-1.crowdstrike.com",
     "us-gov-1": "https://api.laggar.gcw.crowdstrike.com",
+    "us-gov-2": "https://api.us-gov-2.crowdstrike.mil",
 }
 
 # Keep this in sync with galaxy.yml

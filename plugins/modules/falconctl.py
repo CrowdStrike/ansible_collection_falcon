@@ -104,9 +104,9 @@ options:
       - Specify the cloud region for the Falcon sensor to connect to.
       - C(cloud) is only available in sensor versions 7.28.0 and above with unified installer support.
       - This parameter helps the sensor connect to the correct cloud region and can resolve AID generation timeouts.
-      - "Valid Options are: C('us-1'|'us-2'|'eu-1'|'us-gov-1'|'us-gov-2')"
+      - "Valid Options are: C('us-1'|'us-2'|'us-3'|'eu-1'|'us-gov-1'|'us-gov-2')"
     type: str
-    choices: ['us-1', 'us-2', 'eu-1', 'us-gov-1', 'us-gov-2']
+    choices: ['us-1', 'us-2', 'us-3', 'eu-1', 'us-gov-1', 'us-gov-2']
   maintenance_token:
     description:
       - Maintenance token required for sensor operations when uninstall and maintenance protection is enabled.
@@ -416,7 +416,7 @@ def main():  # pylint: disable=missing-function-docstring
         backend=dict(required=False, type="str"),
         cloud=dict(
             required=False,
-            choices=["us-1", "us-2", "eu-1", "us-gov-1", "us-gov-2"],
+            choices=["us-1", "us-2", "us-3", "eu-1", "us-gov-1", "us-gov-2"],
             type="str",
         ),
         maintenance_token=dict(required=False, no_log=True, type="str"),

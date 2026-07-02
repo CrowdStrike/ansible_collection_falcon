@@ -48,7 +48,7 @@ ENV_CONFIG_SPEC = dict(
     cloud=dict(
         fallback=(env_fallback, ["FALCON_CLOUD"]),
         type="str",
-        choices=["us-1", "us-2", "us-gov-1", "eu-1"],
+        choices=["us-1", "us-2", "us-3", "us-gov-1", "us-gov-2", "eu-1"],
         default="us-1",
         required=False,
     ),

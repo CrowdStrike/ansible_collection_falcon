@@ -19,7 +19,7 @@ An ansible-rulebook event source plugin for generating events from the Falcon Ev
 | --- | --- |
 | **falcon_client_id**</br><font color=purple>string</font> / <font color=red>required</font> | CrowdStrike OAUTH Client ID |
 | **falcon_client_secret**</br><font color=purple>string</font> / <font color=red>required</font> | CrowdStrike OAUTH Client Secret |
-| **falcon_cloud**</br><font color=purple>string</font> / <font color=red>required</font> | CrowdStrike Cloud Region</br>**Choices**:</br>us-1</br>us-2</br>eu-1</br>us-gov-1</br><font color=blue>**Default:** us-1</font> |
+| **falcon_cloud**</br><font color=purple>string</font> / <font color=red>required</font> | CrowdStrike Cloud Region</br>**Choices**:</br>us-1</br>us-2</br>us-3</br>eu-1</br>us-gov-1</br>us-gov-2</br><font color=blue>**Default:** us-1</font> |
 | **stream_name**</br><font color=purple>string</font> | Label that identifies your connection.</br>**Max:** 32 alphanumeric characters (a-z, A-Z, 0-9)</br><font color=blue>**Default:** eda</font> |
 | **include_event_types**</br><font color=purple>list</font> | List of event types to include. Otherwise all event types are included.</br>Refer to the [Streaming API Event Dictionary](https://falcon.crowdstrike.com/documentation/62/streaming-api-event-dictionary).</br><font color=blue>**Default:** None.</font> |
 | **exclude_event_types**</br><font color=purple>list</font> | List of event types to exclude.</br>Refer to the [Streaming API Event Dictionary](https://falcon.crowdstrike.com/documentation/62/streaming-api-event-dictionary).</br><font color=blue>**Default:** None.</font> |

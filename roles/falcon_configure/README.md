@@ -26,7 +26,9 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
   - choices:
     - **us-1** -> api.crowdstrike.com
     - **us-2** -> api.us-2.crowdstrike.com
+    - **us-3** -> api.us-3.crowdstrike.com
     - **us-gov-1** -> api.laggar.gcw.crowdstrike.com
+    - **us-gov-2** -> api.us-gov-2.crowdstrike.mil
     - **eu-1** -> api.eu-1.crowdstrike.com
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 
@@ -37,7 +39,7 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
   - Only available for sensor version 7.28.0 and above with unified installer support
   - Helps resolve AID generation timeouts by connecting to the correct cloud endpoint immediately
   - Independent of API cloud configuration (falcon_cloud)
-  - Valid values: `us-1`, `us-2`, `eu-1`, `us-gov-1`, `us-gov-2`
+  - Valid values: `us-1`, `us-2`, `us-3`, `eu-1`, `us-gov-1`, `us-gov-2`
 
 ### Common Variables
 

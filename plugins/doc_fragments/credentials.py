@@ -45,7 +45,9 @@ options:
     choices:
       - us-1
       - us-2
+      - us-3
       - us-gov-1
+      - us-gov-2
       - eu-1
     default: us-1
     type: str
