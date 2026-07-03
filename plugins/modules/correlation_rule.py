@@ -541,7 +541,7 @@ def main():
             if current_rule:
                 if rule_needs_update(current_rule, module):
                     update_result = update_rule(
-                        falcon, module, current_rule["id"], customer_id
+                        falcon, module, current_rule["rule_id"], customer_id
                     )
                     if update_result["status_code"] != 200:
                         handle_return_errors(module, result, update_result)
