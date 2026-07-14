@@ -362,16 +362,16 @@ def main():
                 }
 
         if module.params["include_latest_version"] and correlation_rules:
-            rule_ids = [rule["id"] for rule in correlation_rules]
+            rule_ids = [rule["rule_id"] for rule in correlation_rules]
             latest_result = get_latest_versions(falcon, rule_ids)
 
             if latest_result["status_code"] == 200:
                 latest_by_id = {
-                    r["id"]: r
+                    r["rule_id"]: r
                     for r in (latest_result["body"].get("resources") or [])
                 }
                 for rule in correlation_rules:
-                    rule["latest_version"] = latest_by_id.get(rule["id"])
+                    rule["latest_version"] = latest_by_id.get(rule["rule_id"])
 
         result["correlation_rules"] = correlation_rules
 

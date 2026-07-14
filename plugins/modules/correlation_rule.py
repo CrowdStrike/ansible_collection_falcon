@@ -547,13 +547,13 @@ def main():
                         handle_return_errors(module, result, update_result)
                     result["changed"] = True
 
-                    updated_rule = get_existing_rule(falcon, current_rule["id"])
+                    updated_rule = get_existing_rule(falcon, current_rule["rule_id"])
                     result["correlation_rule"] = (
                         updated_rule if updated_rule else current_rule
                     )
 
                     if module.params.get("publish"):
-                        publish_rule(falcon, module, result, current_rule["id"])
+                        publish_rule(falcon, module, result, current_rule["rule_id"])
                 else:
                     result["correlation_rule"] = current_rule
 
@@ -568,7 +568,7 @@ def main():
                     result["changed"] = True
 
                     if module.params.get("publish"):
-                        publish_rule(falcon, module, result, new_rule["id"])
+                        publish_rule(falcon, module, result, new_rule["rule_id"])
 
         elif state == "absent":
             current_rule = None
@@ -581,7 +581,7 @@ def main():
                 current_rule = find_rule_by_name(falcon, name)
 
             if current_rule:
-                delete_result = delete_rule(falcon, current_rule["id"])
+                delete_result = delete_rule(falcon, current_rule["rule_id"])
                 if delete_result["status_code"] != 200:
                     handle_return_errors(module, result, delete_result)
                 result["changed"] = True

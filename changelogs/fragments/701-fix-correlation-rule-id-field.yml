@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - correlation_rule module - Use the ``rule_id`` field instead of ``id`` when updating, publishing, and deleting rules so operations on rules with multiple versions no longer fail with a "rule not found" error (https://github.com/CrowdStrike/ansible_collection_falcon/issues/701).
+  - correlation_rule_info module - Use the ``rule_id`` field when looking up latest rule versions so ``include_latest_version`` works for rules with multiple versions (https://github.com/CrowdStrike/ansible_collection_falcon/issues/701).
