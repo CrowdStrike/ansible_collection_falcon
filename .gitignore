@@ -51,6 +51,11 @@ venv.bak/
 /**venv
 /**/.venv
 
+# Local credentials / dotenv files (live API creds for integration tests)
+.env
+.env.*
+!.env.example
+
 # Testing
 .tox
 .coverage

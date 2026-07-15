@@ -1,0 +1,309 @@
+---
+# Integration tests for the ngsiem_data_connection, ngsiem_data_connection_info,
+# and ngsiem_data_connector_info modules.
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: NGSIEM Data Connections [READ, WRITE]
+#
+# Notes on tenant behavior these tests account for:
+#   - A newly created connection enters a "Pending"/"Created" provisioning state.
+#     Pause/Resume is only valid from Active/Error/Idle, so this suite does NOT
+#     exercise pause/resume (it would be timing-dependent). It is validated
+#     separately once a connection reaches a steady state.
+#   - For a PUSH connection the ingest token is minted once on create, but during
+#     provisioning the token endpoint may return 202 (not ready). These tests
+#     therefore assert the token/url only when present.
+#   - The API only returns name, parser_name, vendor_name, vendor_product_name,
+#     status, source_type, last_ingested_volume_one_day, and ingest_url for a
+#     connection. description/config/enrichment flags are write-only.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    # Built-in HEC / HTTP Event Connector (PUSH) and a valid parser for it.
+    test_connector_id: "a1bfd0c4380f436790cb41afc2b95f38"
+    test_parser: "microsoft-edge"
+    test_connection_name: "ansible-test-DELETEME-{{ ansible_facts.date_time.iso8601_basic_short }}"
+
+- name: Run data connection lifecycle tests
+  block:
+    # =====================================================================
+    # Phase 0: CONNECTOR CATALOG (discovery)
+    # =====================================================================
+
+    - name: "CONNECTORS | List available connectors"
+      crowdstrike.falcon.ngsiem_data_connector_info:
+        limit: 100
+      register: connectors_all
+
+    - name: "CONNECTORS | Verify catalog returned"
+      ansible.builtin.assert:
+        that:
+          - connectors_all.data_connectors is defined
+          - connectors_all.data_connectors | length > 0
+          - connectors_all.meta.pagination.limit == 100
+        fail_msg: "Connector catalog was empty or malformed"
+
+    - name: "CONNECTORS | Filter connectors by type PUSH"
+      crowdstrike.falcon.ngsiem_data_connector_info:
+        filter: "type:'PUSH'"
+        limit: 50
+      register: connectors_push
+
+    - name: "CONNECTORS | Verify PUSH filter returned results"
+      ansible.builtin.assert:
+        that:
+          - connectors_push.data_connectors is defined
+        fail_msg: "PUSH connector filter query failed"
+
+    # =====================================================================
+    # Phase 1: CREATE
+    # =====================================================================
+
+    - name: "CREATE | Create a PUSH (HEC) data connection"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ test_connection_name }}"
+        connector_id: "{{ test_connector_id }}"
+        parser: "{{ test_parser }}"
+        vendor_name: "Ansible"
+        vendor_product_name: "IntegrationTest"
+        description: "Created by ansible integration tests - safe to delete"
+        wait_for_ingest_token: true
+        wait_timeout: 180
+      register: create_result
+
+    - name: "CREATE | Verify connection was created"
+      ansible.builtin.assert:
+        that:
+          - create_result is changed
+          - create_result.data_connection is defined
+          - create_result.data_connection.id | length > 0
+          - create_result.data_connection.name == test_connection_name
+          - create_result.data_connection.parser_name == test_parser
+          - create_result.data_connection.vendor_name == "Ansible"
+        fail_msg: "Connection creation failed or returned unexpected data"
+
+    - name: Save connection ID
+      ansible.builtin.set_fact:
+        connection_id: "{{ create_result.data_connection.id }}"
+
+    - name: "CREATE | Verify ingest token and URL were captured (PUSH + wait_for_ingest_token)"
+      ansible.builtin.assert:
+        that:
+          - create_result.ingest_token is defined
+          - create_result.ingest_token | length > 0
+          - create_result.data_connection.ingest_url is defined
+          - create_result.data_connection.ingest_url | length > 0
+        fail_msg: >-
+          Expected the ingest token and URL to be captured on create when
+          wait_for_ingest_token is true. If this times out, increase wait_timeout.
+
+    # =====================================================================
+    # Phase 1b: CREATE IDEMPOTENCY - re-declaring the same connection is a no-op
+    # =====================================================================
+
+    - name: "IDEMPOTENT | Re-declare the same connection by name"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ test_connection_name }}"
+        connector_id: "{{ test_connector_id }}"
+        parser: "{{ test_parser }}"
+        vendor_name: "Ansible"
+        vendor_product_name: "IntegrationTest"
+        description: "Created by ansible integration tests - safe to delete"
+      register: create_idempotent
+
+    - name: "IDEMPOTENT | Verify re-declaration made no change"
+      ansible.builtin.assert:
+        that:
+          - create_idempotent is not changed
+          - create_idempotent.data_connection.id == connection_id
+        fail_msg: >-
+          Re-declaring an identical connection should be a no-op. A change here
+          usually means drift detection is comparing a connector-overridden field.
+
+    # =====================================================================
+    # Phase 2: READ - Verify via info module
+    # =====================================================================
+
+    - name: "READ | Get connection by ID"
+      crowdstrike.falcon.ngsiem_data_connection_info:
+        connection_ids:
+          - "{{ connection_id }}"
+      register: info_by_id
+
+    - name: "READ | Verify info by ID"
+      ansible.builtin.assert:
+        that:
+          - info_by_id.data_connections | length == 1
+          - info_by_id.data_connections[0].id == connection_id
+          - info_by_id.data_connections[0].name == test_connection_name
+          - info_by_id.meta.pagination.total == 1
+        fail_msg: "Info lookup by ID returned unexpected data"
+
+    - name: "READ | Search connections by name filter"
+      crowdstrike.falcon.ngsiem_data_connection_info:
+        filter: "name:'{{ test_connection_name }}'"
+      register: info_by_filter
+
+    - name: "READ | Verify filter search found the connection"
+      ansible.builtin.assert:
+        that:
+          - info_by_filter.data_connections | length >= 1
+          - >-
+            info_by_filter.data_connections
+            | selectattr('id', 'equalto', connection_id)
+            | list | length == 1
+        fail_msg: "Filter search did not find the created connection"
+
+    - name: "READ | Get connection with provisioning status"
+      crowdstrike.falcon.ngsiem_data_connection_info:
+        connection_ids:
+          - "{{ connection_id }}"
+        include_status: true
+      register: info_with_status
+
+    - name: "READ | Verify provisioning_status field present"
+      ansible.builtin.assert:
+        that:
+          - info_with_status.data_connections[0].provisioning_status is defined
+        fail_msg: "provisioning_status was not included"
+
+    # =====================================================================
+    # Phase 3: UPDATE (rename) + idempotency
+    # =====================================================================
+
+    - name: "UPDATE | Rename the connection by ID"
+      crowdstrike.falcon.ngsiem_data_connection:
+        connection_id: "{{ connection_id }}"
+        name: "{{ test_connection_name }}-renamed"
+      register: update_result
+
+    - name: "UPDATE | Verify rename applied"
+      ansible.builtin.assert:
+        that:
+          - update_result is changed
+          - update_result.data_connection.name == test_connection_name ~ "-renamed"
+        fail_msg: "Connection rename failed"
+
+    - name: "IDEMPOTENT | Re-run update with same name"
+      crowdstrike.falcon.ngsiem_data_connection:
+        connection_id: "{{ connection_id }}"
+        name: "{{ test_connection_name }}-renamed"
+      register: idempotent_result
+
+    - name: "IDEMPOTENT | Verify no change on repeat"
+      ansible.builtin.assert:
+        that:
+          - idempotent_result is not changed
+          - idempotent_result.data_connection.id == connection_id
+        fail_msg: "Repeat update with identical params should be a no-op"
+
+    # =====================================================================
+    # Phase 4: INFO MODULE - Pagination
+    # =====================================================================
+
+    - name: "INFO | Test pagination"
+      crowdstrike.falcon.ngsiem_data_connection_info:
+        limit: 5
+        offset: 0
+      register: info_paginated
+
+    - name: "INFO | Verify pagination metadata"
+      ansible.builtin.assert:
+        that:
+          - info_paginated.meta is defined
+          - info_paginated.meta.pagination.limit == 5
+          - info_paginated.meta.pagination.offset == 0
+          - info_paginated.data_connections | length <= 5
+        fail_msg: "Pagination metadata is incorrect"
+
+    # =====================================================================
+    # Phase 5: AUTH TOKEN PASSTHROUGH
+    # =====================================================================
+
+    - name: "AUTH | Generate access token via auth module"
+      crowdstrike.falcon.auth:
+      register: falcon_auth
+
+    - name: "AUTH | Query using access token"
+      crowdstrike.falcon.ngsiem_data_connection_info:
+        auth: "{{ falcon_auth.auth }}"
+        connection_ids:
+          - "{{ connection_id }}"
+      register: auth_info
+
+    - name: "AUTH | Verify token auth query succeeded"
+      ansible.builtin.assert:
+        that:
+          - auth_info.data_connections | length == 1
+        fail_msg: "Query with token auth failed"
+
+    # =====================================================================
+    # Phase 6: DELETE + absent idempotency
+    # =====================================================================
+
+    - name: "DELETE | Remove the connection by ID"
+      crowdstrike.falcon.ngsiem_data_connection:
+        connection_id: "{{ connection_id }}"
+        state: absent
+      register: delete_result
+
+    - name: "DELETE | Verify deletion reported change"
+      ansible.builtin.assert:
+        that:
+          - delete_result is changed
+        fail_msg: "Delete did not report a change"
+
+    - name: Clear saved connection ID (successfully deleted)
+      ansible.builtin.set_fact:
+        connection_id: ""
+
+    - name: "ABSENT | Delete same connection by name again (idempotent)"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ test_connection_name }}-renamed"
+        state: absent
+      register: absent_noop
+
+    - name: "ABSENT | Verify no change for already-deleted connection"
+      ansible.builtin.assert:
+        that:
+          - absent_noop is not changed
+        fail_msg: "Absent state should be a no-op for non-existent connections"
+
+  # =======================================================================
+  # ALWAYS: Best-effort cleanup
+  # =======================================================================
+  always:
+    - name: "CLEANUP | Remove test connection by ID (if still present)"
+      crowdstrike.falcon.ngsiem_data_connection:
+        connection_id: "{{ connection_id }}"
+        state: absent
+      when: connection_id is defined and connection_id | length > 0
+      ignore_errors: true
+
+    - name: "CLEANUP | Remove test connection by original name (best-effort)"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ test_connection_name }}"
+        state: absent
+      ignore_errors: true
+
+    - name: "CLEANUP | Remove test connection by renamed name (best-effort)"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ test_connection_name }}-renamed"
+        state: absent
+      ignore_errors: true
