@@ -1,0 +1,5 @@
+---
+minor_changes:
+  - ngsiem_data_connection - new module to create, update, delete, and pause/resume NG-SIEM data connections (https://github.com/CrowdStrike/ansible_collection_falcon/issues/704)
+  - ngsiem_data_connection_info - new module to get information about NG-SIEM data connections (https://github.com/CrowdStrike/ansible_collection_falcon/issues/704)
+  - ngsiem_data_connector_info - new module to get information about available NG-SIEM data connectors (https://github.com/CrowdStrike/ansible_collection_falcon/issues/704)
