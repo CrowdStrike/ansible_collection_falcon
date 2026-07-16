@@ -23,8 +23,17 @@ except ImportError:
     _VERSION = None
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
 
-MINIMUM_FALCONPY_VERSION = "1.3.0"
+MINIMUM_FALCONPY_VERSION = "1.5.0"
 VALID_CLOUDS = ["us-1", "us-2", "eu-1", "us-gov-1", "us-gov-2"]
+
+
+def _version_tuple(version):
+    """Convert a dotted version string to a tuple of ints for safe comparison.
+
+    String comparison is lexicographically wrong for multi-digit versions
+    (e.g. "1.10.0" < "1.6.3" is True), so compare numerically instead.
+    """
+    return tuple(int(part) for part in version.split("."))
 
 
 def check_falconpy(plugin_name):
@@ -42,7 +51,7 @@ def check_falconpy(plugin_name):
             "library is not installed."
         )
 
-    if _VERSION < MINIMUM_FALCONPY_VERSION:
+    if _version_tuple(_VERSION) < _version_tuple(MINIMUM_FALCONPY_VERSION):
         raise AnsibleError(
             f"Unsupported FalconPy version: {_VERSION}. "
             f"Upgrade to {MINIMUM_FALCONPY_VERSION} or higher."

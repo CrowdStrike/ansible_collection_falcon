@@ -21,16 +21,29 @@ except (ImportError, ModuleNotFoundError) as e:
 __metaclass__ = type
 
 
-def check_falconpy_version(module):
-    """Ensure FalconPy version is compatible."""
-    minimum_version = "1.3.0"
+def _version_tuple(version):
+    """Convert a dotted version string to a tuple of ints for safe comparison.
 
+    String comparison is lexicographically wrong for multi-digit versions
+    (e.g. "1.10.0" < "1.6.3" is True), so compare numerically instead.
+    """
+    return tuple(int(part) for part in version.split("."))
+
+
+def check_falconpy_version(module, minimum_version="1.5.0"):
+    """Ensure FalconPy version is compatible.
+
+    Args:
+        module: The AnsibleModule instance (used for fail_json).
+        minimum_version: The minimum required FalconPy version. Defaults to the
+            global floor; modules needing newer methods can require more.
+    """
     if FALCONPY_IMPORT_ERROR:
         module.fail_json(
             msg=f"Unable to import FalconPy: {FALCONPY_IMPORT_ERROR}. See module documentation for help."
         )
 
-    if _VERSION < minimum_version:
+    if _version_tuple(_VERSION) < _version_tuple(minimum_version):
         module.fail_json(
             msg=f"Unsupported FalconPy version: {_VERSION}. Upgrade to {minimum_version} or higher."
         )

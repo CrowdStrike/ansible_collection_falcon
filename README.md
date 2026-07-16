@@ -16,7 +16,7 @@ Tested with the Ansible Core >= 2.15.0 versions, and the current development ver
 
 ### Python version compatibility
 
-This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of `3.7` is required for this collection to function properly.
+This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of `3.8` is required for this collection to function properly.
 
 > [!NOTE]
 > As of FalconPy Version 1.4.0, Python 3.6 is no longer supported. If you would like to use FalconPy with Python 3.6, please use FalconPy Version < 1.4.0.
@@ -66,6 +66,8 @@ Name | Description
 [crowdstrike.falcon.ngsiem_data_connection](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_data_connection_module.html)|Manage NG-SIEM data connections
 [crowdstrike.falcon.ngsiem_data_connection_info](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_data_connection_info_module.html)|Get information about NG-SIEM data connections
 [crowdstrike.falcon.ngsiem_data_connector_info](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_data_connector_info_module.html)|Get information about available NG-SIEM data connectors
+[crowdstrike.falcon.ngsiem_parser](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_parser_module.html)|Manage NG-SIEM parsers
+[crowdstrike.falcon.ngsiem_parser_info](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_parser_info_module.html)|Get information about NG-SIEM parsers
 [crowdstrike.falcon.ngsiem_search](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_search_module.html)|Execute CQL searches against Next-Gen SIEM repositories for incident response and threat hunting
 [crowdstrike.falcon.sensor_download](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_module.html)|Download Falcon Sensor Installer
 [crowdstrike.falcon.sensor_download_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_info_module.html)|Get information about Falcon Sensor Installers
