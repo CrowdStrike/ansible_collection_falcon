@@ -1,0 +1,288 @@
+---
+# Integration tests for ngsiem_parser and ngsiem_parser_info modules
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: NGSIEM Parsers [READ, WRITE]
+#
+# Custom parsers auto-increment their version on each update/clone, so the
+# returned parser ID is version-suffixed and changes after an update. These
+# tests key idempotency on parser content, not on the ID.
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    test_parser_name: "ansible-int-parser"
+    test_clone_name: "ansible-int-clone"
+    test_ext_name: "ansible-int-ext"
+    # A minimal valid parser. The script must emit all mandatory tag fields and
+    # tagFields must enumerate every one of them, or create returns 400.
+    test_parser_yaml: |
+      $schema: https://schemas.humio.com/parser/v0.3.0
+      name: ansible-int-parser
+      fieldsToBeRemovedBeforeParsing: []
+      testCases: []
+      script: |-
+        parseJson()
+        | Cps.version := "1.0.0"
+        | Vendor := "ansible"
+        | ecs.version := "9.0.0"
+        | event.dataset := "ansible.test"
+        | event.kind := "event"
+        | event.module := "ansible"
+        | event.outcome := "success"
+        | observer.type := "test"
+      tagFields:
+        - Cps.version
+        - Vendor
+        - ecs.version
+        - event.dataset
+        - event.kind
+        - event.module
+        - event.outcome
+        - observer.type
+
+- name: Run CRUD lifecycle tests
+  block:
+    # =====================================================================
+    # Phase 1: CREATE
+    # =====================================================================
+
+    - name: "CREATE | Create a custom parser from a YAML template"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_parser_name }}"
+        parser_yaml: "{{ test_parser_yaml }}"
+      register: create_result
+
+    - name: "CREATE | Verify parser was created"
+      ansible.builtin.assert:
+        that:
+          - create_result is changed
+          - create_result.parser is defined
+          - create_result.parser.name == test_parser_name
+          - create_result.parser.id | length > 0
+          - create_result.parser.script is defined
+        fail_msg: "Parser creation failed or returned unexpected data"
+
+    - name: Save parser ID
+      ansible.builtin.set_fact:
+        parser_id: "{{ create_result.parser.id }}"
+
+    # =====================================================================
+    # Phase 2: READ - Verify via info module
+    # =====================================================================
+
+    - name: "READ | Get parser by ID with full definition"
+      crowdstrike.falcon.ngsiem_parser_info:
+        parser_ids:
+          - "{{ parser_id }}"
+      register: info_by_id
+
+    - name: "READ | Verify info by ID"
+      ansible.builtin.assert:
+        that:
+          - info_by_id.parsers | length == 1
+          - info_by_id.parsers[0].id == parser_id
+          - info_by_id.parsers[0].name == test_parser_name
+          - info_by_id.parsers[0].script is defined
+        fail_msg: "Info lookup by ID returned unexpected data"
+
+    - name: "READ | Search parsers by name substring"
+      crowdstrike.falcon.ngsiem_parser_info:
+        name: "ansible-int-parser"
+        parser_type: custom
+      register: info_by_name
+
+    - name: "READ | Verify name search found the parser"
+      ansible.builtin.assert:
+        that:
+          - >-
+            info_by_name.parsers
+            | selectattr('name', 'equalto', test_parser_name)
+            | list | length == 1
+        fail_msg: "Name search did not find the created parser"
+
+    - name: "READ | List custom parsers metadata only (no definitions)"
+      crowdstrike.falcon.ngsiem_parser_info:
+        parser_type: custom
+        definitions: false
+      register: info_metadata
+
+    - name: "READ | Verify metadata-only results omit script"
+      ansible.builtin.assert:
+        that:
+          - info_metadata.parsers | length >= 1
+          - info_metadata.meta.pagination is defined
+        fail_msg: "Metadata-only listing returned unexpected data"
+
+    # =====================================================================
+    # Phase 3: IDEMPOTENCY - Re-run with identical content
+    # =====================================================================
+
+    - name: "IDEMPOTENT | Re-run create with identical YAML"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_parser_name }}"
+        parser_yaml: "{{ test_parser_yaml }}"
+      register: idempotent_result
+
+    - name: "IDEMPOTENT | Verify no change for identical content"
+      ansible.builtin.assert:
+        that:
+          - idempotent_result is not changed
+        fail_msg: "Module should not report a change when content is unchanged"
+
+    # =====================================================================
+    # Phase 4: CHECK MODE
+    # =====================================================================
+
+    - name: "CHECK | Delete in check mode (should report change, not mutate)"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_parser_name }}"
+        state: absent
+      check_mode: true
+      register: check_delete
+
+    - name: "CHECK | Verify check mode reported intended change"
+      ansible.builtin.assert:
+        that:
+          - check_delete is changed
+        fail_msg: "Check mode should report a change without mutating"
+
+    - name: "CHECK | Confirm parser still exists after check-mode delete"
+      crowdstrike.falcon.ngsiem_parser_info:
+        parser_ids:
+          - "{{ parser_id }}"
+      register: check_still_there
+
+    - name: "CHECK | Verify parser was not actually deleted"
+      ansible.builtin.assert:
+        that:
+          - check_still_there.parsers | length == 1
+        fail_msg: "Check mode must not delete the parser"
+
+    # =====================================================================
+    # Phase 5: CLONE
+    # =====================================================================
+
+    - name: "CLONE | Clone the parser into a new one"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_clone_name }}"
+        clone_from: "{{ parser_id }}"
+      register: clone_result
+
+    - name: "CLONE | Verify clone was created"
+      ansible.builtin.assert:
+        that:
+          - clone_result is changed
+          - clone_result.parser.name == test_clone_name
+          - clone_result.parser.id | length > 0
+        fail_msg: "Clone failed or returned unexpected data"
+
+    # =====================================================================
+    # Phase 6: EXTENSION (requires a CrowdStrike-managed OOTB base parser)
+    # =====================================================================
+
+    - name: "EXT | Find an OOTB parser to extend"
+      crowdstrike.falcon.ngsiem_parser_info:
+        parser_type: ootb
+        definitions: false
+        limit: 1
+      register: ootb_parsers
+
+    - name: "EXT | Create an extension of the OOTB base parser (unversioned ID)"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_ext_name }}"
+        extension_of: "{{ ootb_parsers.parsers[0].id | regex_replace(':.*$', '') }}"
+      register: ext_result
+      when: ootb_parsers.parsers | length > 0
+
+    - name: "EXT | Verify extension was created"
+      ansible.builtin.assert:
+        that:
+          - ext_result is changed
+          - ext_result.parser.id | length > 0
+        fail_msg: "Extension creation failed"
+      when: ootb_parsers.parsers | length > 0
+
+    # =====================================================================
+    # Phase 7: AUTH TOKEN PASSTHROUGH
+    # =====================================================================
+
+    - name: "AUTH | Generate access token via auth module"
+      crowdstrike.falcon.auth:
+      register: falcon_auth
+
+    - name: "AUTH | Query using access token"
+      crowdstrike.falcon.ngsiem_parser_info:
+        auth: "{{ falcon_auth.auth }}"
+        parser_ids:
+          - "{{ parser_id }}"
+      register: auth_info
+
+    - name: "AUTH | Verify token auth query succeeded"
+      ansible.builtin.assert:
+        that:
+          - auth_info.parsers | length == 1
+        fail_msg: "Query with token auth failed"
+
+    # =====================================================================
+    # Phase 8: ABSENT IDEMPOTENCY (non-existent parser)
+    # =====================================================================
+
+    - name: "ABSENT | Delete non-existent parser by name (idempotent)"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "ansible-int-does-not-exist-999999"
+        state: absent
+      register: absent_noop
+
+    - name: "ABSENT | Verify no change for non-existent parser"
+      ansible.builtin.assert:
+        that:
+          - absent_noop is not changed
+        fail_msg: "Absent state should be a no-op for non-existent parsers"
+
+    # =====================================================================
+    # Phase 9: DELETE
+    # =====================================================================
+
+    - name: "DELETE | Remove the parser by name"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_parser_name }}"
+        state: absent
+      register: delete_result
+
+    - name: "DELETE | Verify parser was deleted"
+      ansible.builtin.assert:
+        that:
+          - delete_result is changed
+        fail_msg: "Parser deletion failed"
+
+  # =======================================================================
+  # ALWAYS: Best-effort cleanup of everything this test may have created
+  # =======================================================================
+  always:
+    - name: "CLEANUP | Find any leftover test parsers"
+      crowdstrike.falcon.ngsiem_parser_info:
+        name: "ansible-int"
+        parser_type: custom
+        definitions: false
+      register: leftover_parsers
+      ignore_errors: true
+
+    - name: "CLEANUP | Delete leftover test parsers by ID"
+      crowdstrike.falcon.ngsiem_parser:
+        parser_id: "{{ item.id }}"
+        state: absent
+      loop: "{{ leftover_parsers.parsers | default([]) }}"
+      loop_control:
+        label: "{{ item.name | default(item.id) }}"
+      ignore_errors: true
