@@ -1,4 +1,0 @@
----
-minor_changes:
-  - Raised the enforced minimum FalconPy version from ``1.3.0`` to ``1.5.0`` across all modules, lookup plugins, and inventory plugins. Documentation now reflects a minimum of Python ``3.8`` and FalconPy ``1.5.0``.
-  - Version comparisons now use numeric tuple comparison instead of string comparison, fixing incorrect results for multi-digit versions (e.g. ``1.10.0``).

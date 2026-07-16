@@ -1,4 +1,0 @@
----
-minor_changes:
-  - ngsiem_parser - new module to create, update, clone, and delete NG-SIEM parsers (https://github.com/CrowdStrike/ansible_collection_falcon/issues/705)
-  - ngsiem_parser_info - new module to get information about NG-SIEM parsers (https://github.com/CrowdStrike/ansible_collection_falcon/issues/705)
