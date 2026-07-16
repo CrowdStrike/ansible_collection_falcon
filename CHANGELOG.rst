@@ -4,6 +4,41 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.13.0
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2026-07-16
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.13.0>`__
+
+Minor Changes
+-------------
+
+- Raised the enforced minimum FalconPy version from ``1.3.0`` to ``1.5.0`` across all modules, lookup plugins, and inventory plugins. Documentation now reflects a minimum of Python ``3.8`` and FalconPy ``1.5.0``.
+- Version comparisons now use numeric tuple comparison instead of string comparison, fixing incorrect results for multi-digit versions (e.g. ``1.10.0``).
+- ngsiem_data_connection - new module to create, update, delete, and pause/resume NG-SIEM data connections (https://github.com/CrowdStrike/ansible_collection_falcon/issues/704)
+- ngsiem_data_connection_info - new module to get information about NG-SIEM data connections (https://github.com/CrowdStrike/ansible_collection_falcon/issues/704)
+- ngsiem_data_connector_info - new module to get information about available NG-SIEM data connectors (https://github.com/CrowdStrike/ansible_collection_falcon/issues/704)
+- ngsiem_parser - new module to create, update, clone, and delete NG-SIEM parsers (https://github.com/CrowdStrike/ansible_collection_falcon/issues/705)
+- ngsiem_parser_info - new module to get information about NG-SIEM parsers (https://github.com/CrowdStrike/ansible_collection_falcon/issues/705)
+
+Bugfixes
+--------
+
+- correlation_rule module - Use the ``rule_id`` field instead of ``id`` when updating, publishing, and deleting rules so operations on rules with multiple versions no longer fail with a "rule not found" error (https://github.com/CrowdStrike/ansible_collection_falcon/issues/701).
+- correlation_rule_info module - Use the ``rule_id`` field when looking up latest rule versions so ``include_latest_version`` works for rules with multiple versions (https://github.com/CrowdStrike/ansible_collection_falcon/issues/701).
+
+New Modules
+-----------
+
+- crowdstrike.falcon.ngsiem_data_connection - Manage NG\-SIEM data connections
+- crowdstrike.falcon.ngsiem_data_connection_info - Get information about NG\-SIEM data connections
+- crowdstrike.falcon.ngsiem_data_connector_info - Get information about available NG\-SIEM data connectors
+- crowdstrike.falcon.ngsiem_parser - Manage NG\-SIEM parsers
+- crowdstrike.falcon.ngsiem_parser_info - Get information about NG\-SIEM parsers
+
 v4.12.0
 =======
 
