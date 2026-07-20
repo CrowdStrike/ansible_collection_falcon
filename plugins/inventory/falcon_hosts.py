@@ -47,7 +47,7 @@ options:
       - All clouds are automatically discovered if not specified, except for the C(us-gov-1) cloud.
       - The C(FALCON_CLOUD) environment variable can also be used.
       - This option can be set using a Jinja2 template value.
-      - Valid values are C(us-1), C(us-2), C(eu-1), C(us-gov-1).
+      - Valid values are C(us-1), C(us-2), C(us-3), C(eu-1), C(us-gov-1), C(us-gov-2).
     default: us-1
     type: str
   filter:
@@ -271,7 +271,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def _verify_cloud(self, cloud):
         """Verify the cloud region."""
-        valid_clouds = ["us-1", "us-2", "eu-1", "us-gov-1"]
+        valid_clouds = ["us-1", "us-2", "us-3", "eu-1", "us-gov-1", "us-gov-2"]
         if cloud not in valid_clouds:
             raise ValueError(
                 f"Invalid cloud region: '{cloud}'. Valid values are {', '.join(valid_clouds)}"

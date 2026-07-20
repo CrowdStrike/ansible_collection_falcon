@@ -181,8 +181,10 @@ def get_cloud_from_url(module, base_url):
     mapping = {
         "https://api.crowdstrike.com": "us-1",
         "https://api.us-2.crowdstrike.com": "us-2",
+        "https://api.us-3.crowdstrike.com": "us-3",
         "https://api.eu-1.crowdstrike.com": "eu-1",
         "https://api.laggar.gcw.crowdstrike.com": "us-gov-1",
+        "https://api.us-gov-2.crowdstrike.mil": "us-gov-2",
     }
 
     # fail if the base_url is not in the mapping

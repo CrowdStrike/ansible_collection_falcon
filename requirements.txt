@@ -1,2 +1,2 @@
 aiohttp
-crowdstrike-falconpy>=1.6.3
+crowdstrike-falconpy==1.6.4

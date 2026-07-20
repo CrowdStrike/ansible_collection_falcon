@@ -24,7 +24,7 @@ except ImportError:
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
 
 MINIMUM_FALCONPY_VERSION = "1.5.0"
-VALID_CLOUDS = ["us-1", "us-2", "eu-1", "us-gov-1", "us-gov-2"]
+VALID_CLOUDS = ["us-1", "us-2", "us-3", "eu-1", "us-gov-1", "us-gov-2"]
 
 
 def _version_tuple(version):

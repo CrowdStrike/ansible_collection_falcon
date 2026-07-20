@@ -15,5 +15,5 @@ wheel
 ansible-rulebook
 ansible-runner
 aiohttp
-crowdstrike-falconpy>=1.6.3
+crowdstrike-falconpy>=1.6.4
 tox
