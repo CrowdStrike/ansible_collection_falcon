@@ -78,7 +78,8 @@ def _split_value(cleaned):
     """Return the value from an '<option>=<value>' string.
 
     Returns None when no '=' delimiter is present instead of raising
-    IndexError on sensors that changed an option's output format.
+    IndexError on sensors that changed an option's output format (e.g. the
+    backend option on 7.40+, which prints a deprecation notice with no '=').
     """
     parts = cleaned.split("=", 1)
     return parts[1] if len(parts) > 1 else None
@@ -87,9 +88,7 @@ def _split_value(cleaned):
 def format_stdout(stdout):
     """Formats output from falconctl"""
     # Format stdout
-    # Some options (e.g. backend on sensor 7.40+) are deprecated and print a
-    # notice instead of an <option>=<value> line; treat those as unset.
-    if stdout == "" or "not set" in stdout or "deprecated" in stdout:
+    if stdout == "" or "not set" in stdout:
         return None
 
     # Expect stdout in <option>=<value>

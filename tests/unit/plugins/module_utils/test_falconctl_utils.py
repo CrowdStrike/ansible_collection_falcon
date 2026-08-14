@@ -34,6 +34,12 @@ def test_aid_value_is_extracted():
     )
 
 
+def test_tag_value_containing_deprecated_is_not_dropped():
+    # A user-defined tag may legitimately contain the word "deprecated";
+    # it must not be mistaken for a deprecation notice and dropped.
+    assert format_stdout('tags="deprecated-web,prod".') == "deprecated-web,prod"
+
+
 def test_empty_returns_none():
     assert format_stdout("") is None
 
