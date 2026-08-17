@@ -1,3 +1,0 @@
----
-bugfixes:
-  - 'falconctl_info module - Fix ``IndexError: list index out of range`` when the ``backend`` option is queried on sensors where it is deprecated (e.g. 7.40+), which print a deprecation notice instead of an ``<option>=<value>`` line (https://github.com/CrowdStrike/ansible_collection_falcon/issues/709).'

@@ -689,6 +689,28 @@ releases:
         name: ngsiem_parser_info
         namespace: ''
     release_date: '2026-07-16'
+  4.14.0:
+    changes:
+      bugfixes:
+        - 'falconctl_info module - Fix ``IndexError: list index out of range`` when
+          the ``backend`` option is queried on sensors where it is deprecated (e.g.
+          7.40+), which print a deprecation notice instead of an ``<option>=<value>``
+          line (https://github.com/CrowdStrike/ansible_collection_falcon/issues/709).'
+      minor_changes:
+        - Add support for the ``us-3`` cloud region across modules, plugins, and roles
+          (api.us-3.crowdstrike.com).
+        - Add support for the ``us-gov-2`` cloud region across modules, plugins, and
+          roles (api.us-gov-2.crowdstrike.mil).
+      release_summary: '| Release Date: 2026-08-17
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.14.0>`__
+
+        '
+    fragments:
+      - 4.14.0.yaml
+      - 709-fix-falconctl-info-backend-indexerror.yml
+      - add-us-3-cloud-region.yml
+    release_date: '2026-08-17'
   4.2.0:
     changes:
       minor_changes:

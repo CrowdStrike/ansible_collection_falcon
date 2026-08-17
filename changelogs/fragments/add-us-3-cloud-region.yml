@@ -1,4 +1,0 @@
----
-minor_changes:
-  - Add support for the ``us-3`` cloud region across modules, plugins, and roles (api.us-3.crowdstrike.com).
-  - Add support for the ``us-gov-2`` cloud region across modules, plugins, and roles (api.us-gov-2.crowdstrike.mil).

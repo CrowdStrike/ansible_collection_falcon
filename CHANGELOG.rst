@@ -4,6 +4,26 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.14.0
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2026-08-17
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.14.0>`__
+
+Minor Changes
+-------------
+
+- Add support for the ``us-3`` cloud region across modules, plugins, and roles (api.us-3.crowdstrike.com).
+- Add support for the ``us-gov-2`` cloud region across modules, plugins, and roles (api.us-gov-2.crowdstrike.mil).
+
+Bugfixes
+--------
+
+- falconctl_info module - Fix ``IndexError: list index out of range`` when the ``backend`` option is queried on sensors where it is deprecated (e.g. 7.40+), which print a deprecation notice instead of an ``<option>=<value>`` line (https://github.com/CrowdStrike/ansible_collection_falcon/issues/709).
+
 v4.13.0
 =======
 
