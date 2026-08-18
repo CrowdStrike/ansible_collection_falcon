@@ -1,0 +1,3 @@
+---
+trivial:
+  - EDA eventstream plugin - Add copyright header and pin ruff in tox to fix CPY001 lint failure caused by an unpinned ruff version under ``--select ALL``.
