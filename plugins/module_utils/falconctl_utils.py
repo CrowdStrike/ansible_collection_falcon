@@ -88,7 +88,7 @@ def _split_value(cleaned):
 def format_stdout(stdout):
     """Formats output from falconctl"""
     # Format stdout
-    if stdout == "" or "not set" in stdout:
+    if stdout == "" or "not set" in stdout or "This option is deprecated" in stdout:
         return None
 
     # Expect stdout in <option>=<value>
