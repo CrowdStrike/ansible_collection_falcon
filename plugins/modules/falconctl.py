@@ -240,9 +240,13 @@ class FalconCtl(object):
                     platform.node() or
                     'unknown-host'
                 )
+                # Use %-formatting, not f-strings: this module runs on the
+                # managed node, which may be Python 2.7 (ansible-core 2.16
+                # still supports 2.7 targets, e.g. RHEL 7).
                 warning_msg = (
-                    f"Host {hostname}: Parameter {param_name} was skipped - not supported by this sensor version. "
-                    f"Consider upgrading your sensor for full parameter support."
+                    "Host %s: Parameter %s was skipped - not supported by this sensor version. "
+                    "Consider upgrading your sensor for full parameter support."
+                    % (hostname, param_name)
                 )
                 self.module.warn(warning_msg)
                 return  # Continue execution instead of failing

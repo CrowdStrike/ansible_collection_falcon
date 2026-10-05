@@ -1,0 +1,66 @@
+name: Python 2.7 Target Compatibility
+
+# falconctl and falconctl_info execute on the managed node, not the controller.
+# ansible-core 2.16 (our requires_ansible floor, and the AAP default) still
+# supports Python 2.7 managed nodes, so these files must stay Python 2.7 clean.
+#
+# ansible-test cannot catch this: current versions only offer --python 3.9-3.14.
+# A real 2.7 interpreter in a container is the only reliable check.
+#
+# Every other plugin in this collection is controller-only (lookup, inventory,
+# and the API modules, which import FalconPy and are delegate_to: localhost in
+# all roles). Those are free to use Python 3 syntax and are NOT checked here.
+
+on:
+  push:
+    paths:
+      - 'plugins/modules/falconctl.py'
+      - 'plugins/modules/falconctl_info.py'
+      - 'plugins/module_utils/falconctl_utils.py'
+      - '.github/workflows/py27-target-compat.yml'
+
+  pull_request:
+    paths:
+      - 'plugins/modules/falconctl.py'
+      - 'plugins/modules/falconctl_info.py'
+      - 'plugins/module_utils/falconctl_utils.py'
+      - '.github/workflows/py27-target-compat.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  compile-py27:
+    name: Compile target-side modules on Python 2.7
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Compile with Python 2.7
+        run: |
+          docker run --rm -v "${PWD}:/src:ro" python:2.7-slim python -c '
+          import py_compile, sys
+
+          TARGET_SIDE = [
+              "plugins/modules/falconctl.py",
+              "plugins/modules/falconctl_info.py",
+              "plugins/module_utils/falconctl_utils.py",
+          ]
+
+          print("Python " + sys.version.split()[0])
+          failed = []
+          for rel in TARGET_SIDE:
+              try:
+                  py_compile.compile("/src/" + rel, cfile="/tmp/out.pyc", doraise=True)
+                  print("PASS  " + rel)
+              except py_compile.PyCompileError as err:
+                  failed.append(rel)
+                  print("FAIL  " + rel)
+                  print(str(err).strip())
+
+          if failed:
+              print("")
+              print("These files run on managed nodes and must be Python 2.7 compatible.")
+              print("Use %-formatting instead of f-strings.")
+              sys.exit(1)
+          '
