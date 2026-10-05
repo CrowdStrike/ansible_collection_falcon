@@ -13,6 +13,7 @@
     state: absent
     creates_service: csfalconservice
     arguments: "/uninstall /quiet {{ falcon_windows_uninstall_args }}"
+  no_log: "{{ falcon_windows_uninstall_args is search('MAINTENANCE_TOKEN=', ignorecase=true) }}"
   register: falcon_win_sensor_uninstall
   when:
     - falcon_win_sensor_cache.files | default('', true) | length > 0

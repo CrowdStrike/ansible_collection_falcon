@@ -10,6 +10,7 @@
     - name: CrowdStrike Falcon | Append maintenance token to install args if not present
       ansible.builtin.set_fact:
         falcon_windows_install_args_with_token: "{{ falcon_windows_install_args }} MAINTENANCE_TOKEN={{ falcon_maintenance_token }}"
+      no_log: true
       when:
         - not maintenance_token_present
         - falcon_sensor_installed | default(false)
@@ -17,6 +18,7 @@
 - name: CrowdStrike Falcon | Set final Windows install arguments
   ansible.builtin.set_fact:
     falcon_windows_install_args: "{{ falcon_windows_install_args_with_token | default(falcon_windows_install_args) }}"
+  no_log: true
 
 - name: CrowdStrike Falcon | Install Falcon Sensor .exe Package (Windows)
   ansible.windows.win_package:
@@ -24,6 +26,7 @@
     state: present
     creates_service: csfalconservice
     arguments: "/install /quiet CID={{ falcon_cid }} {{ falcon_windows_install_args }}"
+  no_log: "{{ falcon_windows_install_args is search('MAINTENANCE_TOKEN=|ProvToken=', ignorecase=true) }}"
   when:
     - ansible_facts['os_family'] == "Windows"
   register: falcon_installed
