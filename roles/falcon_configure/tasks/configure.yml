@@ -105,6 +105,7 @@
       when:
         - falcon_cid != None
         - falcon_provisioning_token != None
+      no_log: true
       failed_when: falconctl_license.rc > 1
       register: falconctl_license_prov
       changed_when: falconctl_license_prov.rc == 0
@@ -134,6 +135,7 @@
       ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl unload --maintenance-token"
       args:
         stdin: "{{ falcon_maintenance_token }}"
+      no_log: true
       changed_when: false
       when:
         - falcon_maintenance_token | default('', true) | length > 0

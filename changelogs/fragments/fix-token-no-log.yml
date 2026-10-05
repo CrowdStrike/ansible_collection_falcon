@@ -1,0 +1,6 @@
+---
+bugfixes:
+  - falconctl module - Set ``no_log`` on ``provisioning_token`` so the installation token is no longer written to system logs and task results. This was a regression in 4.6.0.
+  - falcon_configure role - Hide the installation token and maintenance token in the macOS ``falconctl`` tasks.
+  - falcon_install role - Hide the maintenance token in the macOS task and hide Windows install arguments when they contain ``MAINTENANCE_TOKEN`` or ``ProvToken``.
+  - falcon_uninstall role - Hide the maintenance token in the macOS task and hide Windows uninstall arguments when they contain ``MAINTENANCE_TOKEN``.

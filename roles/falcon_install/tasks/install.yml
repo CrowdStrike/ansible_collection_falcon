@@ -66,6 +66,7 @@
   ansible.builtin.command: "/Applications/Falcon.app/Contents/Resources/falconctl unload --maintenance-token"
   args:
     stdin: "{{ falcon_maintenance_token }}"
+  no_log: true
   changed_when: false
   when:
     - falcon_maintenance_token | default('', true) | length > 0
