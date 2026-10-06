@@ -1,3 +1,0 @@
----
-bugfixes:
-  - falconctl module - Replace an f-string with %-formatting so the module loads on Python 2.7 managed nodes such as RHEL 7 (https://github.com/CrowdStrike/ansible_collection_falcon/issues/716)

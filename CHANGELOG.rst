@@ -4,6 +4,24 @@ Ansible CrowdStrike Falcon Collection Release Notes
 
 .. contents:: Topics
 
+v4.14.1
+=======
+
+Release Summary
+---------------
+
+| Release Date: 2026-10-06
+| `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.14.1>`__
+
+Bugfixes
+--------
+
+- falcon_configure role - Hide the installation token and maintenance token in the macOS ``falconctl`` tasks.
+- falcon_install role - Hide the maintenance token in the macOS task and hide Windows install arguments when they contain ``MAINTENANCE_TOKEN`` or ``ProvToken``.
+- falcon_uninstall role - Hide the maintenance token in the macOS task and hide Windows uninstall arguments when they contain ``MAINTENANCE_TOKEN``.
+- falconctl module - Replace an f-string with %-formatting so the module loads on Python 2.7 managed nodes such as RHEL 7 (https://github.com/CrowdStrike/ansible_collection_falcon/issues/716)
+- falconctl module - Set ``no_log`` on ``provisioning_token`` so the installation token is no longer written to system logs and task results. This was a regression in 4.6.0.
+
 v4.14.0
 =======
 
