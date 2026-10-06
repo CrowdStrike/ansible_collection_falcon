@@ -711,6 +711,31 @@ releases:
       - 709-fix-falconctl-info-backend-indexerror.yml
       - add-us-3-cloud-region.yml
     release_date: '2026-08-17'
+  4.14.1:
+    changes:
+      bugfixes:
+        - falcon_configure role - Hide the installation token and maintenance token
+          in the macOS ``falconctl`` tasks.
+        - falcon_install role - Hide the maintenance token in the macOS task and hide
+          Windows install arguments when they contain ``MAINTENANCE_TOKEN`` or ``ProvToken``.
+        - falcon_uninstall role - Hide the maintenance token in the macOS task and
+          hide Windows uninstall arguments when they contain ``MAINTENANCE_TOKEN``.
+        - falconctl module - Replace an f-string with %-formatting so the module loads
+          on Python 2.7 managed nodes such as RHEL 7 (https://github.com/CrowdStrike/ansible_collection_falcon/issues/716)
+        - falconctl module - Set ``no_log`` on ``provisioning_token`` so the installation
+          token is no longer written to system logs and task results. This was a regression
+          in 4.6.0.
+      release_summary: '| Release Date: 2026-10-06
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.14.1>`__
+
+        '
+    fragments:
+      - 4.14.1.yaml
+      - 716-fix-falconctl-py27-fstring.yml
+      - fix-eda-ruff-cpy001.yml
+      - fix-token-no-log.yml
+    release_date: '2026-10-06'
   4.2.0:
     changes:
       minor_changes:
