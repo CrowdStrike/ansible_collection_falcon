@@ -672,7 +672,7 @@ async def _process_events(
             async for event in stream.stream_events(exclude_event_types):
                 await queue.put(event)
                 await asyncio.sleep(delay)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.exception("Timeout occurred while streaming events.")
     except aiohttp.ClientError:
         logger.exception("Client error occurred while streaming events.")

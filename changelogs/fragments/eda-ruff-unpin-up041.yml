@@ -1,0 +1,3 @@
+---
+trivial:
+  - EDA eventstream plugin - Use builtin ``TimeoutError`` to fix UP041 lint failure, unpin ruff in tox, and run the EDA lint workflow on every push and PR.
