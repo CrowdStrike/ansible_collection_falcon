@@ -294,16 +294,16 @@
         connection_id: "{{ connection_id }}"
         state: absent
       when: connection_id is defined and connection_id | length > 0
-      ignore_errors: true
+      failed_when: false
 
     - name: "CLEANUP | Remove test connection by original name (best-effort)"
       crowdstrike.falcon.ngsiem_data_connection:
         name: "{{ test_connection_name }}"
         state: absent
-      ignore_errors: true
+      failed_when: false
 
     - name: "CLEANUP | Remove test connection by renamed name (best-effort)"
       crowdstrike.falcon.ngsiem_data_connection:
         name: "{{ test_connection_name }}-renamed"
         state: absent
-      ignore_errors: true
+      failed_when: false

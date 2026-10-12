@@ -276,7 +276,7 @@
         parser_type: custom
         definitions: false
       register: leftover_parsers
-      ignore_errors: true
+      failed_when: false
 
     - name: "CLEANUP | Delete leftover test parsers by ID"
       crowdstrike.falcon.ngsiem_parser:
@@ -285,4 +285,4 @@
       loop: "{{ leftover_parsers.parsers | default([]) }}"
       loop_control:
         label: "{{ item.name | default(item.id) }}"
-      ignore_errors: true
+      failed_when: false

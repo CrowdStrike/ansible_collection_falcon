@@ -209,4 +209,4 @@
       crowdstrike.falcon.correlation_rule:
         name: "{{ test_rule_name }}"
         state: absent
-      ignore_errors: true
+      failed_when: false
