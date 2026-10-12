@@ -2,14 +2,8 @@ name: EDA Linting (tox)
 
 on:
   push:
-    paths:
-      - "extensions/**"
-      - ".github/workflows/eda-lint.yml"
-
   pull_request:
-    paths:
-      - "extensions/**"
-      - ".github/workflows/eda-lint.yml"
+
 permissions:  # added using https://github.com/step-security/secure-repo
   contents: read
 
