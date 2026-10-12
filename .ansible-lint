@@ -9,8 +9,6 @@ enable_list:
   - fqcn-builtins # opt-in
 
 skip_list:
-  - "204"
-  - "ignore-errors"
   - "var-naming[no-role-prefix]"
   - "run-once[task]"
 

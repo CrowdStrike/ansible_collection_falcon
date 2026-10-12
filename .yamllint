@@ -1,13 +1,11 @@
 ---
 extends: default
 
-ignore: |
-  .github/
-  .devcontainer/
-  .venv/
-  changelogs/
-  molecule/
-  .ansible/
+# yamllint can't combine ignore and ignore-from-file, so tracked
+# paths to skip live in .yamllintignore
+ignore-from-file:
+  - .gitignore
+  - .yamllintignore
 
 rules:
   comments:

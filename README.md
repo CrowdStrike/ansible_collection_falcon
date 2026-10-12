@@ -12,14 +12,11 @@ This collection streamlines the management of CrowdStrike Falcon deployments by 
 
 ### Ansible version compatibility
 
-Tested with the Ansible Core >= 2.15.0 versions, and the current development version of Ansible. Ansible Core versions before 2.15.0 are not supported.
+Tested with the Ansible Core >= 2.16.0 versions, and the current development version of Ansible. Ansible Core versions before 2.16.0 are not supported.
 
 ### Python version compatibility
 
-This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. In line with the [Python versions supported by FalconPy](https://github.com/CrowdStrike/falconpy#supported-versions-of-python), a minimum Python version of `3.8` is required for this collection to function properly.
-
-> [!NOTE]
-> As of FalconPy Version 1.4.0, Python 3.6 is no longer supported. If you would like to use FalconPy with Python 3.6, please use FalconPy Version < 1.4.0.
+This collection is reliant on the [CrowdStrike FalconPy SDK](https://www.falconpy.io/) for its Python interface. A minimum Python version of `3.12` is required for this collection to function properly.
 
 ## Included content
 
