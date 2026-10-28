@@ -17,6 +17,8 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils import (
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils import (
     format_stdout,
     get_options,
+    resolve_tags,
+    tags_equal,
 )
 
 
@@ -182,3 +184,49 @@ def test_get_options_raises_when_falconctl_missing(falconctl, monkeypatch):
 
     with pytest.raises(ValueError, match="not found"):
         get_options(["cid"])
+
+
+def test_resolve_tags_present_merges_with_existing():
+    assert resolve_tags("tag1,tag2", ["tag3"], "present") == "tag1,tag2,tag3"
+
+
+def test_resolve_tags_present_existing_tag_is_unchanged():
+    assert resolve_tags("tag1,tag2", ["tag2"], "present") == "tag1,tag2"
+
+
+def test_resolve_tags_present_with_no_current_tags():
+    assert resolve_tags(None, ["tag1", "tag2"], "present") == "tag1,tag2"
+
+
+def test_resolve_tags_present_dedupes_requested():
+    assert resolve_tags("tag1", ["tag2", "tag2"], "present") == "tag1,tag2"
+
+
+def test_resolve_tags_exclusive_replaces_existing():
+    assert resolve_tags("tag1,old", ["tag1", "tag2"], "present", True) == "tag1,tag2"
+
+
+def test_resolve_tags_exclusive_empty_list_clears():
+    assert resolve_tags("tag1,tag2", [], "present", True) is None
+
+
+def test_resolve_tags_absent_removes_only_listed():
+    assert resolve_tags("tag1,tagLegacy,tag2", ["tagLegacy"], "absent") == "tag1,tag2"
+
+
+def test_resolve_tags_absent_last_tag_clears():
+    assert resolve_tags("tagLegacy", ["tagLegacy"], "absent") is None
+
+
+def test_resolve_tags_absent_missing_tag_is_unchanged():
+    assert resolve_tags("tag1", ["nope"], "absent") == "tag1"
+
+
+def test_resolve_tags_absent_with_no_current_tags():
+    assert resolve_tags(None, ["tag1"], "absent") is None
+
+
+def test_tags_equal_ignores_order():
+    assert tags_equal("tag1,tag2", "tag2,tag1")
+    assert tags_equal(None, "")
+    assert not tags_equal("tag1", "tag1,tag2")

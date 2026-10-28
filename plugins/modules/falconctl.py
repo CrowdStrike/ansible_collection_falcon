@@ -93,7 +93,29 @@ options:
       - To assign multiple tags, separate tags with commas.
       - Tags can include alphanumerics and these characters C(/), C(-), C(_), C(.), and C(@).
       - I(The combined length of all tags for a host, including comma separators, cannot exceed 256 characters).
+      - Replaces all existing tags. Use C(tags_list) to add or remove individual tags.
+      - Mutually exclusive with C(tags_list).
     type: str
+  tags_list:
+    description:
+      - A list of sensor grouping tags to ensure are present or absent, without affecting other existing tags.
+      - With C(state=present), the listed tags are added to the existing tags.
+      - With C(state=absent), only the listed tags are removed from the existing tags.
+        If no tags remain, the sensor's tags are cleared.
+      - Each tag may contain only alphanumerics, '/', '-', and '_'.
+      - I(The combined length of all resulting tags, including comma separators, cannot exceed 256 characters).
+      - Mutually exclusive with C(tags).
+    type: list
+    elements: str
+    version_added: "4.15.0"
+  exclusive:
+    description:
+      - Whether to remove all sensor tags not listed in C(tags_list).
+      - Only valid with C(state=present). Requires C(tags_list).
+      - Setting C(exclusive=true) with an empty C(tags_list) clears all sensor tags.
+    type: bool
+    default: false
+    version_added: "4.15.0"
   backend:
     description:
       - Configure the backend for the Falcon sensor. This was introduced to support the BPF backend.
@@ -150,6 +172,26 @@ EXAMPLES = r"""
     apd: false
     aph: example.com
     app: 8080
+
+- name: Set the sensor tags to exactly tag1 and tag2
+  crowdstrike.falcon.falconctl:
+    state: present
+    exclusive: true
+    tags_list:
+      - tag1
+      - tag2
+
+- name: Add tag3 while keeping any existing sensor tags
+  crowdstrike.falcon.falconctl:
+    state: present
+    tags_list:
+      - tag3
+
+- name: Remove a legacy tag while keeping the other sensor tags
+  crowdstrike.falcon.falconctl:
+    state: absent
+    tags_list:
+      - tagLegacy
 """
 
 import platform
@@ -159,7 +201,12 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconctl_utils import (
     FALCONCTL_GET_OPTIONS,
     get_options,
+    resolve_tags,
+    tags_equal,
 )
+
+# Module-only parameters that are never passed to falconctl directly
+MODULE_PARAMS = ["state", "tags_list", "exclusive"]
 
 VALID_PARAMS = {
     "s": [
@@ -207,6 +254,28 @@ class FalconCtl(object):
         self.states = {"present": "s", "absent": "d"}
         self.valid_params = VALID_PARAMS
         self.state = self.params["state"]
+
+        self.current_tags = None
+        self.resolved_tags = None
+        if self.params["exclusive"] and self.params["tags_list"] is None:
+            self.module.fail_json(msg="exclusive requires tags_list")
+        if self.params["tags_list"] is not None:
+            self.validate_tags_list(self.params)
+            self.current_tags = get_options(["tags"])["tags"]
+            self.resolved_tags = resolve_tags(
+                self.current_tags,
+                self.params["tags_list"],
+                self.state,
+                self.params["exclusive"],
+            )
+            # Keep the sensor's ordering when the tag set is unchanged
+            if tags_equal(self.current_tags, self.resolved_tags):
+                self.resolved_tags = self.current_tags
+            if self.resolved_tags and len(self.resolved_tags) > 256:
+                self.module.fail_json(
+                    msg="The combined length of all tags cannot exceed 256 characters, got %d: %s"
+                    % (len(self.resolved_tags), self.resolved_tags)
+                )
 
         if self.state == "present":
             self.validate_params(self.params)
@@ -266,6 +335,8 @@ class FalconCtl(object):
         args = [self.falconctl, "-%s" % fstate, "-f"]
 
         for k in self.params:
+            if k in MODULE_PARAMS:
+                continue
             if self.params[k] or self.params[k] == "":
                 if k in self.valid_params[fstate]:
                     key = k.replace("_", "-")
@@ -276,15 +347,26 @@ class FalconCtl(object):
                     else:
                         args.append("--%s" % (key))
                 else:
-                    if k != "state":
-                        self.module.fail_json(
-                            msg=(
-                                "Cannot use '%s' with state '%s'. Valid options for "
-                                "state '%s' are: %s."
-                                % (k, state, state, ", ".join(VALID_PARAMS[fstate]))
-                            )
+                    self.module.fail_json(
+                        msg=(
+                            "Cannot use '%s' with state '%s'. Valid options for "
+                            "state '%s' are: %s."
+                            % (k, state, state, ", ".join(VALID_PARAMS[fstate]))
                         )
+                    )
         return args
+
+    def tags_args(self):
+        """Return falconctl args that apply the resolved tags_list, if needed"""
+        if self.params["tags_list"] is None:
+            return None
+        if self.resolved_tags == self.current_tags:
+            return None
+        # falconctl has no per-tag add/remove, so set the full resolved
+        # string, or clear the tags when none remain.
+        if self.resolved_tags:
+            return [self.falconctl, "-s", "-f", "--tags=%s" % self.resolved_tags]
+        return [self.falconctl, "-d", "-f", "--tags"]
 
     def sanitize_opt(self, key, value):
         """
@@ -325,13 +407,21 @@ class FalconCtl(object):
         else:
             values.update({k: None for k in before})
 
+        if self.params["tags_list"] is not None and "tags" in values:
+            values["tags"] = self.resolved_tags
+
         return values
 
     def execute(self):
         """Run the falconctl command"""
         cmd = self.add_args(self.params["state"])
+        tags_cmd = self.tags_args()
         if not self.module.check_mode:
-            self.__run_command(cmd)
+            # Skip a bare 'falconctl -s/-d -f' when only tags_list was given
+            if len(cmd) > 3 or self.params["tags_list"] is None:
+                self.__run_command(cmd)
+            if tags_cmd:
+                self.__run_command(tags_cmd)
 
     def get_values(self):
         """Return falconctl -g options for diff mode"""
@@ -342,8 +432,23 @@ class FalconCtl(object):
                 if k in FALCONCTL_GET_OPTIONS:
                     values.append(k)
 
+        if self.params["tags_list"] is not None and "tags" not in values:
+            values.append("tags")
+
         # get current values
         return get_options(values)
+
+    def validate_tags_list(self, params):
+        """Ensure tags_list and exclusive are valid"""
+        if params["exclusive"] and self.state != "present":
+            self.module.fail_json(msg="exclusive can only be used with state 'present'")
+
+        for tag in params["tags_list"]:
+            if not self.__validate_regex(tag, r"^[a-zA-Z0-9\/\-_]+$"):
+                self.module.fail_json(
+                    msg="Each tag in tags_list must be one of: all alphanumerics, '/', '-', and '_', got %s"
+                    % (tag)
+                )
 
     def validate_params(self, params):
         """Ensure parameters are valid"""
@@ -418,6 +523,8 @@ def main():  # pylint: disable=missing-function-docstring
         message_log=dict(required=False, type="str"),
         billing=dict(required=False, type="str"),
         tags=dict(required=False, type="str"),
+        tags_list=dict(required=False, type="list", elements="str"),
+        exclusive=dict(required=False, type="bool", default=False),
         backend=dict(required=False, type="str"),
         cloud=dict(
             required=False,
@@ -427,7 +534,11 @@ def main():  # pylint: disable=missing-function-docstring
         maintenance_token=dict(required=False, no_log=True, type="str"),
     )
 
-    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
+    module = AnsibleModule(
+        argument_spec=module_args,
+        mutually_exclusive=[["tags", "tags_list"]],
+        supports_check_mode=True,
+    )
 
     # Instantiate class
     falcon = FalconCtl(module)

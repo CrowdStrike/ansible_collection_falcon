@@ -111,6 +111,45 @@ def format_stdout(stdout, opt):
     return output if output else None
 
 
+def split_tags(tags):
+    """Split a comma-separated sensor tag string into a list, dropping blanks"""
+    if not tags:
+        return []
+    return [tag.strip() for tag in tags.split(",") if tag.strip()]
+
+
+def resolve_tags(current, requested, state, exclusive=False):
+    """Return the sensor tag string that results from applying tags_list.
+
+    falconctl can only replace the whole tag string (-s --tags) or clear it
+    (-d --tags), so individual tags are added/removed by merging against the
+    current value. Existing order is preserved and new tags are appended.
+    Returns None when no tags should remain.
+    """
+    current_tags = split_tags(current)
+    requested_tags = []
+    for tag in requested or []:
+        if tag not in requested_tags:
+            requested_tags.append(tag)
+
+    if state == "present":
+        if exclusive:
+            resolved = requested_tags
+        else:
+            resolved = current_tags + [
+                tag for tag in requested_tags if tag not in current_tags
+            ]
+    else:
+        resolved = [tag for tag in current_tags if tag not in requested_tags]
+
+    return ",".join(resolved) if resolved else None
+
+
+def tags_equal(first, second):
+    """Compare two tag strings regardless of order"""
+    return set(split_tags(first)) == set(split_tags(second))
+
+
 def get_options(opts):
     """Return falconctl -g valid options"""
     requested = opts if opts else FALCONCTL_GET_OPTIONS
