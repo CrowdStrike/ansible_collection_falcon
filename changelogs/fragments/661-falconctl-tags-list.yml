@@ -1,3 +1,3 @@
 ---
 minor_changes:
-  - falconctl - Add ``tags_list`` and ``exclusive`` options to ensure individual sensor grouping tags are present or absent without replacing the other existing tags (https://github.com/CrowdStrike/ansible_collection_falcon/issues/661).
+  - falconctl module - Add ``tags_list`` and ``exclusive`` options to ensure individual sensor grouping tags are present or absent without replacing the other existing tags (https://github.com/CrowdStrike/ansible_collection_falcon/issues/661).
