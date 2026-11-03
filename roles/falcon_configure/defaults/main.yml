@@ -107,6 +107,10 @@ falcon_feature:
 # Whether to enable or disable the ability to log messages to disk. Set this value to either
 # 'true|yes' or 'false|no'.
 #
+# DEPRECATED: falcon_message_log will be removed in version 5.0.0 of this collection.
+# Linux sensors 7.21 and later do not support the message log option, so the
+# falconctl module skips it with a warning on those sensors.
+#
 falcon_message_log:
 # Configure Falcon sensor with Pay-As-You-Go billing. Useful for cloud environments.
 # Valid values are: [default|metered]

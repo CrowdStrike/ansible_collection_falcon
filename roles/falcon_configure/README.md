@@ -89,6 +89,7 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 - `falcon_trace` - Configure additional traces for debugging (string, default: ***null***)
 - `falcon_feature` - Configures additional features to the sensor (list, default: ***null***)
 - `falcon_message_log` - Enable/Disable message logs (string, default: ***null***)
+  > **Deprecated:** This variable will be removed in version 5.0.0 of this collection. Linux sensors 7.21 and later do not support the message log option.
 - `falcon_billing` - Configure Falcon sensor with Pay-As-You-Go billing (string, default: ***null***)
 - `falcon_tags` - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts (string, default: ***null***)
 - `falcon_backend` - The backend to use for the Falcon Sensor `[auto|bpf|kernel]` (string, default: ***null***)
@@ -99,20 +100,20 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 >
 > View the table below for a full list of options along with their respected states:
 
-| Option                    | State |
-|---------------------------|-------|
-| falcon_cid                | S/D   |
-| falcon_provisioning_token | S/D   |
-| falcon_remove_aid         | D     |
-| falcon_apd                | S/D   |
-| falcon_aph                | S/D   |
-| falcon_app                | S/D   |
-| falcon_trace              | S/D   |
-| falcon_feature            | S     |
-| falcon_message_log        | S     |
-| falcon_billing            | S/D   |
-| falcon_tags               | S/D   |
-| falcon_backend            | S/D   |
+| Option                          | State |
+|---------------------------------|-------|
+| falcon_cid                      | S/D   |
+| falcon_provisioning_token       | S/D   |
+| falcon_remove_aid               | D     |
+| falcon_apd                      | S/D   |
+| falcon_aph                      | S/D   |
+| falcon_app                      | S/D   |
+| falcon_trace                    | S/D   |
+| falcon_feature                  | S     |
+| falcon_message_log (deprecated) | S     |
+| falcon_billing                  | S/D   |
+| falcon_tags                     | S/D   |
+| falcon_backend                  | S/D   |
 
 ## Configuring on macOS
 
@@ -325,7 +326,6 @@ This example shows how to set some of the other options:
     vars:
       falcon_tags: 'falcon,example,tags'
       falcon_billing: 'metered'
-      falcon_message_log: yes
 ```
 
 ----------
