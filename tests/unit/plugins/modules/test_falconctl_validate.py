@@ -28,10 +28,11 @@ class FakeModule(object):
                 "message_log",
                 "billing",
                 "tags",
+                "tags_list",
                 "backend",
             ]
         )
-        self.params.update(state="present", **params)
+        self.params.update(state="present", exclusive=False, **params)
 
     def get_bin_path(self, *args, **kwargs):
         return "/opt/CrowdStrike/falconctl"

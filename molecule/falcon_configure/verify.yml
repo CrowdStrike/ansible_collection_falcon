@@ -20,6 +20,77 @@
         - not info_verify.falconctl_info.app
         - not info_verify.falconctl_info.trace
 
+  - name: Sensor tags_list block
+    block:
+      - name: Test adding a tag with tags_list
+        crowdstrike.falcon.falconctl:
+          state: present
+          tags_list:
+            - tag3
+        register: tags_add
+
+      - name: Test adding the same tag again with tags_list
+        crowdstrike.falcon.falconctl:
+          state: present
+          tags_list:
+            - tag3
+        register: tags_add_again
+
+      - name: Get Falcon Sensor tags after adding a tag
+        crowdstrike.falcon.falconctl_info:
+          name: 'tags'
+        register: tags_add_info
+
+      - name: Verify tag was added and existing tags were kept
+        ansible.builtin.assert:
+          that:
+            - tags_add is changed
+            - tags_add_again is not changed
+            - tags_add_info.falconctl_info.tags.split(',') | sort == ['molecule', 'tag3', 'testing']
+
+      - name: Test removing a tag with tags_list
+        crowdstrike.falcon.falconctl:
+          state: absent
+          tags_list:
+            - tag3
+        register: tags_remove
+
+      - name: Get Falcon Sensor tags after removing a tag
+        crowdstrike.falcon.falconctl_info:
+          name: 'tags'
+        register: tags_remove_info
+
+      - name: Verify only the listed tag was removed
+        ansible.builtin.assert:
+          that:
+            - tags_remove is changed
+            - tags_remove_info.falconctl_info.tags.split(',') | sort == ['molecule', 'testing']
+
+      - name: Test setting exclusive tags with tags_list
+        crowdstrike.falcon.falconctl:
+          state: present
+          exclusive: true
+          tags_list:
+            - molecule
+        register: tags_exclusive
+
+      - name: Get Falcon Sensor tags after setting exclusive tags
+        crowdstrike.falcon.falconctl_info:
+          name: 'tags'
+        register: tags_exclusive_info
+
+      - name: Verify unlisted tags were removed
+        ansible.builtin.assert:
+          that:
+            - tags_exclusive is changed
+            - tags_exclusive_info.falconctl_info.tags == 'molecule'
+
+    always:
+      - name: Restore original Falcon Sensor tags
+        crowdstrike.falcon.falconctl:
+          state: present
+          tags: 'molecule,testing'
+
   - name: Test Setting Proxy Options
     ansible.builtin.include_role:
       name: crowdstrike.falcon.falcon_configure
