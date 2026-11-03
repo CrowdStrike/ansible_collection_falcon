@@ -102,7 +102,7 @@ options:
       - With C(state=present), the listed tags are added to the existing tags.
       - With C(state=absent), only the listed tags are removed from the existing tags.
         If no tags remain, the sensor's tags are cleared.
-      - Each tag may contain only alphanumerics, '/', '-', and '_'.
+      - Each tag can include alphanumerics and these characters C(/), C(-), C(_), C(.), and C(@).
       - Tags are case-sensitive. For example, C(web) and C(WEB) are two different tags.
       - I(The combined length of all resulting tags, including comma separators, cannot exceed 256 characters).
       - The tag change runs as a separate C(falconctl) call after any other options in the same task.
@@ -461,9 +461,9 @@ class FalconCtl(object):
             self.module.fail_json(msg="exclusive can only be used with state 'present'")
 
         for tag in params["tags_list"]:
-            if not self.__validate_regex(tag, r"^[a-zA-Z0-9\/\-_]+$"):
+            if not self.__validate_regex(tag, r"^[a-zA-Z0-9\/\-_\.@]+$"):
                 self.module.fail_json(
-                    msg="Each tag in tags_list must be one of: all alphanumerics, '/', '-', and '_', got %s"
+                    msg="Each tag in tags_list must be one of: all alphanumerics, '/', '-', '_', '.', and '@', got %s"
                     % (tag)
                 )
 

@@ -123,9 +123,18 @@ def test_exclusive_without_tags_list_fails(current_tags):
         run(FakeModule(state="present", exclusive=True))
 
 
-def test_invalid_tag_fails(current_tags):
+@pytest.mark.parametrize("tag", ["bad,tag", "bad tag", "bad;tag", 'bad"tag', ""])
+def test_invalid_tag_fails(current_tags, tag):
     with pytest.raises(FailJson, match="Each tag"):
-        run(FakeModule(state="present", tags_list=["bad,tag"]))
+        run(FakeModule(state="present", tags_list=[tag]))
+
+
+def test_tags_with_dots_and_at_are_accepted(current_tags):
+    # Same character set as the tags string option
+    current_tags["tags"] = "v1.2"
+    module = FakeModule(state="present", tags_list=["team@corp"])
+    run(module)
+    assert module.commands == [[FALCONCTL, "-s", "-f", "--tags=v1.2,team@corp"]]
 
 
 def test_resolved_tags_over_256_chars_fails(current_tags):
