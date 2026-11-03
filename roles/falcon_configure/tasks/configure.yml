@@ -106,7 +106,7 @@
         - falcon_cid != None
         - falcon_provisioning_token != None
       no_log: true
-      failed_when: falconctl_license.rc > 1
+      failed_when: falconctl_license_prov.rc > 1
       register: falconctl_license_prov
       changed_when: falconctl_license_prov.rc == 0
 

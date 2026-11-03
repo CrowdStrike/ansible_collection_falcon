@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - falcon_configure - the Windows grouping tag tasks no longer show the maintenance token in task output when ``falcon_maintenance_token`` is set.
+  - falcon_configure - fix the macOS provisioning token task, which always failed because its ``failed_when`` used the result of the skipped CID task.
