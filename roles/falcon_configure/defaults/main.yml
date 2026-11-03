@@ -114,7 +114,7 @@ falcon_message_log:
 falcon_billing:
 # Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.
 # If using tags, ensure the following requirements are met:
-#   * Tags can include these characters: a-zA-Z0-9-_/
+#   * Tags can include these characters: a-zA-Z0-9-_/ (Linux also allows . and @)
 #   * Tags can't include these characters: spaces and commas
 #   * To assign multiple tags, separate tags with commas.
 #   * The combined length of all tags for a host, including comma separators, cannot exceed 256 characters.

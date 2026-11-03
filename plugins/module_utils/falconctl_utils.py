@@ -58,8 +58,7 @@ def __get(opt):
     else:
         raise ValueError(FALCONCTL_VALUE_ERROR)
     # make sure opt is translated prior to execution
-    opt = opt.replace("_", "-")
-    cmd.append("--%s" % opt)
+    cmd.append("--%s" % opt.replace("_", "-"))
     try:
         stdout = check_output(
             cmd, universal_newlines=True, stderr=STDOUT, shell=False
@@ -67,7 +66,7 @@ def __get(opt):
     except CalledProcessError:
         stdout = ""
 
-    return format_stdout(stdout)
+    return format_stdout(stdout, opt)
 
 
 def __get_many(opts):
@@ -85,19 +84,28 @@ def _split_value(cleaned):
     return parts[1] if len(parts) > 1 else None
 
 
-def format_stdout(stdout):
-    """Formats output from falconctl"""
+def format_stdout(stdout, opt):
+    """Formats output from falconctl -g for the given option.
+
+    The parser is chosen by option name, not by searching stdout, so a value
+    that contains another option's name (e.g. a "graph-db" tag) is not parsed
+    as that option.
+    """
     # Format stdout
     if stdout == "" or "not set" in stdout:
         return None
 
     # Expect stdout in <option>=<value>
-    if "version" in stdout:
+    if opt == "version":
         output = _split_value(re.sub(r"[\"\s\n]|\(.*\)", "", stdout))
-    elif "rfm-reason" in stdout:
+    elif opt == "rfm_reason":
         output = re.sub(r"^rfm-reason=|[\"\s\n\.]|\(.*\)", "", stdout)
-    elif "aph" in stdout:
-        output = _split_value(re.sub(r"\.$\n", "", stdout))
+    elif opt == "aph":
+        output = _split_value(re.sub(r"\.?\s*$", "", stdout))
+    elif opt == "tags":
+        # Tags may contain '.', so only drop quotes, whitespace and the
+        # trailing sentence dot.
+        output = _split_value(re.sub(r"[\"\s]", "", stdout).rstrip("."))
     else:
         output = _split_value(re.sub(r"[\"\s\n\.]|\(.*\)", "", stdout))
     return output if output else None

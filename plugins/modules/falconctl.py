@@ -91,6 +91,7 @@ options:
     description:
       - Sensor grouping tags are optional, user-defined identifiers you can use to group and filter hosts.
       - To assign multiple tags, separate tags with commas.
+      - Tags can include alphanumerics and these characters C(/), C(-), C(_), C(.), and C(@).
       - I(The combined length of all tags for a host, including comma separators, cannot exceed 256 characters).
     type: str
   backend:
@@ -371,10 +372,10 @@ class FalconCtl(object):
                 )
 
         if params["tags"]:
-            valid_tags = self.__validate_regex(params["tags"], r"^[a-zA-Z0-9\/\-_\,]+$")
+            valid_tags = self.__validate_regex(params["tags"], r"^[a-zA-Z0-9\/\-_\,\.@]+$")
             if not valid_tags:
                 self.module.fail_json(
-                    msg="Value of tags must be one of: all alphanumerics, '/', '-', '_', and ',', got %s"
+                    msg="Value of tags must be one of: all alphanumerics, '/', '-', '_', '.', '@', and ',', got %s"
                     % (params["tags"])
                 )
 

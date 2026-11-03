@@ -1,0 +1,5 @@
+---
+bugfixes:
+  - falconctl_info, falconctl - parse ``falconctl -g`` output by option name, so tag values that contain ``version``, ``aph``, or ``rfm-reason`` are returned without quotes or trailing dots.
+  - falconctl_info, falconctl - keep dots inside sensor grouping tags (for example ``v1.2``) instead of removing them.
+  - falconctl - allow ``.`` and ``@`` in ``tags``, which Linux sensors accept.
