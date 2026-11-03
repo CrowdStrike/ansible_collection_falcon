@@ -138,3 +138,39 @@ def test_tags_string_still_replaces(current_tags):
     module = FakeModule(state="present", tags="tag1,tag2")
     run(module)
     assert module.commands == [[FALCONCTL, "-s", "-f", "--tags=tag1,tag2"]]
+
+
+def test_tags_cmd_failure_leaves_other_options_applied(current_tags):
+    module = FakeModule(state="present", trace="debug", tags_list=["tag1"])
+
+    def run_command(cmd, **kwargs):
+        module.commands.append(cmd)
+        if cmd[-1].startswith("--tags"):
+            return (1, "", "ERROR: simulated tags failure")
+        return (0, "", "")
+
+    module.run_command = run_command
+    with pytest.raises(FailJson, match="simulated tags failure"):
+        run(module)
+    # The trace change ran before the tags call failed
+    assert module.commands == [
+        [FALCONCTL, "-s", "-f", "--trace=debug"],
+        [FALCONCTL, "-s", "-f", "--tags=tag1"],
+    ]
+
+
+def test_before_state_reuses_tags_read_in_init(current_tags, monkeypatch):
+    current_tags["tags"] = "tag1"
+    calls = []
+
+    def get_options(opts):
+        calls.append(list(opts))
+        return {o: current_tags[o] for o in opts}
+
+    monkeypatch.setattr(falconctl, "get_options", get_options)
+    falcon = falconctl.FalconCtl(FakeModule(state="present", tags_list=["tag2"]))
+    assert falcon.get_values() == {"tags": "tag1"}
+    # Only the __init__ read; the 'after' read must query the sensor again
+    assert calls == [["tags"]]
+    assert falcon.get_values() == {"tags": "tag1"}
+    assert calls == [["tags"], ["tags"]]

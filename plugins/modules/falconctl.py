@@ -103,7 +103,10 @@ options:
       - With C(state=absent), only the listed tags are removed from the existing tags.
         If no tags remain, the sensor's tags are cleared.
       - Each tag may contain only alphanumerics, '/', '-', and '_'.
+      - Tags are case-sensitive. For example, C(web) and C(WEB) are two different tags.
       - I(The combined length of all resulting tags, including comma separators, cannot exceed 256 characters).
+      - The tag change runs as a separate C(falconctl) call after any other options in the same task.
+        If that call fails, the other options have already been applied.
       - Mutually exclusive with C(tags).
     type: list
     elements: str
@@ -257,11 +260,14 @@ class FalconCtl(object):
 
         self.current_tags = None
         self.resolved_tags = None
+        # True while self.current_tags can stand in for the 'before' tags read
+        self.cached_tags = False
         if self.params["exclusive"] and self.params["tags_list"] is None:
             self.module.fail_json(msg="exclusive requires tags_list")
         if self.params["tags_list"] is not None:
             self.validate_tags_list(self.params)
             self.current_tags = get_options(["tags"])["tags"]
+            self.cached_tags = True
             self.resolved_tags = resolve_tags(
                 self.current_tags,
                 self.params["tags_list"],
@@ -273,8 +279,8 @@ class FalconCtl(object):
                 self.resolved_tags = self.current_tags
             if self.resolved_tags and len(self.resolved_tags) > 256:
                 self.module.fail_json(
-                    msg="The combined length of all tags cannot exceed 256 characters, got %d: %s"
-                    % (len(self.resolved_tags), self.resolved_tags)
+                    msg="The combined length of all tags cannot exceed 256 characters, got %d"
+                    % len(self.resolved_tags)
                 )
 
         if self.state == "present":
@@ -432,11 +438,22 @@ class FalconCtl(object):
                 if k in FALCONCTL_GET_OPTIONS:
                     values.append(k)
 
-        if self.params["tags_list"] is not None and "tags" not in values:
+        # The first call (the 'before' state) can reuse the tags read in __init__
+        use_cached_tags = self.cached_tags
+        self.cached_tags = False
+        if (
+            self.params["tags_list"] is not None
+            and not use_cached_tags
+            and "tags" not in values
+        ):
             values.append("tags")
 
-        # get current values
-        return get_options(values)
+        # get current values; skip the call when only the cached tags are
+        # needed, because get_options([]) returns every option
+        result = {} if use_cached_tags and not values else get_options(values)
+        if use_cached_tags:
+            result["tags"] = self.current_tags
+        return result
 
     def validate_tags_list(self, params):
         """Ensure tags_list and exclusive are valid"""
