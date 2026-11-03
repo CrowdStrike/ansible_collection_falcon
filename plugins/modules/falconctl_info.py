@@ -26,6 +26,8 @@ options:
   name:
     description:
       - A list of falconctl GET options to query.
+      - C(message_log) is deprecated and will be removed in version 5.0.0 of this collection.
+        Linux sensors 7.21 and later do not support it and return C(null) for it.
     choices: [
         'cid',
         'aid',
@@ -73,7 +75,7 @@ falconctl_info:
     returned: success
     sample: {
         'cid': '53abc1234c584115a46efc25dd831a2b',
-        'message_log': 'True',
+        'billing': 'metered',
         'tags': null
     }
 """
@@ -117,6 +119,15 @@ def main():  # pylint: disable=missing-function-docstring
     # args/params passed to the execution, as well as if the module
     # supports check mode
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
+
+    # choices cannot deprecate a single value, so warn here instead.
+    if module.params["name"] and "message_log" in module.params["name"]:
+        module.deprecate(
+            "The message_log option is deprecated. Linux sensors 7.21 and later "
+            "do not support it.",
+            version="5.0.0",
+            collection_name="crowdstrike.falcon",
+        )
 
     # if the user is working with this module in only check mode we do not
     # want to make any changes to the environment, just return the current

@@ -1,0 +1,5 @@
+---
+deprecated_features:
+  - falconctl - the ``message_log`` option is deprecated and will be removed in version 5.0.0. Linux sensors 7.21 and later do not support ``--message-log``, so the module skips the option with a warning on those sensors.
+  - falconctl_info - the ``message_log`` choice of ``name`` is deprecated and will be removed in version 5.0.0, together with the ``message_log`` key in the returned ``falconctl_info``. Linux sensors 7.21 and later do not support it and return ``null`` for it.
+  - falcon_configure - the ``falcon_message_log`` variable is deprecated and will be removed in version 5.0.0.

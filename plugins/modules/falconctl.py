@@ -77,6 +77,9 @@ options:
     description:
       - Whether or not you would like to log messages to disk.
       - "Valid Options are: C('true'|'false'|'')"
+      - This option is deprecated and will be removed in version 5.0.0 of this collection.
+      - Linux sensors 7.21 and later do not support C(--message-log). On these sensors,
+        the module skips the option with a warning.
     type: str
   billing:
     description:
@@ -537,7 +540,12 @@ def main():  # pylint: disable=missing-function-docstring
             type="list",
             elements="str",
         ),
-        message_log=dict(required=False, type="str"),
+        message_log=dict(
+            required=False,
+            type="str",
+            removed_in_version="5.0.0",
+            removed_from_collection="crowdstrike.falcon",
+        ),
         billing=dict(required=False, type="str"),
         tags=dict(required=False, type="str"),
         tags_list=dict(required=False, type="list", elements="str"),
