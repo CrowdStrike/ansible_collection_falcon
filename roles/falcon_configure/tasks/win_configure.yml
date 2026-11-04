@@ -53,6 +53,7 @@
             {% else %}
             & "C:\Program Files\CrowdStrike\CsSensorSettings.exe" set --grouping-tags "{{ falcon_tags }}"
             {% endif %}
+          no_log: "{{ falcon_maintenance_token | default('', true) | length > 0 }}"
           when:
             - falcon_option_set | bool
             - (win_current_tags.output | first | default('')) != falcon_tags
@@ -66,6 +67,7 @@
             {% else %}
             & "C:\Program Files\CrowdStrike\CsSensorSettings.exe" clear --grouping-tags
             {% endif %}
+          no_log: "{{ falcon_maintenance_token | default('', true) | length > 0 }}"
           when:
             - not falcon_option_set | bool
             - (win_current_tags.output | first | default('')) | length > 0
