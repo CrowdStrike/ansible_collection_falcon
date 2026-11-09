@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "base_parser_id cannot contain version identifiers, use parser ID without version (e.g., 'my-parser' instead of 'my-parser:1.0.0')"
+      }
+    ],
+    "meta": {
+      "query_time": 3.148620331
+    },
+    "resources": null
+  },
+  "method": "create_parser_extension",
+  "status_code": 400
+}

@@ -1,0 +1,19 @@
+{
+  "body": {
+    "meta": {
+      "pagination": {
+        "limit": 100,
+        "offset": 0,
+        "total": 1
+      },
+      "query_time": 0.242357573
+    },
+    "resources": {
+      "id": "00000000000000000000000000000007",
+      "last_ingested_volume_one_day": "0 B",
+      "status": "Paused"
+    }
+  },
+  "method": "update_connection_status",
+  "status_code": 200
+}

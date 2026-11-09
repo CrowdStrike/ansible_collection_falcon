@@ -1,0 +1,116 @@
+{
+  "body": {
+    "cancelled": false,
+    "done": true,
+    "events": [
+      {
+        "@rawstring": "fixture=a",
+        "@timestamp": 1794267659040,
+        "@timestamp.nanos": "0",
+        "fixture": "a"
+      },
+      {
+        "@rawstring": "fixture=b",
+        "@timestamp": 1794267659040,
+        "@timestamp.nanos": "0",
+        "fixture": "b"
+      }
+    ],
+    "fieldStats": [],
+    "filesUsed": [],
+    "metaData": {
+      "costs": {
+        "liveCost": 0.0,
+        "liveCostRate": 0.0,
+        "staticCost": 1.0,
+        "staticCostRate": 0.0
+      },
+      "digestFlow": {
+        "ingestTimeKnownGood": 1794267614106,
+        "maxIngestLatency": 26207,
+        "minIngestTimeIncluded": 1794267614106
+      },
+      "eventCount": 2,
+      "extraData": {},
+      "filterQuery": {
+        "allowEventSkipping": false,
+        "computeFieldStats": false,
+        "end": 1794267659014,
+        "includeDeletedEvents": false,
+        "ingestEnd": 9223372036854775807,
+        "ingestStart": 0,
+        "isAlertQuery": false,
+        "isInteractive": false,
+        "isLive": false,
+        "isRepeatingSubquery": false,
+        "languageVersion": "legacy",
+        "noResultUntilDone": false,
+        "queryString": "*",
+        "showQueryEventDistribution": false,
+        "start": 1794264059014,
+        "useIngestTime": false
+      },
+      "isAggregate": true,
+      "namedFilterQueries": [],
+      "pollAfter": 1000,
+      "processedBytes": 0,
+      "processedEvents": 0,
+      "queryEnd": 1794267659014,
+      "querySpent": {
+        "day": {
+          "liveCost": 0,
+          "queryCount": 1,
+          "staticCost": 1
+        },
+        "hour": {
+          "liveCost": 0,
+          "queryCount": 1,
+          "staticCost": 1
+        },
+        "oneMinute": {
+          "liveCost": 0,
+          "queryCount": 1,
+          "staticCost": 1
+        },
+        "tenMinutes": {
+          "liveCost": 0,
+          "queryCount": 1,
+          "staticCost": 1
+        }
+      },
+      "queryStart": 1794264059014,
+      "queuedMillis": 0,
+      "quotaTotalSpent": {
+        "day": {
+          "liveCost": 0,
+          "queryCount": 2,
+          "staticCost": 3
+        },
+        "hour": {
+          "liveCost": 0,
+          "queryCount": 2,
+          "staticCost": 3
+        },
+        "oneMinute": {
+          "liveCost": 0,
+          "queryCount": 0,
+          "staticCost": 0
+        },
+        "tenMinutes": {
+          "liveCost": 0,
+          "queryCount": 0,
+          "staticCost": 0
+        }
+      },
+      "responderVHost": 8,
+      "resultBufferSize": 2,
+      "timeMillis": 702,
+      "totalWork": 1048576,
+      "warnings": [],
+      "workDone": 1048576
+    },
+    "warnings": []
+  },
+  "method": "get_search_status",
+  "status_code": 200
+}

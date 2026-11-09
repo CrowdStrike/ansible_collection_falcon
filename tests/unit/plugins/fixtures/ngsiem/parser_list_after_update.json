@@ -1,0 +1,34 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 100,
+        "offset": 0,
+        "total": 1
+      },
+      "query_time": 1.020036266
+    },
+    "resources": [
+      {
+        "ID": "00000000000000000000000000000001:1.2.0",
+        "Name": "custom-ansible-unit-fixture-parser",
+        "built_by": "User",
+        "current_version": "1.2.0",
+        "impacted_connections": false,
+        "latest_version": "1.2.0",
+        "parser_type": "custom",
+        "pass_through_alerts": false,
+        "product": [
+          "ansible"
+        ],
+        "rollback_available": false,
+        "update_available": false,
+        "vendor": "ansible",
+        "version": "1.2.0"
+      }
+    ]
+  },
+  "method": "list_parsers",
+  "status_code": 200
+}

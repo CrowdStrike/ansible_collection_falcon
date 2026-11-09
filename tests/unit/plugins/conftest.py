@@ -83,6 +83,36 @@ class FakeService(object):
         return [kwargs for method, kwargs in self.calls if method == name]
 
 
+class FakeClock(object):
+    """A stand-in for the time module in a plugin that polls.
+
+    sleep() moves the clock forward and does not wait.
+    """
+
+    def __init__(self):
+        self.now = 1000.0
+        self.sleeps = []
+
+    def time(self):
+        return self.now
+
+    def sleep(self, seconds):
+        self.sleeps.append(seconds)
+        self.now += seconds
+
+
+@pytest.fixture
+def fake_clock(monkeypatch):
+    """Return a function that puts a FakeClock in a plugin as its time module."""
+
+    def make(plugin):
+        clock = FakeClock()
+        monkeypatch.setattr(plugin, "time", clock)
+        return clock
+
+    return make
+
+
 @pytest.fixture
 def fixture():
     """Return a function that loads a recorded response by name.

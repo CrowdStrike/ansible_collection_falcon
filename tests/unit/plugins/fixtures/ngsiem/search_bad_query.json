@@ -1,0 +1,13 @@
+{
+  "method": "start_search",
+  "resources": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "```\nExpected an expression. (Error: ExpectedExpression)\n 1: | | not a query (\n      ^\nUnexpected end of query. (Error: UnexpectedEof)\n 1: | | not a query (\n                     ^\n```"
+      }
+    ],
+    "resources": []
+  },
+  "status_code": 400
+}

@@ -1,0 +1,13 @@
+{
+  "body": {
+    "meta": {
+      "query_time": 0.314830699
+    },
+    "resources": {
+      "id": "00000000000000000000000000000003:1.1.0",
+      "name": "custom-ansible-unit-fixture-clone"
+    }
+  },
+  "method": "clone_parser",
+  "status_code": 200
+}

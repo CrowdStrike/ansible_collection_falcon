@@ -556,9 +556,275 @@ def record_correlation_rule(rec, creds):
         cleanup()
 
 
+PARSER_YAML = """$schema: https://schemas.humio.com/parser/v0.3.0
+name: {name}
+fieldsToBeRemovedBeforeParsing: []
+testCases: []
+script: |-
+  parseJson()
+  | Cps.version := "1.0.0"
+  | Vendor := "ansible"
+  | ecs.version := "9.0.0"
+  | event.dataset := "ansible.{dataset}"
+  | event.kind := "event"
+  | event.module := "ansible"
+  | event.outcome := "success"
+  | observer.type := "test"
+tagFields:
+  - Cps.version
+  - Vendor
+  - ecs.version
+  - event.dataset
+  - event.kind
+  - event.module
+  - event.outcome
+  - observer.type
+"""
+
+
+def record_ngsiem(rec, creds):
+    """Record the NGSIEM calls used by the ngsiem_* modules.
+
+    Searches use only synthetic events from createEvents() and a query that
+    finds nothing, so no real event data is recorded.
+    """
+    import time
+
+    from falconpy import NGSIEM, APIHarnessV2
+
+    falcon = NGSIEM(**creds)
+    uber = APIHarnessV2(**creds)
+    repo = "parsers-repository"
+    parser_name = "%s-parser" % PREFIX
+    clone_name = "%s-clone" % PREFIX
+    ext_name = "%s-ext" % PREFIX
+    connection_name = "%s-connection" % PREFIX
+    hec_connector = "a1bfd0c4380f436790cb41afc2b95f38"
+
+    def parser_id_of(response):
+        data = (response.get("body") or {}).get("resources")
+        # Same shapes as ngsiem_parser._extract_parser_id: a dict for clone,
+        # and a list of dicts or of ID strings for the other calls.
+        if isinstance(data, dict):
+            return data.get("id")
+        if data:
+            return data[0].get("id") if isinstance(data[0], dict) else data[0]
+        return None
+
+    def cleanup():
+        if rec.dry_run:
+            return
+        listed = falcon.list_parsers(repository=repo, filter="name:~'%s'" % PREFIX, limit=100)
+        for parser in resources(listed):
+            # The API adds a 'custom-' prefix to custom parser names.
+            if PREFIX in parser.get("Name", ""):
+                falcon.delete_parser(ids=parser["ID"], repository=repo)
+        listed = falcon.list_data_connections(filter="name:'%s'" % connection_name, limit=10)
+        for connection in resources(listed):
+            falcon.delete_data_connection(ids=connection["id"])
+
+    if rec.cleanup_only:
+        cleanup()
+        return
+
+    cleanup()
+    try:
+        # Parsers
+        created = rec.call(
+            "parser_create", "create_parser_from_template", falcon.create_parser_from_template,
+            repository=repo, name=parser_name,
+            yaml_template=PARSER_YAML.format(name=parser_name, dataset="fixture"),
+        )
+        parser_id = parser_id_of(created) or "0" * 32
+        rec.call(
+            "parser_list_by_name", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'%s'" % parser_name, limit=100,
+        )
+        rec.call(
+            "parser_list_missing", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'%s-missing'" % PREFIX, limit=100,
+        )
+        rec.call(
+            "parser_list_bad_filter", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'", limit=100,
+        )
+        rec.call(
+            "parser_template", "get_parser_template", falcon.get_parser_template,
+            ids=parser_id, repository=repo,
+        )
+        rec.call("parser_get", "get_parser", falcon.get_parser, ids=parser_id, repository=repo)
+        created_id = parser_id
+        updated = rec.call(
+            "parser_update", "update_parser_from_template", falcon.update_parser_from_template,
+            ids=parser_id, repository=repo,
+            yaml_template=PARSER_YAML.format(name=parser_name, dataset="fixture.updated"),
+        )
+        parser_id = parser_id_of(updated) or parser_id
+        rec.call(
+            "parser_get_created_id_after_update", "get_parser", falcon.get_parser,
+            ids=created_id, repository=repo,
+        )
+        rec.call(
+            "parser_list_after_update", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'%s'" % parser_name, limit=100,
+        )
+        rec.call(
+            "parser_template_after_update", "get_parser_template", falcon.get_parser_template,
+            ids=created_id, repository=repo,
+        )
+        rec.call(
+            "parser_get_after_update", "get_parser", falcon.get_parser, ids=parser_id, repository=repo,
+        )
+        clone = rec.call(
+            "parser_clone", "clone_parser", falcon.clone_parser,
+            source_id=parser_id, new_name=clone_name,
+        )
+        clone_id = parser_id_of(clone)
+        rec.call(
+            "parser_get_clone", "get_parser", falcon.get_parser, ids=clone_id, repository=repo,
+        )
+        base = resources(falcon.list_parsers(
+            repository=repo, filter="name:~'microsoft-edge'", parser_type="ootb", limit=10,
+        )) if not rec.dry_run else []
+        base_id = next((p["ID"] for p in base if p.get("Name") == "microsoft-edge"), "0" * 32)
+        # create_parser_extension refuses a base ID with a version suffix.
+        rec.call(
+            "parser_extension_versioned_base", "create_parser_extension", falcon.create_parser_extension,
+            base_parser_id=base_id, extension_name=ext_name,
+        )
+        base_id = base_id.split(":")[0]
+        rec.call(
+            "parser_extension", "create_parser_extension", falcon.create_parser_extension,
+            base_parser_id=base_id, extension_name=ext_name,
+        )
+        rec.call(
+            "parser_info_page", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'%s'" % PREFIX, parser_type="custom", limit=2, offset=0,
+        )
+        rec.call("parser_delete", "delete_parser", falcon.delete_parser, ids=parser_id, repository=repo)
+        rec.call(
+            "parser_delete_missing", "delete_parser", falcon.delete_parser, ids=parser_id, repository=repo,
+        )
+
+        # Data connectors and connections
+        rec.call(
+            "connectors_page", "list_data_connectors", falcon.list_data_connectors, limit=2, offset=0,
+        )
+        rec.call(
+            "connectors_push", "list_data_connectors", falcon.list_data_connectors,
+            filter="type:'PUSH'", limit=2, offset=0,
+        )
+        rec.call(
+            "connectors_bad_filter", "list_data_connectors", falcon.list_data_connectors,
+            filter="type:'", limit=2,
+        )
+        body = {
+            "name": connection_name, "connector_id": hec_connector, "parser": "microsoft-edge",
+            "vendor_name": "Ansible", "vendor_product_name": "UnitFixture",
+        }
+        created = rec.call(
+            "connection_create", "create_data_connection", falcon.create_data_connection, body=body,
+        )
+        connection_id = (resources(created) or [{"id": "0" * 32}])[0]["id"]
+        rec.call(
+            "connection_get", "get_connection_by_id", falcon.get_connection_by_id, ids=[connection_id],
+        )
+        rec.call(
+            "connection_list_by_name", "list_data_connections", falcon.list_data_connections,
+            filter="name:'%s'" % connection_name, limit=1,
+        )
+        rec.call(
+            "connection_list_missing", "list_data_connections", falcon.list_data_connections,
+            filter="name:'%s-missing'" % PREFIX, limit=1,
+        )
+        rec.call(
+            "connection_list_bad_filter", "list_data_connections", falcon.list_data_connections,
+            filter="name:'", limit=1,
+        )
+        rec.call(
+            "connection_status_new", "get_provisioning_status", falcon.get_provisioning_status,
+            ids=connection_id,
+        )
+        token = rec.call(
+            "token_first", "command:ExternalGetDataConnectionToken", uber.command,
+            action="ExternalGetDataConnectionToken", ids=connection_id,
+        )
+        deadline = time.time() + 180
+        while not rec.dry_run and token.get("status_code") == 202 and time.time() < deadline:
+            time.sleep(5)
+            token = rec.call(
+                "token_ready", "command:ExternalGetDataConnectionToken", uber.command,
+                action="ExternalGetDataConnectionToken", ids=connection_id,
+            )
+        rec.call(
+            "token_again", "command:ExternalGetDataConnectionToken", uber.command,
+            action="ExternalGetDataConnectionToken", ids=connection_id,
+        )
+        rec.call(
+            "connection_update", "update_data_connection", falcon.update_data_connection,
+            parameters={"ids": connection_id}, body=dict(body, parser="microsoft-edge"),
+        )
+        status = rec.call(
+            "connection_status", "get_provisioning_status", falcon.get_provisioning_status,
+            ids=connection_id,
+        )
+        if (resources(status) or [{}])[0].get("status") in ("Active", "Error", "Idle"):
+            rec.call(
+                "connection_pause", "update_connection_status", falcon.update_connection_status,
+                ids=connection_id, status="Pause",
+            )
+            rec.call(
+                "connection_status_paused", "get_provisioning_status", falcon.get_provisioning_status,
+                ids=connection_id,
+            )
+            rec.call(
+                "connection_resume", "update_connection_status", falcon.update_connection_status,
+                ids=connection_id, status="Resume",
+            )
+        rec.call(
+            "connection_delete", "delete_data_connection", falcon.delete_data_connection,
+            ids=connection_id,
+        )
+        rec.call(
+            "connection_get_missing", "get_connection_by_id", falcon.get_connection_by_id,
+            ids=[connection_id],
+        )
+
+        # Searches (synthetic events only)
+        for case, query in (
+            ("search", 'createEvents(["fixture=a", "fixture=b"]) | kvParse()'),
+            ("search_empty", "#event_simpleName=AnsibleUnitFixtureNoSuchEvent | head(1)"),
+        ):
+            started = rec.call(
+                case + "_start", "start_search", falcon.start_search,
+                repository="search-all", query_string=query, start="1h",
+            )
+            job_id = (started.get("resources") or {}).get("id", "0")
+            status = rec.call(
+                case + "_status", "get_search_status", falcon.get_search_status,
+                repository="search-all", search_id=job_id,
+            )
+            deadline = time.time() + 120
+            while not rec.dry_run and not (status.get("body") or {}).get("done") and time.time() < deadline:
+                time.sleep(5)
+                status = rec.call(
+                    case + "_done", "get_search_status", falcon.get_search_status,
+                    repository="search-all", search_id=job_id,
+                )
+            # A fast search can be done on the first status call.
+            rec.files.setdefault(case + "_done", rec.files.get(case + "_status"))
+        rec.call(
+            "search_bad_query", "start_search", falcon.start_search,
+            repository="search-all", query_string="| | not a query (", start="1h",
+        )
+    finally:
+        cleanup()
+
+
 SCENARIOS = {
     "correlation_rule": record_correlation_rule,
     "host_group": record_host_group,
+    "ngsiem": record_ngsiem,
     "sensor_update_policy": record_sensor_update_policy,
 }
 

@@ -1,0 +1,13 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.233259189
+    },
+    "resources": [
+      "00000000000000000000000000000001:1.2.0:1.2.0"
+    ]
+  },
+  "method": "update_parser_from_template",
+  "status_code": 200
+}
