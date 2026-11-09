@@ -34,8 +34,24 @@
   delay: "{{ falcon_windows_install_delay }}"
   until: falcon_installed is success
 
+# The installer package can stay locked for a short time after the install,
+# so the delete can fail with "Access is denied". Retry, then warn instead
+# of fail.
 - name: CrowdStrike Falcon | Remove tmp install directory (Windows)
   ansible.windows.win_file:
     path: "{{ falcon_windows_tmp_dir_stat.stat.path }}"
     state: absent
+  register: falcon_windows_tmp_dir_removed
+  until: falcon_windows_tmp_dir_removed is success
+  retries: 18
+  delay: 10
+  ignore_errors: true
   changed_when: false
+
+- name: CrowdStrike Falcon | Warn if tmp install directory was not removed (Windows)
+  ansible.builtin.debug:
+    msg: >-
+      Could not remove {{ falcon_windows_tmp_dir_stat.stat.path }}:
+      {{ falcon_windows_tmp_dir_removed.msg | default('unknown error') }}
+      The sensor installer is probably still running. Remove the directory manually later.
+  when: falcon_windows_tmp_dir_removed is failed

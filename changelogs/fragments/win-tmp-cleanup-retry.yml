@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - falcon_install - retry the removal of the Windows temporary install directory, and show a warning instead of a failure when the directory cannot be removed. The installer package can stay locked for a short time after the install, so the delete failed with ``Access to the path ... is denied`` and stopped the play.
