@@ -36,9 +36,14 @@
             script: |
               $regPath = 'HKLM:\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\{16e0423f-7058-48c9-a204-725362b67639}\Default'
               try {
-                $bytes = (Get-ItemProperty -Path $regPath -ErrorAction Stop).GroupingTags
-                if ($bytes) {
-                  [System.Text.Encoding]::Unicode.GetString($bytes).TrimEnd([char]0)
+                $value = (Get-ItemProperty -Path $regPath -ErrorAction Stop).GroupingTags
+                # The sensor can store GroupingTags as REG_BINARY (UTF-16LE) or REG_SZ
+                if ($value -is [byte[]]) {
+                  [System.Text.Encoding]::Unicode.GetString($value).TrimEnd([char]0)
+                } elseif ($value -is [string[]]) {
+                  ($value -join ',').TrimEnd([char]0)
+                } elseif ($value) {
+                  ([string]$value).TrimEnd([char]0)
                 }
               } catch {
                 # No tags configured or registry key doesn't exist

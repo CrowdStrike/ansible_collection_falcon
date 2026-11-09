@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - falcon_configure - read the current Windows grouping tags correctly when the sensor stores the ``GroupingTags`` registry value as a string (``REG_SZ``) instead of binary. Before this fix, the role always set the tags again and could not clear them (https://github.com/CrowdStrike/ansible_collection_falcon/issues/726).
