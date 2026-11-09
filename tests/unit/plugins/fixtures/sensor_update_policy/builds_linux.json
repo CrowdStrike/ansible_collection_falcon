@@ -1,0 +1,96 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.020927524
+    },
+    "resources": [
+      {
+        "build": "19403|n-1|tagged|5",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "8.10.19403",
+        "stage": "prod"
+      },
+      {
+        "build": "19312|n-2|tagged|6",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "7.40.19312",
+        "stage": "prod"
+      },
+      {
+        "build": "19508|n|tagged|21",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "8.11.19508",
+        "stage": "prod"
+      },
+      {
+        "build": "19004",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "7.37.19004",
+        "stage": "prod"
+      },
+      {
+        "build": "19102",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "7.38.19102 (LTS)",
+        "stage": "prod"
+      },
+      {
+        "build": "19203",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "7.39.19203",
+        "stage": "prod"
+      },
+      {
+        "build": "19204",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "7.39.19204",
+        "stage": "prod"
+      },
+      {
+        "build": "19105",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "7.38.19105 (LTS)",
+        "stage": "prod"
+      },
+      {
+        "build": "19312",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "7.40.19312",
+        "stage": "prod"
+      },
+      {
+        "build": "19403",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "8.10.19403",
+        "stage": "prod"
+      },
+      {
+        "build": "19508",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "8.11.19508",
+        "stage": "prod"
+      },
+      {
+        "build": "19106",
+        "is_lts_build": false,
+        "platform": "Linux",
+        "sensor_version": "7.38.19106 (LTS)",
+        "stage": "prod"
+      }
+    ]
+  },
+  "method": "query_combined_builds",
+  "status_code": 200
+}

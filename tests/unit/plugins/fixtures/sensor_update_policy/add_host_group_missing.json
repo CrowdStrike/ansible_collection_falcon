@@ -1,0 +1,11 @@
+{
+  "body": {
+    "errors": null,
+    "meta": {
+      "query_time": 0.117170064
+    },
+    "resources": null
+  },
+  "method": "perform_policies_action",
+  "status_code": 200
+}

@@ -288,8 +288,126 @@ def record_host_group(rec, creds):
         cleanup()
 
 
+def record_sensor_update_policy(rec, creds):
+    """Record the SensorUpdatePolicy calls used by the sensor update modules and the maintenance_token lookup."""
+    from falconpy import SensorUpdatePolicy
+
+    falcon = SensorUpdatePolicy(**creds)
+    names = ["%s-%s" % (PREFIX, suffix) for suffix in ("a", "b", "c")]
+    name_filter = "name.raw:[%s]+platform_name:'Linux'" % ",".join("'%s'" % name for name in names)
+    scheduler = {
+        "enabled": True,
+        "timezone": "Etc/UTC",
+        "schedules": [{"start": "08:00", "end": "14:00", "days": [1, 2, 3, 4, 5]}],
+    }
+    missing_id = "f" * 32
+
+    def cleanup():
+        if rec.dry_run:
+            return
+        for policy in resources(falcon.query_combined_policies_v2(filter=name_filter)):
+            if policy.get("enabled"):
+                falcon.perform_policies_action(action_name="disable", ids=[policy["id"]])
+            falcon.delete_policies(ids=[policy["id"]])
+
+    builds = rec.call(
+        "builds_linux", "query_combined_builds", falcon.query_combined_builds,
+        platform="linux", stage="prod",
+    )
+    build = (resources(builds) or [{"build": "00000|n|tagged|1"}])[0]["build"]
+    rec.call(
+        "builds_bad_platform", "query_combined_builds", falcon.query_combined_builds,
+        platform="not-a-platform",
+    )
+
+    kernels = rec.call(
+        "kernels_page", "query_combined_kernels", falcon.query_combined_kernels, limit=2,
+    )
+    release = (resources(kernels) or [{"release": "0"}])[0]["release"]
+    rec.call(
+        "kernels_filtered", "query_combined_kernels", falcon.query_combined_kernels,
+        filter="release:'%s'" % release, offset=None, limit=500,
+    )
+
+    rec.call(
+        "token_bulk", "reveal_uninstall_token", falcon.reveal_uninstall_token,
+        audit_message="Ansible unit test fixture recording", device_id="MAINTENANCE",
+    )
+    rec.call(
+        "token_missing_device", "reveal_uninstall_token", falcon.reveal_uninstall_token,
+        audit_message="Ansible unit test fixture recording", device_id=missing_id,
+    )
+
+    def policy_body(name, **settings):
+        policy = {"name": name, "platform_name": "Linux", "description": "Fixture policy"}
+        if settings:
+            policy["settings"] = settings
+        return {"resources": [policy]}
+
+    cleanup()
+    try:
+        created = rec.call(
+            "create", "create_policies_v2", falcon.create_policies_v2,
+            body=policy_body(names[0], build=build, uninstall_protection="DISABLED", scheduler=scheduler),
+        )
+        policy_id = (resources(created) or [{"id": "0" * 32}])[0]["id"]
+        for name in names[1:]:
+            if not rec.dry_run:
+                falcon.create_policies_v2(body=policy_body(name))
+        rec.call(
+            "create_duplicate", "create_policies_v2", falcon.create_policies_v2,
+            body=policy_body(names[0]),
+        )
+        rec.call("get_one", "get_policies_v2", falcon.get_policies_v2, ids=[policy_id])
+        rec.call(
+            "query_by_name", "query_combined_policies_v2", falcon.query_combined_policies_v2,
+            filter="name.raw:'%s'+platform_name:'Linux'" % names[0], limit=1,
+        )
+        rec.call(
+            "query_by_name_missing", "query_combined_policies_v2", falcon.query_combined_policies_v2,
+            filter="name.raw:'%s-missing'+platform_name:'Linux'" % PREFIX, limit=1,
+        )
+        page1 = rec.call(
+            "query_page1", "query_combined_policies_v2", falcon.query_combined_policies_v2,
+            filter=name_filter, offset=None, limit=2,
+        )
+        next_offset = ((page1.get("body") or {}).get("meta") or {}).get("pagination", {}).get("offset", 2)
+        rec.call(
+            "query_page2", "query_combined_policies_v2", falcon.query_combined_policies_v2,
+            filter=name_filter, offset=next_offset, limit=2,
+        )
+        rec.call(
+            "query_bad_filter", "query_combined_policies_v2", falcon.query_combined_policies_v2,
+            filter="name.raw:'", limit=1,
+        )
+        rec.call(
+            "update_description", "update_policies_v2", falcon.update_policies_v2,
+            body={"resources": [{"id": policy_id, "description": "Fixture policy, updated"}]},
+        )
+        rec.call("get_after_update", "get_policies_v2", falcon.get_policies_v2, ids=[policy_id])
+        rec.call(
+            "enable", "perform_policies_action", falcon.perform_policies_action,
+            action_name="enable", ids=[policy_id],
+        )
+        rec.call("get_after_enable", "get_policies_v2", falcon.get_policies_v2, ids=[policy_id])
+        rec.call(
+            "add_host_group_missing", "perform_policies_action", falcon.perform_policies_action,
+            action_name="add-host-group", ids=[policy_id],
+            action_parameters=[{"name": "group_id", "value": missing_id}],
+        )
+        rec.call(
+            "disable", "perform_policies_action", falcon.perform_policies_action,
+            action_name="disable", ids=[policy_id],
+        )
+        rec.call("delete", "delete_policies", falcon.delete_policies, ids=[policy_id])
+        rec.call("get_missing", "get_policies_v2", falcon.get_policies_v2, ids=[policy_id])
+    finally:
+        cleanup()
+
+
 SCENARIOS = {
     "host_group": record_host_group,
+    "sensor_update_policy": record_sensor_update_policy,
 }
 
 

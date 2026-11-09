@@ -1,0 +1,17 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.012960312
+    },
+    "resources": [
+      {
+        "device_id": "00000000000000000000000000000003",
+        "seed_id": 101,
+        "uninstall_token": "REDACTED"
+      }
+    ]
+  },
+  "method": "reveal_uninstall_token",
+  "status_code": 200
+}
