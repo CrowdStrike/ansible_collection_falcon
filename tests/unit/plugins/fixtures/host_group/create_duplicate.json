@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 409,
+        "message": "Duplicate group name ansible-unit-fixture-a."
+      }
+    ],
+    "meta": {
+      "query_time": 0.085794346
+    },
+    "resources": null
+  },
+  "method": "create_host_groups",
+  "status_code": 409
+}

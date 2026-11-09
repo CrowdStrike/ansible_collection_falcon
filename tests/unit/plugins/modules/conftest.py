@@ -37,6 +37,32 @@ def _module_args(args):
             yield
 
 
+def _reset_warnings(monkeypatch):
+    # Deprecations and warnings are kept in module-level state, so start
+    # each test with empty ones.
+    monkeypatch.setattr(
+        warnings, "_global_deprecations", type(warnings._global_deprecations)()
+    )
+    monkeypatch.setattr(
+        warnings, "_global_warnings", type(warnings._global_warnings)()
+    )
+
+
+@pytest.fixture
+def run_module(monkeypatch, capsys):
+    """Return a function that runs module.main() and returns its JSON result."""
+    _reset_warnings(monkeypatch)
+
+    def run(module, args, check_mode=False):
+        if check_mode:
+            args = dict(args, _ansible_check_mode=True)
+        with _module_args(args), pytest.raises(SystemExit):
+            module.main()
+        return json.loads(capsys.readouterr().out)
+
+    return run
+
+
 class FakeSensor(object):
     """A stateful stand-in for falconctl.
 
@@ -45,12 +71,12 @@ class FakeSensor(object):
     twice to check idempotence.
     """
 
-    def __init__(self, capsys):
+    def __init__(self, run_module):
         self.options = {}
         self.commands = []
         # stderr for the next 'falconctl -s/-d' calls, e.g. an error message
         self.stderr = ""
-        self._capsys = capsys
+        self._run_module = run_module
 
     def get(self, cmd, **kwargs):
         opt = cmd[2][2:]
@@ -83,26 +109,13 @@ class FakeSensor(object):
     def run(self, module, args, check_mode=False):
         """Run module.main() and return its JSON result."""
         self.commands = []
-        if check_mode:
-            args = dict(args, _ansible_check_mode=True)
-        with _module_args(args), pytest.raises(SystemExit):
-            module.main()
-        return json.loads(self._capsys.readouterr().out)
+        return self._run_module(module, args, check_mode)
 
 
 @pytest.fixture
-def fake_sensor(monkeypatch, capsys):
+def fake_sensor(monkeypatch, run_module):
     """Patch falconctl execution and return the FakeSensor."""
-    # Deprecations and warnings are kept in module-level state, so start
-    # each test with empty ones.
-    monkeypatch.setattr(
-        warnings, "_global_deprecations", type(warnings._global_deprecations)()
-    )
-    monkeypatch.setattr(
-        warnings, "_global_warnings", type(warnings._global_warnings)()
-    )
-
-    sensor = FakeSensor(capsys)
+    sensor = FakeSensor(run_module)
 
     monkeypatch.setattr(falconctl_utils, "check_output", sensor.get)
     monkeypatch.setattr(falconctl_utils, "_FALCONCTL", FALCONCTL, raising=False)

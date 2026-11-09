@@ -1,0 +1,22 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.027306628
+    },
+    "resources": [
+      {
+        "created_by": "api-client-id:fixture-client-2",
+        "created_timestamp": "2026-11-09T20:24:09.045928193Z",
+        "description": "Fixture group, updated",
+        "group_type": "static",
+        "id": "00000000000000000000000000000001",
+        "modified_by": "api-client-id:fixture-client-2",
+        "modified_timestamp": "2026-11-09T20:24:20.75022406Z",
+        "name": "ansible-unit-fixture-a"
+      }
+    ]
+  },
+  "method": "get_host_groups",
+  "status_code": 200
+}

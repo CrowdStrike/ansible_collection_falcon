@@ -1,0 +1,23 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 1.63314387
+    },
+    "resources": [
+      {
+        "assignment_rule": "tags:'SensorGroupingTags/tag1'",
+        "created_by": "api-client-id:fixture-client-2",
+        "created_timestamp": "2026-11-09T20:24:14.785705043Z",
+        "description": "",
+        "group_type": "dynamic",
+        "id": "00000000000000000000000000000003",
+        "modified_by": "api-client-id:fixture-client-2",
+        "modified_timestamp": "2026-11-09T20:24:14.785705043Z",
+        "name": "ansible-unit-fixture-dynamic"
+      }
+    ]
+  },
+  "method": "create_host_groups",
+  "status_code": 201
+}

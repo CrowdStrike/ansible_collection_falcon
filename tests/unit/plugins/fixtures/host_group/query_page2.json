@@ -1,0 +1,27 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "offset": 3,
+        "total": 3
+      },
+      "query_time": 0.034392373
+    },
+    "resources": [
+      {
+        "created_by": "api-client-id:fixture-client-2",
+        "created_timestamp": "2026-11-09T20:24:12.979992927Z",
+        "description": "",
+        "group_type": "static",
+        "id": "00000000000000000000000000000005",
+        "modified_by": "api-client-id:fixture-client-2",
+        "modified_timestamp": "2026-11-09T20:24:12.979992927Z",
+        "name": "ansible-unit-fixture-c"
+      }
+    ]
+  },
+  "method": "query_combined_host_groups",
+  "status_code": 200
+}
