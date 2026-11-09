@@ -251,17 +251,18 @@ ansible-rulebook -i inventory -r crowdstrike.falcon.event_stream_example -E FALC
 [![YAML Lint](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/yamllint.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/yamllint.yml)
 [![Python Lint](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/linting.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/linting.yml)
 
-The CrowdStrike Falcon Ansible collection uses automated testing through Molecule integrated with GitHub Actions. Tests are executed automatically every night, ensuring continuous validation of:
+CI runs on every pull request and does not use Falcon API credentials:
 
-- All built-in roles and their functionality
-- Multiple deployment scenarios
-- Compatibility across supported operating systems
+- `ansible-test sanity` and `ansible-test units` on several ansible-core versions, from the oldest supported (2.16) to `devel`
+- A Python 2.7 compile check for the modules that run on managed nodes (`falconctl`, `falconctl_info`)
+- `ansible-lint`, `yamllint`, and Python linting
 
-This automated testing pipeline helps maintain collection reliability and quickly identifies potential issues across different environments and use cases.
+Tests that need a Falcon tenant run locally with your own API credentials. The live API module tests are in `tests/integration/targets`. Run them with `tests/integration/run.py`:
 
-To learn more about how we use Molecule, check out the [molecule](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/molecule/) directory.
-
-Nightly Results: [Actions](https://github.com/CrowdStrike/ansible_collection_falcon/actions)
+```shell
+uv run tests/integration/run.py --list
+uv run tests/integration/run.py ngsiem_parser
+```
 
 ## Contributing
 
