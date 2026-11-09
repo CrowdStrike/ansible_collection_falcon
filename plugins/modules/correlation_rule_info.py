@@ -333,7 +333,7 @@ def main():
             query_result = get_rules_by_ids(falcon, module.params["rule_ids"])
 
             if query_result["status_code"] == 200:
-                correlation_rules = query_result["body"]["resources"]
+                correlation_rules = query_result["body"]["resources"] or []
 
                 result["meta"] = {
                     "query_time": time.time() - start_time,
@@ -347,17 +347,18 @@ def main():
             query_result = search_rules(falcon, module)
 
             if query_result["status_code"] == 200:
-                correlation_rules = query_result["body"]["resources"]
+                correlation_rules = query_result["body"]["resources"] or []
 
                 meta = query_result["body"].get("meta", {})
+                total = meta.get("pagination", {}).get("total")
+                if total is None:
+                    total = len(correlation_rules)
                 result["meta"] = {
                     "query_time": time.time() - start_time,
                     "pagination": {
                         "offset": module.params["offset"],
                         "limit": module.params["limit"],
-                        "total": meta.get("pagination", {}).get(
-                            "total", len(correlation_rules)
-                        ),
+                        "total": total,
                     },
                 }
 

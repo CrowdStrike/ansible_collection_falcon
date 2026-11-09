@@ -59,17 +59,14 @@ def test_second_page(api, run_module):
     assert result["meta"]["pagination"]["total"] == 3
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="A search with no match returns resources: null, and the total "
-    "fallback calls len(None) before .get() can use the API total.",
-)
 def test_empty_result(api, run_module):
+    # A search with no match returns resources: null.
     api(query_combined_host_groups=["query_by_name_missing"])
 
     result = run_module(host_group_info, {"filter": "name:'missing'"})
 
     assert not result.get("failed"), result.get("msg")
+    assert result["host_groups"] == []
     assert result["meta"]["pagination"]["total"] == 0
 
 
@@ -85,8 +82,8 @@ def test_include_members_queries_each_group(api, run_module):
     assert service.called("query_combined_group_members") == [
         {"id": group_id, "limit": 5000} for group_id in group_ids
     ]
-    # An empty group has resources: null, which is returned as is.
-    assert [g["members"] for g in result["host_groups"]] == [None, None]
+    # An empty group has resources: null, which is returned as an empty list.
+    assert [g["members"] for g in result["host_groups"]] == [[], []]
 
 
 def test_api_error_fails_with_message(api, run_module):

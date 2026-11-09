@@ -310,7 +310,7 @@ def main():
             query_result = get_connections_by_ids(falcon, module.params["connection_ids"])
 
             if query_result["status_code"] == 200:
-                data_connections = query_result["body"]["resources"]
+                data_connections = query_result["body"]["resources"] or []
 
                 result["meta"] = {
                     "query_time": time.time() - start_time,
@@ -324,17 +324,18 @@ def main():
             query_result = search_connections(falcon, module)
 
             if query_result["status_code"] == 200:
-                data_connections = query_result["body"]["resources"]
+                data_connections = query_result["body"]["resources"] or []
 
                 meta = query_result["body"].get("meta", {})
+                total = meta.get("pagination", {}).get("total")
+                if total is None:
+                    total = len(data_connections)
                 result["meta"] = {
                     "query_time": time.time() - start_time,
                     "pagination": {
                         "offset": module.params["offset"],
                         "limit": module.params["limit"],
-                        "total": meta.get("pagination", {}).get(
-                            "total", len(data_connections)
-                        ),
+                        "total": total,
                     },
                 }
 

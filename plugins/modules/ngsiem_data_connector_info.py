@@ -252,17 +252,18 @@ def main():
         query_result = search_connectors(falcon, module)
 
         if query_result["status_code"] == 200:
-            data_connectors = query_result["body"]["resources"]
+            data_connectors = query_result["body"]["resources"] or []
 
             meta = query_result["body"].get("meta", {})
+            total = meta.get("pagination", {}).get("total")
+            if total is None:
+                total = len(data_connectors)
             result["meta"] = {
                 "query_time": time.time() - start_time,
                 "pagination": {
                     "offset": module.params["offset"],
                     "limit": module.params["limit"],
-                    "total": meta.get("pagination", {}).get(
-                        "total", len(data_connectors)
-                    ),
+                    "total": total,
                 },
             }
 

@@ -123,7 +123,8 @@ def handle_return_errors(module, result, query_result):
     if "errors" in query_result["body"]:
         result["errors"] = query_result["body"]["errors"]
 
-        if len(result["errors"]) > 0:
+        # The API returns errors: null for some empty results
+        if result["errors"]:
             msg = result["errors"][0]["message"]
             if not msg:
                 msg = "An unknown error occurred."
