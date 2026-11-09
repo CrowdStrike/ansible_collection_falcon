@@ -63,11 +63,9 @@ class FakeService(object):
                 raise response
             return response
         # Plugins may change the response, so each call gets its own copy.
-        return {
-            "status_code": response["status_code"],
-            "headers": {},
-            "body": copy.deepcopy(response["body"]),
-        }
+        result = {k: copy.deepcopy(v) for k, v in response.items() if k != "method"}
+        result.setdefault("headers", {})
+        return result
 
     def override(self, method, route, **kwargs):
         return self._respond("override:%s %s" % (method, route), kwargs)

@@ -1,0 +1,21 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "could not parse filter: unexpected 0: unexpected EOF near name"
+      }
+    ],
+    "meta": {
+      "pagination": {
+        "limit": 0,
+        "offset": 0,
+        "total": 0
+      },
+      "query_time": 0.004039972
+    },
+    "resources": []
+  },
+  "method": "get_rules_combined",
+  "status_code": 400
+}

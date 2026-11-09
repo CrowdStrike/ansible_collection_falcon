@@ -77,6 +77,7 @@ HOST_KEYS = {
     "pod_namespace",
     "pod_hostname",
 }
+URL_KEYS = {"ingest_url"}
 DROP_KEYS = {"trace_id", "powered_by"}
 
 
@@ -146,6 +147,9 @@ class Sanitizer:
         key = key.lower()
         if key in TOKEN_KEYS:
             return "REDACTED" if value else value
+        if key in URL_KEYS and value:
+            # The host name can identify the tenant; keep only the path.
+            return "https://ingest.example.com/" + value.split("://", 1)[-1].partition("/")[2]
         if key in HOST_KEYS:
             return self._fake("host", value, lambda n: "host%d" % n) if value else value
         if "mac_address" in key:
@@ -183,20 +187,21 @@ class Sanitizer:
 class Recorder:
     """Collect sanitized responses for one service."""
 
-    def __init__(self, service, sanitizer, dry_run):
+    def __init__(self, service, sanitizer, dry_run, wait=2700, cleanup_only=False):
         self.service = service
         self.sanitizer = sanitizer
         self.dry_run = dry_run
+        self.wait = wait
+        self.cleanup_only = cleanup_only
         self.files = {}
 
     def save(self, case, method, response):
         """Sanitize a FalconPy response and keep it as fixtures/<service>/<case>.json."""
         print("  %s/%s <- %s (HTTP %s)" % (self.service, case, method, response.get("status_code")))
-        data = {
-            "method": method,
-            "status_code": response["status_code"],
-            "body": response["body"],
-        }
+        # Keep every key except the headers. Most methods return their data in
+        # 'body', but some (start_search) return a top-level 'resources'.
+        data = {"method": method}
+        data.update((k, v) for k, v in response.items() if k != "headers")
         self.files[case] = self.sanitizer.clean(data)
         return response
 
@@ -229,6 +234,10 @@ def record_host_group(rec, creds):
         ids += [g["id"] for g in resources(falcon.query_combined_host_groups(filter="name:'%s-dynamic'" % PREFIX))]
         if ids:
             falcon.delete_host_groups(ids=ids)
+
+    if rec.cleanup_only:
+        cleanup()
+        return
 
     cleanup()
     try:
@@ -309,6 +318,10 @@ def record_sensor_update_policy(rec, creds):
             if policy.get("enabled"):
                 falcon.perform_policies_action(action_name="disable", ids=[policy["id"]])
             falcon.delete_policies(ids=[policy["id"]])
+
+    if rec.cleanup_only:
+        cleanup()
+        return
 
     builds = rec.call(
         "builds_linux", "query_combined_builds", falcon.query_combined_builds,
@@ -405,7 +418,146 @@ def record_sensor_update_policy(rec, creds):
         cleanup()
 
 
+def record_correlation_rule(rec, creds):
+    """Record the CorrelationRules calls used by correlation_rule and correlation_rule_info.
+
+    A new rule stays in the 'creating' status for some time, and the API
+    refuses updates and deletes until it leaves that status. The reads and
+    the in-transition errors are recorded first. Then the script waits up to
+    --wait seconds before it records the update, publish and delete calls.
+    """
+    import time
+
+    from falconpy import CorrelationRules, SensorDownload
+
+    falcon = CorrelationRules(**creds)
+    names = ["%s-%s" % (PREFIX, suffix) for suffix in ("a", "b", "c")]
+    name_filter = "name:[%s]" % ",".join("'%s'" % name for name in names)
+    search = {"filter": "#event_simpleName=ProcessRollup2", "lookback": "5m", "outcome": "detection"}
+    operation = {"schedule": {"definition": "*/5 * * * *"}}
+    transition = ("creating", "updating", "deleting")
+
+    def wait_ready(rule_ids, timeout):
+        """Wait until no rule in rule_ids is in a transition status. Return True when ready."""
+        if rec.dry_run:
+            return True
+        deadline = time.time() + timeout
+        while True:
+            rules = resources(falcon.get_rules(ids=rule_ids))
+            if all(r.get("status") not in transition for r in rules):
+                return True
+            if time.time() > deadline:
+                return False
+            print("  waiting for the rules to leave their transition status")
+            time.sleep(30)
+
+    def cleanup():
+        if rec.dry_run:
+            return
+        rules = resources(falcon.get_rules_combined(filter=name_filter, limit=100))
+        ready = [r["rule_id"] for r in rules if r.get("status") not in transition]
+        if ready:
+            falcon.delete_rules(ids=ready)
+        if len(ready) < len(rules):
+            sys.stderr.write(
+                "warning: %d fixture rule(s) are still in a transition status and were not "
+                "deleted. Run this script again later with --cleanup correlation_rule.\n"
+                % (len(rules) - len(ready))
+            )
+
+    if rec.cleanup_only:
+        cleanup()
+        return
+
+    ccid = rec.call(
+        "ccid", "get_sensor_installer_ccid", SensorDownload(**creds).get_sensor_installer_ccid,
+    )
+    customer_id = (resources(ccid) or ["0" * 32 + "-00"])[0].split("-")[0].lower()
+
+    def rule(name, **extra):
+        params = dict(
+            name=name, customer_id=customer_id, severity=30, status="inactive",
+            search=search, operation=operation,
+        )
+        params.update(extra)
+        return params
+
+    cleanup()
+    try:
+        created = rec.call(
+            "create", "create_rule", falcon.create_rule,
+            **rule(names[0], description="Fixture rule")
+        )
+        rule_id = (resources(created) or [{"rule_id": "0" * 32}])[0]["rule_id"]
+        all_ids = [rule_id]
+        for name in names[1:]:
+            if not rec.dry_run:
+                all_ids += [r["rule_id"] for r in resources(falcon.create_rule(**rule(name)))]
+
+        # Phase A: reads, and the errors for a rule in transition.
+        rec.call("get_creating", "get_rules", falcon.get_rules, ids=[rule_id])
+        rec.call(
+            "query_by_name_creating", "get_rules_combined", falcon.get_rules_combined,
+            filter="name:'%s'" % names[0], limit=1,
+        )
+        rec.call(
+            "query_by_name_missing", "get_rules_combined", falcon.get_rules_combined,
+            filter="name:'%s-missing'" % PREFIX, limit=1,
+        )
+        rec.call(
+            "query_page1", "get_rules_combined", falcon.get_rules_combined,
+            filter=name_filter, limit=2, offset=0,
+        )
+        rec.call(
+            "query_page2", "get_rules_combined", falcon.get_rules_combined,
+            filter=name_filter, limit=2, offset=2,
+        )
+        rec.call(
+            "query_bad_filter", "get_rules_combined", falcon.get_rules_combined,
+            filter="name:'", limit=1,
+        )
+        rec.call(
+            "latest_versions", "get_latest_rule_versions", falcon.get_latest_rule_versions,
+            rule_ids=[rule_id],
+        )
+        rec.call(
+            "update_in_transition", "update_rule", falcon.update_rule,
+            id=rule_id, customer_id=customer_id, description="Fixture rule, updated",
+        )
+        rec.call("delete_in_transition", "delete_rules", falcon.delete_rules, ids=[rule_id])
+
+        # Phase B: calls that need the rule to leave its transition status.
+        if not wait_ready(all_ids, rec.wait):
+            sys.stderr.write(
+                "warning: the rules did not leave their transition status in %ds; "
+                "update, publish and delete were not recorded.\n" % rec.wait
+            )
+            return
+        rec.call("get_one", "get_rules", falcon.get_rules, ids=[rule_id])
+        rec.call(
+            "query_by_name", "get_rules_combined", falcon.get_rules_combined,
+            filter="name:'%s'" % names[0], limit=1,
+        )
+        rec.call(
+            "update_description", "update_rule", falcon.update_rule,
+            id=rule_id, customer_id=customer_id, description="Fixture rule, updated",
+        )
+        rec.call("get_after_update", "get_rules", falcon.get_rules, ids=[rule_id])
+        versions = rec.call(
+            "latest_versions_after_update", "get_latest_rule_versions",
+            falcon.get_latest_rule_versions, rule_ids=[rule_id],
+        )
+        version_id = (resources(versions) or [{"id": "0" * 32}])[0]["id"]
+        rec.call("publish", "publish_rule_version", falcon.publish_rule_version, id=version_id)
+        if wait_ready([rule_id], rec.wait):
+            rec.call("delete", "delete_rules", falcon.delete_rules, ids=[rule_id])
+            rec.call("get_missing", "get_rules", falcon.get_rules, ids=[rule_id])
+    finally:
+        cleanup()
+
+
 SCENARIOS = {
+    "correlation_rule": record_correlation_rule,
     "host_group": record_host_group,
     "sensor_update_policy": record_sensor_update_policy,
 }
@@ -430,6 +582,14 @@ def main():
     parser.add_argument("--env-file", type=Path, default=COLLECTION_ROOT / ".env")
     parser.add_argument("--dry-run", action="store_true", help="List the calls; do not call the API.")
     parser.add_argument("--list", action="store_true", help="List the services and exit.")
+    parser.add_argument(
+        "--wait", type=int, default=2700,
+        help="Seconds to wait for objects that the API is still provisioning (default: 2700).",
+    )
+    parser.add_argument(
+        "--cleanup", action="store_true",
+        help="Only delete the fixture objects that an earlier run left behind.",
+    )
     args = parser.parse_args()
 
     if args.list:
@@ -463,11 +623,11 @@ def main():
     recorders = []
     for service in services:
         print("Recording %s" % service)
-        rec = Recorder(service, sanitizer, args.dry_run)
+        rec = Recorder(service, sanitizer, args.dry_run, args.wait, args.cleanup)
         SCENARIOS[service](rec, creds)
         recorders.append(rec)
 
-    if args.dry_run:
+    if args.dry_run or args.cleanup:
         return 0
 
     # Check every file before any file is written.

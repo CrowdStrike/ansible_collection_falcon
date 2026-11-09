@@ -1,0 +1,51 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.017039853
+    },
+    "resources": [
+      {
+        "api_client_id": "00000000000000000000000000000003",
+        "created_on": "2026-11-09T22:28:37.54208Z",
+        "customer_id": "00000000000000000000000000000001",
+        "description": "Fixture rule, updated",
+        "id": "00000000000000000000000000000006",
+        "last_updated_on": "2026-11-09T22:28:37.54208Z",
+        "mitre_attack": [],
+        "name": "ansible-unit-fixture-a",
+        "operation": {
+          "schedule": {
+            "definition": "*/5 * * * *"
+          },
+          "start_on": "2026-11-09T22:02:40.560360673Z"
+        },
+        "rule_id": "00000000000000000000000000000002",
+        "search": {
+          "execution_mode": "scheduled",
+          "filter": "#event_simpleName=ProcessRollup2",
+          "lookback": "5m",
+          "outcome": "detection",
+          "trigger_mode": "",
+          "use_ingest_time": false
+        },
+        "severity": 30,
+        "state": "published",
+        "status": "updating",
+        "status_msg": "Internal service error. Please contact support if this persists.",
+        "tactic": "",
+        "technique": "",
+        "template_id": "",
+        "type": "correlation",
+        "updated_by_api_client_id": "00000000000000000000000000000003",
+        "updated_by_user_id": "api_client",
+        "updated_by_user_uuid": "",
+        "user_id": "api_client",
+        "user_uuid": "",
+        "version": 2
+      }
+    ]
+  },
+  "method": "update_rule",
+  "status_code": 200
+}

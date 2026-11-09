@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 1,
+        "offset": 0,
+        "total": 0
+      },
+      "query_time": 0.007940914
+    },
+    "resources": []
+  },
+  "method": "get_rules_combined",
+  "status_code": 200
+}

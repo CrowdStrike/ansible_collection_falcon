@@ -1,0 +1,55 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "offset": 2,
+        "total": 3
+      },
+      "query_time": 0.008306333
+    },
+    "resources": [
+      {
+        "api_client_id": "00000000000000000000000000000003",
+        "created_on": "2026-11-09T21:47:43.391596Z",
+        "customer_id": "00000000000000000000000000000001",
+        "id": "00000000000000000000000000000005",
+        "last_updated_on": "2026-11-09T21:47:43.391596Z",
+        "mitre_attack": [],
+        "name": "ansible-unit-fixture-c",
+        "operation": {
+          "schedule": {
+            "definition": "*/5 * * * *"
+          },
+          "start_on": "2026-11-09T22:02:43.391566024Z"
+        },
+        "rule_id": "00000000000000000000000000000005",
+        "search": {
+          "execution_mode": "scheduled",
+          "filter": "#event_simpleName=ProcessRollup2",
+          "lookback": "5m",
+          "outcome": "detection",
+          "trigger_mode": "",
+          "use_ingest_time": false
+        },
+        "severity": 30,
+        "state": "published",
+        "status": "creating",
+        "status_msg": "",
+        "tactic": "",
+        "technique": "",
+        "template_id": "",
+        "type": "correlation",
+        "updated_by_api_client_id": "00000000000000000000000000000003",
+        "updated_by_user_id": "api_client",
+        "updated_by_user_uuid": "",
+        "user_id": "api_client",
+        "user_uuid": "",
+        "version": 1
+      }
+    ]
+  },
+  "method": "get_rules_combined",
+  "status_code": 200
+}
