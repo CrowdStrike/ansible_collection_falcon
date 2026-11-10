@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - correlation_rule - do not fail with ``publish=true`` when the latest rule version is already published. The API publishes the new version on create and update, so the module now skips the publish call for a published version instead of failing with ``409 version is already published``.

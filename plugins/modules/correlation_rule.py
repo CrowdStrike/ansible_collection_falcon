@@ -154,7 +154,8 @@ notes:
     If multiple rules share the same name, the first match is used. Prefer I(rule_id)
     for precise targeting.
   - B(Publishing:) Setting I(publish=true) will publish the latest rule version after
-    any create or update. Publishing is skipped when no changes are made.
+    any create or update. Publishing is skipped when no changes are made, or when the
+    latest version is already published.
   - B(State Management:) For I(state=absent), if the rule is not found, the module
     exits successfully without making any changes (idempotent).
 
@@ -455,8 +456,13 @@ def publish_rule(falcon, module, result, rule_id):
             msg=f"No rule versions found for rule ID '{rule_id}'", **result
         )
 
-    version_id = resources[0]["id"]
-    publish_result = falcon.publish_rule_version(id=version_id)
+    version = resources[0]
+    # The API publishes the new version on create and update, and
+    # publish_rule_version returns 409 for a version that is already published.
+    if version.get("state") == "published":
+        return
+
+    publish_result = falcon.publish_rule_version(id=version["id"])
     if publish_result["status_code"] != 200:
         handle_return_errors(module, result, publish_result)
 
