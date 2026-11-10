@@ -83,12 +83,6 @@ def test_missing_client_id_fails(api, run_module):
     assert result["msg"].startswith("Missing required parameter: client_id")
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=KeyError,
-    reason="get_cloud_from_url looks up the base URL in a dict, so an unknown "
-    "URL raises KeyError instead of a module failure.",
-)
 def test_unknown_base_url_fails_with_message(api, run_module):
     service = api(login=["login"])
     service.base_url = "https://api.example.com"
@@ -96,3 +90,4 @@ def test_unknown_base_url_fails_with_message(api, run_module):
     result = run_module(auth, CREDS)
 
     assert result["failed"] is True
+    assert result["msg"].startswith("Unknown cloud for base URL: https://api.example.com.")

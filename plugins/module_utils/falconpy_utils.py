@@ -150,8 +150,10 @@ def get_paginated_results_info(module, args, limit, method, list_name):
         else:
             return result
 
-        # Check if we need to continue
-        offset = query_result["body"]["meta"]["pagination"]["offset"]
+        # Check if we need to continue. Some APIs return the offset of the
+        # next page in meta.pagination.offset and others (such as Intel)
+        # return the offset of the request, so count the results instead.
+        offset = len(result[list_name])
         if query_result["body"]["meta"]["pagination"]["total"] <= len(result[list_name]):
             running = False
 
@@ -188,11 +190,11 @@ def get_cloud_from_url(module, base_url):
     }
 
     # fail if the base_url is not in the mapping
-    cloud = mapping[base_url]
+    cloud = mapping.get(base_url)
 
     if not cloud:
         module.fail_json(
-            msg=f"Unknown cloud: {base_url}. See module documentation for help."
+            msg=f"Unknown cloud for base URL: {base_url}. See module documentation for help."
         )
 
     return cloud

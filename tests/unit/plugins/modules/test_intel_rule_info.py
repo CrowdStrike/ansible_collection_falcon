@@ -71,12 +71,6 @@ def test_without_limit_reads_every_page(api, run_module):
     assert [c["limit"] for c in service.called("query_rule_ids")] == [5000] * 3
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="get_paginated_results_info passes the offset of the page it just "
-    "read to the next call. The Intel API returns the request offset, so the "
-    "next call reads the same page again.",
-)
 def test_without_limit_moves_to_the_next_page(api, run_module):
     service = api(
         query_rule_ids=["rule_ids_page1", "rule_ids_page2", "rule_ids_empty"],

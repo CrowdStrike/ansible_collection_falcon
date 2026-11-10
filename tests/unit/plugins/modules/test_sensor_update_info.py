@@ -44,7 +44,7 @@ def test_policy_info_follows_pagination(api, run_module):
         "ansible-unit-fixture-b",
         "ansible-unit-fixture-c",
     ]
-    # The next offset comes from meta.pagination.offset of the previous page.
+    # The next offset is the number of policies read so far.
     assert service.called("query_combined_policies_v2") == [
         {"filter": "name:'x'", "sort": "name.asc", "offset": None, "limit": 5000},
         {"filter": "name:'x'", "sort": "name.asc", "offset": 2, "limit": 5000},
@@ -100,6 +100,17 @@ def test_kernel_support_info_returns_kernels(api, run_module):
     ]
     assert len(result["info"]) == 1
     assert result["info"][0]["vendor"] == "oracle"
+
+
+def test_kernel_support_info_follows_pagination(api, run_module):
+    # kernels_page has 2 of 20563 kernels; kernels_filtered has a total of 1,
+    # so the module stops after the second call.
+    service = api(kernel_support_info, query_combined_kernels=["kernels_page", "kernels_filtered"])
+
+    result = run_module(kernel_support_info, {})
+
+    assert [c["offset"] for c in service.called("query_combined_kernels")] == [None, 2]
+    assert len(result["info"]) == 3
 
 
 def test_kernel_support_info_api_error_fails(api, run_module):
