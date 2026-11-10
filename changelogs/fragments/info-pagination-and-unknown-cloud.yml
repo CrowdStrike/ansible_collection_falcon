@@ -1,0 +1,5 @@
+---
+bugfixes:
+  - intel_rule_info - read every page of rule IDs when ``limit`` is not set. Before this fix, the module read the first page again when there were more than 5000 rules, because the Intel API returns the offset of the request and not of the next page.
+  - kernel_support_info, sensor_update_policy_info - calculate the offset of the next page from the number of results read, instead of from the offset that the API returns.
+  - auth - fail with a clear message when the API base URL does not match a known cloud, instead of a ``KeyError``.
