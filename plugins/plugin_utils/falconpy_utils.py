@@ -47,7 +47,7 @@ def check_falconpy(plugin_name):
     """
     if not HAS_FALCONPY:
         raise AnsibleError(
-            f"The '{plugin_name}' lookup cannot be run because the 'crowdstrike-falconpy' "
+            f"The '{plugin_name}' plugin cannot be run because the 'crowdstrike-falconpy' "
             "library is not installed."
         )
 

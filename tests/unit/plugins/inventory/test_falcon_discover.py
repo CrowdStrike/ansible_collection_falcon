@@ -11,11 +11,13 @@ import json
 
 import pytest
 
+from ansible.errors import AnsibleError
 from ansible.inventory.data import InventoryData
 from ansible.parsing.dataloader import DataLoader
 from ansible.plugins.loader import inventory_loader
 
 from ansible_collections.crowdstrike.falcon.plugins.inventory import falcon_discover
+from ansible_collections.crowdstrike.falcon.plugins.plugin_utils import falconpy_utils
 
 PLUGIN = "crowdstrike.falcon.falcon_discover"
 CID = "%032d" % 1
@@ -130,12 +132,47 @@ def test_missing_credentials_raise(api, parse):
     assert service.calls == []
 
 
-def test_api_error_exits(api, parse):
+def test_cloud_from_environment(monkeypatch, api, parse):
+    monkeypatch.setenv("FALCON_CLOUD", "eu-1")
+    service = api(query=("query_empty",), hosts=())
+    created = []
+    monkeypatch.setattr(falcon_discover, "Discover", lambda **kwargs: created.append(kwargs) or service)
+
+    parse()
+
+    assert created[0]["base_url"] == "eu-1"
+
+
+def test_cloud_option_overrides_environment(monkeypatch, api, parse):
+    monkeypatch.setenv("FALCON_CLOUD", "eu-1")
+    service = api(query=("query_empty",), hosts=())
+    created = []
+    monkeypatch.setattr(falcon_discover, "Discover", lambda **kwargs: created.append(kwargs) or service)
+
+    parse({"cloud": "us-2"})
+
+    assert created[0]["base_url"] == "us-2"
+
+
+def test_api_error_raises_ansible_error(api, parse):
     api(query=("query_bad_filter",), hosts=())
 
-    # current behavior: the plugin raises SystemExit, not AnsibleError.
-    with pytest.raises(SystemExit, match="Unable to query hosts: .*cannot be parsed"):
+    with pytest.raises(AnsibleError, match="Unable to query hosts: .*cannot be parsed"):
         parse({"filter": "hostname:'"})
+
+
+@pytest.mark.parametrize("version, supported", [("1.10.0", True), ("1.4.9", False)])
+def test_falconpy_version_is_compared_as_numbers(monkeypatch, api, parse, version, supported):
+    monkeypatch.setattr(falconpy_utils, "_VERSION", version)
+    service = api(query=("query_empty",), hosts=())
+
+    if supported:
+        parse()
+        assert service.called("query_hosts")
+    else:
+        with pytest.raises(AnsibleError, match="Unsupported FalconPy version: 1.4.9"):
+            parse()
+        assert service.calls == []
 
 
 @pytest.mark.parametrize(

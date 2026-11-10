@@ -1,0 +1,8 @@
+---
+bugfixes:
+  - host_info - return an empty ``hosts`` list when ``hosts`` is empty, instead of failing with an ``UnboundLocalError`` traceback.
+  - host_info - check the API errors of each batch of 5000 hosts, not only the errors of the last batch.
+  - falcon_hosts, falcon_discover inventory - read the ``FALCON_CLOUD`` environment variable. Before, the ``cloud`` option default of ``us-1`` was always used when ``cloud`` was not set in the inventory file.
+  - falcon_hosts, falcon_discover inventory - raise an ``AnsibleError`` when the API cannot query hosts, instead of ``SystemExit``.
+  - falcon_hosts, falcon_discover inventory - compare the FalconPy version as numbers, so versions such as ``1.10.0`` are accepted.
+  - host_ids, maintenance_token, fctl_child_cids lookups, falcon_hosts, falcon_discover inventory - the error message when FalconPy is not installed now says "plugin" instead of "lookup", because the inventory plugins also show it.

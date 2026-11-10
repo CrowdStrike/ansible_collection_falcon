@@ -444,6 +444,7 @@ def main():
 
     result = dict(
         changed=False,
+        hosts=host_details,
     )
 
     # Batch the hosts in groups of 5000 (the maximum allowed by the API)
@@ -453,11 +454,8 @@ def main():
         if query_result["status_code"] == 200:
             host_details.extend(query_result["body"]["resources"])
 
-    result.update(
-        hosts=host_details,
-    )
-
-    handle_return_errors(module, result, query_result)
+        # Check every batch, not only the last one
+        handle_return_errors(module, result, query_result)
 
     module.exit_json(**result)
 

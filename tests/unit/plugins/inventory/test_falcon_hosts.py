@@ -11,11 +11,13 @@ import json
 
 import pytest
 
+from ansible.errors import AnsibleError
 from ansible.inventory.data import InventoryData
 from ansible.parsing.dataloader import DataLoader
 from ansible.plugins.loader import inventory_loader
 
 from ansible_collections.crowdstrike.falcon.plugins.inventory import falcon_hosts
+from ansible_collections.crowdstrike.falcon.plugins.plugin_utils import falconpy_utils
 
 PLUGIN = "crowdstrike.falcon.falcon_hosts"
 HOSTS = ["%032d" % n for n in (1, 2, 3, 4)]
@@ -150,11 +152,6 @@ def test_credentials_from_environment(monkeypatch, api, parse):
     assert created == [{"client_id": "env-id", "client_secret": "env-secret", "base_url": "us-1"}]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="The cloud option has the default 'us-1', so get_option() never "
-    "returns an empty value and FALCON_CLOUD is not used.",
-)
 def test_cloud_from_environment(monkeypatch, api, parse):
     monkeypatch.setenv("FALCON_CLOUD", "eu-1")
     service = api(scroll=("scroll_empty",), details=())
@@ -164,6 +161,17 @@ def test_cloud_from_environment(monkeypatch, api, parse):
     parse()
 
     assert created[0]["base_url"] == "eu-1"
+
+
+def test_cloud_option_overrides_environment(monkeypatch, api, parse):
+    monkeypatch.setenv("FALCON_CLOUD", "eu-1")
+    service = api(scroll=("scroll_empty",), details=())
+    created = []
+    monkeypatch.setattr(falcon_hosts, "Hosts", lambda **kwargs: created.append(kwargs) or service)
+
+    parse({"cloud": "us-2"})
+
+    assert created[0]["base_url"] == "us-2"
 
 
 @pytest.mark.parametrize(
@@ -182,12 +190,25 @@ def test_invalid_configuration_raises(api, parse, options, creds, message):
     assert service.calls == []
 
 
-def test_api_error_exits(api, parse):
+def test_api_error_raises_ansible_error(api, parse):
     api(scroll=("scroll_bad_filter",), details=())
 
-    # current behavior: the plugin raises SystemExit, not AnsibleError.
-    with pytest.raises(SystemExit, match="Unable to query hosts: .*Invalid filter expression"):
+    with pytest.raises(AnsibleError, match="Unable to query hosts: .*Invalid filter expression"):
         parse({"filter": "hostname:'"})
+
+
+@pytest.mark.parametrize("version, supported", [("1.10.0", True), ("1.4.9", False)])
+def test_falconpy_version_is_compared_as_numbers(monkeypatch, api, parse, version, supported):
+    monkeypatch.setattr(falconpy_utils, "_VERSION", version)
+    service = api(scroll=("scroll_empty",), details=())
+
+    if supported:
+        parse()
+        assert service.called("query_devices_by_filter_scroll")
+    else:
+        with pytest.raises(AnsibleError, match="Unsupported FalconPy version: 1.4.9"):
+            parse()
+        assert service.calls == []
 
 
 @pytest.mark.parametrize(
