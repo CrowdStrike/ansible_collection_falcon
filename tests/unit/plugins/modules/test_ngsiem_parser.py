@@ -18,6 +18,7 @@ STORED_NAME = "custom-" + NAME
 PARSER_ID = "00000000000000000000000000000001:1.2.0"
 # The ID that update_parser_from_template returns.
 UPDATED_ID = PARSER_ID + ":1.2.0"
+OTHER_ID = "00000000000000000000000000000005:1.0.0"
 CLONE_NAME = "ansible-unit-fixture-clone"
 CLONE_ID = "00000000000000000000000000000003:1.1.0"
 EXTENSION_ID = "00000000000000000000000000000004:1.0.0"
@@ -108,13 +109,8 @@ def test_present_matching_parser_is_not_changed(api, run_module):
     assert "update_parser_from_template" not in methods(service)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="The API adds 'custom-' to the names of custom parsers and "
-    "find_parser_by_name needs an exact match, so the module does not find "
-    "the parser that it created and tries to create it again.",
-)
 def test_present_finds_parser_by_the_name_it_was_created_with(api, run_module):
+    # The API stores the parser as 'custom-<name>'.
     service = api(
         list_parsers=["parser_list_by_name"],
         get_parser_template=["parser_template"],
@@ -126,6 +122,29 @@ def test_present_finds_parser_by_the_name_it_was_created_with(api, run_module):
 
     assert "create_parser_from_template" not in methods(service)
     assert result["changed"] is False
+    assert result["parser"]["name"] == STORED_NAME
+
+
+@pytest.mark.parametrize(
+    "name", [NAME, STORED_NAME], ids=["custom-name-first", "exact-name-first"]
+)
+def test_find_parser_by_name_match_order(falcon_api, fixture, run_module, name):
+    # Not recorded: the recorded list plus a parser named NAME and a parser
+    # named 'custom-<STORED_NAME>', so two parsers match each name.
+    listed = fixture("ngsiem/parser_list_by_name")
+    stored = listed["body"]["resources"][0]
+    listed["body"]["resources"] = [
+        dict(stored, ID=OTHER_ID, Name="custom-" + STORED_NAME),
+        dict(stored, ID=OTHER_ID, Name=NAME),
+        stored,
+    ]
+    service = falcon_api(
+        ngsiem_parser, {"list_parsers": [listed], "get_parser": [fixture("ngsiem/parser_get")]}
+    )
+
+    run_module(ngsiem_parser, {"name": name})
+
+    assert service.called("get_parser") == [{"ids": PARSER_ID, "repository": REPO}]
 
 
 def test_present_changed_yaml_updates_parser(api, run_module):
@@ -133,7 +152,7 @@ def test_present_changed_yaml_updates_parser(api, run_module):
         list_parsers=["parser_list_by_name"],
         get_parser_template=["parser_template"],
         update_parser_from_template=["parser_update"],
-        get_parser=["parser_get_after_update"],
+        get_parser=["parser_get_after_update", "parser_get_created_id_after_update"],
     )
 
     result = run_module(ngsiem_parser, {"name": STORED_NAME, "parser_yaml": UPDATED_YAML})
@@ -142,10 +161,14 @@ def test_present_changed_yaml_updates_parser(api, run_module):
     assert service.called("update_parser_from_template") == [
         {"ids": PARSER_ID, "repository": REPO, "yaml_template": UPDATED_YAML}
     ]
-    # current behavior: the update returns '<id>:<version>:<version>' and
-    # get_parser with that ID returns 404, so the module returns only the ID.
-    assert service.called("get_parser") == [{"ids": UPDATED_ID, "repository": REPO}]
-    assert result["parser"] == {"id": UPDATED_ID}
+    # The update returns '<id>:<version>:<version>' and get_parser with that
+    # ID returns 404, so the module gets the parser with the ID it updated.
+    assert service.called("get_parser") == [
+        {"ids": UPDATED_ID, "repository": REPO},
+        {"ids": PARSER_ID, "repository": REPO},
+    ]
+    assert result["parser"]["id"] == PARSER_ID
+    assert result["parser"]["name"] == STORED_NAME
 
 
 def test_check_mode_reports_update_without_updating(api, run_module):
