@@ -1,0 +1,9 @@
+{
+  "body": {
+    "meta": {
+      "query_time": 0.071160487
+    }
+  },
+  "method": "revoke",
+  "status_code": 200
+}

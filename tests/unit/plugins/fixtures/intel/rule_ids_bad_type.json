@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "Rule type invalid"
+      }
+    ],
+    "meta": {
+      "query_time": 0.000181685
+    },
+    "resources": []
+  },
+  "method": "query_rule_ids",
+  "status_code": 400
+}

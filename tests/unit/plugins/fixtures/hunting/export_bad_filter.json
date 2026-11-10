@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "unable to parse the 'filter' param"
+      }
+    ],
+    "meta": {
+      "query_time": 0.000548636
+    },
+    "resources": []
+  },
+  "method": "create_export_archive",
+  "status_code": 400
+}

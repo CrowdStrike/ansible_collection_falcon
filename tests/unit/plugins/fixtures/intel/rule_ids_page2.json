@@ -1,0 +1,19 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "offset": 2,
+        "total": 523
+      },
+      "query_time": 0.022629262
+    },
+    "resources": [
+      "1792746004",
+      "1792141204"
+    ]
+  },
+  "method": "query_rule_ids",
+  "status_code": 200
+}

@@ -29,6 +29,7 @@ Usage:
 """
 
 import argparse
+import functools
 import ipaddress
 import json
 import os
@@ -921,12 +922,179 @@ def record_discover(rec, creds):
         rec.call("hosts_page2", "get_hosts", get_hosts, ids=resources(page2))
 
 
+def errors_only(func):
+    """Wrap a download call so that a file is never saved.
+
+    A download call returns the file as bytes and an error as a dict. Only
+    the error dict is kept; for bytes the size is printed and the call
+    returns an empty dict, which Recorder.save writes with no body.
+    """
+
+    def call(**kwargs):
+        response = func(**kwargs)
+        if isinstance(response, dict):
+            return response
+        print("    (not saved: %d bytes)" % len(response))
+        return {"status_code": None, "body": {"note": "the API returned a file; it is not saved"}}
+
+    return call
+
+
+def record_auth(rec, creds):
+    """Record the OAuth2 calls used by the auth module.
+
+    The token that the scenario gets is revoked at the end.
+    """
+    from falconpy import OAuth2
+
+    falcon = OAuth2(**creds)
+    rec.call("login", "login", falcon.login)
+    token = falcon.token_value if not rec.dry_run else ""
+    rec.call("revoke", "revoke", falcon.revoke, token=token)
+    rec.call("logout", "logout", falcon.logout)
+    bad = OAuth2(
+        client_id="%s-bad-id" % PREFIX, client_secret="%s-bad-secret" % PREFIX,
+        base_url=creds.get("base_url", "us-1"),
+    )
+    rec.call("login_bad_credentials", "login", bad.login)
+
+
+def record_sensor_download(rec, creds):
+    """Record the SensorDownload calls used by cid_info, sensor_download and sensor_download_info.
+
+    No installer is downloaded; only the error for a hash that does not exist.
+    """
+    from falconpy import SensorDownload
+
+    falcon = SensorDownload(**creds)
+    route = "/sensors/combined/installers/v2"
+    missing_hash = "0" * 64
+
+    rec.call("ccid", "get_sensor_installer_ccid", falcon.get_sensor_installer_ccid)
+    installers = rec.call(
+        "installers_linux", "override:GET " + route, functools.partial(falcon.override, "GET", route),
+        parameters={"filter": "platform:'linux'+os:'Ubuntu'", "sort": "version|desc", "limit": 2},
+    )
+    rec.call(
+        "installers_bad_filter", "override:GET " + route, functools.partial(falcon.override, "GET", route),
+        parameters={"filter": "platform:'"},
+    )
+    sha = (resources(installers) or [{"sha256": missing_hash}])[0]["sha256"]
+    rec.call("installer_entity", "get_sensor_installer_entities", falcon.get_sensor_installer_entities, ids=[sha])
+    rec.call(
+        "installer_entity_missing", "get_sensor_installer_entities", falcon.get_sensor_installer_entities,
+        ids=[missing_hash],
+    )
+    rec.call(
+        "download_missing", "download_sensor_installer",
+        errors_only(falcon.download_sensor_installer), id=missing_hash,
+    )
+
+
+def fake_child_names(func):
+    """Wrap a Flight Control call so that child CID names are fake.
+
+    The name of a child CID is a customer name.
+    """
+    names = {}
+
+    def call(**kwargs):
+        response = func(**kwargs)
+        for item in resources(response):
+            if isinstance(item, dict) and item.get("name"):
+                item["name"] = names.setdefault(item["name"], "child-cid-%d" % (len(names) + 1))
+        return response
+
+    return call
+
+
+def record_flight_control(rec, creds):
+    """Record the FlightControl calls used by fctl_child_cid_info and the fctl_child_cids lookup."""
+    from falconpy import FlightControl
+
+    falcon = FlightControl(**creds)
+    route = "/mssp/entities/children/GET/v2"
+
+    page1 = rec.call("children_page1", "query_children", falcon.query_children, limit=2)
+    # The fctl_child_cids lookup passes the returned offset to the next call.
+    offset = ((page1.get("body") or {}).get("meta") or {}).get("pagination", {}).get("offset")
+    rec.call("children_page2", "query_children", falcon.query_children, limit=2, offset=offset)
+    rec.call("children_bad_filter", "query_children", falcon.query_children, filter="cid:'", limit=2)
+    rec.call(
+        "children_get", "override:POST " + route,
+        fake_child_names(functools.partial(falcon.override, "POST", route)), body={"ids": resources(page1) or ["0" * 32]},
+    )
+    rec.call(
+        "children_get_missing", "override:POST " + route, functools.partial(falcon.override, "POST", route),
+        body={"ids": ["0" * 32]},
+    )
+
+
+# Intel rule records also have descriptions and tags from CrowdStrike
+# Intelligence reports. The fixtures keep only these fields.
+INTEL_RULE_FIELDS = ("id", "name", "type", "created_date", "last_modified_date")
+
+
+def record_intel(rec, creds):
+    """Record the Intel calls used by intel_rule_info and intel_rule_download.
+
+    No rule file is downloaded; only the errors for a rule that does not exist.
+    """
+    from falconpy import Intel
+
+    falcon = Intel(**creds)
+    page1 = rec.call(
+        "rule_ids_page1", "query_rule_ids", falcon.query_rule_ids,
+        type="yara-master", sort="created_date|desc", limit=2,
+    )
+    rec.call(
+        "rule_ids_page2", "query_rule_ids", falcon.query_rule_ids,
+        type="yara-master", sort="created_date|desc", limit=2, offset=2,
+    )
+    rec.call(
+        "rule_ids_empty", "query_rule_ids", falcon.query_rule_ids,
+        type="yara-master", name=["%s-missing" % PREFIX], limit=2,
+    )
+    rec.call("rule_ids_bad_type", "query_rule_ids", falcon.query_rule_ids, type="not-a-type", limit=2)
+    rules = keep_fields(falcon.get_rule_entities, INTEL_RULE_FIELDS)
+    rec.call("rules", "get_rule_entities", rules, ids=resources(page1) or [0])
+    rec.call("rules_missing", "get_rule_entities", falcon.get_rule_entities, ids=[0])
+    rec.call(
+        "rule_file_missing", "get_rule_file", errors_only(falcon.get_rule_file), id=0, format="zip",
+    )
+    rec.call(
+        "latest_rule_file_bad_type", "get_latest_rule_file",
+        errors_only(falcon.get_latest_rule_file), type="not-a-type", format="zip",
+    )
+
+
+def record_hunting(rec, creds):
+    """Record the CAOHunting errors used by hunting_rule_download. No archive is saved."""
+    from falconpy import CAOHunting
+
+    falcon = CAOHunting(**creds)
+    export = errors_only(falcon.create_export_archive)
+    rec.call(
+        "export_bad_filter", "create_export_archive", export,
+        language="yara", archive_type="zip", filter="name:'",
+    )
+    rec.call(
+        "export_bad_language", "create_export_archive", export,
+        language="not-a-language", archive_type="zip",
+    )
+
+
 SCENARIOS = {
+    "auth": record_auth,
     "correlation_rule": record_correlation_rule,
     "discover": record_discover,
+    "flight_control": record_flight_control,
     "host_group": record_host_group,
     "hosts": record_hosts,
+    "hunting": record_hunting,
+    "intel": record_intel,
     "ngsiem": record_ngsiem,
+    "sensor_download": record_sensor_download,
     "sensor_update_policy": record_sensor_update_policy,
 }
 

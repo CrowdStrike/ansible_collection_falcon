@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "message": "Installer not found for SHA256: 0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    ],
+    "meta": {
+      "query_time": 2.02e-07
+    },
+    "resources": []
+  },
+  "method": "get_sensor_installer_entities",
+  "status_code": 404
+}

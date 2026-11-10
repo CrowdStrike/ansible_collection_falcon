@@ -1,0 +1,24 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 2.83e-07
+    },
+    "resources": [
+      {
+        "description": "Falcon Kernel Sensor for Ubuntu 16.04LTS, 18.04LTS, 20.04LTS, and Debian 9, 10, 11, 12, 13",
+        "file_size": 81727328,
+        "file_type": "deb",
+        "name": "falcon-sensor_8.11.0-19508_amd64.deb",
+        "os": "Debian",
+        "os_version": "9/10/11/12/13",
+        "platform": "linux",
+        "release_date": "2026-10-19T15:39:49.307Z",
+        "sha256": "efe5dc643c3dc292e2c7dfd4698315f098e9d76584fa3ac830298c020250aefc",
+        "version": "8.11.19508"
+      }
+    ]
+  },
+  "method": "get_sensor_installer_entities",
+  "status_code": 200
+}

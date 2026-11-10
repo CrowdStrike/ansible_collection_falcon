@@ -1,0 +1,13 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 7.2e-08
+    },
+    "resources": [
+      "00000000000000000000000000000001-0F"
+    ]
+  },
+  "method": "get_sensor_installer_ccid",
+  "status_code": 200
+}

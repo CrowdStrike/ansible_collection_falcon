@@ -1,0 +1,8 @@
+{
+  "body": {
+    "message": "Current token successfully revoked.",
+    "resources": []
+  },
+  "method": "logout",
+  "status_code": 200
+}
