@@ -12,8 +12,8 @@ import pytest
 from ansible_collections.crowdstrike.falcon.plugins.modules import ngsiem_parser_info
 
 REPO = "parsers-repository"
-PARSER_ID = "00000000000000000000000000000001:1.2.0"
-CLONE_ID = "00000000000000000000000000000003:1.1.0"
+PARSER_ID = "00000000000000000000000000000001:1.4.0"
+CLONE_ID = "00000000000000000000000000000002:1.2.0"
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def test_search_passes_filters_and_normalizes_keys(api, run_module):
 
 
 def test_definitions_are_merged_with_summaries(api, run_module):
-    service = api(list_parsers=["parser_info_page"], get_parser=["parser_get_clone", "parser_get"])
+    service = api(list_parsers=["parser_info_page"], get_parser=["parser_get_clone", "parser_get_after_update"])
 
     result = run_module(ngsiem_parser_info, {"name": "ansible-unit-fixture", "limit": 2})
 
@@ -72,7 +72,7 @@ def test_definitions_are_merged_with_summaries(api, run_module):
 
 
 def test_parser_ids_skip_the_search(api, run_module):
-    service = api(get_parser=["parser_get"])
+    service = api(get_parser=["parser_get_after_update"])
 
     result = run_module(ngsiem_parser_info, {"parser_ids": [PARSER_ID]})
 
@@ -83,7 +83,7 @@ def test_parser_ids_skip_the_search(api, run_module):
 
 def test_missing_definition_keeps_summary(api, run_module):
     # A recorded 404 from get_parser.
-    api(get_parser=["parser_get_after_update"])
+    api(get_parser=["parser_get_missing"])
 
     result = run_module(ngsiem_parser_info, {"parser_ids": [PARSER_ID]})
 

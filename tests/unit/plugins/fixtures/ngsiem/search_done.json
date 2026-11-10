@@ -5,13 +5,13 @@
     "events": [
       {
         "@rawstring": "fixture=a",
-        "@timestamp": 1794267659040,
+        "@timestamp": 1794336238298,
         "@timestamp.nanos": "0",
         "fixture": "a"
       },
       {
         "@rawstring": "fixture=b",
-        "@timestamp": 1794267659040,
+        "@timestamp": 1794336238298,
         "@timestamp.nanos": "0",
         "fixture": "b"
       }
@@ -22,20 +22,20 @@
       "costs": {
         "liveCost": 0.0,
         "liveCostRate": 0.0,
-        "staticCost": 1.0,
+        "staticCost": 2.0,
         "staticCostRate": 0.0
       },
       "digestFlow": {
-        "ingestTimeKnownGood": 1794267614106,
-        "maxIngestLatency": 26207,
-        "minIngestTimeIncluded": 1794267614106
+        "ingestTimeKnownGood": 1794336202155,
+        "maxIngestLatency": 27833,
+        "minIngestTimeIncluded": 1794336202155
       },
       "eventCount": 2,
       "extraData": {},
       "filterQuery": {
         "allowEventSkipping": false,
         "computeFieldStats": false,
-        "end": 1794267659014,
+        "end": 1794336238232,
         "includeDeletedEvents": false,
         "ingestEnd": 9223372036854775807,
         "ingestStart": 0,
@@ -47,7 +47,7 @@
         "noResultUntilDone": false,
         "queryString": "*",
         "showQueryEventDistribution": false,
-        "start": 1794264059014,
+        "start": 1794332638232,
         "useIngestTime": false
       },
       "isAggregate": true,
@@ -55,41 +55,41 @@
       "pollAfter": 1000,
       "processedBytes": 0,
       "processedEvents": 0,
-      "queryEnd": 1794267659014,
+      "queryEnd": 1794336238232,
       "querySpent": {
         "day": {
           "liveCost": 0,
           "queryCount": 1,
-          "staticCost": 1
+          "staticCost": 2
         },
         "hour": {
           "liveCost": 0,
           "queryCount": 1,
-          "staticCost": 1
+          "staticCost": 2
         },
         "oneMinute": {
           "liveCost": 0,
           "queryCount": 1,
-          "staticCost": 1
+          "staticCost": 2
         },
         "tenMinutes": {
           "liveCost": 0,
           "queryCount": 1,
-          "staticCost": 1
+          "staticCost": 2
         }
       },
-      "queryStart": 1794264059014,
+      "queryStart": 1794332638232,
       "queuedMillis": 0,
       "quotaTotalSpent": {
         "day": {
           "liveCost": 0,
-          "queryCount": 2,
-          "staticCost": 3
+          "queryCount": 0,
+          "staticCost": 0
         },
         "hour": {
           "liveCost": 0,
-          "queryCount": 2,
-          "staticCost": 3
+          "queryCount": 0,
+          "staticCost": 0
         },
         "oneMinute": {
           "liveCost": 0,
@@ -104,7 +104,7 @@
       },
       "responderVHost": 8,
       "resultBufferSize": 2,
-      "timeMillis": 702,
+      "timeMillis": 1035,
       "totalWork": 1048576,
       "warnings": [],
       "workDone": 1048576

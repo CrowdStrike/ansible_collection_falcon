@@ -13,16 +13,16 @@
         "staticCostRate": 0.0
       },
       "digestFlow": {
-        "ingestTimeKnownGood": 1794267615788,
-        "maxIngestLatency": 26207,
-        "minIngestTimeIncluded": 1794267615788
+        "ingestTimeKnownGood": 1794336202155,
+        "maxIngestLatency": 27833,
+        "minIngestTimeIncluded": 1794336202155
       },
       "eventCount": 0,
       "extraData": {},
       "filterQuery": {
         "allowEventSkipping": false,
         "computeFieldStats": false,
-        "end": 1794267660463,
+        "end": 1794336240057,
         "includeDeletedEvents": false,
         "ingestEnd": 9223372036854775807,
         "ingestStart": 0,
@@ -34,7 +34,7 @@
         "noResultUntilDone": false,
         "queryString": "#event_simpleName=AnsibleUnitFixtureNoSuchEvent",
         "showQueryEventDistribution": false,
-        "start": 1794264060463,
+        "start": 1794332640057,
         "useIngestTime": false
       },
       "isAggregate": false,
@@ -42,7 +42,7 @@
       "pollAfter": 1000,
       "processedBytes": 0,
       "processedEvents": 0,
-      "queryEnd": 1794267660463,
+      "queryEnd": 1794336240057,
       "querySpent": {
         "day": {
           "liveCost": 0,
@@ -65,18 +65,18 @@
           "staticCost": 2
         }
       },
-      "queryStart": 1794264060463,
+      "queryStart": 1794332640057,
       "queuedMillis": 0,
       "quotaTotalSpent": {
         "day": {
           "liveCost": 0,
-          "queryCount": 4,
-          "staticCost": 4
+          "queryCount": 2,
+          "staticCost": 2
         },
         "hour": {
           "liveCost": 0,
-          "queryCount": 4,
-          "staticCost": 4
+          "queryCount": 2,
+          "staticCost": 2
         },
         "oneMinute": {
           "liveCost": 0,
@@ -86,12 +86,12 @@
         "tenMinutes": {
           "liveCost": 0,
           "queryCount": 2,
-          "staticCost": 1
+          "staticCost": 2
         }
       },
       "responderVHost": 8,
       "resultBufferSize": 0,
-      "timeMillis": 1342,
+      "timeMillis": 900,
       "totalWork": 1048576,
       "warnings": [],
       "workDone": 1048576

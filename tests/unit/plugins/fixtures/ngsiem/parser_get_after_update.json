@@ -1,16 +1,31 @@
 {
   "body": {
-    "errors": [
-      {
-        "code": 404,
-        "message": "no parser with customer: 00000000000000000000000000000002, id: 00000000000000000000000000000001:1.2.0:1.2.0 could be found"
-      }
-    ],
+    "errors": [],
     "meta": {
-      "query_time": 1.100881095
+      "query_time": 0.011895791
     },
-    "resources": null
+    "resources": [
+      {
+        "description": "",
+        "display_name": "custom-ansible-unit-fixture-parser",
+        "fields_to_be_removed_before_parsing": [],
+        "fields_to_tag": [
+          "Cps.version",
+          "Vendor",
+          "ecs.version",
+          "event.dataset",
+          "event.kind",
+          "event.module",
+          "event.outcome",
+          "observer.type"
+        ],
+        "id": "00000000000000000000000000000001:1.4.0",
+        "is_built_in": false,
+        "name": "custom-ansible-unit-fixture-parser",
+        "script": "parseJson()\n| Cps.version := \"1.0.0\"\n| Vendor := \"ansible\"\n| ecs.version := \"9.0.0\"\n| event.dataset := \"ansible.fixture.updated\"\n| event.kind := \"event\"\n| event.module := \"ansible\"\n| event.outcome := \"success\"\n| observer.type := \"test\""
+      }
+    ]
   },
   "method": "get_parser",
-  "status_code": 404
+  "status_code": 200
 }
