@@ -18,7 +18,7 @@ from ansible.plugins.loader import inventory_loader
 from ansible_collections.crowdstrike.falcon.plugins.inventory import falcon_discover
 
 PLUGIN = "crowdstrike.falcon.falcon_discover"
-CID = "%032d" % 5
+CID = "%032d" % 1
 ASSETS = ["%s_asset%d" % (CID, n) for n in (1, 2, 3, 4)]
 CREDS = {"client_id": "fake-id", "client_secret": "fake-secret"}
 
@@ -65,7 +65,7 @@ def test_adds_hosts_from_all_pages(api, parse):
 
     inventory = parse({"filter": "platform_name:'Linux'"})
 
-    assert sorted(inventory.hosts) == ["host2", "host3", "host4", "host5"]
+    assert sorted(inventory.hosts) == ["host1", "host2", "host3", "host4"]
     # The next offset is the current offset plus the page size of 100.
     assert [c["offset"] for c in service.called("query_hosts")] == [None, 100, 102]
     assert service.called("query_hosts")[0] == {"filter": "platform_name:'Linux'", "offset": None, "limit": 100}
@@ -77,9 +77,9 @@ def test_ansible_host_is_the_external_ip(api, parse):
 
     inventory = parse()
 
-    host_vars = inventory.get_host("host3").vars
-    assert host_vars["ansible_host"] == "192.0.2.6"
-    assert host_vars["current_local_ip"] == "192.0.2.7"
+    host_vars = inventory.get_host("host1").vars
+    assert host_vars["ansible_host"] == "192.0.2.2"
+    assert host_vars["current_local_ip"] == "192.0.2.3"
     assert host_vars["id"] == ASSETS[0]
 
 
@@ -89,8 +89,8 @@ def test_only_known_fields_become_host_variables(api, parse):
     inventory = parse()
 
     # product_type_desc is in the API response but not in the plugin's list.
-    assert "product_type_desc" not in inventory.get_host("host3").vars
-    assert inventory.get_host("host4").vars["tags"] == ["SensorGroupingTags/tag1"]
+    assert "product_type_desc" not in inventory.get_host("host1").vars
+    assert inventory.get_host("host3").vars["tags"] == ["SensorGroupingTags/tag1"]
 
 
 @pytest.mark.parametrize("allow_duplicates, expected", [(False, 2), (True, 4)])
@@ -102,7 +102,7 @@ def test_duplicate_hostnames(api, parse, allow_duplicates, expected):
 
     assert len(inventory.hosts) == expected
     if allow_duplicates:
-        assert "host3_%s" % ASSETS[0] in inventory.hosts
+        assert "host1_%s" % ASSETS[0] in inventory.hosts
 
 
 def test_keyed_groups(api, parse):

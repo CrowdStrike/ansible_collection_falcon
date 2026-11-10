@@ -257,6 +257,13 @@ CI runs on every pull request and does not use Falcon API credentials:
 - A Python 2.7 compile check for the modules that run on managed nodes (`falconctl`, `falconctl_info`)
 - `ansible-lint`, `yamllint`, and Python linting
 
+The unit tests for the API plugins do not call the API. They replay responses that were recorded from a real tenant and sanitized, which are in `tests/unit/plugins/fixtures`. When a plugin starts to use a new API call, record the responses again with `tests/unit/record_fixtures.py`. It uses your own API credentials, and it makes and deletes throwaway `ansible-unit-fixture-*` objects in your tenant:
+
+```shell
+uv run tests/unit/record_fixtures.py --list
+uv run --with crowdstrike-falconpy --with python-dotenv tests/unit/record_fixtures.py --dry-run host_group
+```
+
 Tests that need a Falcon tenant run locally with your own API credentials. The live API module tests are in `tests/integration/targets`. Run them with `tests/integration/run.py`:
 
 ```shell

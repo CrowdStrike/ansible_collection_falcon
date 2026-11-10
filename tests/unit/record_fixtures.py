@@ -22,10 +22,17 @@ Credentials are read from a .env file (via python-dotenv) or from the process
 environment. Required: FALCON_CLIENT_ID and FALCON_CLIENT_SECRET. Optional:
 FALCON_CLOUD and FALCON_MEMBER_CID.
 
+Each service is sanitized on its own, so a fake ID such as
+'00000000000000000000000000000001' is the first ID that its service saw. The
+tests use these fake IDs, so check the tests of a service after you record it
+again.
+
 Usage:
     uv run --with crowdstrike-falconpy --with python-dotenv \\
         tests/unit/record_fixtures.py [--env-file PATH] [--dry-run] [SERVICE ...]
     uv run tests/unit/record_fixtures.py --list
+
+--cleanup deletes the fixture objects that an interrupted run left behind.
 """
 
 import argparse
@@ -56,6 +63,9 @@ EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 GROUPING_TAG_RE = re.compile(r"((?:Sensor|Falcon)GroupingTags/)[^,\"'\s]+")
 # A Discover asset ID is '<cid>_<opaque ID>'. This matches after the CID is faked.
 ASSET_ID_RE = re.compile(r"(?<=\d{32}_)[A-Za-z0-9_-]{20,}")
+# 'api-client-id:<32 hex>' looks like an API client ID to secret scanners,
+# also with a fake ID, so the fake ID is written as a name.
+CLIENT_ID_RE = re.compile(r"api-client-id:0{24}(\d{8})")
 
 TOKEN_KEYS = {
     "access_token",
@@ -137,6 +147,7 @@ class Sanitizer:
             else self._fake("email", m.group(0), lambda n: "user%d@example.com" % n),
             value,
         )
+        value = CLIENT_ID_RE.sub(lambda m: "api-client-id:fixture-client-%d" % int(m.group(1)), value)
         value = ASSET_ID_RE.sub(
             lambda m: self._fake("asset", m.group(0), lambda n: "asset%d" % n),
             value,
@@ -343,10 +354,6 @@ def record_sensor_update_policy(rec, creds):
         platform="linux", stage="prod",
     )
     build = (resources(builds) or [{"build": "00000|n|tagged|1"}])[0]["build"]
-    rec.call(
-        "builds_bad_platform", "query_combined_builds", falcon.query_combined_builds,
-        platform="not-a-platform",
-    )
 
     kernels = rec.call(
         "kernels_page", "query_combined_kernels", falcon.query_combined_kernels, limit=2,
@@ -1155,11 +1162,12 @@ def main():
             creds["member_cid"] = os.environ["FALCON_MEMBER_CID"]
         secrets = {name: os.environ[name] for name in SECRET_ENV if len(os.environ.get(name, "")) >= 6}
 
-    sanitizer = Sanitizer()
     recorders = []
     for service in services:
         print("Recording %s" % service)
-        rec = Recorder(service, sanitizer, args.dry_run, args.wait, args.cleanup)
+        # Each service gets its own Sanitizer, so its fake IDs do not depend
+        # on the other services that are recorded in the same run.
+        rec = Recorder(service, Sanitizer(), args.dry_run, args.wait, args.cleanup)
         SCENARIOS[service](rec, creds)
         recorders.append(rec)
 
@@ -1172,7 +1180,8 @@ def main():
     for rec in recorders:
         for case, data in rec.files.items():
             text = json.dumps(data, indent=2, sort_keys=True) + "\n"
-            leaks = sanitizer.leaks(text, secrets)
+            # Check against the values that every service saw.
+            leaks = sorted({found for other in recorders for found in other.sanitizer.leaks(text, secrets)})
             if leaks:
                 problems.append("%s/%s: %s" % (rec.service, case, ", ".join(leaks)))
             outputs[FIXTURES_DIR / rec.service / (case + ".json")] = text

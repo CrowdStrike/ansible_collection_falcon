@@ -32,6 +32,8 @@ OPAQUE_RE = re.compile(r"[A-Za-z0-9+/_-]{40,}")
 FAKE_HEX32_RE = re.compile(r"(?<![0-9a-fA-F])0{24}[0-9]{8}(?![0-9a-fA-F])")
 # A SHA256 is a public content hash, for example of a sensor installer.
 SHA256_RE = re.compile(r"(?<![0-9a-fA-F])[0-9a-f]{64}(?![0-9a-fA-F])")
+# Secret scanners treat this as an API client ID, also with a fake ID.
+CLIENT_ID_RE = re.compile(r"api-client-id:[0-9a-fA-F]{32}")
 TOKEN_KEYS = ("access_token", "refresh_token", "uninstall_token", "ingest_token", "token")
 
 
@@ -64,6 +66,7 @@ def test_fixture_has_no_tenant_data(path):
     real_uuids = [v for v in UUID_RE.findall(text) if not v.startswith("00000000-0000-0000-0000-")]
     real_emails = [d for d in EMAIL_RE.findall(text) if d != "example.com"]
     tokens = [k for k, v in token_values(data) if v not in ("", "REDACTED")]
+    client_ids = CLIENT_ID_RE.findall(text)
     opaque = OPAQUE_RE.findall(SHA256_RE.sub("", FAKE_HEX32_RE.sub("", text)))
 
     assert real_ids == []
@@ -71,4 +74,5 @@ def test_fixture_has_no_tenant_data(path):
     assert real_emails == []
     assert tokens == []
     assert opaque == []
+    assert client_ids == []
     assert "trace_id" not in text
