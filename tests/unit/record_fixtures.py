@@ -675,24 +675,21 @@ def record_ngsiem(rec, creds):
             ids=parser_id, repository=repo,
         )
         rec.call("parser_get", "get_parser", falcon.get_parser, ids=parser_id, repository=repo)
-        created_id = parser_id
+        # An update with the versioned ID returns 200 but changes nothing, so
+        # the module sends the ID without the version.
         updated = rec.call(
             "parser_update", "update_parser_from_template", falcon.update_parser_from_template,
-            ids=parser_id, repository=repo,
+            ids=parser_id.split(":")[0], repository=repo,
             yaml_template=PARSER_YAML.format(name=parser_name, dataset="fixture.updated"),
         )
         parser_id = parser_id_of(updated) or parser_id
-        rec.call(
-            "parser_get_created_id_after_update", "get_parser", falcon.get_parser,
-            ids=created_id, repository=repo,
-        )
         rec.call(
             "parser_list_after_update", "list_parsers", falcon.list_parsers,
             repository=repo, filter="name:~'%s'" % parser_name, limit=100,
         )
         rec.call(
             "parser_template_after_update", "get_parser_template", falcon.get_parser_template,
-            ids=created_id, repository=repo,
+            ids=parser_id, repository=repo,
         )
         rec.call(
             "parser_get_after_update", "get_parser", falcon.get_parser, ids=parser_id, repository=repo,
@@ -727,6 +724,7 @@ def record_ngsiem(rec, creds):
         rec.call(
             "parser_delete_missing", "delete_parser", falcon.delete_parser, ids=parser_id, repository=repo,
         )
+        rec.call("parser_get_missing", "get_parser", falcon.get_parser, ids=parser_id, repository=repo)
 
         # Data connectors and connections
         rec.call(

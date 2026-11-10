@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - ngsiem_parser - apply YAML changes to an existing parser. The module sent the versioned parser ID to the update call, which the API accepts with a 200 response but does not apply, so the parser kept its old script and every run reported a change. The module now sends the ID without the version, and returns the new version of the parser.
+  - ngsiem_parser - find a parser by ``parser_id`` after an update. Each update gives the parser a new version and ID, so a ``parser_id`` with an earlier version, or without a version, now also finds the parser.

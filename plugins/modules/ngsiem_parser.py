@@ -55,6 +55,8 @@ options:
   parser_id:
     description:
       - The version-suffixed ID of an existing parser (e.g. C(abc123:1.0.0)).
+      - Each update gives the parser a new version and ID. An ID with an
+        earlier version, or an ID without a version, also finds the parser.
       - Preferred for identifying an existing parser during update or delete.
       - When provided with I(state=absent), the parser is deleted by ID.
     type: str
@@ -290,15 +292,28 @@ def find_parser_by_name(falcon, module, name):
     return None
 
 
+def unversioned_id(parser_id):
+    """Return a parser ID without its ':<version>' suffix."""
+    return parser_id.split(":", 1)[0]
+
+
 def get_parser_by_id(falcon, module, parser_id):
-    """Get a parser summary by ID from the list endpoint."""
+    """Get a parser summary by ID from the list endpoint.
+
+    The list shows only the latest version of a parser, and each update makes
+    a new version. Thus an ID with an earlier version also finds the parser.
+    """
     result = falcon.list_parsers(
         repository=module.params["repository"],
         limit=500,
     )
     if result["status_code"] == 200 and result["body"].get("resources"):
-        for item in result["body"]["resources"]:
+        items = result["body"]["resources"]
+        for item in items:
             if item.get("ID") == parser_id:
+                return item
+        for item in items:
+            if unversioned_id(item.get("ID") or "") == unversioned_id(parser_id):
                 return item
     return None
 
@@ -363,20 +378,11 @@ def _extract_parser_id(body):
     return None
 
 
-def build_parser_result(falcon, module, parser_id, fallback_id=None):
-    """Build the returned parser dict from the full definition.
-
-    update_parser_from_template returns the ID '<id>:<version>:<version>', and
-    get_parser returns 404 for that ID. Then try fallback_id, the ID that was
-    updated.
-    """
-    candidates = [parser_id]
-    if fallback_id and fallback_id != parser_id:
-        candidates.append(fallback_id)
-    for candidate in candidates:
-        result = falcon.get_parser(ids=candidate, repository=module.params["repository"])
-        if result["status_code"] == 200 and result["body"].get("resources"):
-            return result["body"]["resources"][0]
+def build_parser_result(falcon, module, parser_id):
+    """Build the returned parser dict from the full definition."""
+    result = falcon.get_parser(ids=parser_id, repository=module.params["repository"])
+    if result["status_code"] == 200 and result["body"].get("resources"):
+        return result["body"]["resources"][0]
     return {"id": parser_id}
 
 
@@ -390,9 +396,14 @@ def create_from_template(falcon, module):
 
 
 def update_from_template(falcon, module, parser_id):
-    """Update an existing parser from the provided YAML template."""
+    """Update an existing parser from the provided YAML template.
+
+    An update with a versioned ID returns 200 but does not change the parser,
+    so send the ID without the version. The API then makes a new version and
+    returns its ID.
+    """
     return falcon.update_parser_from_template(
-        ids=parser_id,
+        ids=unversioned_id(parser_id),
         repository=module.params["repository"],
         yaml_template=module.params["parser_yaml"],
     )
@@ -440,9 +451,7 @@ def handle_present(falcon, module, result):
                     handle_return_errors(module, result, update_result)
                 result["changed"] = True
                 new_id = _extract_parser_id(update_result["body"]) or current_id
-                result["parser"] = build_parser_result(
-                    falcon, module, new_id, fallback_id=current_id
-                )
+                result["parser"] = build_parser_result(falcon, module, new_id)
                 return
 
         result["parser"] = build_parser_result(falcon, module, current_id)

@@ -15,13 +15,14 @@ REPO = "parsers-repository"
 NAME = "ansible-unit-fixture-parser"
 # The API adds 'custom-' to the names of custom parsers.
 STORED_NAME = "custom-" + NAME
-PARSER_ID = "00000000000000000000000000000001:1.2.0"
-# The ID that update_parser_from_template returns.
-UPDATED_ID = PARSER_ID + ":1.2.0"
+UNVERSIONED_ID = "00000000000000000000000000000001"
+PARSER_ID = UNVERSIONED_ID + ":1.3.0"
+# The ID of the new version that update_parser_from_template makes.
+UPDATED_ID = UNVERSIONED_ID + ":1.4.0"
 OTHER_ID = "00000000000000000000000000000005:1.0.0"
 CLONE_NAME = "ansible-unit-fixture-clone"
-CLONE_ID = "00000000000000000000000000000003:1.1.0"
-EXTENSION_ID = "00000000000000000000000000000004:1.0.0"
+CLONE_ID = "00000000000000000000000000000002:1.2.0"
+EXTENSION_ID = "00000000000000000000000000000003:1.1.0"
 
 # The template that tests/unit/record_fixtures.py used to create the parser.
 YAML = """$schema: https://schemas.humio.com/parser/v0.3.0
@@ -152,23 +153,36 @@ def test_present_changed_yaml_updates_parser(api, run_module):
         list_parsers=["parser_list_by_name"],
         get_parser_template=["parser_template"],
         update_parser_from_template=["parser_update"],
-        get_parser=["parser_get_after_update", "parser_get_created_id_after_update"],
+        get_parser=["parser_get_after_update"],
     )
 
     result = run_module(ngsiem_parser, {"name": STORED_NAME, "parser_yaml": UPDATED_YAML})
 
     assert result["changed"] is True
+    # An update with the versioned ID changes nothing, so the module sends the
+    # ID without the version. The API returns the ID of the new version.
     assert service.called("update_parser_from_template") == [
-        {"ids": PARSER_ID, "repository": REPO, "yaml_template": UPDATED_YAML}
+        {"ids": UNVERSIONED_ID, "repository": REPO, "yaml_template": UPDATED_YAML}
     ]
-    # The update returns '<id>:<version>:<version>' and get_parser with that
-    # ID returns 404, so the module gets the parser with the ID it updated.
-    assert service.called("get_parser") == [
-        {"ids": UPDATED_ID, "repository": REPO},
-        {"ids": PARSER_ID, "repository": REPO},
-    ]
-    assert result["parser"]["id"] == PARSER_ID
-    assert result["parser"]["name"] == STORED_NAME
+    assert service.called("get_parser") == [{"ids": UPDATED_ID, "repository": REPO}]
+    assert result["parser"]["id"] == UPDATED_ID
+    assert 'event.dataset := "ansible.fixture.updated"' in result["parser"]["script"]
+
+
+def test_present_after_update_is_not_changed(api, run_module):
+    # The next run with the same YAML finds the new version and its template.
+    service = api(
+        list_parsers=["parser_list_after_update"],
+        get_parser_template=["parser_template_after_update"],
+        get_parser=["parser_get_after_update"],
+    )
+
+    result = run_module(ngsiem_parser, {"name": NAME, "parser_yaml": UPDATED_YAML})
+
+    assert result["changed"] is False
+    assert "update_parser_from_template" not in methods(service)
+    assert service.called("get_parser_template") == [{"ids": UPDATED_ID, "repository": REPO}]
+    assert result["parser"]["id"] == UPDATED_ID
 
 
 def test_check_mode_reports_update_without_updating(api, run_module):
@@ -210,7 +224,7 @@ def test_extension_creates_parser(api, run_module):
         list_parsers=["parser_list_missing"],
         create_parser_extension=["parser_extension"],
         # A 404, so the module returns only the ID of the extension.
-        get_parser=["parser_get_after_update"],
+        get_parser=["parser_get_missing"],
     )
 
     result = run_module(ngsiem_parser, {"name": "ansible-unit-fixture-ext", "extension_of": "microsoft-edge"})
@@ -245,6 +259,19 @@ def test_present_by_parser_id_returns_parser(api, run_module):
     assert result["parser"]["name"] == STORED_NAME
     # A lookup by ID lists the parsers without a filter.
     assert service.called("list_parsers") == [{"repository": REPO, "limit": 500}]
+
+
+@pytest.mark.parametrize(
+    "parser_id", [PARSER_ID, UNVERSIONED_ID], ids=["earlier-version", "no-version"]
+)
+def test_present_by_parser_id_finds_latest_version(api, run_module, parser_id):
+    # After an update the list shows only the new version.
+    service = api(list_parsers=["parser_list_after_update"], get_parser=["parser_get_after_update"])
+
+    result = run_module(ngsiem_parser, {"parser_id": parser_id})
+
+    assert result["changed"] is False
+    assert service.called("get_parser") == [{"ids": UPDATED_ID, "repository": REPO}]
 
 
 def test_present_by_parser_id_that_does_not_exist_fails(api, run_module):
