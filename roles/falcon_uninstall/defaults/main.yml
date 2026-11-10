@@ -8,15 +8,16 @@
 #
 falcon_api_enable_no_log: true
 
-# CrowdStrike API URL for downloading the Falcon sensor. Possible values:
-#       us-1:       api.crowdstrike.com
-#       us-2:       api.us-2.crowdstrike.com
-#       us-3:       api.us-3.crowdstrike.com
-#       eu-1:       api.eu-1.crowdstrike.com
-#       us-gov-1:   api.laggar.gcw.crowdstrike.com
-#       us-gov-2:   api.us-gov-2.crowdstrike.mil
+# CrowdStrike API cloud region. All regions are automatically discovered,
+# except for us-gov-1. Possible values:
+#       us-1
+#       us-2
+#       us-3
+#       eu-1
+#       us-gov-1
+#       us-gov-2
 #
-falcon_cloud: "api.crowdstrike.com"
+falcon_cloud: "us-1"
 
 # 'Client ID' and 'Client Secret' for authentication against the CrowdStrike
 # API. If unknown, get it from the CrowdStrike support portal:
