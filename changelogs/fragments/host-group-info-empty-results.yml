@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - host_group_info - a search that matches no host groups no longer fails with ``object of type 'NoneType' has no len()``. The module now returns an empty ``host_groups`` list.
+  - host_group_info - with ``include_members=true``, a host group with no members now returns an empty ``members`` list instead of ``null``.

@@ -345,7 +345,7 @@ def main():
             )
 
             if query_result["status_code"] == 200:
-                host_groups = query_result["body"]["resources"]
+                host_groups = query_result["body"]["resources"] or []
 
                 # Set pagination info for ID-based queries
                 result["meta"] = {
@@ -361,18 +361,20 @@ def main():
             query_result = search_host_groups(falcon, module)
 
             if query_result["status_code"] == 200:
-                host_groups = query_result["body"]["resources"]
+                host_groups = query_result["body"]["resources"] or []
 
-                # Extract pagination metadata
+                # Extract pagination metadata, counting the results only
+                # when the API does not return a total
                 meta = query_result["body"].get("meta", {})
+                total = meta.get("pagination", {}).get("total")
+                if total is None:
+                    total = len(host_groups)
                 result["meta"] = {
                     "query_time": time.time() - start_time,
                     "pagination": {
                         "offset": module.params["offset"],
                         "limit": module.params["limit"],
-                        "total": meta.get("pagination", {}).get(
-                            "total", len(host_groups)
-                        ),
+                        "total": total,
                     },
                 }
 
@@ -381,7 +383,7 @@ def main():
             for group in host_groups:
                 members_result = get_group_members(falcon, group["id"])
                 if members_result["status_code"] == 200:
-                    group["members"] = members_result["body"]["resources"]
+                    group["members"] = members_result["body"]["resources"] or []
                 else:
                     # If we can't get members, add empty list and continue
                     group["members"] = []
