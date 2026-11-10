@@ -1,0 +1,87 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "offset": 2,
+        "total": 20563
+      },
+      "query_time": 2.382553755
+    },
+    "resources": [
+      {
+        "architecture": "aarch64",
+        "base_package_supported_sensor_versions": [
+          "7.32.18504",
+          "7.32.18511",
+          "7.32.18513",
+          "7.33.18605",
+          "7.33.18606",
+          "7.34.18708",
+          "7.35.18803",
+          "7.36.18909",
+          "7.37.19004",
+          "7.38.19102",
+          "7.38.19105",
+          "7.38.19106",
+          "7.39.19203",
+          "7.39.19204",
+          "7.40.19311",
+          "7.40.19312",
+          "8.10.19402",
+          "8.10.19403",
+          "8.11.19508"
+        ],
+        "created_timestamp": "2024-05-10 22:41:52",
+        "distro": "oracle7",
+        "distro_version": "7.x",
+        "flavor": "",
+        "id": "00000000000000000000000000000001",
+        "modified_timestamp": "2024-05-10 22:41:52",
+        "release": "4.14.35-1902.5.2.el7uek.aarch64",
+        "vendor": "oracle",
+        "version": "",
+        "ztl_module_supported_sensor_versions": null,
+        "ztl_supported_sensor_versions": null
+      },
+      {
+        "architecture": "x86_64",
+        "base_package_supported_sensor_versions": [
+          "7.32.18504",
+          "7.32.18511",
+          "7.32.18513",
+          "7.33.18605",
+          "7.33.18606",
+          "7.34.18708",
+          "7.35.18803",
+          "7.36.18909",
+          "7.37.19004",
+          "7.38.19102",
+          "7.38.19105",
+          "7.38.19106",
+          "7.39.19203",
+          "7.39.19204",
+          "7.40.19311",
+          "7.40.19312",
+          "8.10.19402",
+          "8.10.19403",
+          "8.11.19508"
+        ],
+        "created_timestamp": "2022-01-07 23:53:03",
+        "distro": "oracle7",
+        "distro_version": "7.x",
+        "flavor": "",
+        "id": "00000000000000000000000000000002",
+        "modified_timestamp": "2022-01-07 23:53:03",
+        "release": "3.8.13-118.36.1.el7uek.x86_64",
+        "vendor": "oracle",
+        "version": "",
+        "ztl_module_supported_sensor_versions": null,
+        "ztl_supported_sensor_versions": null
+      }
+    ]
+  },
+  "method": "query_combined_kernels",
+  "status_code": 200
+}

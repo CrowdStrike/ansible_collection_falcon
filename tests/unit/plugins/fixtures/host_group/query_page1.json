@@ -1,0 +1,37 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "offset": 2,
+        "total": 3
+      },
+      "query_time": 0.063854061
+    },
+    "resources": [
+      {
+        "created_by": "api-client-id:fixture-client-2",
+        "created_timestamp": "2026-11-09T20:24:09.045928193Z",
+        "description": "Fixture group",
+        "group_type": "static",
+        "id": "00000000000000000000000000000001",
+        "modified_by": "api-client-id:fixture-client-2",
+        "modified_timestamp": "2026-11-09T20:24:09.045928193Z",
+        "name": "ansible-unit-fixture-a"
+      },
+      {
+        "created_by": "api-client-id:fixture-client-2",
+        "created_timestamp": "2026-11-09T20:24:10.978218973Z",
+        "description": "",
+        "group_type": "static",
+        "id": "00000000000000000000000000000004",
+        "modified_by": "api-client-id:fixture-client-2",
+        "modified_timestamp": "2026-11-09T20:24:10.978218973Z",
+        "name": "ansible-unit-fixture-b"
+      }
+    ]
+  },
+  "method": "query_combined_host_groups",
+  "status_code": 200
+}

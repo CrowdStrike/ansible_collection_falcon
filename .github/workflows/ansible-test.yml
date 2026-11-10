@@ -19,7 +19,25 @@ permissions:
 
 jobs:
   ansible-test:
+    name: sanity (${{ matrix.ansible }})
     runs-on: ubuntu-latest
+    # devel can break at any time, so it only reports.
+    continue-on-error: ${{ matrix.ansible == 'devel' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Oldest supported (meta/runtime.yml), the previous CI version, the
+        # newest version that sanity passes on, and devel. Each core version
+        # supports a different range of controller Python versions.
+        include:
+          - ansible: stable-2.16
+            python: '3.12'
+          - ansible: stable-2.18
+            python: '3.12'
+          - ansible: stable-2.20
+            python: '3.13'
+          - ansible: devel
+            python: '3.13'
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
@@ -34,10 +52,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: '3.13'
+          python-version: ${{ matrix.python }}
 
-      - name: Install ansible-core (stable-2.18)
-        run: pip install https://github.com/ansible/ansible/archive/stable-2.18.tar.gz
+      - name: Install ansible-core (${{ matrix.ansible }})
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz
 
       - name: Clean non-collection files
         working-directory: ${{ env.COLLECTION_PATH }}
@@ -48,7 +66,25 @@ jobs:
         run: ansible-test sanity -v --docker
 
   units:
+    name: units (${{ matrix.ansible }})
     runs-on: ubuntu-latest
+    # devel can break at any time, so it only reports.
+    continue-on-error: ${{ matrix.ansible == 'devel' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Oldest supported (meta/runtime.yml), the previous CI version, the
+        # newest version that sanity passes on, and devel. Each core version
+        # supports a different range of controller Python versions.
+        include:
+          - ansible: stable-2.16
+            python: '3.12'
+          - ansible: stable-2.18
+            python: '3.12'
+          - ansible: stable-2.20
+            python: '3.13'
+          - ansible: devel
+            python: '3.13'
     env:
       PY_COLORS: 1
       ANSIBLE_FORCE_COLOR: 1
@@ -63,10 +99,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: '3.13'
+          python-version: ${{ matrix.python }}
 
-      - name: Install ansible-core (stable-2.18)
-        run: pip install https://github.com/ansible/ansible/archive/stable-2.18.tar.gz
+      - name: Install ansible-core (${{ matrix.ansible }})
+        run: pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible }}.tar.gz
 
       - name: Clean non-collection files
         working-directory: ${{ env.COLLECTION_PATH }}

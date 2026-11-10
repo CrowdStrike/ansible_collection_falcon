@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "invalid device id [00000000000000000000000000000033]"
+      }
+    ],
+    "meta": {
+      "query_time": 0.000544144
+    },
+    "resources": []
+  },
+  "method": "get_device_details",
+  "status_code": 400
+}

@@ -1,0 +1,17 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 409,
+        "id": "00000000000000000000000000000002",
+        "message": "failed to update rule: rule is currently being updated: creating"
+      }
+    ],
+    "meta": {
+      "query_time": 0.012120831
+    },
+    "resources": []
+  },
+  "method": "update_rule",
+  "status_code": 409
+}

@@ -1,0 +1,23 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.719546247
+    },
+    "resources": [
+      {
+        "assignment_rule": "device_id:[],hostname:[]",
+        "created_by": "api-client-id:fixture-client-2",
+        "created_timestamp": "2026-11-09T20:24:09.045928193Z",
+        "description": "Fixture group, updated",
+        "group_type": "static",
+        "id": "00000000000000000000000000000001",
+        "modified_by": "api-client-id:fixture-client-2",
+        "modified_timestamp": "2026-11-09T20:24:23.012297635Z",
+        "name": "ansible-unit-fixture-a"
+      }
+    ]
+  },
+  "method": "perform_group_action",
+  "status_code": 200
+}

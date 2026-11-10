@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "Failed to parse filter expression. [unexpected 0: unexpected EOF near platform]"
+      }
+    ],
+    "meta": {
+      "query_time": 8.8e-08
+    },
+    "resources": null
+  },
+  "method": "override:GET /sensors/combined/installers/v2",
+  "status_code": 400
+}

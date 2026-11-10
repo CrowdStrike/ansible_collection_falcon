@@ -1,0 +1,26 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.014511234
+    },
+    "resources": [
+      {
+        "created_date": 1793984628,
+        "id": 1793955604,
+        "last_modified_date": 1793984628,
+        "name": "CrowdStrike Intelligence Feed: YARA Master - 2026/11/06",
+        "type": "yara-master"
+      },
+      {
+        "created_date": 1793368703,
+        "id": 1793350804,
+        "last_modified_date": 1793368703,
+        "name": "CrowdStrike Intelligence Feed: YARA Master - 2026/10/30",
+        "type": "yara-master"
+      }
+    ]
+  },
+  "method": "get_rule_entities",
+  "status_code": 200
+}

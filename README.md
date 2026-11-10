@@ -251,17 +251,25 @@ ansible-rulebook -i inventory -r crowdstrike.falcon.event_stream_example -E FALC
 [![YAML Lint](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/yamllint.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/yamllint.yml)
 [![Python Lint](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/linting.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/linting.yml)
 
-The CrowdStrike Falcon Ansible collection uses automated testing through Molecule integrated with GitHub Actions. Tests are executed automatically every night, ensuring continuous validation of:
+CI runs on every pull request and does not use Falcon API credentials:
 
-- All built-in roles and their functionality
-- Multiple deployment scenarios
-- Compatibility across supported operating systems
+- `ansible-test sanity` and `ansible-test units` on several ansible-core versions, from the oldest supported (2.16) to `devel`
+- A Python 2.7 compile check for the modules that run on managed nodes (`falconctl`, `falconctl_info`)
+- `ansible-lint`, `yamllint`, and Python linting
 
-This automated testing pipeline helps maintain collection reliability and quickly identifies potential issues across different environments and use cases.
+The unit tests for the API plugins do not call the API. They replay responses that were recorded from a real tenant and sanitized, which are in `tests/unit/plugins/fixtures`. When a plugin starts to use a new API call, record the responses again with `tests/unit/record_fixtures.py`. It uses your own API credentials, and it makes and deletes throwaway `ansible-unit-fixture-*` objects in your tenant:
 
-To learn more about how we use Molecule, check out the [molecule](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/molecule/) directory.
+```shell
+uv run tests/unit/record_fixtures.py --list
+uv run --with crowdstrike-falconpy --with python-dotenv tests/unit/record_fixtures.py --dry-run host_group
+```
 
-Nightly Results: [Actions](https://github.com/CrowdStrike/ansible_collection_falcon/actions)
+Tests that need a Falcon tenant run locally with your own API credentials. The live API module tests are in `tests/integration/targets`. Run them with `tests/integration/run.py`:
+
+```shell
+uv run tests/integration/run.py --list
+uv run tests/integration/run.py ngsiem_parser
+```
 
 ## Contributing
 

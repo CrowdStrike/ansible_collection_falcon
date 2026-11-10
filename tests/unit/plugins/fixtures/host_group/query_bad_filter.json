@@ -1,0 +1,15 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "Invalid filter expression supplied"
+      }
+    ],
+    "meta": {
+      "query_time": 0.00024639
+    }
+  },
+  "method": "query_combined_host_groups",
+  "status_code": 400
+}

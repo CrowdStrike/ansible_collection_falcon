@@ -1,0 +1,13 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 2.085943165
+    },
+    "resources": [
+      "00000000000000000000000000000001"
+    ]
+  },
+  "method": "delete_host_groups",
+  "status_code": 200
+}

@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.053137393
+    },
+    "resources": [
+      {
+        "id": "00000000000000000000000000000007",
+        "path": ""
+      }
+    ]
+  },
+  "method": "delete_data_connection",
+  "status_code": 200
+}

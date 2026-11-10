@@ -1,0 +1,13 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 2.501892557
+    },
+    "resources": [
+      "00000000000000000000000000000004:1.0.0"
+    ]
+  },
+  "method": "create_parser_extension",
+  "status_code": 200
+}

@@ -1,0 +1,9 @@
+{
+  "body": {
+    "access_token": "REDACTED",
+    "expires_in": 1799,
+    "token_type": "bearer"
+  },
+  "method": "login",
+  "status_code": 201
+}

@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "invalid filter syntax: invalid fql syntax, must be of form: name:~'value' "
+      }
+    ],
+    "meta": {
+      "query_time": 0.000470365
+    },
+    "resources": null
+  },
+  "method": "list_parsers",
+  "status_code": 400
+}

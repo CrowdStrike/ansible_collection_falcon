@@ -1,0 +1,28 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 1.061789958
+    },
+    "resources": [
+      {
+        "cid": "00000000000000000000000000000005",
+        "created_by": "api-client-id:fixture-client-6",
+        "created_timestamp": "2026-11-09T21:00:12.878346674Z",
+        "description": "Fixture policy, updated",
+        "enabled": true,
+        "groups": [],
+        "id": "00000000000000000000000000000004",
+        "modified_by": "api-client-id:fixture-client-6",
+        "modified_timestamp": "2026-11-09T21:00:20.462217488Z",
+        "name": "ansible-unit-fixture-a",
+        "platform_name": "Linux",
+        "settings": {
+          "build": "19403|n-1|tagged|5"
+        }
+      }
+    ]
+  },
+  "method": "perform_policies_action",
+  "status_code": 200
+}

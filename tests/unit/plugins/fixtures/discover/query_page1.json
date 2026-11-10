@@ -1,0 +1,19 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "offset": 0,
+        "total": 72
+      },
+      "query_time": 0.298925025
+    },
+    "resources": [
+      "00000000000000000000000000000001_asset1",
+      "00000000000000000000000000000001_asset2"
+    ]
+  },
+  "method": "query_hosts",
+  "status_code": 200
+}

@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "Duplicate policy name ansible-unit-fixture-a for Linux platform."
+      }
+    ],
+    "meta": {
+      "query_time": 0.068235896
+    },
+    "resources": null
+  },
+  "method": "create_policies_v2",
+  "status_code": 400
+}

@@ -1,0 +1,45 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "offset": 3,
+        "total": 3
+      },
+      "query_time": 0.013856029
+    },
+    "resources": [
+      {
+        "cid": "00000000000000000000000000000005",
+        "created_by": "api-client-id:fixture-client-6",
+        "created_timestamp": "2026-11-09T21:00:14.369432912Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000008",
+        "modified_by": "api-client-id:fixture-client-6",
+        "modified_timestamp": "2026-11-09T21:00:14.369432912Z",
+        "name": "ansible-unit-fixture-c",
+        "platform_name": "Linux",
+        "settings": {
+          "build": "",
+          "is_lts_build": false,
+          "scheduler": {
+            "enabled": false,
+            "schedules": [],
+            "timezone": ""
+          },
+          "sensor_version": "",
+          "show_early_adopter_builds": false,
+          "show_ltv_builds": false,
+          "stage": "",
+          "uninstall_protection": "DISABLED",
+          "variants": null
+        }
+      }
+    ]
+  },
+  "method": "query_combined_policies_v2",
+  "status_code": 200
+}

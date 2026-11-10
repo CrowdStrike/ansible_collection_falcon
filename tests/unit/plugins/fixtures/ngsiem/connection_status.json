@@ -1,0 +1,17 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.083462844
+    },
+    "resources": [
+      {
+        "id": "00000000000000000000000000000007",
+        "last_ingested_volume_one_day": "0 B",
+        "status": "Idle"
+      }
+    ]
+  },
+  "method": "get_provisioning_status",
+  "status_code": 200
+}

@@ -1,0 +1,11 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.022316049
+    },
+    "resources": []
+  },
+  "method": "get_rule_entities",
+  "status_code": 200
+}

@@ -1,0 +1,21 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "could not parse filter"
+      }
+    ],
+    "meta": {
+      "pagination": {
+        "limit": 1,
+        "offset": 0,
+        "total": 0
+      },
+      "query_time": 0.000533037
+    },
+    "resources": null
+  },
+  "method": "list_data_connections",
+  "status_code": 400
+}

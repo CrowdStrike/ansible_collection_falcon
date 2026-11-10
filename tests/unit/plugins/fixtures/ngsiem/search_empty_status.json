@@ -1,0 +1,103 @@
+{
+  "body": {
+    "cancelled": false,
+    "done": true,
+    "events": [],
+    "fieldStats": [],
+    "filesUsed": [],
+    "metaData": {
+      "costs": {
+        "liveCost": 0.0,
+        "liveCostRate": 0.0,
+        "staticCost": 2.0,
+        "staticCostRate": 0.0
+      },
+      "digestFlow": {
+        "ingestTimeKnownGood": 1794267615788,
+        "maxIngestLatency": 26207,
+        "minIngestTimeIncluded": 1794267615788
+      },
+      "eventCount": 0,
+      "extraData": {},
+      "filterQuery": {
+        "allowEventSkipping": false,
+        "computeFieldStats": false,
+        "end": 1794267660463,
+        "includeDeletedEvents": false,
+        "ingestEnd": 9223372036854775807,
+        "ingestStart": 0,
+        "isAlertQuery": false,
+        "isInteractive": false,
+        "isLive": false,
+        "isRepeatingSubquery": false,
+        "languageVersion": "legacy",
+        "noResultUntilDone": false,
+        "queryString": "#event_simpleName=AnsibleUnitFixtureNoSuchEvent",
+        "showQueryEventDistribution": false,
+        "start": 1794264060463,
+        "useIngestTime": false
+      },
+      "isAggregate": false,
+      "namedFilterQueries": [],
+      "pollAfter": 1000,
+      "processedBytes": 0,
+      "processedEvents": 0,
+      "queryEnd": 1794267660463,
+      "querySpent": {
+        "day": {
+          "liveCost": 0,
+          "queryCount": 1,
+          "staticCost": 2
+        },
+        "hour": {
+          "liveCost": 0,
+          "queryCount": 1,
+          "staticCost": 2
+        },
+        "oneMinute": {
+          "liveCost": 0,
+          "queryCount": 1,
+          "staticCost": 2
+        },
+        "tenMinutes": {
+          "liveCost": 0,
+          "queryCount": 1,
+          "staticCost": 2
+        }
+      },
+      "queryStart": 1794264060463,
+      "queuedMillis": 0,
+      "quotaTotalSpent": {
+        "day": {
+          "liveCost": 0,
+          "queryCount": 4,
+          "staticCost": 4
+        },
+        "hour": {
+          "liveCost": 0,
+          "queryCount": 4,
+          "staticCost": 4
+        },
+        "oneMinute": {
+          "liveCost": 0,
+          "queryCount": 0,
+          "staticCost": 0
+        },
+        "tenMinutes": {
+          "liveCost": 0,
+          "queryCount": 2,
+          "staticCost": 1
+        }
+      },
+      "responderVHost": 8,
+      "resultBufferSize": 0,
+      "timeMillis": 1342,
+      "totalWork": 1048576,
+      "warnings": [],
+      "workDone": 1048576
+    },
+    "warnings": []
+  },
+  "method": "get_search_status",
+  "status_code": 200
+}

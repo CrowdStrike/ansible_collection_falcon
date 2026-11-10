@@ -1,0 +1,17 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.00743536
+    },
+    "resources": [
+      {
+        "device_id": "MAINTENANCE",
+        "seed_id": 2,
+        "uninstall_token": "REDACTED"
+      }
+    ]
+  },
+  "method": "reveal_uninstall_token",
+  "status_code": 200
+}

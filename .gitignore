@@ -77,7 +77,7 @@ docs/_build/
 *.epub
 *.pdf
 
-# Molecule testing
+# ansible-test output
 tests/output
 
 # Package managers and changelogs

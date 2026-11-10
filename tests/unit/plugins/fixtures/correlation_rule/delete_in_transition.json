@@ -1,0 +1,17 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 409,
+        "id": "00000000000000000000000000000002",
+        "message": "cannot delete unpublished version while rule is in transition state"
+      }
+    ],
+    "meta": {
+      "query_time": 0.008616785
+    },
+    "resources": []
+  },
+  "method": "delete_rules",
+  "status_code": 409
+}

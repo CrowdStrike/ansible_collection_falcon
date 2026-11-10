@@ -1,0 +1,17 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 409,
+        "id": "00000000000000000000000000000006",
+        "message": "version is already published"
+      }
+    ],
+    "meta": {
+      "query_time": 0.006569722
+    },
+    "resources": []
+  },
+  "method": "publish_rule_version",
+  "status_code": 409
+}

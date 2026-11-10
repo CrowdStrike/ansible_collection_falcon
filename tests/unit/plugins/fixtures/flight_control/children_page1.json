@@ -1,0 +1,13 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 403,
+        "message": "access denied, scope not permitted"
+      }
+    ],
+    "meta": {}
+  },
+  "method": "query_children",
+  "status_code": 403
+}

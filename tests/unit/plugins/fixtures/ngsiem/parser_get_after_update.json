@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "message": "no parser with customer: 00000000000000000000000000000002, id: 00000000000000000000000000000001:1.2.0:1.2.0 could be found"
+      }
+    ],
+    "meta": {
+      "query_time": 1.100881095
+    },
+    "resources": null
+  },
+  "method": "get_parser",
+  "status_code": 404
+}

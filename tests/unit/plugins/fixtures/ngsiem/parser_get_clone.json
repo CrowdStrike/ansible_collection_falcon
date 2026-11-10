@@ -1,0 +1,31 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.021181878
+    },
+    "resources": [
+      {
+        "description": "",
+        "display_name": "custom-ansible-unit-fixture-clone",
+        "fields_to_be_removed_before_parsing": [],
+        "fields_to_tag": [
+          "Cps.version",
+          "Vendor",
+          "ecs.version",
+          "event.dataset",
+          "event.kind",
+          "event.module",
+          "event.outcome",
+          "observer.type"
+        ],
+        "id": "00000000000000000000000000000003:1.1.0",
+        "is_built_in": false,
+        "name": "custom-ansible-unit-fixture-clone",
+        "script": "parseJson()\n| Cps.version := \"1.0.0\"\n| Vendor := \"ansible\"\n| ecs.version := \"9.0.0\"\n| event.dataset := \"ansible.fixture\"\n| event.kind := \"event\"\n| event.module := \"ansible\"\n| event.outcome := \"success\"\n| observer.type := \"test\""
+      }
+    ]
+  },
+  "method": "get_parser",
+  "status_code": 200
+}

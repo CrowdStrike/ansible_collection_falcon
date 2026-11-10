@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "message": "Rule not found"
+      }
+    ],
+    "meta": {
+      "query_time": 0.016534461
+    },
+    "resources": null
+  },
+  "method": "get_rule_file",
+  "status_code": 404
+}

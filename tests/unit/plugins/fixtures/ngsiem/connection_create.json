@@ -1,0 +1,15 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.491246385
+    },
+    "resources": [
+      {
+        "id": "00000000000000000000000000000007"
+      }
+    ]
+  },
+  "method": "create_data_connection",
+  "status_code": 201
+}

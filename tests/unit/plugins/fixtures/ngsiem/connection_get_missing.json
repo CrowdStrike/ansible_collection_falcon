@@ -1,0 +1,22 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "id": "00000000000000000000000000000007",
+        "message": "Not Found"
+      }
+    ],
+    "meta": {
+      "pagination": {
+        "limit": 100,
+        "offset": 0,
+        "total": 0
+      },
+      "query_time": 0.070657139
+    },
+    "resources": null
+  },
+  "method": "get_connection_by_id",
+  "status_code": 404
+}

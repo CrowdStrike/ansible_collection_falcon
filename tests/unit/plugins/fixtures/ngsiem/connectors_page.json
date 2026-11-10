@@ -1,0 +1,41 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "offset": 0,
+        "total": 300
+      },
+      "query_time": 0.246565311
+    },
+    "resources": [
+      {
+        "description": "Unify visibility and ensure only secure devices can access resources",
+        "id": "00000000000000000000000000000005",
+        "name": "1Password Device Trust Data Connector",
+        "parsers": [
+          "1password-devicetrust"
+        ],
+        "subscription": "Next-Gen SIEM",
+        "type": "PUSH",
+        "vendor_name": "1Password",
+        "vendor_product_name": "1Password Device Trust"
+      },
+      {
+        "description": "Easily ingest 1Password data into the Falcon platform to protect your business",
+        "id": "00000000000000000000000000000006",
+        "name": "1Password Extended Access Management Data Connector",
+        "parsers": [
+          "1password-enterprise"
+        ],
+        "subscription": "Next-Gen SIEM",
+        "type": "PULL",
+        "vendor_name": "1Password",
+        "vendor_product_name": "1Password Extended Access Management"
+      }
+    ]
+  },
+  "method": "list_data_connectors",
+  "status_code": 200
+}

@@ -1,0 +1,17 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.082463019
+    },
+    "resources": [
+      {
+        "id": "00000000000000000000000000000001:1.2.0",
+        "name": "custom-ansible-unit-fixture-parser",
+        "yaml_template": "$schema: https://schemas.humio.com/parser/v0.3.0\nname: custom-ansible-unit-fixture-parser\nfieldsToBeRemovedBeforeParsing: []\ntestCases: []\nscript: |-\n    parseJson()\n    | Cps.version := \"1.0.0\"\n    | Vendor := \"ansible\"\n    | ecs.version := \"9.0.0\"\n    | event.dataset := \"ansible.fixture\"\n    | event.kind := \"event\"\n    | event.module := \"ansible\"\n    | event.outcome := \"success\"\n    | observer.type := \"test\"\ntagFields:\n    - Cps.version\n    - Vendor\n    - ecs.version\n    - event.dataset\n    - event.kind\n    - event.module\n    - event.outcome\n    - observer.type\n"
+      }
+    ]
+  },
+  "method": "get_parser_template",
+  "status_code": 200
+}

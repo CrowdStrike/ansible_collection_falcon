@@ -1,0 +1,85 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "offset": 2,
+        "total": 3
+      },
+      "query_time": 0.025154115
+    },
+    "resources": [
+      {
+        "cid": "00000000000000000000000000000005",
+        "created_by": "api-client-id:fixture-client-6",
+        "created_timestamp": "2026-11-09T21:00:12.878346674Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000004",
+        "modified_by": "api-client-id:fixture-client-6",
+        "modified_timestamp": "2026-11-09T21:00:12.878346674Z",
+        "name": "ansible-unit-fixture-a",
+        "platform_name": "Linux",
+        "settings": {
+          "build": "19403|n-1|tagged|5",
+          "is_lts_build": false,
+          "scheduler": {
+            "enabled": true,
+            "schedules": [
+              {
+                "days": [
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ],
+                "end": "14:00",
+                "start": "08:00"
+              }
+            ],
+            "timezone": "Etc/UTC"
+          },
+          "sensor_version": "8.10.19403",
+          "show_early_adopter_builds": false,
+          "show_ltv_builds": false,
+          "stage": "prod",
+          "uninstall_protection": "DISABLED",
+          "variants": null
+        }
+      },
+      {
+        "cid": "00000000000000000000000000000005",
+        "created_by": "api-client-id:fixture-client-6",
+        "created_timestamp": "2026-11-09T21:00:13.620392376Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000007",
+        "modified_by": "api-client-id:fixture-client-6",
+        "modified_timestamp": "2026-11-09T21:00:13.620392376Z",
+        "name": "ansible-unit-fixture-b",
+        "platform_name": "Linux",
+        "settings": {
+          "build": "",
+          "is_lts_build": false,
+          "scheduler": {
+            "enabled": false,
+            "schedules": [],
+            "timezone": ""
+          },
+          "sensor_version": "",
+          "show_early_adopter_builds": false,
+          "show_ltv_builds": false,
+          "stage": "",
+          "uninstall_protection": "DISABLED",
+          "variants": null
+        }
+      }
+    ]
+  },
+  "method": "query_combined_policies_v2",
+  "status_code": 200
+}

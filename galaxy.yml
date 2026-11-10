@@ -74,4 +74,3 @@ build_ignore:
   - ".[dgrv]*"
   - ".ansible"
   - ".pre-commit-config.yaml"
-  - "molecule"

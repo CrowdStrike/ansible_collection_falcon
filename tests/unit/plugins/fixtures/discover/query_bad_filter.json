@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "hostname:' filter is invalid, cannot be parsed"
+      }
+    ],
+    "meta": {
+      "query_time": 0.001005658
+    },
+    "resources": null
+  },
+  "method": "query_hosts",
+  "status_code": 400
+}
