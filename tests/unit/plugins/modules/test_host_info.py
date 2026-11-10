@@ -57,15 +57,22 @@ def test_invalid_host_id_fails_with_api_message(api, run_module):
     assert result["msg"] == "invalid device id [%s]" % MISSING_ID
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=UnboundLocalError,
-    reason="With an empty hosts list the loop does not run, so query_result "
-    "is not set when the module passes it to handle_return_errors.",
-)
 def test_empty_hosts_list_returns_no_hosts(api, run_module):
-    api("details_page1")
+    service = api("details_page1")
 
     result = run_module(host_info, {"hosts": []})
 
+    assert result["changed"] is False
     assert result["hosts"] == []
+    assert service.calls == []
+
+
+def test_error_in_an_earlier_batch_fails(api, run_module):
+    service = api("details_missing", "details_page1")
+    hosts = [MISSING_ID] * 5000 + HOSTS[:2]
+
+    result = run_module(host_info, {"hosts": hosts})
+
+    assert result["failed"] is True
+    assert result["msg"] == "invalid device id [%s]" % MISSING_ID
+    assert len(service.called("get_device_details")) == 1

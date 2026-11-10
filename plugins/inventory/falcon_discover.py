@@ -54,6 +54,8 @@ options:
       - eu-1
     default: us-1
     type: str
+    env:
+      - name: FALCON_CLOUD
   filter:
     description:
       - The filter expression that should be used to limit the results using FQL
@@ -164,16 +166,20 @@ import os
 import re
 import traceback
 
+from ansible.errors import AnsibleError
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
+from ansible_collections.crowdstrike.falcon.plugins.plugin_utils.falconpy_utils import (
+    check_falconpy,
+)
 
 FALCONPY_IMPORT_ERROR = None
 try:
     from falconpy import Discover
-    from falconpy._version import _VERSION
 
     HAS_FALCONPY = True
 except ImportError:
     HAS_FALCONPY = False
+    Discover = None
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
 
 
@@ -196,17 +202,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         self._read_config_data(path)
         cache_key = self.get_cache_key(path)
 
-        # Check if FalconPy is installed
-        if not HAS_FALCONPY:
-            raise ImportError(
-                "The crowdstrike.falcon.falcon_discover plugin requires falconpy to be installed."
-            )
-
-        # Check FalconPy version
-        if _VERSION < "1.5.0":
-            raise ImportError(
-                "The crowdstrike.falcon.falcon_discover plugin requires falconpy 1.5.0 or higher."
-            )
+        # Check that FalconPy is installed and is a supported version
+        check_falconpy(self.NAME)
 
         # cache may be True or False at this point to indicate if the inventory is being refreshed
         # get the user's cache option too to see if we should save the cache if it is changing
@@ -279,7 +276,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         while running:
             host_lookup = falcon.query_hosts(filter=fql, offset=offset, limit=max_limit)
             if host_lookup["status_code"] != 200:
-                raise SystemExit(
+                raise AnsibleError(
                     f"Unable to query hosts: {host_lookup['body']['errors']}"
                 )
 
