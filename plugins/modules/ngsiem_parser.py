@@ -47,6 +47,9 @@ options:
       - Required when creating a new parser and when using I(clone_from) or
         I(extension_of).
       - Used to look up an existing parser when I(parser_id) is not provided.
+      - The API stores custom parsers with a C(custom-) prefix, so a parser
+        created as C(my-parser) is stored as C(custom-my-parser). Both names
+        find the parser.
     type: str
     required: false
   parser_id:
@@ -94,10 +97,12 @@ notes:
     normalizes stored scripts; a re-run may report a change if the server
     reformats content.
   - B(Versioning:) Custom parsers auto-increment their version on each update or
-    clone. The returned parser ID is version-suffixed and will differ from the
+    clone. The returned parser ID is version-suffixed and can differ from the
     input ID after an update.
-  - B(Parser Lookup:) When I(parser_id) is not provided, the module searches by
-    exact I(name). Prefer I(parser_id) for precise targeting.
+  - B(Parser Lookup:) When I(parser_id) is not provided, the module searches for
+    a parser named C(custom-<name>) or exactly I(name). If both exist,
+    C(custom-<name>) is used, unless I(name) already starts with C(custom-).
+    Prefer I(parser_id) for precise targeting.
   - B(State Management:) For I(state=absent), if the parser is not found, the
     module exits successfully without making any changes (idempotent). A stale
     index entry that 404s on delete is treated as already absent.
@@ -208,6 +213,9 @@ except ImportError:
 # The parser modules require the typed clone/extension methods added in 1.6.3.
 MINIMUM_FALCONPY_VERSION = "1.6.3"
 
+# The API adds this prefix to the names of custom parsers.
+CUSTOM_PARSER_PREFIX = "custom-"
+
 NGSIEM_PARSER_ARGS = {
     "state": {"type": "str", "choices": ["present", "absent"], "default": "present"},
     "repository": {"type": "str", "default": "parsers-repository"},
@@ -255,16 +263,30 @@ def validate_params(module):
 
 
 def find_parser_by_name(falcon, module, name):
-    """Find a parser by exact name via the substring filter, then exact match."""
+    """Find a parser by name via the substring filter, then exact match.
+
+    The API stores a custom parser created as 'foo' with the name 'custom-foo',
+    so both 'foo' and 'custom-foo' match. 'custom-foo' is tried first, unless
+    the name already starts with 'custom-'.
+    """
+    prefixed = CUSTOM_PARSER_PREFIX + name
+    if name.startswith(CUSTOM_PARSER_PREFIX):
+        candidates = [name, prefixed]
+    else:
+        candidates = [prefixed, name]
+
     result = falcon.list_parsers(
         repository=module.params["repository"],
         filter=f"name:~'{name}'",
         limit=100,
     )
     if result["status_code"] == 200 and result["body"].get("resources"):
+        by_name = {}
         for item in result["body"]["resources"]:
-            if item.get("Name") == name:
-                return item
+            by_name.setdefault(item.get("Name"), item)
+        for candidate in candidates:
+            if candidate in by_name:
+                return by_name[candidate]
     return None
 
 
@@ -341,11 +363,20 @@ def _extract_parser_id(body):
     return None
 
 
-def build_parser_result(falcon, module, parser_id):
-    """Build the returned parser dict from the full definition."""
-    result = falcon.get_parser(ids=parser_id, repository=module.params["repository"])
-    if result["status_code"] == 200 and result["body"].get("resources"):
-        return result["body"]["resources"][0]
+def build_parser_result(falcon, module, parser_id, fallback_id=None):
+    """Build the returned parser dict from the full definition.
+
+    update_parser_from_template returns the ID '<id>:<version>:<version>', and
+    get_parser returns 404 for that ID. Then try fallback_id, the ID that was
+    updated.
+    """
+    candidates = [parser_id]
+    if fallback_id and fallback_id != parser_id:
+        candidates.append(fallback_id)
+    for candidate in candidates:
+        result = falcon.get_parser(ids=candidate, repository=module.params["repository"])
+        if result["status_code"] == 200 and result["body"].get("resources"):
+            return result["body"]["resources"][0]
     return {"id": parser_id}
 
 
@@ -409,7 +440,9 @@ def handle_present(falcon, module, result):
                     handle_return_errors(module, result, update_result)
                 result["changed"] = True
                 new_id = _extract_parser_id(update_result["body"]) or current_id
-                result["parser"] = build_parser_result(falcon, module, new_id)
+                result["parser"] = build_parser_result(
+                    falcon, module, new_id, fallback_id=current_id
+                )
                 return
 
         result["parser"] = build_parser_result(falcon, module, current_id)

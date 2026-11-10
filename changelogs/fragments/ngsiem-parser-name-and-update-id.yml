@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - ngsiem_parser - find an existing parser by the ``name`` it was created with. The API stores custom parsers as ``custom-<name>``, so a second run with the same ``name`` did not find the parser and tried to create it again.
+  - ngsiem_parser - return the full parser after an update. The update returns a parser ID that the API cannot find, so before this fix the module returned only that ID.
