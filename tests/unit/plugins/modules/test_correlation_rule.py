@@ -7,6 +7,8 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import copy
+
 import pytest
 
 from ansible_collections.crowdstrike.falcon.plugins.modules import correlation_rule
@@ -32,7 +34,7 @@ def api(falcon_api, fixture):
     """Return a function that patches correlation_rule with recorded responses.
 
     The module builds a CorrelationRules and a SensorDownload client; both
-    come from the same FakeService.
+    come from the same FakeService. A case is a fixture name or a response.
     """
 
     def make(**responses):
@@ -40,7 +42,10 @@ def api(falcon_api, fixture):
         return falcon_api(
             correlation_rule,
             {
-                method: [fixture("correlation_rule/" + case) for case in cases]
+                method: [
+                    fixture("correlation_rule/" + case) if isinstance(case, str) else case
+                    for case in cases
+                ]
                 for method, cases in responses.items()
             },
         )
@@ -102,13 +107,10 @@ def test_present_updates_changed_description(api, run_module):
     ]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="update_rule publishes the new version, so publish_rule_version "
-    "returns 409 'version is already published' and the module fails.",
-)
 def test_present_update_with_publish_does_not_fail(api, run_module):
-    api(
+    # update_rule publishes the new version, and publish_rule_version would
+    # return 409 "version is already published" (the recorded publish case).
+    service = api(
         get_rules_combined=["query_by_name"],
         update_rule=["update_description"],
         get_rules=["get_after_update"],
@@ -122,6 +124,49 @@ def test_present_update_with_publish_does_not_fail(api, run_module):
 
     assert not result.get("failed"), result.get("msg")
     assert result["changed"] is True
+    assert service.called("get_latest_rule_versions") == [{"rule_ids": [RULE_ID]}]
+    assert "publish_rule_version" not in methods(service)
+
+
+def test_present_create_with_publish_skips_published_version(api, run_module):
+    # create_rule also returns a version that is already published.
+    service = api(
+        get_rules_combined=["query_by_name_missing"],
+        create_rule=["create"],
+        get_latest_rule_versions=["latest_versions"],
+        publish_rule_version=["publish"],
+    )
+
+    result = run_module(correlation_rule, dict(MATCHING, publish=True))
+
+    assert not result.get("failed"), result.get("msg")
+    assert result["changed"] is True
+    assert service.called("get_latest_rule_versions") == [{"rule_ids": [RULE_ID]}]
+    assert "publish_rule_version" not in methods(service)
+
+
+def test_present_create_with_publish_publishes_unpublished_version(api, fixture, run_module):
+    # The recorder only gets published versions, so both responses are
+    # recorded responses, changed: the version has another state
+    # ("unpublished" is not a recorded value), and the 409 publish response
+    # is a 200 with no errors.
+    versions = copy.deepcopy(fixture("correlation_rule/latest_versions"))
+    versions["body"]["resources"][0]["state"] = "unpublished"
+    published = copy.deepcopy(fixture("correlation_rule/publish"))
+    published["status_code"] = 200
+    published["body"]["errors"] = []
+    service = api(
+        get_rules_combined=["query_by_name_missing"],
+        create_rule=["create"],
+        get_latest_rule_versions=[versions],
+        publish_rule_version=[published],
+    )
+
+    result = run_module(correlation_rule, dict(MATCHING, publish=True))
+
+    assert not result.get("failed"), result.get("msg")
+    assert result["changed"] is True
+    assert service.called("publish_rule_version") == [{"id": versions["body"]["resources"][0]["id"]}]
 
 
 def test_present_by_id_that_does_not_exist_fails(api, run_module):
