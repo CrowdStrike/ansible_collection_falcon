@@ -1,0 +1,6 @@
+---
+minor_changes:
+  - falcon_configure - the ``falcon_cloud`` default is now ``us-1``, which matches the README and the ``falcon_install`` role. The old default ``api.crowdstrike.com`` had no effect because the ``falcon_install`` default always took precedence.
+  - falcon_configure - remove the ``falcon_cloud_autodiscover`` default. No task used this variable.
+  - falcon_uninstall - the ``falcon_cloud`` default is now ``us-1``, which matches the README and the ``falcon_install`` role. The old default ``api.crowdstrike.com`` had no effect because the ``falcon_install`` default always took precedence.
+  - falcon_configure, falcon_install, falcon_uninstall - remove the unused ``falcon_cloud_urls`` role variable, and document ``falcon_cloud`` as a cloud region name. The API modules accept only region names, not API URLs.

@@ -20,16 +20,15 @@ Configures the CrowdStrike Falcon Sensor. This role is focused mainly on configu
 
 - `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: ***null***)
 - `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: ***null***)
-- `falcon_cloud` - CrowdStrike API URL for API operations (string, default: ***us-1***)
-  - Controls API endpoint selection for authentication and data retrieval
-  - Can be specified as either a cloud alias (us-1, us-2, etc.) or full URL
+- `falcon_cloud` - CrowdStrike API cloud region (string, default: ***us-1***)
+  - All regions are automatically discovered, except for us-gov-1
   - choices:
-    - **us-1** -> api.crowdstrike.com
-    - **us-2** -> api.us-2.crowdstrike.com
-    - **us-3** -> api.us-3.crowdstrike.com
-    - **us-gov-1** -> api.laggar.gcw.crowdstrike.com
-    - **us-gov-2** -> api.us-gov-2.crowdstrike.mil
-    - **eu-1** -> api.eu-1.crowdstrike.com
+    - **us-1**
+    - **us-2**
+    - **us-3**
+    - **eu-1**
+    - **us-gov-1**
+    - **us-gov-2**
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 
 ### Sensor Configuration Variables
@@ -286,7 +285,7 @@ How to configure for specific cloud regions (sensor v7.28+):
       falcon_client_id: <FALCON_CLIENT_ID>
       falcon_client_secret: <FALCON_CLIENT_SECRET>
       falcon_sensor_cloud: us-2  # Explicit sensor cloud region
-      # falcon_cloud can autodiscover any region for API operations
+      # API operations autodiscover the cloud region, except for us-gov-1
 
 # Non-API workflow with sensor cloud region
 - hosts: all

@@ -37,14 +37,15 @@ The following variables are currently supported:
 
 - `falcon_client_id` - CrowdStrike OAUTH Client ID (string, default: ***null***)
 - `falcon_client_secret` - CrowdStrike OAUTH Client Secret (string, default: ***null***)
-- `falcon_cloud` - CrowdStrike API URL for downloading the Falcon sensor (string, default: ***us-1***)
+- `falcon_cloud` - CrowdStrike API cloud region (string, default: ***us-1***)
+  - All regions are automatically discovered, except for us-gov-1
   - choices:
-    - **us-1** -> api.crowdstrike.com
-    - **us-2** -> api.us-2.crowdstrike.com
-    - **us-3** -> api.us-3.crowdstrike.com
-    - **us-gov-1** -> api.laggar.gcw.crowdstrike.com
-    - **us-gov-2** -> api.us-gov-2.crowdstrike.mil
-    - **eu-1** -> api.eu-1.crowdstrike.com
+    - **us-1**
+    - **us-2**
+    - **us-3**
+    - **eu-1**
+    - **us-gov-1**
+    - **us-gov-2**
 - `falcon_api_enable_no_log` - Whether to enable or disable the logging of sensitive data being exposed in API calls (bool, default: ***true***)
 - `falcon_api_sensor_download_path` - Local directory path to download the sensor to (string, default: ***/tmp/falcon-sensor***)
 - `falcon_api_sensor_download_mode` - The file permissions to set on the downloaded sensor (string, default: ***null***)
