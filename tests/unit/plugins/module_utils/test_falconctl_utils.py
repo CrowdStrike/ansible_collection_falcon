@@ -7,8 +7,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from subprocess import CalledProcessError
-
 import pytest
 
 from ansible_collections.crowdstrike.falcon.plugins.module_utils import (
@@ -129,61 +127,85 @@ def test_missing_delimiter_returns_none(opt, stdout):
     assert format_stdout(stdout, opt) is None
 
 
+class FakeModule(object):
+    """Stand-in for AnsibleModule that returns canned falconctl output.
+
+    outputs maps an option flag to (rc, stdout, stderr).
+    """
+
+    def __init__(self):
+        self.outputs = {}
+        self.calls = []
+        self.bin_path_calls = []
+
+    def get_bin_path(self, arg, required=False, opt_dirs=None):
+        self.bin_path_calls.append((arg, required, opt_dirs))
+        return "/opt/CrowdStrike/falconctl"
+
+    def run_command(self, cmd, **kwargs):
+        self.calls.append(cmd)
+        return self.outputs[cmd[-1]]
+
+
 @pytest.fixture
-def falconctl(monkeypatch):
-    """Replace the falconctl binary with canned output per option flag."""
-    outputs = {}
-    calls = []
+def module():
+    return FakeModule()
 
-    def fake_check_output(cmd, **kwargs):
-        calls.append(cmd)
-        result = outputs[cmd[-1]]
-        if isinstance(result, Exception):
-            raise result
-        return result
 
-    monkeypatch.setattr(falconctl_utils, "check_output", fake_check_output)
-    monkeypatch.setattr(
-        falconctl_utils, "_FALCONCTL", "/opt/CrowdStrike/falconctl", raising=False
+def test_get_options_parses_tags_by_option_name(module):
+    module.outputs["--tags"] = (0, 'tags="graph-db,prod".\n', "")
+
+    assert get_options(module, ["tags"]) == {"tags": "graph-db,prod"}
+    assert module.calls == [["/opt/CrowdStrike/falconctl", "-g", "--tags"]]
+
+
+def test_get_options_translates_underscores_on_command_line(module):
+    module.outputs["--metadata-query"] = (0, "metadata-query=enable.\n", "")
+
+    assert get_options(module, ["metadata_query"]) == {"metadata_query": "enable"}
+    assert module.calls[0][-1] == "--metadata-query"
+
+
+def test_get_options_returns_none_when_falconctl_fails(module):
+    module.outputs["--apd"] = (255, "apd=TRUE.\n", "error")
+
+    assert get_options(module, ["apd"]) == {"apd": None}
+
+
+def test_get_options_reads_stderr(module):
+    module.outputs["--cid"] = (0, "", "cid is not set.\n")
+    module.outputs["--backend"] = (
+        0,
+        "backend=bpf.\n",
+        "This option is deprecated and will be ignored.\n",
     )
-    monkeypatch.setattr(falconctl_utils, "FALCONCTL_NOT_FOUND", False)
-    return outputs, calls
+
+    assert get_options(module, ["cid", "backend"]) == {"cid": None, "backend": "bpf"}
 
 
-def test_get_options_parses_tags_by_option_name(falconctl):
-    outputs, calls = falconctl
-    outputs["--tags"] = 'tags="graph-db,prod".\n'
-
-    assert get_options(["tags"]) == {"tags": "graph-db,prod"}
-    assert calls == [["/opt/CrowdStrike/falconctl", "-g", "--tags"]]
-
-
-def test_get_options_translates_underscores_on_command_line(falconctl):
-    outputs, calls = falconctl
-    outputs["--metadata-query"] = "metadata-query=enable.\n"
-
-    assert get_options(["metadata_query"]) == {"metadata_query": "enable"}
-    assert calls[0][-1] == "--metadata-query"
-
-
-def test_get_options_returns_none_when_falconctl_fails(falconctl):
-    outputs = falconctl[0]
-    outputs["--apd"] = CalledProcessError(255, ["falconctl"])
-
-    assert get_options(["apd"]) == {"apd": None}
-
-
-def test_get_options_rejects_unknown_option(falconctl):
+def test_get_options_rejects_unknown_option(module):
     with pytest.raises(ValueError, match="Invalid falconctl get option"):
-        get_options(["not_an_option"])
+        get_options(module, ["not_an_option"])
 
 
-def test_get_options_raises_when_falconctl_missing(falconctl, monkeypatch):
-    monkeypatch.setattr(falconctl_utils, "FALCONCTL_NOT_FOUND", True)
-    monkeypatch.setattr(falconctl_utils, "FALCONCTL_VALUE_ERROR", "not found")
+def test_get_options_finds_falconctl_once(module):
+    module.outputs["--cid"] = (0, "cid=abc.\n", "")
+    module.outputs["--aid"] = (0, "aid=def.\n", "")
 
-    with pytest.raises(ValueError, match="not found"):
-        get_options(["cid"])
+    get_options(module, ["cid", "aid"])
+    # required=True makes the module fail when falconctl is not found
+    assert module.bin_path_calls == [("falconctl", True, ["/opt/CrowdStrike"])]
+
+
+def test_get_options_without_names_returns_every_option(module):
+    module.outputs = dict(
+        ("--%s" % opt.replace("_", "-"), (0, "", "%s is not set.\n" % opt))
+        for opt in falconctl_utils.FALCONCTL_GET_OPTIONS
+    )
+
+    result = get_options(module, [])
+    assert sorted(result) == sorted(falconctl_utils.FALCONCTL_GET_OPTIONS)
+    assert set(result.values()) == {None}
 
 
 def test_resolve_tags_present_merges_with_existing():

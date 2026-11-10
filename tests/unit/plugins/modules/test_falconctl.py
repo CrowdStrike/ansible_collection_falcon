@@ -49,7 +49,9 @@ class FakeModule(object):
 @pytest.fixture
 def current_tags(monkeypatch):
     state = {"tags": None}
-    monkeypatch.setattr(falconctl, "get_options", lambda opts: {o: state[o] for o in opts})
+    monkeypatch.setattr(
+        falconctl, "get_options", lambda module, opts: {o: state[o] for o in opts}
+    )
     return state
 
 
@@ -172,7 +174,7 @@ def test_before_state_reuses_tags_read_in_init(current_tags, monkeypatch):
     current_tags["tags"] = "tag1"
     calls = []
 
-    def get_options(opts):
+    def get_options(module, opts):
         calls.append(list(opts))
         return {o: current_tags[o] for o in opts}
 

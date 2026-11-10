@@ -27,14 +27,18 @@ jobs:
       fail-fast: false
       matrix:
         # Oldest supported (meta/runtime.yml), the previous CI version, the
-        # newest version that sanity passes on, and devel. Each core version
-        # supports a different range of controller Python versions.
+        # newest stable versions, and devel. Each core version supports a
+        # different range of controller Python versions.
         include:
           - ansible: stable-2.16
             python: '3.12'
           - ansible: stable-2.18
             python: '3.12'
           - ansible: stable-2.20
+            python: '3.13'
+          - ansible: stable-2.21
+            python: '3.13'
+          - ansible: stable-2.22
             python: '3.13'
           - ansible: devel
             python: '3.13'
@@ -74,14 +78,18 @@ jobs:
       fail-fast: false
       matrix:
         # Oldest supported (meta/runtime.yml), the previous CI version, the
-        # newest version that sanity passes on, and devel. Each core version
-        # supports a different range of controller Python versions.
+        # newest stable versions, and devel. Each core version supports a
+        # different range of controller Python versions.
         include:
           - ansible: stable-2.16
             python: '3.12'
           - ansible: stable-2.18
             python: '3.12'
           - ansible: stable-2.20
+            python: '3.13'
+          - ansible: stable-2.21
+            python: '3.13'
+          - ansible: stable-2.22
             python: '3.13'
           - ansible: devel
             python: '3.13'
