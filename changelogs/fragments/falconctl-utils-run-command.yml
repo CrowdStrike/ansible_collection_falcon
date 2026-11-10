@@ -1,0 +1,3 @@
+---
+trivial:
+  - falconctl, falconctl_info - run ``falconctl -g`` with ``AnsibleModule.run_command`` instead of ``subprocess.check_output``, so ``ansible-test sanity`` passes on ansible-core 2.21 and later.

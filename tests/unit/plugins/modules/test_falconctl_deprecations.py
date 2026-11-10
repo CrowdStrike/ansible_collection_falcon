@@ -9,7 +9,6 @@ __metaclass__ = type
 
 import contextlib
 import json
-from subprocess import CalledProcessError
 from unittest.mock import patch
 
 import pytest
@@ -18,9 +17,6 @@ from ansible.module_utils import basic
 from ansible.module_utils.common import warnings
 from ansible.module_utils.common.text.converters import to_bytes
 
-from ansible_collections.crowdstrike.falcon.plugins.module_utils import (
-    falconctl_utils,
-)
 from ansible_collections.crowdstrike.falcon.plugins.modules import (
     falconctl,
     falconctl_info,
@@ -51,17 +47,12 @@ def run_module(monkeypatch, capsys):
         warnings, "_global_deprecations", type(warnings._global_deprecations)()
     )
 
-    # Linux sensors 7.21+ exit 1 for 'falconctl -g --message-log'.
-    def fake_check_output(cmd, **kwargs):
-        raise CalledProcessError(1, cmd)
-
-    monkeypatch.setattr(falconctl_utils, "check_output", fake_check_output)
-    monkeypatch.setattr(falconctl_utils, "_FALCONCTL", FALCONCTL, raising=False)
-    monkeypatch.setattr(falconctl_utils, "FALCONCTL_NOT_FOUND", False)
-
     commands = []
 
     def fake_run_command(self, cmd, **kwargs):
+        # Linux sensors 7.21+ exit 1 for 'falconctl -g --message-log'.
+        if cmd[1] == "-g":
+            return (1, "", "")
         commands.append(cmd)
         return (0, "", "")
 

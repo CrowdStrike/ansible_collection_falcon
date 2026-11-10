@@ -11,12 +11,10 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import re
-import traceback
-from subprocess import STDOUT, CalledProcessError, check_output  # nosec
-
-from ansible.module_utils.common.process import get_bin_path
 
 # Constants
+CS_PATH = "/opt/CrowdStrike"
+
 FALCONCTL_GET_OPTIONS = [
     "cid",
     "aid",
@@ -36,41 +34,24 @@ FALCONCTL_GET_OPTIONS = [
     "cloud",
 ]
 
-# Private use only. This is to ensure that the command is checked
-# prior to execution, and w/o the overhead of passing in the executable
-# along with options.
-# Fake instantiation to make use of AnsibleModule funcs()
-FALCONCTL_NOT_FOUND = False
-FALCONCTL_VALUE_ERROR = None
-_cs_path = "/opt/CrowdStrike"
-try:
-    _FALCONCTL = get_bin_path("falconctl", opt_dirs=[_cs_path])
-except ValueError:
-    FALCONCTL_NOT_FOUND = True
-    FALCONCTL_VALUE_ERROR = traceback.format_exc()
 
-
-def __get(opt):
+def __get(module, falconctl, opt):
     if opt not in FALCONCTL_GET_OPTIONS:
         raise ValueError("Invalid falconctl get option: %s" % opt)
-    if not FALCONCTL_NOT_FOUND:
-        cmd = [_FALCONCTL, "-g"]
-    else:
-        raise ValueError(FALCONCTL_VALUE_ERROR)
     # make sure opt is translated prior to execution
-    cmd.append("--%s" % opt.replace("_", "-"))
-    try:
-        stdout = check_output(
-            cmd, universal_newlines=True, stderr=STDOUT, shell=False
-        )  # nosec
-    except CalledProcessError:
-        stdout = ""
+    cmd = [falconctl, "-g", "--%s" % opt.replace("_", "-")]
+    rc, stdout, stderr = module.run_command(cmd)
+    if rc != 0:
+        return None
 
-    return format_stdout(stdout, opt)
+    # falconctl can print notices on stderr. Put them before stdout so that
+    # the '<option>=<value>' part stays last and _split_value drops them.
+    return format_stdout(stderr + stdout, opt)
 
 
-def __get_many(opts):
-    return {opt: __get(opt) for opt in opts}
+def __get_many(module, opts):
+    falconctl = module.get_bin_path("falconctl", required=True, opt_dirs=[CS_PATH])
+    return {opt: __get(module, falconctl, opt) for opt in opts}
 
 
 def _split_value(cleaned):
@@ -150,7 +131,7 @@ def tags_equal(first, second):
     return set(split_tags(first)) == set(split_tags(second))
 
 
-def get_options(opts):
-    """Return falconctl -g valid options"""
+def get_options(module, opts):
+    """Return falconctl -g valid options, run through the AnsibleModule"""
     requested = opts if opts else FALCONCTL_GET_OPTIONS
-    return __get_many(requested)
+    return __get_many(module, requested)

@@ -269,7 +269,7 @@ class FalconCtl(object):
             self.module.fail_json(msg="exclusive requires tags_list")
         if self.params["tags_list"] is not None:
             self.validate_tags_list(self.params)
-            self.current_tags = get_options(["tags"])["tags"]
+            self.current_tags = get_options(self.module, ["tags"])["tags"]
             self.cached_tags = True
             self.resolved_tags = resolve_tags(
                 self.current_tags,
@@ -453,7 +453,11 @@ class FalconCtl(object):
 
         # get current values; skip the call when only the cached tags are
         # needed, because get_options([]) returns every option
-        result = {} if use_cached_tags and not values else get_options(values)
+        result = (
+            {}
+            if use_cached_tags and not values
+            else get_options(self.module, values)
+        )
         if use_cached_tags:
             result["tags"] = self.current_tags
         return result

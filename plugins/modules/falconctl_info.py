@@ -101,7 +101,7 @@ class FalconCtlInfo(object):
 
     def get_options(self):
         """Gets options from falconctl_utils for falconctl_info"""
-        return get_options(self.name)
+        return get_options(self.module, self.name)
 
 
 def main():  # pylint: disable=missing-function-docstring

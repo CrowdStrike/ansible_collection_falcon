@@ -17,10 +17,6 @@ from ansible.module_utils import basic
 from ansible.module_utils.common import warnings
 from ansible.module_utils.common.text.converters import to_bytes
 
-from ansible_collections.crowdstrike.falcon.plugins.module_utils import (
-    falconctl_utils,
-)
-
 FALCONCTL = "/opt/CrowdStrike/falconctl"
 
 
@@ -78,15 +74,21 @@ class FakeSensor(object):
         self.stderr = ""
         self._run_module = run_module
 
-    def get(self, cmd, **kwargs):
+    def run_command(self, cmd):
+        """Handle 'falconctl -g' and record 'falconctl -s/-d'."""
+        if cmd[1] == "-g":
+            return self.get(cmd)
+        return self.set_or_delete(cmd)
+
+    def get(self, cmd):
         opt = cmd[2][2:]
         value = self.options.get(opt)
         if value is None:
-            return "%s is not set.\n" % opt
+            return (0, "%s is not set.\n" % opt, "")
         # The sensor quotes only some values (see test_falconctl_utils.py).
         if opt in ("cid", "aid", "tags"):
             value = '"%s"' % value
-        return "%s=%s.\n" % (opt, value)
+        return (0, "%s=%s.\n" % (opt, value), "")
 
     def set_or_delete(self, cmd):
         self.commands.append(cmd)
@@ -117,15 +119,12 @@ def fake_sensor(monkeypatch, run_module):
     """Patch falconctl execution and return the FakeSensor."""
     sensor = FakeSensor(run_module)
 
-    monkeypatch.setattr(falconctl_utils, "check_output", sensor.get)
-    monkeypatch.setattr(falconctl_utils, "_FALCONCTL", FALCONCTL, raising=False)
-    monkeypatch.setattr(falconctl_utils, "FALCONCTL_NOT_FOUND", False)
     monkeypatch.setattr(
         basic.AnsibleModule, "get_bin_path", lambda self, *a, **kw: FALCONCTL
     )
     monkeypatch.setattr(
         basic.AnsibleModule,
         "run_command",
-        lambda self, cmd, **kw: sensor.set_or_delete(cmd),
+        lambda self, cmd, **kw: sensor.run_command(cmd),
     )
     return sensor
