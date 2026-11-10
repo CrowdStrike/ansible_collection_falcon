@@ -13,13 +13,28 @@
         fail_msg: "falcon_sensor_version_decrement must be an integer between 0 and 5 inclusive!"
         success_msg: "falcon_sensor_version_decrement is properly configured."
 
-- name: CrowdStrike Falcon | Validate CID is defined (non-api)
+# Only the Windows installer takes the CID. On Linux and macOS,
+# the falcon_configure role sets it.
+- name: CrowdStrike Falcon | Validate CID is defined (non-api, Windows)
   ansible.builtin.assert:
     that:
       - falcon_cid | default('', true) | length > 0
     fail_msg: "falcon_cid is not defined! Please set falcon_cid and re-run the installation again!"
     success_msg: "falcon_cid is properly configured."
-  when: falcon_install_method != "api"
+  when:
+    - falcon_install_method != "api"
+    - ansible_facts['os_family'] == "Windows"
+
+- name: CrowdStrike Falcon | Warn if CID is not defined (non-api, Linux and macOS)
+  ansible.builtin.debug:
+    msg: >-
+      falcon_cid is not set. The sensor package will be installed, but the
+      sensor is not registered until you set the CID, for example with the
+      falcon_configure role.
+  when:
+    - falcon_install_method != "api"
+    - ansible_facts['os_family'] != "Windows"
+    - falcon_cid | default('', true) | length == 0
 
 - name: "CrowdStrike Falcon | Configure Python Interpreter for older Linux OSes"
   ansible.builtin.set_fact:

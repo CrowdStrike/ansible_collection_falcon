@@ -4,15 +4,3 @@ provisioner:
     group_vars:
       all:
         falcon_test_http: true
-
-scenario:
-  # current behavior: the url method downloads the package again on every
-  # run, so a second converge reports a change and idempotence is skipped
-  test_sequence:
-    - destroy
-    - syntax
-    - create
-    - prepare
-    - converge
-    - verify
-    - destroy

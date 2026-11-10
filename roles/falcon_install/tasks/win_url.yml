@@ -1,5 +1,8 @@
 ---
 # Tasks for Installing CrowdStrike's Falcon Sensor via URL
+# The package goes into the temporary install directory, which the role
+# removes after the install, so the download itself is not a change.
+# The package install task reports the change.
 - name: CrowdStrike Falcon | Downloading Installation Package from URL (Windows)
   ansible.windows.win_get_url:
     url: "{{ falcon_download_url }}"
@@ -9,6 +12,7 @@
   when:
     - falcon_download_url | default('', true) | length > 0
     - falcon_windows_tmp_dir_stat.stat.path | default('', true) | length > 0
+  changed_when: false
   register: falcon_sensor_download
   retries: "{{ falcon_retries }}"
   delay: "{{ falcon_delay }}"

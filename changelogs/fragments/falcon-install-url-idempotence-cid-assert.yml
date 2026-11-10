@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - falcon_install - the ``url`` install method no longer reports a change on every run. The role downloads the package into its temporary directory and removes that directory after the install, so the download is not a change. The package install task still reports a change when it installs or upgrades the sensor.
+  - falcon_install - ask for ``falcon_cid`` only on Windows with the ``url`` and ``file`` install methods. The Linux and macOS installs do not use the CID. On Linux and macOS, the role now shows a warning when ``falcon_cid`` is not set, because the sensor is not registered until the CID is set (for example with the ``falcon_configure`` role).
