@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "Invalid filter expression supplied"
+      }
+    ],
+    "meta": {
+      "query_time": 0.000434852
+    },
+    "resources": []
+  },
+  "method": "query_devices_by_filter_scroll",
+  "status_code": 400
+}

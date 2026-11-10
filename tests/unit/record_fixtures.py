@@ -53,6 +53,8 @@ UUID_RE = re.compile(
 )
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 GROUPING_TAG_RE = re.compile(r"((?:Sensor|Falcon)GroupingTags/)[^,\"'\s]+")
+# A Discover asset ID is '<cid>_<opaque ID>'. This matches after the CID is faked.
+ASSET_ID_RE = re.compile(r"(?<=\d{32}_)[A-Za-z0-9_-]{20,}")
 
 TOKEN_KEYS = {
     "access_token",
@@ -68,6 +70,7 @@ HOST_KEYS = {
     "hostname",
     "computer_name",
     "machine_domain",
+    "fqdn",
     "site_name",
     "ou",
     "serial_number",
@@ -78,6 +81,8 @@ HOST_KEYS = {
     "pod_hostname",
 }
 URL_KEYS = {"ingest_url"}
+# Opaque pagination tokens. A scroll offset encodes a device ID.
+OPAQUE_KEYS = {"offset", "after", "next_token"}
 DROP_KEYS = {"trace_id", "powered_by"}
 
 
@@ -100,7 +105,10 @@ class Sanitizer:
     """
 
     def __init__(self):
-        self.maps = {"hex": {}, "uuid": {}, "email": {}, "host": {}, "ip": {}, "mac": {}, "tag": {}}
+        self.maps = {
+            "hex": {}, "uuid": {}, "email": {}, "host": {}, "ip": {}, "mac": {}, "tag": {},
+            "asset": {}, "opaque": {},
+        }
 
     def _fake(self, kind, value, make):
         table = self.maps[kind]
@@ -128,6 +136,10 @@ class Sanitizer:
             else self._fake("email", m.group(0), lambda n: "user%d@example.com" % n),
             value,
         )
+        value = ASSET_ID_RE.sub(
+            lambda m: self._fake("asset", m.group(0), lambda n: "asset%d" % n),
+            value,
+        )
         return GROUPING_TAG_RE.sub(
             lambda m: m.group(1) + self._fake("tag", m.group(0), lambda n: "tag%d" % n),
             value,
@@ -147,6 +159,8 @@ class Sanitizer:
         key = key.lower()
         if key in TOKEN_KEYS:
             return "REDACTED" if value else value
+        if key in OPAQUE_KEYS and value:
+            return self._fake("opaque", value, lambda n: "opaque-token-%d" % n)
         if key in URL_KEYS and value:
             # The host name can identify the tenant; keep only the path.
             return "https://ingest.example.com/" + value.split("://", 1)[-1].partition("/")[2]
@@ -154,7 +168,7 @@ class Sanitizer:
             return self._fake("host", value, lambda n: "host%d" % n) if value else value
         if "mac_address" in key:
             return self._fake("mac", value, lambda n: "00-00-5e-00-53-%02x" % (n % 256))
-        if key.endswith("_ip") or key.endswith("ip_address") or key == "ip":
+        if key.endswith("_ip") or key.endswith("ip_address") or key.endswith("ip_addresses") or key == "ip":
             return self._ip(value)
         return self._string(value)
 
@@ -821,9 +835,97 @@ def record_ngsiem(rec, creds):
         cleanup()
 
 
+# Host records have many fields that can identify a tenant (users, serial
+# numbers, locations, policies). The host scenarios keep only these fields,
+# and the Sanitizer then replaces their values.
+HOST_FIELDS = (
+    "device_id", "cid", "hostname", "platform_name", "os_version", "agent_version",
+    "local_ip", "external_ip", "mac_address", "product_type_desc", "status",
+    "first_seen", "last_seen", "tags", "groups", "reduced_functionality_mode",
+)
+DISCOVER_FIELDS = (
+    "id", "cid", "aid", "hostname", "entity_type", "first_seen_timestamp",
+    "last_seen_timestamp", "platform_name", "os_version", "kernel_version", "tags",
+    "groups", "agent_version", "external_ip", "current_local_ip", "local_ip_addresses",
+    "product_type_desc", "confidence",
+)
+
+
+def keep_fields(func, fields):
+    """Wrap func so that each host record in its response keeps only fields."""
+
+    def call(**kwargs):
+        response = func(**kwargs)
+        body = response.get("body") or {}
+        if isinstance(body.get("resources"), list):
+            body["resources"] = [
+                {k: v for k, v in item.items() if k in fields} if isinstance(item, dict) else item
+                for item in body["resources"]
+            ]
+        return response
+
+    return call
+
+
+def scroll_ids(rec, falcon, case, **kwargs):
+    """Record one page of query_devices_by_filter_scroll and return it."""
+    return rec.call(
+        case, "query_devices_by_filter_scroll", falcon.query_devices_by_filter_scroll, **kwargs
+    )
+
+
+def record_hosts(rec, creds):
+    """Record the Hosts calls used by host_info, host_contain, host_hide, host_ids and falcon_hosts.
+
+    Read-only: the host actions are called only with a device ID that does
+    not exist, so no real host is contained or hidden.
+    """
+    from falconpy import Hosts
+
+    falcon = Hosts(**creds)
+    missing_id = "f" * 32
+    details = keep_fields(falcon.get_device_details, HOST_FIELDS)
+
+    page1 = scroll_ids(rec, falcon, "scroll_page1", limit=2)
+    offset = ((page1.get("body") or {}).get("meta") or {}).get("pagination", {}).get("offset")
+    page2 = scroll_ids(rec, falcon, "scroll_page2", limit=2, offset=offset)
+    scroll_ids(rec, falcon, "scroll_empty", filter="hostname:'%s-missing'" % PREFIX, limit=2)
+    scroll_ids(rec, falcon, "scroll_bad_filter", filter="hostname:'", limit=2)
+    rec.call("details_page1", "get_device_details", details, ids=resources(page1) or [missing_id])
+    rec.call("details_page2", "get_device_details", details, ids=resources(page2) or [missing_id])
+    rec.call("details_missing", "get_device_details", details, ids=[missing_id])
+    for action in ("contain", "lift_containment", "hide_host", "unhide_host"):
+        rec.call(
+            "action_%s_missing" % action, "perform_action", falcon.perform_action,
+            action_name=action, ids=[missing_id],
+        )
+
+
+def record_discover(rec, creds):
+    """Record the Discover calls used by the falcon_discover inventory plugin."""
+    from falconpy import Discover
+
+    falcon = Discover(**creds)
+    get_hosts = keep_fields(falcon.get_hosts, DISCOVER_FIELDS)
+
+    page1 = rec.call("query_page1", "query_hosts", falcon.query_hosts, limit=2, offset=0)
+    page2 = rec.call("query_page2", "query_hosts", falcon.query_hosts, limit=2, offset=2)
+    rec.call(
+        "query_empty", "query_hosts", falcon.query_hosts,
+        filter="hostname:'%s-missing'" % PREFIX, limit=2,
+    )
+    rec.call("query_bad_filter", "query_hosts", falcon.query_hosts, filter="hostname:'", limit=2)
+    if resources(page1):
+        rec.call("hosts_page1", "get_hosts", get_hosts, ids=resources(page1))
+    if resources(page2):
+        rec.call("hosts_page2", "get_hosts", get_hosts, ids=resources(page2))
+
+
 SCENARIOS = {
     "correlation_rule": record_correlation_rule,
+    "discover": record_discover,
     "host_group": record_host_group,
+    "hosts": record_hosts,
     "ngsiem": record_ngsiem,
     "sensor_update_policy": record_sensor_update_policy,
 }

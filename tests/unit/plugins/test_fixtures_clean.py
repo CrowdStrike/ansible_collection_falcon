@@ -27,6 +27,9 @@ UUID_RE = re.compile(
     r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(?![0-9a-fA-F])"
 )
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})")
+# A long opaque string (a base64 token, for example) can encode tenant IDs.
+OPAQUE_RE = re.compile(r"[A-Za-z0-9+/_-]{40,}")
+FAKE_HEX32_RE = re.compile(r"(?<![0-9a-fA-F])0{24}[0-9]{8}(?![0-9a-fA-F])")
 TOKEN_KEYS = ("access_token", "refresh_token", "uninstall_token", "ingest_token", "token")
 
 
@@ -59,9 +62,11 @@ def test_fixture_has_no_tenant_data(path):
     real_uuids = [v for v in UUID_RE.findall(text) if not v.startswith("00000000-0000-0000-0000-")]
     real_emails = [d for d in EMAIL_RE.findall(text) if d != "example.com"]
     tokens = [k for k, v in token_values(data) if v not in ("", "REDACTED")]
+    opaque = OPAQUE_RE.findall(FAKE_HEX32_RE.sub("", text))
 
     assert real_ids == []
     assert real_uuids == []
     assert real_emails == []
     assert tokens == []
+    assert opaque == []
     assert "trace_id" not in text

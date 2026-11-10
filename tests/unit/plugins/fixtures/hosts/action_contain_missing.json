@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "message": "No matching device found for ID 00000000000000000000000000000033"
+      }
+    ],
+    "meta": {
+      "query_time": 0.106737301
+    },
+    "resources": []
+  },
+  "method": "perform_action",
+  "status_code": 404
+}

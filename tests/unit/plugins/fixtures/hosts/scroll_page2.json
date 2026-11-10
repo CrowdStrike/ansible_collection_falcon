@@ -1,0 +1,20 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "expires_at": 1794269242719112707,
+        "limit": 2,
+        "offset": "opaque-token-2",
+        "total": 25
+      },
+      "query_time": 0.210480746
+    },
+    "resources": [
+      "00000000000000000000000000000003",
+      "00000000000000000000000000000004"
+    ]
+  },
+  "method": "query_devices_by_filter_scroll",
+  "status_code": 200
+}
