@@ -1,0 +1,37 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Read the installed packages
+      ansible.builtin.package_facts:
+
+    - name: Read the sensor version from falconctl
+      crowdstrike.falcon.falconctl_info:
+        name: version
+      register: falcon_test_info
+
+    - name: Read the falcon-sensor service state
+      ansible.builtin.systemd_service:
+        name: falcon-sensor
+      register: falcon_test_service
+
+    - name: Check that the side effect upgraded the sensor
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.packages['falcon-sensor'][0].version == '7.1.0'
+          - falcon_test_info.falconctl_info.version == '7.1.0'
+
+    # The role restarts the sensor after a deb upgrade, because dpkg does not
+    # restart it. dnf leaves the service as it was.
+    - name: Check the service state after the upgrade
+      ansible.builtin.assert:
+        that:
+          - falcon_test_service.status.ActiveState == expected
+      vars:
+        expected: "{{ 'active' if falcon_test_pkg_ext == 'deb' else 'inactive' }}"
+
+    - name: Check that the role removed its temporary directory
+      ansible.builtin.stat:
+        path: /tmp/falcon-sensor
+      register: falcon_test_tmp
+      failed_when: falcon_test_tmp.stat.exists

@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Uninstall the sensor
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_uninstall
+      vars:
+        falcon_maintenance_token: dummy-maintenance-token

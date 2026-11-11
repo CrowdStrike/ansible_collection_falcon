@@ -73,4 +73,5 @@ issues: https://github.com/CrowdStrike/ansible_collection_crowdstrike/issues
 build_ignore:
   - ".[dgrv]*"
   - ".ansible"
+  - "extensions/molecule"
   - ".pre-commit-config.yaml"

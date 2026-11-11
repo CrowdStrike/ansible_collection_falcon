@@ -1,0 +1,19 @@
+---
+- name: Destroy
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Remove the containers
+      community.docker.docker_container:
+        name: "{{ item.name }}"
+        state: absent
+        force_kill: true
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Reset the molecule instance config
+      ansible.builtin.copy:
+        content: "[]\n"
+        dest: "{{ molecule_instance_config }}"
+        mode: "0600"
