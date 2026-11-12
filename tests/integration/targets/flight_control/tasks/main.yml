@@ -1,0 +1,67 @@
+---
+# Integration tests for the fctl_child_cid_info module and the
+# fctl_child_cids lookup
+#
+# Requirements:
+#   FALCON_CLIENT_ID            - API client ID of a Flight Control parent CID
+#   FALCON_CLIENT_SECRET        - API client secret
+#   FALCON_CLOUD                - Falcon cloud region (optional, defaults to us-1)
+#   FALCON_TEST_FLIGHT_CONTROL  - set to 1 to run these tests
+#   FALCON_MEMBER_CID           - must not be set (it scopes the token to a child)
+#
+# API scopes: Flight Control [READ]
+#
+# The tests only read, and they do not print child CIDs or names.
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: "SKIP | Skip the Flight Control tests"
+  ansible.builtin.debug:
+    msg: "Set FALCON_TEST_FLIGHT_CONTROL=1 to run the Flight Control tests (needs a parent CID)"
+  when: lookup('env', 'FALCON_TEST_FLIGHT_CONTROL') != '1'
+
+- name: Run Flight Control tests
+  when: lookup('env', 'FALCON_TEST_FLIGHT_CONTROL') == '1'
+  block:
+    - name: "SETUP | Check that the token is for the parent CID"
+      ansible.builtin.assert:
+        that:
+          - lookup('env', 'FALCON_MEMBER_CID') | length == 0
+        fail_msg: >-
+          Unset FALCON_MEMBER_CID for these tests. With it the token acts for
+          that child CID, which has no children.
+
+    - name: "LOOKUP | Get all child CIDs"
+      ansible.builtin.set_fact:
+        fc_children: "{{ query('crowdstrike.falcon.fctl_child_cids') }}"
+      no_log: true
+
+    - name: "LOOKUP | Verify the child CIDs"
+      ansible.builtin.assert:
+        that:
+          - fc_children | length > 0
+          - fc_children | reject('match', '^[0-9a-fA-F]{32}$') | list | length == 0
+        fail_msg: "fctl_child_cids did not return child CIDs"
+        quiet: true
+
+    - name: "INFO | Get the details of the first child CID"
+      crowdstrike.falcon.fctl_child_cid_info:
+        cids:
+          - "{{ fc_children[0] }}"
+      register: fc_info
+      no_log: true
+
+    - name: "INFO | Verify the child CID details"
+      ansible.builtin.assert:
+        that:
+          - fc_info.child_cids | length == 1
+          - fc_info.child_cids[0].child_cid | lower == fc_children[0] | lower
+          - fc_info.child_cids[0].name | length > 0
+          - fc_info.child_cids[0].status is defined
+        fail_msg: "fctl_child_cid_info returned unexpected data"
+        quiet: true
