@@ -3,6 +3,16 @@
 # Copyright: (c) 2025, CrowdStrike Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+# 'uv run' reads this block and installs the dependencies (PEP 723).
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "ansible-core",
+#     "crowdstrike-falconpy>=1.6.3",
+#     "python-dotenv",
+# ]
+# ///
+
 """Run collection integration test targets against a live Falcon tenant.
 
 Ansible requires content to live in an ``ansible_collections/<ns>/<name>/``
@@ -30,6 +40,13 @@ has. They skip their tests unless you opt in:
     (needs Falcon Adversary Intelligence Premium)
   * ``FALCON_TEST_FLIGHT_CONTROL=1``: the flight_control target (needs a
     Flight Control parent CID)
+
+'uv run' reads the script metadata at the top of this file and installs
+ansible-core, FalconPy and python-dotenv in a temporary environment. The
+lookups and inventory plugins run in the controller's Python, so FalconPy must
+be in the same Python as ansible-playbook. To test with another ansible-core
+version, add it with '--with', for example
+'uv run --with "ansible-core~=2.16.0" tests/integration/run.py'.
 
 Usage:
     uv run tests/integration/run.py                       # run all targets
@@ -219,7 +236,9 @@ def main():
     if not interpreter:
         sys.stderr.write(
             "error: could not find a Python interpreter with falconpy installed.\n"
-            "Run this via 'uv run tests/integration/run.py' or install falconpy.\n"
+            "Run this script with 'uv run tests/integration/run.py', which installs\n"
+            "the dependencies, or install crowdstrike-falconpy in the Python that\n"
+            "runs it.\n"
         )
         return 1
 

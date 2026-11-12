@@ -263,7 +263,7 @@ The unit tests for the API plugins do not call the API. They replay responses th
 
 ```shell
 uv run tests/unit/record_fixtures.py --list
-uv run --with crowdstrike-falconpy --with python-dotenv tests/unit/record_fixtures.py --dry-run host_group
+uv run tests/unit/record_fixtures.py --dry-run host_group
 ```
 
 The molecule scenarios are in `extensions/molecule`. Each one starts a systemd container, builds a dummy `falcon-sensor` package that holds a stub `falconctl`, and runs a role against it, so no sensor or credentials are needed. To run a scenario locally you need Docker, and the checkout must be in an `ansible_collections/crowdstrike/falcon` directory. Set `ANSIBLE_COLLECTIONS_PATH` to the directory that holds `ansible_collections`:
@@ -279,6 +279,13 @@ Tests that need a Falcon tenant run locally with your own API credentials. The l
 uv run tests/integration/run.py --list
 uv run tests/integration/run.py host_group sensor_update_policy
 uv run tests/integration/run.py --env-file .env.flight-control flight_control
+```
+
+Both scripts declare their dependencies in inline script metadata, so `uv run` installs them. `run.py` gets the newest ansible-core that works with the Python that uv selects. To test with another version, add it with `--with`, and add `--python` if that version needs a newer Python:
+
+```shell
+uv run --with 'ansible-core~=2.16.0' tests/integration/run.py host_group
+uv run --python 3.13 --with 'ansible-core~=2.22.0' tests/integration/run.py host_group
 ```
 
 The hunting rule tests need the Falcon Adversary Intelligence Premium subscription, and the `flight_control` target needs the credentials of a Flight Control parent CID. They run only when `FALCON_TEST_HUNTING=1` or `FALCON_TEST_FLIGHT_CONTROL=1` is set.

@@ -3,6 +3,15 @@
 # Copyright: (c) 2026, CrowdStrike Inc.
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+# 'uv run' reads this block and installs the dependencies (PEP 723).
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "crowdstrike-falconpy>=1.6.3",
+#     "python-dotenv",
+# ]
+# ///
+
 """Record Falcon API responses as sanitized unit test fixtures.
 
 The unit tests in tests/unit/plugins do not call the API. They replay the
@@ -27,9 +36,11 @@ Each service is sanitized on its own, so a fake ID such as
 tests use these fake IDs, so check the tests of a service after you record it
 again.
 
+'uv run' reads the script metadata at the top of this file and installs
+FalconPy and python-dotenv in a temporary environment.
+
 Usage:
-    uv run --with crowdstrike-falconpy --with python-dotenv \\
-        tests/unit/record_fixtures.py [--env-file PATH] [--dry-run] [SERVICE ...]
+    uv run tests/unit/record_fixtures.py [--env-file PATH] [--dry-run] [SERVICE ...]
     uv run tests/unit/record_fixtures.py --list
 
 --cleanup deletes the fixture objects that an interrupted run left behind.
