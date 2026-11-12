@@ -1,0 +1,467 @@
+---
+# Integration tests for host_group and host_group_info modules
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Host Groups [READ, WRITE]
+#
+# The test makes its own host groups and deletes them at the end. It never
+# adds a real host: host actions use a device ID that does not exist, and the
+# dynamic group rule matches a grouping tag that no host has.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    # Lowercase, because the host group name filter only matches lowercase
+    # names (see the CASE phase)
+    hg_prefix: "ansible-int-hg-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+    hg_missing_host: "ffffffffffffffffffffffffffffffff"
+    hg_missing_group: "ffffffffffffffffffffffffffffffff"
+
+- name: Set test group names
+  ansible.builtin.set_fact:
+    hg_static_name: "{{ hg_prefix }}-static"
+    hg_dynamic_name: "{{ hg_prefix }}-dynamic"
+    hg_byid_name: "{{ hg_prefix }}-byid"
+    hg_mixed_name: "{{ hg_prefix }}-Mixed"
+    hg_rule: "tags:'SensorGroupingTags/{{ hg_prefix }}'"
+    hg_rule_updated: "tags:'SensorGroupingTags/{{ hg_prefix }}-updated'"
+
+- name: Run host group lifecycle tests
+  block:
+    # =====================================================================
+    # Phase 1: CREATE
+    # =====================================================================
+
+    - name: "CREATE | Create a static host group"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_static_name }}"
+        description: "Ansible integration test"
+      register: hg_create
+
+    - name: "CREATE | Verify the static group was created"
+      ansible.builtin.assert:
+        that:
+          - hg_create is changed
+          - hg_create.host_group.id | length > 0
+          - hg_create.host_group.name == hg_static_name
+          - hg_create.host_group.group_type == 'static'
+          - hg_create.host_group.description == 'Ansible integration test'
+        fail_msg: "Static group creation failed or returned unexpected data"
+
+    - name: Save the static group ID
+      ansible.builtin.set_fact:
+        hg_static_id: "{{ hg_create.host_group.id }}"
+
+    - name: "CREATE | Create a dynamic host group"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_dynamic_name }}"
+        group_type: dynamic
+        assignment_rule: "{{ hg_rule }}"
+      register: hg_dynamic
+
+    - name: "CREATE | Verify the dynamic group was created"
+      ansible.builtin.assert:
+        that:
+          - hg_dynamic is changed
+          - hg_dynamic.host_group.group_type == 'dynamic'
+          - hg_dynamic.host_group.assignment_rule == hg_rule
+        fail_msg: "Dynamic group creation failed or returned unexpected data"
+
+    - name: "CREATE | Create a dynamic group without a rule"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_prefix }}-norule"
+        group_type: dynamic
+      register: hg_norule
+      ignore_errors: true
+
+    - name: "CREATE | Verify a dynamic group needs a rule"
+      ansible.builtin.assert:
+        that:
+          - hg_norule is failed
+          - "'assignment_rule' in hg_norule.msg"
+        fail_msg: "A dynamic group without assignment_rule should fail"
+
+    - name: "CREATE | Create a staticByID host group"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_byid_name }}"
+        group_type: staticByID
+      register: hg_byid
+
+    - name: "CREATE | Verify the staticByID group was created"
+      ansible.builtin.assert:
+        that:
+          - hg_byid is changed
+          - hg_byid.host_group.group_type == 'staticByID'
+        fail_msg: "staticByID group creation failed"
+
+    # =====================================================================
+    # Phase 2: IDEMPOTENCY
+    # =====================================================================
+
+    - name: "IDEMPOTENT | Re-run the static group create"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_static_name }}"
+        description: "Ansible integration test"
+      register: hg_again
+
+    - name: "IDEMPOTENT | Verify no change and the same group"
+      ansible.builtin.assert:
+        that:
+          - hg_again is not changed
+          - hg_again.host_group.id == hg_static_id
+        fail_msg: "Re-running create with the same values should not change the group"
+
+    - name: "IDEMPOTENT | Re-run the dynamic group create"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_dynamic_name }}"
+        group_type: dynamic
+        assignment_rule: "{{ hg_rule }}"
+      register: hg_dynamic_again
+
+    - name: "IDEMPOTENT | Verify no change for the dynamic group"
+      ansible.builtin.assert:
+        that:
+          - hg_dynamic_again is not changed
+        fail_msg: "Re-running the dynamic create should not change the group"
+
+    # =====================================================================
+    # Phase 3: UPDATE
+    # =====================================================================
+
+    - name: "UPDATE | Update the description by name"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_static_name }}"
+        description: "Ansible integration test - updated"
+      register: hg_update
+
+    - name: "UPDATE | Verify the description was updated"
+      ansible.builtin.assert:
+        that:
+          - hg_update is changed
+          - hg_update.host_group.id == hg_static_id
+          - hg_update.host_group.description == 'Ansible integration test - updated'
+        fail_msg: "Updating the description by name failed"
+
+    - name: "UPDATE | Update the description by ID"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ hg_static_id }}"
+        description: "Ansible integration test - by ID"
+      register: hg_update_id
+
+    - name: "UPDATE | Re-run the update by ID"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ hg_static_id }}"
+        description: "Ansible integration test - by ID"
+      register: hg_update_id_again
+
+    - name: "UPDATE | Verify the update by ID and its idempotence"
+      ansible.builtin.assert:
+        that:
+          - hg_update_id is changed
+          - hg_update_id.host_group.description == 'Ansible integration test - by ID'
+          - hg_update_id_again is not changed
+        fail_msg: "Updating the description by ID failed or was not idempotent"
+
+    - name: "UPDATE | Update the dynamic group rule"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_dynamic_name }}"
+        group_type: dynamic
+        assignment_rule: "{{ hg_rule_updated }}"
+      register: hg_rule_update
+
+    - name: "UPDATE | Verify the rule was updated"
+      ansible.builtin.assert:
+        that:
+          - hg_rule_update is changed
+          - hg_rule_update.host_group.assignment_rule == hg_rule_updated
+        fail_msg: "Updating the assignment rule failed"
+
+    - name: "UPDATE | Update a group ID that does not exist"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ hg_missing_group }}"
+        description: "Should fail"
+      register: hg_update_missing
+      ignore_errors: true
+
+    - name: "UPDATE | Verify a missing group ID fails"
+      ansible.builtin.assert:
+        that:
+          - hg_update_missing is failed
+          - "'not found' in hg_update_missing.msg"
+        fail_msg: "Updating a group ID that does not exist should fail"
+
+    # =====================================================================
+    # Phase 4: HOST ACTIONS (with a device ID that does not exist)
+    # =====================================================================
+
+    - name: "HOSTS | Add a host that does not exist"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_static_name }}"
+        hosts:
+          - "{{ hg_missing_host }}"
+        host_action: add
+      register: hg_add_missing
+
+    # current behavior: the API returns 200 and the group for a device ID that
+    # does not exist, so the module reports a change and lists the group ID
+    # as a successful host
+    - name: "HOSTS | Verify the result for a host that does not exist"
+      ansible.builtin.assert:
+        that:
+          - hg_add_missing is changed
+          - hg_add_missing.action_results.failed_hosts | length == 0
+          - hg_static_id in hg_add_missing.action_results.successful_hosts
+        fail_msg: "Adding a missing host returned unexpected data"
+
+    # =====================================================================
+    # Phase 5: READ - host_group_info
+    # =====================================================================
+
+    - name: "READ | Get groups by ID"
+      crowdstrike.falcon.host_group_info:
+        host_groups:
+          - "{{ hg_static_id }}"
+          - "{{ hg_dynamic.host_group.id }}"
+      register: hg_info_ids
+
+    - name: "READ | Verify the groups by ID"
+      ansible.builtin.assert:
+        that:
+          - hg_info_ids.host_groups | length == 2
+          - hg_info_ids.host_groups | map(attribute='id') | sort == [hg_static_id, hg_dynamic.host_group.id] | sort
+        fail_msg: "Info by ID returned unexpected data"
+
+    - name: "READ | Find the static group with an exact name filter"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:'{{ hg_static_name }}'"
+      register: hg_info_name
+
+    - name: "READ | Verify the exact name filter"
+      ansible.builtin.assert:
+        that:
+          - hg_info_name.host_groups | length == 1
+          - hg_info_name.host_groups[0].id == hg_static_id
+        fail_msg: "The exact name filter did not find the group"
+
+    - name: "READ | Find all test groups with a wildcard filter, sorted by name"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:*'{{ hg_prefix }}*'"
+        sort: name.asc
+      register: hg_info_wildcard
+
+    - name: "READ | Verify the wildcard filter and the sort order"
+      ansible.builtin.assert:
+        that:
+          - hg_info_wildcard.host_groups | length == 3
+          - >-
+            hg_info_wildcard.host_groups | map(attribute='name') | list
+            == [hg_byid_name, hg_dynamic_name, hg_static_name]
+        fail_msg: "The wildcard filter or the sort order returned unexpected data"
+
+    - name: "READ | Page through the test groups"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:*'{{ hg_prefix }}*'"
+        sort: name.asc
+        limit: 1
+        offset: 1
+      register: hg_info_page
+
+    - name: "READ | Verify the page and its pagination data"
+      ansible.builtin.assert:
+        that:
+          - hg_info_page.host_groups | length == 1
+          - hg_info_page.host_groups[0].name == hg_dynamic_name
+          - hg_info_page.meta.pagination.limit == 1
+          - hg_info_page.meta.pagination.offset | int >= 1
+          - hg_info_page.meta.pagination.total == 3
+        fail_msg: "Pagination returned unexpected data"
+
+    - name: "READ | Get the dynamic group with its members"
+      crowdstrike.falcon.host_group_info:
+        host_groups:
+          - "{{ hg_dynamic.host_group.id }}"
+        include_members: true
+      register: hg_info_members
+
+    - name: "READ | Verify the dynamic group has no members"
+      ansible.builtin.assert:
+        that:
+          - hg_info_members.host_groups[0].members == []
+        fail_msg: "The test group should have no members"
+
+    - name: "READ | Get a group ID that does not exist"
+      crowdstrike.falcon.host_group_info:
+        host_groups:
+          - "{{ hg_missing_group }}"
+      register: hg_info_missing
+      ignore_errors: true
+
+    - name: "READ | Verify a missing group ID fails"
+      ansible.builtin.assert:
+        that:
+          - hg_info_missing is failed
+        fail_msg: "Info for a group ID that does not exist should fail"
+
+    # =====================================================================
+    # Phase 6: CHECK MODE
+    # =====================================================================
+
+    - name: "CHECK | Create a group in check mode"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_prefix }}-check"
+      check_mode: true
+      register: hg_check
+
+    - name: "CHECK | Look for the check mode group"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:'{{ hg_prefix }}-check'"
+      register: hg_check_info
+
+    # current behavior: check mode exits before any API call and does not
+    # predict a change
+    - name: "CHECK | Verify check mode made no group"
+      ansible.builtin.assert:
+        that:
+          - hg_check is not changed
+          - hg_check_info.host_groups | length == 0
+        fail_msg: "Check mode must not create a group"
+
+    # =====================================================================
+    # Phase 7: DELETE
+    # =====================================================================
+
+    - name: "DELETE | Delete the static group by name"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_static_name }}"
+        state: absent
+      register: hg_delete
+
+    - name: "DELETE | Delete it again"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_static_name }}"
+        state: absent
+      register: hg_delete_again
+
+    - name: "DELETE | Delete the dynamic group by ID"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ hg_dynamic.host_group.id }}"
+        state: absent
+      register: hg_delete_id
+
+    - name: "DELETE | Delete the staticByID group by name"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_byid_name }}"
+        state: absent
+      register: hg_delete_byid
+
+    - name: "DELETE | Look for the deleted groups"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:*'{{ hg_prefix }}*'"
+      register: hg_after_delete
+
+    - name: "DELETE | Verify the groups were deleted"
+      ansible.builtin.assert:
+        that:
+          - hg_delete is changed
+          - hg_delete_again is not changed
+          - hg_delete_id is changed
+          - hg_delete_byid is changed
+          - hg_after_delete.host_groups | length == 0
+        fail_msg: "Deleting the groups failed or was not idempotent"
+
+    # current behavior: absent with an ID that does not exist fails, while
+    # absent with a name that does not exist is a no-op
+    - name: "DELETE | Delete a group ID that does not exist"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ hg_missing_group }}"
+        state: absent
+      register: hg_delete_missing
+      ignore_errors: true
+
+    - name: "DELETE | Verify absent with a missing ID fails"
+      ansible.builtin.assert:
+        that:
+          - hg_delete_missing is failed
+          - "'not found' in hg_delete_missing.msg"
+        fail_msg: "Absent with a missing group ID returned unexpected data"
+
+    # =====================================================================
+    # Phase 8: CASE - a group name with uppercase letters
+    # =====================================================================
+
+    - name: "CASE | Create a group with uppercase letters in its name"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_mixed_name }}"
+      register: hg_mixed
+
+    - name: "CASE | Re-run the create"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_mixed_name }}"
+      register: hg_mixed_again
+      ignore_errors: true
+
+    - name: "CASE | Delete the group by name"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_mixed_name }}"
+        state: absent
+      register: hg_mixed_absent
+
+    # current behavior: the API name filter only matches the lowercase form
+    # of a name, so the module does not find a group whose name has uppercase
+    # letters. A second create fails as a duplicate, and absent by name does
+    # nothing. When this is fixed, the re-run must report no change and the
+    # absent must delete the group.
+    - name: "CASE | Verify the current behavior for an uppercase name"
+      ansible.builtin.assert:
+        that:
+          - hg_mixed is changed
+          - hg_mixed_again is failed
+          - "'Duplicate group name' in hg_mixed_again.msg"
+          - hg_mixed_absent is not changed
+        fail_msg: "The uppercase name behavior changed; update this test"
+
+    - name: "CASE | Delete the group by ID"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ hg_mixed.host_group.id }}"
+        state: absent
+      register: hg_mixed_delete
+
+    - name: "CASE | Verify the group was deleted"
+      ansible.builtin.assert:
+        that:
+          - hg_mixed_delete is changed
+        fail_msg: "Deleting the uppercase name group by ID failed"
+
+  # =======================================================================
+  # ALWAYS: Best-effort cleanup of everything this test may have created
+  # =======================================================================
+  always:
+    - name: "CLEANUP | Find any leftover test groups"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:*'{{ hg_prefix }}*'"
+      register: hg_leftover
+      failed_when: false
+
+    - name: "CLEANUP | Delete leftover test groups by ID"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ item.id }}"
+        state: absent
+      loop: "{{ hg_leftover.host_groups | default([]) }}"
+      loop_control:
+        label: "{{ item.name | default(item.id) }}"
+      failed_when: false
