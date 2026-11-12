@@ -11,6 +11,17 @@
 # Custom parsers auto-increment their version on each update/clone, so the
 # returned parser ID is version-suffixed and changes after an update. These
 # tests key idempotency on parser content, not on the ID.
+#
+# All parser names start with a prefix that is unique to this run. The API
+# stores a custom parser or a clone as 'custom-<name>', and an extension as
+# '<base parser>-<name>'. The name filter of ngsiem_parser_info is a substring
+# match that ignores case, so the prefix finds all three. The cleanup deletes
+# only the parsers whose names contain the prefix of this run.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
 
 - name: Validate required environment variables
   ansible.builtin.assert:
@@ -21,17 +32,22 @@
 
 - name: Set test variables
   ansible.builtin.set_fact:
-    test_parser_name: "ansible-int-parser"
-    test_clone_name: "ansible-int-clone"
-    test_ext_name: "ansible-int-ext"
+    # Lowercase, because the API stores parser names in lowercase
+    parser_prefix: "ansible-int-parser-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+
+- name: Set test parser names and templates
+  ansible.builtin.set_fact:
+    test_parser_name: "{{ parser_prefix }}-main"
+    test_clone_name: "{{ parser_prefix }}-clone"
+    test_ext_name: "{{ parser_prefix }}-ext"
     # The API stores custom parsers as 'custom-<name>'
-    test_parser_names: ["ansible-int-parser", "custom-ansible-int-parser"]
-    test_clone_names: ["ansible-int-clone", "custom-ansible-int-clone"]
+    test_parser_names: ["{{ parser_prefix }}-main", "custom-{{ parser_prefix }}-main"]
+    test_clone_names: ["{{ parser_prefix }}-clone", "custom-{{ parser_prefix }}-clone"]
     # A minimal valid parser. The script must emit all mandatory tag fields and
     # tagFields must enumerate every one of them, or create returns 400.
     test_parser_yaml: |
       $schema: https://schemas.humio.com/parser/v0.3.0
-      name: ansible-int-parser
+      name: {{ parser_prefix }}-main
       fieldsToBeRemovedBeforeParsing: []
       testCases: []
       script: |-
@@ -53,6 +69,10 @@
         - event.module
         - event.outcome
         - observer.type
+
+- name: Set the updated parser template
+  ansible.builtin.set_fact:
+    test_parser_yaml_updated: "{{ test_parser_yaml | replace('event.dataset := \"ansible.test\"', 'event.dataset := \"ansible.updated\"') }}"
 
 - name: Run CRUD lifecycle tests
   block:
@@ -101,7 +121,7 @@
 
     - name: "READ | Search parsers by name substring"
       crowdstrike.falcon.ngsiem_parser_info:
-        name: "ansible-int-parser"
+        name: "{{ test_parser_name }}"
         parser_type: custom
       register: info_by_name
 
@@ -144,8 +164,63 @@
         fail_msg: "Module should not report a change when content is unchanged"
 
     # =====================================================================
+    # Phase 3b: UPDATE - change the script, then re-run the update
+    # =====================================================================
+
+    - name: "UPDATE | Update the parser script by name"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_parser_name }}"
+        parser_yaml: "{{ test_parser_yaml_updated }}"
+      register: update_result
+
+    - name: "UPDATE | Verify the parser was updated"
+      ansible.builtin.assert:
+        that:
+          - update_result is changed
+          - update_result.parser.name in test_parser_names
+          - "'ansible.updated' in update_result.parser.script"
+        fail_msg: "Updating the parser script failed"
+
+    - name: Save the parser ID of the new version
+      ansible.builtin.set_fact:
+        parser_id: "{{ update_result.parser.id }}"
+
+    - name: "UPDATE | Re-run the same update"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_parser_name }}"
+        parser_yaml: "{{ test_parser_yaml_updated }}"
+      register: update_again
+
+    - name: "UPDATE | Verify no change on repeat"
+      ansible.builtin.assert:
+        that:
+          - update_again is not changed
+          - update_again.parser.id == parser_id
+        fail_msg: "Re-running the update with the same content should not change the parser"
+
+    # =====================================================================
     # Phase 4: CHECK MODE
     # =====================================================================
+
+    - name: "CHECK | Create a parser in check mode"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ parser_prefix }}-check"
+        parser_yaml: "{{ test_parser_yaml }}"
+      check_mode: true
+      register: check_create
+
+    - name: "CHECK | Look for the check mode parser"
+      crowdstrike.falcon.ngsiem_parser_info:
+        name: "{{ parser_prefix }}-check"
+        definitions: false
+      register: check_create_info
+
+    - name: "CHECK | Verify check mode predicted the create and made nothing"
+      ansible.builtin.assert:
+        that:
+          - check_create is changed
+          - check_create_info.parsers | length == 0
+        fail_msg: "Check mode must report the create without making the parser"
 
     - name: "CHECK | Delete in check mode (should report change, not mutate)"
       crowdstrike.falcon.ngsiem_parser:
@@ -214,11 +289,13 @@
       register: ext_result
       when: ootb_parsers.parsers | length > 0
 
+    # The API names an extension '<base parser>-<name>'
     - name: "EXT | Verify extension was created"
       ansible.builtin.assert:
         that:
           - ext_result is changed
           - ext_result.parser.id | length > 0
+          - ext_result.parser.name == 'microsoft-edge-' ~ test_ext_name
         fail_msg: "Extension creation failed"
       when: ootb_parsers.parsers | length > 0
 
@@ -249,7 +326,7 @@
 
     - name: "ABSENT | Delete non-existent parser by name (idempotent)"
       crowdstrike.falcon.ngsiem_parser:
-        name: "ansible-int-does-not-exist-999999"
+        name: "{{ parser_prefix }}-missing"
         state: absent
       register: absent_noop
 
@@ -269,29 +346,42 @@
         state: absent
       register: delete_result
 
+    - name: "DELETE | Delete it again"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_parser_name }}"
+        state: absent
+      register: delete_again
+
     - name: "DELETE | Verify parser was deleted"
       ansible.builtin.assert:
         that:
           - delete_result is changed
-        fail_msg: "Parser deletion failed"
+          - delete_again is not changed
+        fail_msg: "Parser deletion failed or was not idempotent"
 
   # =======================================================================
   # ALWAYS: Best-effort cleanup of everything this test may have created
   # =======================================================================
   always:
+    # No parser_type filter, so that the search also finds the extension
     - name: "CLEANUP | Find any leftover test parsers"
       crowdstrike.falcon.ngsiem_parser_info:
-        name: "ansible-int"
-        parser_type: custom
+        name: "{{ parser_prefix }}"
         definitions: false
       register: leftover_parsers
       failed_when: false
 
+    # The name filter is a substring match, so keep only the custom parsers and
+    # extensions whose names contain the prefix of this run
     - name: "CLEANUP | Delete leftover test parsers by ID"
       crowdstrike.falcon.ngsiem_parser:
         parser_id: "{{ item.id }}"
         state: absent
-      loop: "{{ leftover_parsers.parsers | default([]) }}"
+      loop: >-
+        {{ leftover_parsers.parsers | default([])
+           | selectattr('name', 'search', parser_prefix ~ '-')
+           | selectattr('parser_type', 'in', ['custom', 'extension'])
+           | list }}
       loop_control:
         label: "{{ item.name | default(item.id) }}"
       failed_when: false

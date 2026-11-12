@@ -20,6 +20,10 @@
 #   - The API only returns name, parser_name, vendor_name, vendor_product_name,
 #     status, source_type, last_ingested_volume_one_day, and ingest_url for a
 #     connection. description/config/enrichment flags are write-only.
+#
+# All connection names start with a prefix that is unique to this run. The
+# cleanup finds the connections of this run with a "starts with" name filter
+# and deletes them by ID, so it also finds a renamed connection.
 
 - name: Gather minimal facts for timestamp
   ansible.builtin.setup:
@@ -38,7 +42,11 @@
     # Built-in HEC / HTTP Event Connector (PUSH) and a valid parser for it.
     test_connector_id: "a1bfd0c4380f436790cb41afc2b95f38"
     test_parser: "microsoft-edge"
-    test_connection_name: "ansible-test-DELETEME-{{ ansible_facts.date_time.iso8601_basic_short }}"
+    dc_prefix: "ansible-int-dc-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+
+- name: Set test connection names
+  ansible.builtin.set_fact:
+    test_connection_name: "{{ dc_prefix }}-conn"
 
 - name: Run data connection lifecycle tests
   block:
@@ -70,6 +78,34 @@
         that:
           - connectors_push.data_connectors is defined
         fail_msg: "PUSH connector filter query failed"
+
+    # =====================================================================
+    # Phase 0b: CHECK MODE
+    # =====================================================================
+
+    - name: "CHECK | Create a connection in check mode"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ dc_prefix }}-check"
+        connector_id: "{{ test_connector_id }}"
+        parser: "{{ test_parser }}"
+        vendor_name: "Ansible"
+        vendor_product_name: "IntegrationTest"
+      check_mode: true
+      register: check_create
+
+    - name: "CHECK | Look for the check mode connection"
+      crowdstrike.falcon.ngsiem_data_connection_info:
+        filter: "name:'{{ dc_prefix }}-check'"
+      register: check_create_info
+
+    # current behavior: check mode exits before any API call and does not
+    # predict a change
+    - name: "CHECK | Verify check mode made no connection"
+      ansible.builtin.assert:
+        that:
+          - check_create is not changed
+          - check_create_info.data_connections | length == 0
+        fail_msg: "Check mode must not create a connection"
 
     # =====================================================================
     # Phase 1: CREATE
@@ -269,10 +305,6 @@
           - delete_result is changed
         fail_msg: "Delete did not report a change"
 
-    - name: Clear saved connection ID (successfully deleted)
-      ansible.builtin.set_fact:
-        connection_id: ""
-
     - name: "ABSENT | Delete same connection by name again (idempotent)"
       crowdstrike.falcon.ngsiem_data_connection:
         name: "{{ test_connection_name }}-renamed"
@@ -289,21 +321,17 @@
   # ALWAYS: Best-effort cleanup
   # =======================================================================
   always:
-    - name: "CLEANUP | Remove test connection by ID (if still present)"
-      crowdstrike.falcon.ngsiem_data_connection:
-        connection_id: "{{ connection_id }}"
-        state: absent
-      when: connection_id is defined and connection_id | length > 0
+    - name: "CLEANUP | Find any leftover test connections"
+      crowdstrike.falcon.ngsiem_data_connection_info:
+        filter: "name:*'{{ dc_prefix }}*'"
+      register: leftover_connections
       failed_when: false
 
-    - name: "CLEANUP | Remove test connection by original name (best-effort)"
+    - name: "CLEANUP | Delete leftover test connections by ID"
       crowdstrike.falcon.ngsiem_data_connection:
-        name: "{{ test_connection_name }}"
+        connection_id: "{{ item.id }}"
         state: absent
-      failed_when: false
-
-    - name: "CLEANUP | Remove test connection by renamed name (best-effort)"
-      crowdstrike.falcon.ngsiem_data_connection:
-        name: "{{ test_connection_name }}-renamed"
-        state: absent
+      loop: "{{ leftover_connections.data_connections | default([]) }}"
+      loop_control:
+        label: "{{ item.name | default(item.id) }}"
       failed_when: false
