@@ -8,4 +8,3 @@
       vars:
         falcon_install_method: file
         falcon_localfile_path: "{{ falcon_test_pkg_dir }}/falcon-sensor-7.1.0.{{ falcon_test_pkg_ext }}"
-        falcon_cid: "{{ falcon_test_cid }}"
