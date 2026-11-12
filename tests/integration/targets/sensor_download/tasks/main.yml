@@ -1,0 +1,171 @@
+---
+# Integration tests for sensor_download_info, sensor_download and cid_info
+# modules
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Sensor Download [READ]
+#
+# The test downloads the smallest Linux installer (tens of MB) into a temp
+# directory and removes the directory at the end. It does not print the CID.
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Run sensor download tests
+  block:
+    # =====================================================================
+    # Phase 1: CID
+    # =====================================================================
+
+    - name: "CID | Get the CID"
+      crowdstrike.falcon.cid_info:
+      register: sd_cid
+      no_log: true
+
+    - name: "CID | Verify the CID format"
+      ansible.builtin.assert:
+        that:
+          - sd_cid.cid is match('^[0-9A-F]{32}-[0-9A-F]{2}$')
+        fail_msg: "cid_info did not return a CID with its checksum"
+        quiet: true
+
+    # =====================================================================
+    # Phase 2: INSTALLER INFO
+    # =====================================================================
+
+    - name: "INFO | Get the Ubuntu installers, newest first"
+      crowdstrike.falcon.sensor_download_info:
+        filter: "platform:'linux'+os:'Ubuntu'"
+        sort: "version|desc"
+      register: sd_ubuntu
+
+    - name: "INFO | Verify the Ubuntu installers"
+      ansible.builtin.assert:
+        that:
+          - sd_ubuntu.installers | length > 0
+          - sd_ubuntu.installers | map(attribute='os') | unique == ['Ubuntu']
+          - sd_ubuntu.installers[0].sha256 | length == 64
+          - sd_ubuntu.installers[0].version is defined
+          - sd_ubuntu.installers[0].file_size | int > 0
+        fail_msg: "sensor_download_info returned unexpected data"
+
+    - name: "INFO | Use a filter that is not valid"
+      crowdstrike.falcon.sensor_download_info:
+        filter: "platform:'"
+      register: sd_bad_filter
+      ignore_errors: true
+
+    - name: "INFO | Verify the bad filter fails"
+      ansible.builtin.assert:
+        that:
+          - sd_bad_filter is failed
+        fail_msg: "A filter that is not valid should fail"
+
+    - name: "INFO | Get all Linux installers"
+      crowdstrike.falcon.sensor_download_info:
+        filter: "platform:'linux'"
+      register: sd_linux
+
+    - name: "INFO | Pick the smallest Linux installer"
+      ansible.builtin.set_fact:
+        sd_installer: "{{ sd_linux.installers | sort(attribute='file_size') | first }}"
+
+    # =====================================================================
+    # Phase 3: DOWNLOAD
+    # =====================================================================
+
+    - name: "DOWNLOAD | Create a temp directory"
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: ansible-int-sd-
+      register: sd_dir
+
+    - name: "CHECK | Download in check mode"
+      crowdstrike.falcon.sensor_download:
+        hash: "{{ sd_installer.sha256 }}"
+        dest: "{{ sd_dir.path }}"
+        name: falcon-sensor.pkg
+      check_mode: true
+      register: sd_check
+
+    - name: "CHECK | Look for the check mode file"
+      ansible.builtin.stat:
+        path: "{{ sd_dir.path }}/falcon-sensor.pkg"
+      register: sd_check_stat
+
+    - name: "CHECK | Verify check mode downloaded nothing"
+      ansible.builtin.assert:
+        that:
+          - sd_check is changed
+          - sd_check.path == sd_dir.path ~ '/falcon-sensor.pkg'
+          - not sd_check_stat.stat.exists
+        fail_msg: "Check mode must not download the installer"
+
+    - name: "DOWNLOAD | Download the installer"
+      crowdstrike.falcon.sensor_download:
+        hash: "{{ sd_installer.sha256 }}"
+        dest: "{{ sd_dir.path }}"
+        name: falcon-sensor.pkg
+        mode: "0640"
+      register: sd_download
+
+    - name: "DOWNLOAD | Read the downloaded file"
+      ansible.builtin.stat:
+        path: "{{ sd_download.path }}"
+        checksum_algorithm: sha256
+      register: sd_stat
+
+    - name: "DOWNLOAD | Verify the downloaded file"
+      ansible.builtin.assert:
+        that:
+          - sd_download is changed
+          - sd_stat.stat.exists
+          - sd_stat.stat.checksum == sd_installer.sha256
+          - sd_stat.stat.size == sd_installer.file_size | int
+          - sd_stat.stat.mode == '0640'
+        fail_msg: "The downloaded file does not match the installer"
+
+    - name: "IDEMPOTENT | Download the same installer again"
+      crowdstrike.falcon.sensor_download:
+        hash: "{{ sd_installer.sha256 }}"
+        dest: "{{ sd_dir.path }}"
+        name: falcon-sensor.pkg
+        mode: "0640"
+      register: sd_again
+
+    - name: "IDEMPOTENT | Verify no change when the file matches"
+      ansible.builtin.assert:
+        that:
+          - sd_again is not changed
+        fail_msg: "Downloading a file that already matches should not report a change"
+
+    - name: "DOWNLOAD | Download a hash that does not exist"
+      crowdstrike.falcon.sensor_download:
+        hash: "{{ '0' * 64 }}"
+        dest: "{{ sd_dir.path }}"
+      register: sd_missing
+      ignore_errors: true
+
+    - name: "DOWNLOAD | Verify a missing hash fails"
+      ansible.builtin.assert:
+        that:
+          - sd_missing is failed
+        fail_msg: "Downloading a hash that does not exist should fail"
+
+  # =======================================================================
+  # ALWAYS: Remove the downloaded files
+  # =======================================================================
+  always:
+    - name: "CLEANUP | Remove the temp directory"
+      ansible.builtin.file:
+        path: "{{ sd_dir.path }}"
+        state: absent
+      when: sd_dir.path is defined

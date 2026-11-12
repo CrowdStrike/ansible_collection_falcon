@@ -14,14 +14,28 @@ passed as env vars never reach the module. This wrapper works around both:
   * it runs each target's ``tasks/main.yml`` through plain ``ansible-playbook``
     so the process environment (and therefore ``lookup('env', ...)``) is intact.
 
+Each target runs in its own ``ansible-playbook`` process, so a failed target
+does not stop the others and facts do not leak between targets. A summary is
+printed at the end, and the exit code is non-zero if any target failed.
+
 Credentials are read from a ``.env`` file (via python-dotenv, if present) or from
-the existing process environment. Required: ``FALCON_CLIENT_ID`` and
+the existing process environment. Use ``--env-file`` to read another file
+instead of ``.env``, for example the credentials of a different tenant. Required: ``FALCON_CLIENT_ID`` and
 ``FALCON_CLIENT_SECRET``; optional: ``FALCON_CLOUD``.
+
+Some targets need a subscription or a type of tenant that not every test tenant
+has. They skip their tests unless you opt in:
+
+  * ``FALCON_TEST_HUNTING=1``: hunting_rule_download in the intel_rules target
+    (needs Falcon Adversary Intelligence Premium)
+  * ``FALCON_TEST_FLIGHT_CONTROL=1``: the flight_control target (needs a
+    Flight Control parent CID)
 
 Usage:
     uv run tests/integration/run.py                       # run all targets
     uv run tests/integration/run.py ngsiem_data_connection # run specific target(s)
     uv run tests/integration/run.py --list                # list available targets
+    uv run tests/integration/run.py --env-file .env.flight-control flight_control
     uv run tests/integration/run.py -- -vvv               # pass extra args to ansible-playbook
 """
 
@@ -55,14 +69,17 @@ def discover_targets():
     )
 
 
-def load_dotenv_if_present():
-    """Load a .env file from the collection root into the environment, if available.
+def load_dotenv_if_present(env_file=None):
+    """Load a .env file into the environment, if available.
+
+    Reads env_file if given, else the .env file in the collection root.
 
     Existing environment variables always win over .env values, so creds already
     exported in the shell take precedence. python-dotenv is optional; if it is not
     installed we simply rely on the current environment.
     """
-    env_file = COLLECTION_ROOT / ".env"
+    if env_file is None:
+        env_file = COLLECTION_ROOT / ".env"
     if not env_file.is_file():
         return
     try:
@@ -94,6 +111,19 @@ def detect_interpreter():
         if probe.returncode == 0:
             return candidate
     return None
+
+
+def find_ansible_playbook():
+    """Return the ansible-playbook to run, or None.
+
+    Prefers the one installed next to the Python running this script, because
+    lookups and inventory plugins run in the controller's Python and need
+    falconpy there too. Falls back to the one on PATH.
+    """
+    local = Path(sys.executable).parent / "ansible-playbook"
+    if local.exists():
+        return str(local)
+    return shutil.which("ansible-playbook")
 
 
 def build_playbook(staging_dir, targets):
@@ -137,6 +167,11 @@ def main():
         help="Target name(s) to run. Defaults to all discovered targets.",
     )
     parser.add_argument(
+        "--env-file",
+        type=Path,
+        help="Read credentials from this file instead of the .env file in the collection root.",
+    )
+    parser.add_argument(
         "--list",
         action="store_true",
         help="List available integration targets and exit.",
@@ -167,7 +202,10 @@ def main():
         )
         return 1
 
-    load_dotenv_if_present()
+    if args.env_file and not args.env_file.is_file():
+        sys.stderr.write(f"error: env file not found: {args.env_file}\n")
+        return 1
+    load_dotenv_if_present(args.env_file)
 
     missing = [var for var in REQUIRED_ENV if not os.environ.get(var)]
     if missing:
@@ -185,7 +223,8 @@ def main():
         )
         return 1
 
-    if not shutil.which("ansible-playbook"):
+    ansible_playbook = find_ansible_playbook()
+    if not ansible_playbook:
         sys.stderr.write("error: ansible-playbook not found on PATH.\n")
         return 1
 
@@ -195,23 +234,31 @@ def main():
         link_parent.mkdir(parents=True)
         (link_parent / COLLECTION).symlink_to(COLLECTION_ROOT)
 
-        playbook = build_playbook(staging_dir, targets)
-
         env = os.environ.copy()
         env["ANSIBLE_COLLECTIONS_PATH"] = str(staging_dir)
 
-        cmd = [
-            "ansible-playbook",
-            str(playbook),
-            "-e",
-            f"ansible_python_interpreter={interpreter}",
-            *passthrough,
-        ]
-
+        # Flush, so that this comes before the ansible-playbook output
         print(f"Running targets: {', '.join(targets)}")
-        print(f"Interpreter: {interpreter}\n")
-        completed = subprocess.run(cmd, env=env, check=False)
-        return completed.returncode
+        print(f"Interpreter: {interpreter}\n", flush=True)
+
+        results = {}
+        for target in targets:
+            playbook = build_playbook(staging_dir, [target])
+            cmd = [
+                ansible_playbook,
+                str(playbook),
+                "-e",
+                f"ansible_python_interpreter={interpreter}",
+                *passthrough,
+            ]
+            completed = subprocess.run(cmd, env=env, check=False)
+            results[target] = completed.returncode
+
+        print("\nSummary:")
+        for target, returncode in results.items():
+            status = "ok" if returncode == 0 else f"FAILED (exit {returncode})"
+            print(f"  {target}: {status}")
+        return 0 if all(rc == 0 for rc in results.values()) else 1
     finally:
         shutil.rmtree(staging_dir, ignore_errors=True)
 

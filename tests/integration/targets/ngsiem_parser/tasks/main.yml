@@ -24,6 +24,9 @@
     test_parser_name: "ansible-int-parser"
     test_clone_name: "ansible-int-clone"
     test_ext_name: "ansible-int-ext"
+    # The API stores custom parsers as 'custom-<name>'
+    test_parser_names: ["ansible-int-parser", "custom-ansible-int-parser"]
+    test_clone_names: ["ansible-int-clone", "custom-ansible-int-clone"]
     # A minimal valid parser. The script must emit all mandatory tag fields and
     # tagFields must enumerate every one of them, or create returns 400.
     test_parser_yaml: |
@@ -68,7 +71,7 @@
         that:
           - create_result is changed
           - create_result.parser is defined
-          - create_result.parser.name == test_parser_name
+          - create_result.parser.name in test_parser_names
           - create_result.parser.id | length > 0
           - create_result.parser.script is defined
         fail_msg: "Parser creation failed or returned unexpected data"
@@ -92,7 +95,7 @@
         that:
           - info_by_id.parsers | length == 1
           - info_by_id.parsers[0].id == parser_id
-          - info_by_id.parsers[0].name == test_parser_name
+          - info_by_id.parsers[0].name in test_parser_names
           - info_by_id.parsers[0].script is defined
         fail_msg: "Info lookup by ID returned unexpected data"
 
@@ -107,7 +110,7 @@
         that:
           - >-
             info_by_name.parsers
-            | selectattr('name', 'equalto', test_parser_name)
+            | selectattr('name', 'in', test_parser_names)
             | list | length == 1
         fail_msg: "Name search did not find the created parser"
 
@@ -183,7 +186,7 @@
       ansible.builtin.assert:
         that:
           - clone_result is changed
-          - clone_result.parser.name == test_clone_name
+          - clone_result.parser.name in test_clone_names
           - clone_result.parser.id | length > 0
         fail_msg: "Clone failed or returned unexpected data"
 
@@ -191,12 +194,18 @@
     # Phase 6: EXTENSION (requires a CrowdStrike-managed OOTB base parser)
     # =====================================================================
 
-    - name: "EXT | Find an OOTB parser to extend"
+    # Not every OOTB parser can be extended, so use a known one
+    - name: "EXT | Find the microsoft-edge OOTB parser to extend"
       crowdstrike.falcon.ngsiem_parser_info:
+        name: microsoft-edge
         parser_type: ootb
         definitions: false
-        limit: 1
-      register: ootb_parsers
+      register: ootb_found
+
+    - name: "EXT | Keep only the exact match"
+      ansible.builtin.set_fact:
+        ootb_parsers:
+          parsers: "{{ ootb_found.parsers | selectattr('name', 'equalto', 'microsoft-edge') | list }}"
 
     - name: "EXT | Create an extension of the OOTB base parser (unversioned ID)"
       crowdstrike.falcon.ngsiem_parser:

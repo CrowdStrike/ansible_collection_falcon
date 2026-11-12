@@ -1,0 +1,246 @@
+---
+# Integration tests for intel_rule_info, intel_rule_download and
+# hunting_rule_download modules
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#   FALCON_TEST_HUNTING  - set to 1 to run the hunting_rule_download tests
+#                          (optional, needs Falcon Adversary Intelligence Premium)
+#
+# API scopes: Rules (Falcon Intelligence) [READ], CAO Hunting [READ]
+#
+# Downloads go to a temp directory that is removed at the end. The rule
+# content is never printed.
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    ir_type: yara-update
+    ir_hunting: "{{ lookup('env', 'FALCON_TEST_HUNTING') == '1' }}"
+
+- name: Run intel and hunting rule tests
+  block:
+    - name: "SETUP | Create a temp directory"
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: ansible-int-ir-
+      register: ir_dir
+
+    # =====================================================================
+    # Phase 1: intel_rule_info
+    # =====================================================================
+
+    - name: "INFO | Get the two newest rules of one type"
+      crowdstrike.falcon.intel_rule_info:
+        type: "{{ ir_type }}"
+        sort: created_date|desc
+        limit: 2
+      register: ir_info
+
+    - name: "INFO | Verify the rules"
+      ansible.builtin.assert:
+        that:
+          - ir_info.rules | length == 2
+          - ir_info.rules | map(attribute='type') | unique == [ir_type]
+          - ir_info.rules[0].id is defined
+          - ir_info.rules[0].created_date is defined
+        fail_msg: "intel_rule_info returned unexpected data"
+
+    - name: "INFO | Search a rule name that does not exist"
+      crowdstrike.falcon.intel_rule_info:
+        type: "{{ ir_type }}"
+        name:
+          - ansible-int-no-such-rule
+        limit: 1
+      register: ir_info_missing
+
+    - name: "INFO | Verify no rules for a missing name"
+      ansible.builtin.assert:
+        that:
+          - ir_info_missing is not changed
+          - ir_info_missing.rules == []
+        fail_msg: "A rule name that does not exist should return no rules"
+
+    # =====================================================================
+    # Phase 2: intel_rule_download
+    # =====================================================================
+
+    - name: "CHECK | Download the newest rule in check mode"
+      crowdstrike.falcon.intel_rule_download:
+        rule_id: "{{ ir_info.rules[0].id }}"
+        dest: "{{ ir_dir.path }}"
+      check_mode: true
+      register: ir_check
+
+    - name: "CHECK | Look for the check mode file"
+      ansible.builtin.stat:
+        path: "{{ ir_check.path }}"
+      register: ir_check_stat
+
+    - name: "CHECK | Verify check mode downloaded nothing"
+      ansible.builtin.assert:
+        that:
+          - ir_check is changed
+          - not ir_check_stat.stat.exists
+        fail_msg: "Check mode must not download the rule file"
+
+    - name: "DOWNLOAD | Download the newest rule"
+      crowdstrike.falcon.intel_rule_download:
+        rule_id: "{{ ir_info.rules[0].id }}"
+        dest: "{{ ir_dir.path }}"
+      register: ir_download
+
+    - name: "DOWNLOAD | Read the downloaded file"
+      ansible.builtin.stat:
+        path: "{{ ir_download.path }}"
+      register: ir_stat
+
+    - name: "DOWNLOAD | Verify the downloaded file"
+      ansible.builtin.assert:
+        that:
+          - ir_download is changed
+          - ir_download.rule_id | string == ir_info.rules[0].id | string
+          - ir_download.rule_type == ir_type
+          - ir_download.path is search('\.zip$')
+          - ir_stat.stat.exists
+          - ir_stat.stat.size > 0
+        fail_msg: "The rule download returned unexpected data"
+
+    - name: "IDEMPOTENT | Download the same rule again"
+      crowdstrike.falcon.intel_rule_download:
+        rule_id: "{{ ir_info.rules[0].id }}"
+        dest: "{{ ir_dir.path }}"
+      register: ir_again
+
+    - name: "IDEMPOTENT | Verify no change when the file exists"
+      ansible.builtin.assert:
+        that:
+          - ir_again is not changed
+          - ir_again.path == ir_download.path
+        fail_msg: "Downloading a rule file that exists should not report a change"
+
+    - name: "DOWNLOAD | Download the latest rule of the type"
+      crowdstrike.falcon.intel_rule_download:
+        type: "{{ ir_type }}"
+        dest: "{{ ir_dir.path }}"
+        name: latest.zip
+      register: ir_latest
+
+    - name: "DOWNLOAD | Verify the latest rule download"
+      ansible.builtin.assert:
+        that:
+          - ir_latest is changed
+          - ir_latest.path == ir_dir.path ~ '/latest.zip'
+          - ir_latest.rule_type == ir_type
+        fail_msg: "Downloading the latest rule returned unexpected data"
+
+    - name: "DOWNLOAD | Download a rule ID that does not exist"
+      crowdstrike.falcon.intel_rule_download:
+        rule_id: "999999999999"
+        dest: "{{ ir_dir.path }}"
+      register: ir_missing
+      ignore_errors: true
+
+    - name: "DOWNLOAD | Verify a missing rule ID fails"
+      ansible.builtin.assert:
+        that:
+          - ir_missing is failed
+        fail_msg: "Downloading a rule ID that does not exist should fail"
+
+    # =====================================================================
+    # Phase 3: hunting_rule_download (opt-in)
+    # =====================================================================
+
+    - name: "HUNTING | Skip the hunting rule tests"
+      ansible.builtin.debug:
+        msg: "Set FALCON_TEST_HUNTING=1 to run the hunting_rule_download tests"
+      when: not ir_hunting
+
+    - name: "HUNTING | Run the hunting rule tests"
+      when: ir_hunting
+      block:
+        - name: "HUNTING | Download in check mode"
+          crowdstrike.falcon.hunting_rule_download:
+            language: yara
+            filter: "adversaries:'FANCY BEAR'"
+            dest: "{{ ir_dir.path }}"
+            name: hunting.zip
+          check_mode: true
+          register: ir_hunt_check
+
+        - name: "HUNTING | Look for the check mode file"
+          ansible.builtin.stat:
+            path: "{{ ir_dir.path }}/hunting.zip"
+          register: ir_hunt_check_stat
+
+        - name: "HUNTING | Download filtered YARA hunting rules"
+          crowdstrike.falcon.hunting_rule_download:
+            language: yara
+            filter: "adversaries:'FANCY BEAR'"
+            dest: "{{ ir_dir.path }}"
+            name: hunting.zip
+          register: ir_hunt
+
+        - name: "HUNTING | Read the downloaded archive"
+          ansible.builtin.stat:
+            path: "{{ ir_hunt.path }}"
+          register: ir_hunt_stat
+
+        - name: "HUNTING | Download the same archive again"
+          crowdstrike.falcon.hunting_rule_download:
+            language: yara
+            filter: "adversaries:'FANCY BEAR'"
+            dest: "{{ ir_dir.path }}"
+            name: hunting.zip
+          register: ir_hunt_again
+
+        - name: "HUNTING | Download as gzip"
+          crowdstrike.falcon.hunting_rule_download:
+            language: yara
+            filter: "adversaries:'FANCY BEAR'"
+            archive_type: gzip
+            dest: "{{ ir_dir.path }}"
+            name: hunting.gz
+          register: ir_hunt_gzip
+
+        - name: "HUNTING | Download with a filter that is not valid"
+          crowdstrike.falcon.hunting_rule_download:
+            language: yara
+            filter: "adversaries:'"
+            dest: "{{ ir_dir.path }}"
+            name: bad.zip
+          register: ir_hunt_bad
+          ignore_errors: true
+
+        - name: "HUNTING | Verify the hunting rule downloads"
+          ansible.builtin.assert:
+            that:
+              - ir_hunt_check is changed
+              - not ir_hunt_check_stat.stat.exists
+              - ir_hunt is changed
+              - ir_hunt.language == 'yara'
+              - ir_hunt.filter == "adversaries:'FANCY BEAR'"
+              - ir_hunt_stat.stat.exists
+              - ir_hunt_stat.stat.size > 0
+              - ir_hunt_again is not changed
+              - ir_hunt_gzip.archive_type == 'gzip'
+              - ir_hunt_bad is failed
+            fail_msg: "hunting_rule_download returned unexpected data"
+
+  # =======================================================================
+  # ALWAYS: Remove the downloaded files
+  # =======================================================================
+  always:
+    - name: "CLEANUP | Remove the temp directory"
+      ansible.builtin.file:
+        path: "{{ ir_dir.path }}"
+        state: absent
+      when: ir_dir.path is defined

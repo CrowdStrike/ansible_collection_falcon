@@ -1,0 +1,365 @@
+---
+# Integration tests for sensor_update_policy, sensor_update_policy_info,
+# sensor_update_builds_info and kernel_support_info modules
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Sensor update policies [READ, WRITE], Host Groups [READ, WRITE]
+#
+# The test makes its own Linux policy and an empty host group, and deletes
+# both at the end (the policy first). The group has no hosts, so enabling the
+# policy changes no real host.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    # Lowercase, because host_group finds a group by name only when the
+    # name is lowercase (see the host_group target)
+    sup_name: "ansible-int-sup-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+    sup_group_name: "ansible-int-sup-{{ ansible_facts.date_time.iso8601_basic_short | lower }}-group"
+    sup_missing_id: "ffffffffffffffffffffffffffffffff"
+    sup_scheduler:
+      enabled: true
+      timezone: Etc/UTC
+      schedules:
+        - start: "08:00"
+          end: "14:00"
+          days: [1, 2, 3, 4, 5]
+
+- name: Run sensor update policy lifecycle tests
+  block:
+    # =====================================================================
+    # Phase 1: BUILDS and KERNELS
+    # =====================================================================
+
+    - name: "BUILDS | Get the Linux builds"
+      crowdstrike.falcon.sensor_update_builds_info:
+        platform: linux
+      register: sup_builds
+
+    - name: "BUILDS | Verify the Linux builds"
+      ansible.builtin.assert:
+        that:
+          - sup_builds.builds | length > 0
+          - sup_builds.builds | map(attribute='platform') | unique == ['Linux']
+          - sup_builds.builds | map(attribute='stage') | unique == ['prod']
+          - sup_builds.builds | map(attribute='sensor_version') | select('search', 'LTS') | list | length == 0
+        fail_msg: "sensor_update_builds_info returned unexpected data"
+
+    - name: "BUILDS | Pick a tagged build for the policy"
+      ansible.builtin.set_fact:
+        sup_build: "{{ (sup_builds.builds | selectattr('build', 'search', '\\|tagged\\|') | first).build }}"
+
+    - name: "KERNELS | Get the kernels of one distro and architecture"
+      crowdstrike.falcon.kernel_support_info:
+        filter: "distro:'oracle7'+architecture:'aarch64'"
+      register: sup_kernels
+
+    - name: "KERNELS | Verify the kernel data"
+      ansible.builtin.assert:
+        that:
+          - sup_kernels.info | length > 0
+          - sup_kernels.info | map(attribute='distro') | unique == ['oracle7']
+          - sup_kernels.info | map(attribute='architecture') | unique == ['aarch64']
+          - sup_kernels.info[0].release | length > 0
+          - sup_kernels.info[0].base_package_supported_sensor_versions is defined
+        fail_msg: "kernel_support_info returned unexpected data"
+
+    # =====================================================================
+    # Phase 2: CREATE
+    # =====================================================================
+
+    - name: "CHECK | Create the policy in check mode"
+      crowdstrike.falcon.sensor_update_policy:
+        name: "{{ sup_name }}"
+        platform_name: Linux
+        build: "{{ sup_build }}"
+      check_mode: true
+      register: sup_check_create
+
+    - name: "CHECK | Look for the check mode policy"
+      crowdstrike.falcon.sensor_update_policy_info:
+        filter: "name.raw:'{{ sup_name }}'+platform_name:'Linux'"
+      register: sup_check_info
+
+    - name: "CHECK | Verify check mode predicted the create and made nothing"
+      ansible.builtin.assert:
+        that:
+          - sup_check_create is changed
+          - sup_check_create.sensor_update_policy.name == sup_name
+          - sup_check_info.policies | length == 0
+        fail_msg: "Check mode must report the create without making the policy"
+
+    - name: "CREATE | Create the policy"
+      crowdstrike.falcon.sensor_update_policy:
+        name: "{{ sup_name }}"
+        platform_name: Linux
+        description: "Ansible integration test"
+        build: "{{ sup_build }}"
+        uninstall_protection: DISABLED
+      register: sup_create
+
+    - name: "CREATE | Verify the policy was created disabled"
+      ansible.builtin.assert:
+        that:
+          - sup_create is changed
+          - sup_create.sensor_update_policy.id | length > 0
+          - sup_create.sensor_update_policy.name == sup_name
+          - sup_create.sensor_update_policy.platform_name == 'Linux'
+          - sup_create.sensor_update_policy.enabled == false
+          - sup_create.sensor_update_policy.settings.build == sup_build
+          - sup_create.sensor_update_policy.settings.uninstall_protection == 'DISABLED'
+        fail_msg: "Policy creation failed or returned unexpected data"
+
+    - name: Save the policy ID
+      ansible.builtin.set_fact:
+        sup_id: "{{ sup_create.sensor_update_policy.id }}"
+
+    - name: "CREATE | Create the same policy again on the Linux platform"
+      crowdstrike.falcon.sensor_update_policy:
+        name: "{{ sup_name }}"
+        platform_name: Linux
+        description: "Ansible integration test"
+        build: "{{ sup_build }}"
+        uninstall_protection: DISABLED
+      register: sup_again
+
+    - name: "IDEMPOTENT | Verify no change for the same values"
+      ansible.builtin.assert:
+        that:
+          - sup_again is not changed
+          - sup_again.sensor_update_policy.id == sup_id
+        fail_msg: "Re-running create with the same values should not change the policy"
+
+    # =====================================================================
+    # Phase 3: UPDATE
+    # =====================================================================
+
+    - name: "UPDATE | Update the description, uninstall protection and scheduler"
+      crowdstrike.falcon.sensor_update_policy:
+        name: "{{ sup_name }}"
+        platform_name: Linux
+        description: "Ansible integration test - updated"
+        build: "{{ sup_build }}"
+        uninstall_protection: ENABLED
+        scheduler: "{{ sup_scheduler }}"
+      register: sup_update
+
+    - name: "UPDATE | Re-run the same update"
+      crowdstrike.falcon.sensor_update_policy:
+        name: "{{ sup_name }}"
+        platform_name: Linux
+        description: "Ansible integration test - updated"
+        build: "{{ sup_build }}"
+        uninstall_protection: ENABLED
+        scheduler: "{{ sup_scheduler }}"
+      register: sup_update_again
+
+    - name: "UPDATE | Verify the update and its idempotence"
+      ansible.builtin.assert:
+        that:
+          - sup_update is changed
+          - sup_update.sensor_update_policy.description == 'Ansible integration test - updated'
+          - sup_update.sensor_update_policy.settings.uninstall_protection == 'ENABLED'
+          - sup_update.sensor_update_policy.settings.scheduler.timezone == 'Etc/UTC'
+          - sup_update.sensor_update_policy.settings.scheduler.schedules[0].days == [1, 2, 3, 4, 5]
+          - sup_update_again is not changed
+        fail_msg: "The update failed or was not idempotent"
+
+    - name: "UPDATE | Update with a build that does not exist"
+      crowdstrike.falcon.sensor_update_policy:
+        sensor_update_policy: "{{ sup_id }}"
+        build: "0|n-9|tagged|0"
+      register: sup_bad_build
+      ignore_errors: true
+
+    - name: "UPDATE | Verify an invalid build fails"
+      ansible.builtin.assert:
+        that:
+          - sup_bad_build is failed
+        fail_msg: "An invalid build should fail"
+
+    - name: "UPDATE | Update a policy ID that does not exist"
+      crowdstrike.falcon.sensor_update_policy:
+        sensor_update_policy: "{{ sup_missing_id }}"
+        description: "Should fail"
+      register: sup_update_missing
+      ignore_errors: true
+
+    - name: "UPDATE | Verify a missing policy ID fails"
+      ansible.builtin.assert:
+        that:
+          - sup_update_missing is failed
+          - "'not found' in sup_update_missing.msg"
+        fail_msg: "Updating a policy ID that does not exist should fail"
+
+    # =====================================================================
+    # Phase 4: ENABLE / DISABLE
+    # =====================================================================
+
+    - name: "ENABLE | Enable the policy by ID"
+      crowdstrike.falcon.sensor_update_policy:
+        sensor_update_policy: "{{ sup_id }}"
+        enabled: true
+      register: sup_enable
+
+    - name: "ENABLE | Enable it again"
+      crowdstrike.falcon.sensor_update_policy:
+        sensor_update_policy: "{{ sup_id }}"
+        enabled: true
+      register: sup_enable_again
+
+    - name: "ENABLE | Disable the policy"
+      crowdstrike.falcon.sensor_update_policy:
+        sensor_update_policy: "{{ sup_id }}"
+        enabled: false
+      register: sup_disable
+
+    - name: "ENABLE | Verify enable and disable are idempotent"
+      ansible.builtin.assert:
+        that:
+          - sup_enable is changed
+          - sup_enable.sensor_update_policy.enabled == true
+          - sup_enable_again is not changed
+          - sup_disable is changed
+          - sup_disable.sensor_update_policy.enabled == false
+        fail_msg: "Enable or disable failed or was not idempotent"
+
+    # =====================================================================
+    # Phase 5: HOST GROUPS (an empty group made by this test)
+    # =====================================================================
+
+    - name: "GROUPS | Create an empty host group"
+      crowdstrike.falcon.host_group:
+        name: "{{ sup_group_name }}"
+        description: "Ansible integration test"
+      register: sup_group
+
+    - name: "GROUPS | Add the group to the policy"
+      crowdstrike.falcon.sensor_update_policy:
+        sensor_update_policy: "{{ sup_id }}"
+        host_groups:
+          - "{{ sup_group.host_group.id }}"
+        host_group_action: add
+      register: sup_add_group
+
+    - name: "GROUPS | Verify the group was added"
+      ansible.builtin.assert:
+        that:
+          - sup_add_group is changed
+          - sup_group.host_group.id in sup_add_group.sensor_update_policy.groups | map(attribute='id')
+        fail_msg: "Adding the host group failed"
+
+    - name: "GROUPS | Remove the group from the policy"
+      crowdstrike.falcon.sensor_update_policy:
+        sensor_update_policy: "{{ sup_id }}"
+        host_groups:
+          - "{{ sup_group.host_group.id }}"
+        host_group_action: remove
+      register: sup_remove_group
+
+    # current behavior: host group actions always report a change
+    - name: "GROUPS | Verify the group was removed"
+      ansible.builtin.assert:
+        that:
+          - sup_remove_group is changed
+          - sup_group.host_group.id not in (sup_remove_group.sensor_update_policy.groups | default([], true) | map(attribute='id'))
+        fail_msg: "Removing the host group failed"
+
+    # =====================================================================
+    # Phase 6: READ - sensor_update_policy_info
+    # =====================================================================
+
+    - name: "READ | Find the policy by name and platform"
+      crowdstrike.falcon.sensor_update_policy_info:
+        filter: "name.raw:'{{ sup_name }}'+platform_name:'Linux'"
+      register: sup_info
+
+    - name: "READ | Verify the policy info"
+      ansible.builtin.assert:
+        that:
+          - sup_info.policies | length == 1
+          - sup_info.policies[0].id == sup_id
+          - sup_info.policies[0].settings.build == sup_build
+          - "'LTS' not in (sup_info.policies[0].settings.sensor_version | default('', true))"
+          - >-
+            sup_info.policies[0].settings.variants | default([], true)
+            | map(attribute='sensor_version') | select('search', 'LTS') | list | length == 0
+        fail_msg: "sensor_update_policy_info returned unexpected data"
+
+    # =====================================================================
+    # Phase 7: DELETE
+    # =====================================================================
+
+    - name: "DELETE | Delete the policy in check mode"
+      crowdstrike.falcon.sensor_update_policy:
+        name: "{{ sup_name }}"
+        platform_name: Linux
+        state: absent
+      check_mode: true
+      register: sup_check_delete
+
+    - name: "DELETE | Enable the policy, so that delete must disable it first"
+      crowdstrike.falcon.sensor_update_policy:
+        sensor_update_policy: "{{ sup_id }}"
+        enabled: true
+
+    - name: "DELETE | Delete the policy by name"
+      crowdstrike.falcon.sensor_update_policy:
+        name: "{{ sup_name }}"
+        platform_name: Linux
+        state: absent
+      register: sup_delete
+
+    - name: "DELETE | Delete it again"
+      crowdstrike.falcon.sensor_update_policy:
+        name: "{{ sup_name }}"
+        platform_name: Linux
+        state: absent
+      register: sup_delete_again
+
+    - name: "DELETE | Look for the deleted policy"
+      crowdstrike.falcon.sensor_update_policy_info:
+        filter: "name.raw:'{{ sup_name }}'+platform_name:'Linux'"
+      register: sup_after_delete
+
+    - name: "DELETE | Verify the policy was deleted"
+      ansible.builtin.assert:
+        that:
+          - sup_check_delete is changed
+          - sup_delete is changed
+          - sup_delete_again is not changed
+          - sup_after_delete.policies | length == 0
+        fail_msg: "Deleting the policy failed or was not idempotent"
+
+  # =======================================================================
+  # ALWAYS: Best-effort cleanup, the policy before the host group
+  # =======================================================================
+  always:
+    - name: "CLEANUP | Delete the test policy"
+      crowdstrike.falcon.sensor_update_policy:
+        name: "{{ sup_name }}"
+        platform_name: Linux
+        state: absent
+      failed_when: false
+
+    - name: "CLEANUP | Delete the test host group"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ sup_group.host_group.id }}"
+        state: absent
+      when: sup_group.host_group.id is defined
+      failed_when: false

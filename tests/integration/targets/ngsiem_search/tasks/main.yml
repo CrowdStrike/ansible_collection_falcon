@@ -1,0 +1,94 @@
+---
+# Integration tests for the ngsiem_search module
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: NGSIEM [READ, WRITE]
+#
+# The queries search only events that they make with createEvents(), so no
+# tenant data is read. There is no check mode test, because check mode starts
+# a real search job.
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    ns_events: 'createEvents(["ansible_int=a", "ansible_int=b"]) | kvParse()'
+
+- name: Run NGSIEM search tests
+  block:
+    - name: "SEARCH | Search synthetic events"
+      crowdstrike.falcon.ngsiem_search:
+        query_string: "{{ ns_events }}"
+        start: "1h"
+        poll_interval: 5
+        timeout: 120
+      register: ns_search
+
+    - name: "SEARCH | Verify the search result"
+      ansible.builtin.assert:
+        that:
+          - ns_search is not changed
+          - ns_search.done
+          - not ns_search.cancelled
+          - ns_search.query_job_id | length > 0
+          - ns_search.total_events == 2
+          - ns_search.events | map(attribute='ansible_int') | sort == ['a', 'b']
+        fail_msg: "The search returned unexpected data"
+
+    - name: "ARGUMENTS | Search with a query argument"
+      crowdstrike.falcon.ngsiem_search:
+        query_string: "{{ ns_events }} | ansible_int=?value"
+        arguments:
+          value: b
+        start: "1h"
+        poll_interval: 5
+        timeout: 120
+      register: ns_arguments
+
+    - name: "ARGUMENTS | Verify the argument filtered the events"
+      ansible.builtin.assert:
+        that:
+          - ns_arguments.done
+          - ns_arguments.total_events == 1
+          - ns_arguments.events[0].ansible_int == 'b'
+        fail_msg: "The query argument was not applied"
+
+    - name: "AGGREGATE | Count the synthetic events"
+      crowdstrike.falcon.ngsiem_search:
+        query_string: "{{ ns_events }} | count()"
+        start: "1h"
+        poll_interval: 5
+        timeout: 120
+      register: ns_count
+
+    - name: "AGGREGATE | Verify the count"
+      ansible.builtin.assert:
+        that:
+          - ns_count.done
+          - ns_count.events | length == 1
+          - ns_count.events[0]._count | int == 2
+        fail_msg: "The aggregate query returned unexpected data"
+
+    - name: "ERROR | Search with a query that is not valid"
+      crowdstrike.falcon.ngsiem_search:
+        query_string: "| | not a query ("
+        start: "1h"
+        timeout: 60
+      register: ns_bad
+      ignore_errors: true
+
+    - name: "ERROR | Verify the bad query fails with the API message"
+      ansible.builtin.assert:
+        that:
+          - ns_bad is failed
+          - ns_bad.msg | length > 0
+        fail_msg: "A query that is not valid should fail"
