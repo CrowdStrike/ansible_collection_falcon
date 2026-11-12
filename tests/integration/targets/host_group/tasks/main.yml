@@ -26,8 +26,8 @@
 
 - name: Set test variables
   ansible.builtin.set_fact:
-    # Lowercase, because the host_group_info name filters in this test only
-    # match the lowercase form of a name
+    # Lowercase, because the host_group_info name filters in this test must
+    # be lowercase (see the filter option of host_group_info)
     hg_prefix: "ansible-int-hg-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
     hg_missing_host: "ffffffffffffffffffffffffffffffff"
     hg_missing_group: "ffffffffffffffffffffffffffffffff"
