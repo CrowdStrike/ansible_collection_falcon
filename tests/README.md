@@ -20,8 +20,7 @@ and `ansible-test units --docker` when a pull request changes `plugins/` or
 `tests/unit/`. It runs them on ansible-core 2.16, 2.18, 2.20, 2.21, 2.22 and
 `devel` (`devel` only reports). CI has no Falcon credentials, so it never runs
 the integration targets. Run the targets for the plugins that you changed
-before you open the pull request, and say in the pull request which ones you
-ran.
+before you open the pull request.
 
 Other CI workflows run `ansible-lint`, `yamllint`, pylint on `plugins/`, a
 Python 2.7 compile check for `falconctl` and `falconctl_info`, and the molecule
@@ -69,7 +68,8 @@ recorded from a real tenant and sanitized.
 `fixture(name)` loads a recorded response.
 `fixture("host_group/get_one")` reads `fixtures/host_group/get_one.json`.
 
-`falcon_api(plugin, responses, attr="authenticate")` makes a `FakeService`
+`falcon_api(plugin, responses, attr="authenticate", allow_unexpected=False)`
+makes a `FakeService`
 and patches it into the plugin. It returns the `FakeService`.
 
 - By default it replaces `plugin.authenticate`. All modules and lookups get
@@ -81,8 +81,8 @@ and patches it into the plugin. It returns the `FakeService`.
 `responses` maps a FalconPy method name to a list of responses:
 
 - Each call returns the next response in the list. The last response repeats.
-- A call to a method that is not in `responses` raises `AssertionError`
-  ("unexpected API call: <name>").
+- A call to a method that is not in `responses` is an unexpected call, and
+  the test fails (see below).
 - A response can be a dict (a fixture), `bytes` (returned as is, for a file
   download) or an exception (raised).
 - `override()` calls use the key `"override:<METHOD> <route>"`, for example
@@ -94,6 +94,26 @@ The `FakeService` records every call:
 
 - `service.calls` is a list of `(method, kwargs)` tuples in call order.
 - `service.called(name)` returns the kwargs of each call to `name`.
+- `service.unexpected` is a list of the unexpected calls.
+
+An unexpected call raises `AssertionError` ("unexpected API call: <name>")
+in the plugin. Many plugins catch every exception and return a failed result,
+so the error does not always reach the test. For that reason the autouse
+fixture `_no_unexpected_api_calls` in `conftest.py` checks every `FakeService`
+that the test made, also the ones made with `attr`. If one of them got an
+unexpected call, the test fails at teardown with a message that names each
+call and its kwargs:
+
+```text
+unexpected API call(s): update_host_groups(description, id, name)
+```
+
+To test how a plugin handles an error from a call, give that call an
+exception as its response, for example
+`stop_search=[Exception("stop_search failed")]`. This is not an unexpected
+call. If a test must let a call through with no response at all, pass
+`allow_unexpected=True` to `falcon_api` and say in a comment why. No test
+uses it now.
 
 `fake_clock(plugin)` replaces the `time` module of a plugin that polls with a
 `FakeClock`. `sleep()` does not wait. It moves the clock forward and records
@@ -169,14 +189,13 @@ def test_present_creates_missing_group(api, run_module):
 
 def test_present_matching_group_is_not_changed(api, run_module):
     # Idempotence: no create or update response is given, so a write call
-    # raises AssertionError in the FakeService.
+    # fails the test.
     service = api(query_combined_host_groups=["query_by_name"])
 
     result = run_module(host_group, {"name": NAME, "description": "Fixture group"})
 
     assert result["changed"] is False
-    # The module catches exceptions and calls fail_json, so also check the
-    # calls. Without this line, an unexpected write could pass the test.
+    # Assert the exact list of calls that the module made.
     assert [method for method, _kwargs in service.calls] == ["query_combined_host_groups"]
 
 
@@ -221,11 +240,10 @@ these:
    with `service.called(name) == [...]`. This is what catches a wrong filter,
    a missing escape or a changed limit.
 
-Many modules catch `Exception` and call `fail_json`. Then the `AssertionError`
-from an unexpected call becomes a failed result, not a test error. A test that
-asserts only `changed` can pass when the module made a call that it must not
-make. Always assert `service.calls` (or `service.called(...)`) and, where the
-module must succeed, `"failed" not in result`.
+The framework fails a test on an unexpected call, but it does not check
+that the module made the calls that it must make, in the right order, with
+the right arguments. Only the assertions on `service.calls` and
+`service.called(...)` prove that.
 
 When a test pins down behavior that looks wrong but is how the module works
 today, start the comment with `current behavior:` and say what happens. This
@@ -776,9 +794,7 @@ to run them.
 - [ ] `tests/unit/plugins/modules/test_<module>.py` with tests for each code
       branch, argument validation, check mode (no write calls), idempotence
       (no write response given), API errors with their `msg`, and the exact
-      kwargs of each call.
-- [ ] Each test asserts `service.calls` or `service.called(...)`, not only
-      `changed`.
+      list of calls and kwargs.
 - [ ] The fixtures that the tests use are recorded with a `record_<service>()`
       function in `tests/unit/record_fixtures.py`, registered in `SCENARIOS`.
       No fixture file is written or edited by hand.
@@ -790,8 +806,7 @@ to run them.
       checks with the `_info` module, and FQCNs.
 - [ ] An opt-in flag if the feature needs a special subscription or tenant.
 - [ ] `ansible-test sanity --docker` and `ansible-test units` pass.
-- [ ] You ran the integration target against a tenant, and the pull request
-      says so.
+- [ ] You ran the integration target against a tenant.
 - [ ] `version_added` in the module documentation. The changelog lists new
       modules from it, so a new module needs no fragment. A change to an
       existing module needs a fragment in `changelogs/fragments/`.

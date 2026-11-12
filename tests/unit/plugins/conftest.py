@@ -37,8 +37,12 @@ class FakeService(object):
 
     responses maps a method name to a list of responses. Each call returns
     the next response, and the last one repeats. A call to a method that is
-    not in responses raises AssertionError, so a test fails when a plugin
-    makes a call that the test did not expect.
+    not in responses raises AssertionError and is kept in unexpected.
+
+    Many plugins catch every exception and turn it into a failed result, so
+    the AssertionError alone does not always fail the test. The
+    _no_unexpected_api_calls fixture fails every test that has an unexpected
+    call, unless the FakeService was made with allow_unexpected=True.
 
     override() is keyed as "override:<METHOD> <route>" and command() as
     "command:<operation_id>".
@@ -46,15 +50,22 @@ class FakeService(object):
 
     token_value = "fake-token"
     base_url = "https://api.crowdstrike.com"
+    # Every FakeService made in the current test. The
+    # _no_unexpected_api_calls fixture sets a new list for each test.
+    instances = []
 
-    def __init__(self, responses):
+    def __init__(self, responses, allow_unexpected=False):
         self._responses = {k: list(v) for k, v in responses.items()}
         self.calls = []
+        self.unexpected = []
+        self.allow_unexpected = allow_unexpected
         self.auth_object = FakeAuthObject()
+        FakeService.instances.append(self)
 
     def _respond(self, name, kwargs):
         self.calls.append((name, kwargs))
         if name not in self._responses:
+            self.unexpected.append((name, kwargs))
             raise AssertionError("unexpected API call: %s" % name)
         queue = self._responses[name]
         response = queue.pop(0) if len(queue) > 1 else queue[0]
@@ -101,6 +112,22 @@ class FakeClock(object):
         self.now += seconds
 
 
+@pytest.fixture(autouse=True)
+def _no_unexpected_api_calls(monkeypatch):
+    """Fail the test if a FakeService got a call that the test did not give a response for."""
+    services = []
+    monkeypatch.setattr(FakeService, "instances", services)
+    yield
+    unexpected = [
+        "%s(%s)" % (name, ", ".join(sorted(kwargs)))
+        for service in services
+        if not service.allow_unexpected
+        for name, kwargs in service.unexpected
+    ]
+    if unexpected:
+        pytest.fail("unexpected API call(s): %s" % "; ".join(unexpected), pytrace=False)
+
+
 @pytest.fixture
 def fake_clock(monkeypatch):
     """Return a function that puts a FakeClock in a plugin as its time module."""
@@ -129,10 +156,13 @@ def falcon_api(monkeypatch):
     falcon_api(plugin, responses) patches plugin.authenticate, which every
     module uses to build its FalconPy client. Pass attr to patch a different
     name, for example a service class that a plugin builds itself.
+
+    Pass allow_unexpected=True only for a test that checks what a plugin
+    does when a call raises, and say why in a comment.
     """
 
-    def make(plugin, responses, attr="authenticate"):
-        service = FakeService(responses)
+    def make(plugin, responses, attr="authenticate", allow_unexpected=False):
+        service = FakeService(responses, allow_unexpected=allow_unexpected)
         if attr == "authenticate":
             monkeypatch.setattr(plugin, attr, lambda *args, **kwargs: service)
         else:
