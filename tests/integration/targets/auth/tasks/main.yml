@@ -1,0 +1,91 @@
+---
+# Integration tests for the auth module
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Sensor Download [READ] (for the cid_info call that uses the token)
+#
+# The test makes its own token and revokes only that token. Every task that
+# returns a token or uses credentials has no_log set.
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Run auth tests
+  block:
+    # =====================================================================
+    # Phase 1: GENERATE
+    # =====================================================================
+
+    - name: "GENERATE | Generate an access token"
+      crowdstrike.falcon.auth:
+      register: auth_token
+      no_log: true
+
+    - name: "GENERATE | Verify the token"
+      ansible.builtin.assert:
+        that:
+          - auth_token is not changed
+          - auth_token.auth.access_token | length > 0
+          - auth_token.auth.cloud in ['us-1', 'us-2', 'us-3', 'eu-1', 'us-gov-1', 'us-gov-2']
+          - lookup('env', 'FALCON_CLIENT_SECRET') not in (auth_token | to_json)
+        fail_msg: "auth returned an unexpected result"
+        quiet: true
+
+    - name: "GENERATE | Use the token with another module"
+      crowdstrike.falcon.cid_info:
+        auth: "{{ auth_token.auth }}"
+      register: auth_cid
+      no_log: true
+
+    - name: "GENERATE | Verify the call with the token passed"
+      ansible.builtin.assert:
+        that:
+          - auth_cid.cid | length > 0
+        fail_msg: "A call with the generated token failed"
+        quiet: true
+
+    - name: "GENERATE | Log in with a wrong client secret"
+      crowdstrike.falcon.auth:
+        client_secret: not-the-real-secret
+      register: auth_bad
+      ignore_errors: true
+      no_log: true
+
+    - name: "GENERATE | Verify a wrong secret fails"
+      ansible.builtin.assert:
+        that:
+          - auth_bad is failed
+        fail_msg: "Logging in with a wrong client secret should fail"
+
+    # =====================================================================
+    # Phase 2: REVOKE
+    # =====================================================================
+
+    - name: "REVOKE | Revoke the token"
+      crowdstrike.falcon.auth:
+        action: revoke
+        access_token: "{{ auth_token.auth.access_token }}"
+      register: auth_revoke
+      no_log: true
+
+    - name: "REVOKE | Use the revoked token"
+      crowdstrike.falcon.cid_info:
+        auth: "{{ auth_token.auth }}"
+      register: auth_after_revoke
+      ignore_errors: true
+      no_log: true
+
+    - name: "REVOKE | Verify the revoked token no longer works"
+      ansible.builtin.assert:
+        that:
+          - auth_revoke is not failed
+          - auth_after_revoke is failed
+        fail_msg: "A revoked token should not work"

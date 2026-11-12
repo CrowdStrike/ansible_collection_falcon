@@ -1,0 +1,249 @@
+---
+# Integration tests for the read-only host plugins and the host actions on a
+# host that does not exist: host_info, host_contain, host_hide, the host_ids
+# and maintenance_token lookups, and the falcon_hosts and falcon_discover
+# inventory plugins
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Hosts [READ, WRITE], Sensor update policies [WRITE] (maintenance
+# token), Assets [READ] (falcon_discover)
+#
+# The test never acts on a real host. Every host action uses a device ID that
+# does not exist, and every filter is chosen to match no host, so no host
+# data is read. The maintenance token lookups write an audit entry and return
+# a token, which is never printed.
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    hr_missing_host: "ffffffffffffffffffffffffffffffff"
+    hr_no_match: "hostname:'ansible-int-hosts-no-such-host'"
+    hr_ansible_inventory: "{{ ansible_playbook_python | dirname }}/ansible-inventory"
+
+- name: Run read-only host tests
+  block:
+    # =====================================================================
+    # Phase 1: host_info
+    # =====================================================================
+
+    - name: "INFO | Get a host that does not exist"
+      crowdstrike.falcon.host_info:
+        hosts:
+          - "{{ hr_missing_host }}"
+      register: hr_info_missing
+      ignore_errors: true
+
+    - name: "INFO | Verify a missing host fails"
+      ansible.builtin.assert:
+        that:
+          - hr_info_missing is failed
+          - "'invalid device id' in hr_info_missing.msg | lower"
+        fail_msg: "host_info for a host that does not exist returned unexpected data"
+
+    # =====================================================================
+    # Phase 2: host_contain and host_hide (a host that does not exist)
+    # =====================================================================
+
+    - name: "CONTAIN | Contain a host that does not exist"
+      crowdstrike.falcon.host_contain:
+        hosts:
+          - "{{ hr_missing_host }}"
+      register: hr_contain
+
+    - name: "CONTAIN | Lift containment of a host that does not exist"
+      crowdstrike.falcon.host_contain:
+        hosts:
+          - "{{ hr_missing_host }}"
+        contained: false
+      register: hr_lift
+
+    - name: "HIDE | Hide a host that does not exist"
+      crowdstrike.falcon.host_hide:
+        hosts:
+          - "{{ hr_missing_host }}"
+      register: hr_hide
+
+    - name: "HIDE | Unhide a host that does not exist"
+      crowdstrike.falcon.host_hide:
+        hosts:
+          - "{{ hr_missing_host }}"
+        hidden: false
+      register: hr_unhide
+
+    - name: "ACTIONS | Verify each action reports the host as not found"
+      ansible.builtin.assert:
+        that:
+          - item is not changed
+          - item.hosts == []
+          - item.failed_hosts | length == 1
+          - item.failed_hosts[0].id == hr_missing_host
+          - item.failed_hosts[0].code == 404
+        fail_msg: "A host action on a missing host returned unexpected data"
+      loop:
+        - "{{ hr_contain }}"
+        - "{{ hr_lift }}"
+        - "{{ hr_hide }}"
+        - "{{ hr_unhide }}"
+      loop_control:
+        label: "{{ item.invocation.module_args | default({}) | dict2items | selectattr('key', 'in', ['contained', 'hidden']) | items2dict }}"
+
+    # current behavior: check mode exits before any API call and does not
+    # predict a change
+    - name: "CHECK | Contain in check mode"
+      crowdstrike.falcon.host_contain:
+        hosts:
+          - "{{ hr_missing_host }}"
+      check_mode: true
+      register: hr_contain_check
+
+    - name: "CHECK | Hide in check mode"
+      crowdstrike.falcon.host_hide:
+        hosts:
+          - "{{ hr_missing_host }}"
+      check_mode: true
+      register: hr_hide_check
+
+    - name: "CHECK | Verify check mode made no change"
+      ansible.builtin.assert:
+        that:
+          - hr_contain_check is not changed
+          - hr_hide_check is not changed
+        fail_msg: "Check mode must not act on hosts"
+
+    # =====================================================================
+    # Phase 3: host_ids lookup
+    # =====================================================================
+
+    - name: "LOOKUP | Query host IDs with a filter that matches nothing"
+      ansible.builtin.set_fact:
+        hr_ids: "{{ query('crowdstrike.falcon.host_ids', hr_no_match) }}"
+
+    - name: "LOOKUP | Verify no host IDs"
+      ansible.builtin.assert:
+        that:
+          - hr_ids | flatten == []
+        fail_msg: "host_ids returned hosts for a filter that should match nothing"
+
+    - name: "LOOKUP | Query host IDs with a filter that is not valid"
+      ansible.builtin.set_fact:
+        hr_bad_ids: "{{ query('crowdstrike.falcon.host_ids', \"hostname:'\") }}"
+      register: hr_bad_lookup
+      ignore_errors: true
+
+    - name: "LOOKUP | Verify the bad filter fails"
+      ansible.builtin.assert:
+        that:
+          - hr_bad_lookup is failed
+        fail_msg: "host_ids with a filter that is not valid should fail"
+
+    # =====================================================================
+    # Phase 4: maintenance_token lookup
+    # =====================================================================
+
+    # The API returns a token also for a device ID that does not exist
+    - name: "TOKEN | Get a maintenance token for a host that does not exist"
+      ansible.builtin.set_fact:
+        hr_token: "{{ lookup('crowdstrike.falcon.maintenance_token', hr_missing_host) }}"
+      no_log: true
+
+    - name: "TOKEN | Get the bulk maintenance token"
+      ansible.builtin.set_fact:
+        hr_bulk_token: "{{ lookup('crowdstrike.falcon.maintenance_token', bulk=true) }}"
+      no_log: true
+
+    - name: "TOKEN | Verify both tokens were returned"
+      ansible.builtin.assert:
+        that:
+          - hr_token | length > 0
+          - hr_bulk_token | length > 0
+        fail_msg: "maintenance_token did not return a token"
+        quiet: true
+      no_log: true
+
+    # =====================================================================
+    # Phase 5: inventory plugins
+    # =====================================================================
+
+    - name: "INVENTORY | Create a temp directory"
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: ansible-int-hosts-
+      register: hr_dir
+
+    - name: "INVENTORY | Write inventory configs that match nothing"
+      ansible.builtin.copy:
+        dest: "{{ hr_dir.path }}/{{ item.file }}"
+        content: |
+          plugin: crowdstrike.falcon.{{ item.plugin }}
+          filter: "{{ item.filter }}"
+        mode: "0600"
+      loop:
+        - {file: empty.falcon_hosts.yml, plugin: falcon_hosts, filter: "{{ hr_no_match }}"}
+        - {file: empty.falcon_discover.yml, plugin: falcon_discover, filter: "{{ hr_no_match }}"}
+        - {file: bad.falcon_hosts.yml, plugin: falcon_hosts, filter: "hostname:'"}
+      loop_control:
+        label: "{{ item.file }}"
+
+    - name: "INVENTORY | List the inventories that match nothing"
+      ansible.builtin.command:
+        argv:
+          - "{{ hr_ansible_inventory }}"
+          - -i
+          - "{{ hr_dir.path }}/{{ item }}"
+          - --list
+      environment:
+        ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED: "true"
+      loop:
+        - empty.falcon_hosts.yml
+        - empty.falcon_discover.yml
+      register: hr_inventories
+      changed_when: false
+
+    - name: "INVENTORY | Verify the inventories have no hosts"
+      ansible.builtin.assert:
+        that:
+          - (item.stdout | from_json)._meta.hostvars == {}
+        fail_msg: "{{ item.item }} returned hosts for a filter that should match nothing"
+      loop: "{{ hr_inventories.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: "INVENTORY | List the inventory with a filter that is not valid"
+      ansible.builtin.command:
+        argv:
+          - "{{ hr_ansible_inventory }}"
+          - -i
+          - "{{ hr_dir.path }}/bad.falcon_hosts.yml"
+          - --list
+      environment:
+        ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED: "true"
+      register: hr_bad_inventory
+      changed_when: false
+      failed_when: false
+
+    - name: "INVENTORY | Verify the bad filter fails"
+      ansible.builtin.assert:
+        that:
+          - hr_bad_inventory.rc != 0
+          - "'Unable to query hosts' in hr_bad_inventory.stderr"
+        fail_msg: "falcon_hosts with a filter that is not valid should fail"
+
+  # =======================================================================
+  # ALWAYS: Remove the inventory configs
+  # =======================================================================
+  always:
+    - name: "CLEANUP | Remove the temp directory"
+      ansible.builtin.file:
+        path: "{{ hr_dir.path }}"
+        state: absent
+      when: hr_dir.path is defined
