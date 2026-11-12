@@ -461,14 +461,17 @@ service name as the key.
 uv run tests/unit/record_fixtures.py --list
 
 # Show the calls that a service makes, with no API calls
-uv run --with crowdstrike-falconpy --with python-dotenv tests/unit/record_fixtures.py --dry-run host_group
+uv run tests/unit/record_fixtures.py --dry-run host_group
 
 # Record one service
-uv run --with crowdstrike-falconpy --with python-dotenv tests/unit/record_fixtures.py host_group
+uv run tests/unit/record_fixtures.py host_group
 
 # Delete the ansible-unit-fixture-* objects that an interrupted run left behind
-uv run --with crowdstrike-falconpy --with python-dotenv tests/unit/record_fixtures.py --cleanup host_group
+uv run tests/unit/record_fixtures.py --cleanup host_group
 ```
+
+The script declares FalconPy and python-dotenv in its inline script metadata
+(PEP 723), so `uv run` installs them.
 
 With no service names, the script records every service. `--env-file PATH`
 reads the credentials from another file. `--wait SECONDS` sets how long the
@@ -757,24 +760,34 @@ loader, so the lookup and inventory tests fail with it. Use `ansible-test`.
 
 ### Integration tests
 
-`run.py` needs FalconPy and `ansible-playbook` in the Python that runs it,
-because the lookups and inventory plugins run in the controller:
+`run.py` and `record_fixtures.py` declare their dependencies in inline script
+metadata (PEP 723), so `uv run` installs them in a temporary environment. For
+`run.py` these are ansible-core, FalconPy and python-dotenv. FalconPy is
+installed next to `ansible-playbook`, because the lookups and inventory
+plugins run in the controller's Python.
+
+The scripts need Python 3.12 or later. With no `--python`, uv uses the first
+such Python that it finds (often 3.12) and installs the newest ansible-core
+that supports it. To test with another version, add `--with`. ansible-core
+2.22 and later need Python 3.13, so for them also add `--python 3.13`:
+
+```shell
+uv run --with 'ansible-core~=2.16.0' tests/integration/run.py host_group
+uv run --python 3.13 --with 'ansible-core~=2.22.0' tests/integration/run.py host_group
+```
 
 ```shell
 # List the targets
 uv run tests/integration/run.py --list
 
 # Run some targets
-uv run --with ansible-core --with crowdstrike-falconpy --with python-dotenv \
-    tests/integration/run.py host_group sensor_update_policy
+uv run tests/integration/run.py host_group sensor_update_policy
 
 # Run all targets
-uv run --with ansible-core --with crowdstrike-falconpy --with python-dotenv \
-    tests/integration/run.py
+uv run tests/integration/run.py
 
 # Use other credentials, and pass arguments to ansible-playbook after --
-FALCON_TEST_FLIGHT_CONTROL=1 uv run --with ansible-core --with crowdstrike-falconpy --with python-dotenv \
-    tests/integration/run.py --env-file .env.flight-control flight_control -- -vvv
+FALCON_TEST_FLIGHT_CONTROL=1 uv run tests/integration/run.py --env-file .env.flight-control flight_control -- -vvv
 ```
 
 If the Python that runs `run.py` cannot import FalconPy, `run.py` tries
