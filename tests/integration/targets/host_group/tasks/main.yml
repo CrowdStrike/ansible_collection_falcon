@@ -26,8 +26,8 @@
 
 - name: Set test variables
   ansible.builtin.set_fact:
-    # Lowercase, because the host group name filter only matches lowercase
-    # names (see the CASE phase)
+    # Lowercase, because the host_group_info name filters in this test must
+    # be lowercase (see the filter option of host_group_info)
     hg_prefix: "ansible-int-hg-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
     hg_missing_host: "ffffffffffffffffffffffffffffffff"
     hg_missing_group: "ffffffffffffffffffffffffffffffff"
@@ -413,7 +413,34 @@
       crowdstrike.falcon.host_group:
         name: "{{ hg_mixed_name }}"
       register: hg_mixed_again
-      ignore_errors: true
+
+    - name: "CASE | Verify the re-run found the same group"
+      ansible.builtin.assert:
+        that:
+          - hg_mixed is changed
+          - hg_mixed_again is not changed
+          - hg_mixed_again.host_group.id == hg_mixed.host_group.id
+        fail_msg: "Re-running create for an uppercase name should not change the group"
+
+    - name: "CASE | Give the name in lowercase"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_mixed_name | lower }}"
+      register: hg_mixed_lower
+
+    - name: "CASE | Give the name in its first case again"
+      crowdstrike.falcon.host_group:
+        name: "{{ hg_mixed_name }}"
+      register: hg_mixed_restore
+
+    - name: "CASE | Verify a name in another case updates the same group"
+      ansible.builtin.assert:
+        that:
+          - hg_mixed_lower is changed
+          - hg_mixed_lower.host_group.id == hg_mixed.host_group.id
+          - hg_mixed_lower.host_group.name == hg_mixed_name | lower
+          - hg_mixed_restore is changed
+          - hg_mixed_restore.host_group.name == hg_mixed_name
+        fail_msg: "A name in another case should update the case of the same group"
 
     - name: "CASE | Delete the group by name"
       crowdstrike.falcon.host_group:
@@ -421,31 +448,18 @@
         state: absent
       register: hg_mixed_absent
 
-    # current behavior: the API name filter only matches the lowercase form
-    # of a name, so the module does not find a group whose name has uppercase
-    # letters. A second create fails as a duplicate, and absent by name does
-    # nothing. When this is fixed, the re-run must report no change and the
-    # absent must delete the group.
-    - name: "CASE | Verify the current behavior for an uppercase name"
-      ansible.builtin.assert:
-        that:
-          - hg_mixed is changed
-          - hg_mixed_again is failed
-          - "'Duplicate group name' in hg_mixed_again.msg"
-          - hg_mixed_absent is not changed
-        fail_msg: "The uppercase name behavior changed; update this test"
-
-    - name: "CASE | Delete the group by ID"
+    - name: "CASE | Delete it again"
       crowdstrike.falcon.host_group:
-        host_group: "{{ hg_mixed.host_group.id }}"
+        name: "{{ hg_mixed_name }}"
         state: absent
-      register: hg_mixed_delete
+      register: hg_mixed_absent_again
 
-    - name: "CASE | Verify the group was deleted"
+    - name: "CASE | Verify the group was deleted by name"
       ansible.builtin.assert:
         that:
-          - hg_mixed_delete is changed
-        fail_msg: "Deleting the uppercase name group by ID failed"
+          - hg_mixed_absent is changed
+          - hg_mixed_absent_again is not changed
+        fail_msg: "Deleting an uppercase name group by name failed or was not idempotent"
 
   # =======================================================================
   # ALWAYS: Best-effort cleanup of everything this test may have created

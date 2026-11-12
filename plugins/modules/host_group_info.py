@@ -34,7 +34,10 @@ options:
   filter:
     description:
       - FQL (Falcon Query Language) filter expression to limit results.
-      - "Examples: C(name:'Production*'), C(group_type:'dynamic'), C(created_timestamp:>'2024-01-01T00:00:00Z')."
+      - "Examples: C(name:*'production*'), C(group_type:'dynamic'), C(created_timestamp:>'2024-01-01T00:00:00Z')."
+      - The Host Groups API compares a C(name) filter value with the lowercase form of
+        the group name, so the value must be lowercase. C(name:'web servers') finds a
+        group named C(Web Servers), but C(name:'Web Servers') finds nothing.
       - Cannot be used together with I(host_groups).
     type: str
     required: false
@@ -86,9 +89,13 @@ EXAMPLES = r"""
       - "12345678901234567890abcdef123456"
       - "abcdef123456789012345678901234"
 
+- name: Get a host group by name (name filters must be lowercase)
+  crowdstrike.falcon.host_group_info:
+    filter: "name:'{{ group_name | lower }}'"
+
 - name: Search for host groups by name pattern
   crowdstrike.falcon.host_group_info:
-    filter: "name:'Production*'"
+    filter: "name:*'production*'"
     limit: 50
 
 - name: Get dynamic host groups created in the last 7 days

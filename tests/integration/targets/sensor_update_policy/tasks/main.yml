@@ -27,10 +27,8 @@
 
 - name: Set test variables
   ansible.builtin.set_fact:
-    # Lowercase, because host_group finds a group by name only when the
-    # name is lowercase (see the host_group target)
-    sup_name: "ansible-int-sup-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
-    sup_group_name: "ansible-int-sup-{{ ansible_facts.date_time.iso8601_basic_short | lower }}-group"
+    sup_name: "ansible-int-sup-{{ ansible_facts.date_time.iso8601_basic_short }}"
+    sup_group_name: "ansible-int-sup-{{ ansible_facts.date_time.iso8601_basic_short }}-group"
     sup_missing_id: "ffffffffffffffffffffffffffffffff"
     sup_scheduler:
       enabled: true

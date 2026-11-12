@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - host_group - find an existing host group by ``name`` when the name has uppercase letters. The API name filter only matches the lowercase form of a name, so a second run with ``state=present`` tried to create the group again and failed with ``Duplicate group name``, and ``state=absent`` did not delete the group. The name match is not case-sensitive, because the API does not allow two groups whose names differ only in case.
+  - host_group_info - document that a ``name`` value in ``filter`` must be lowercase. The API compares it with the lowercase form of the group name, so ``name:'web servers'`` finds a group named ``Web Servers``, but ``name:'Web Servers'`` finds nothing.

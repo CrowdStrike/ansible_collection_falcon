@@ -37,6 +37,9 @@ options:
       - Required when I(state=present) and creating a new group.
       - Can be used for I(state=absent) to delete by name (supports true idempotency).
       - Cannot be used to rename existing groups (use I(host_group) to identify the group).
+      - The name match is not case-sensitive, because the API does not allow two groups
+        whose names differ only in case. If the case of an existing group name is
+        different, I(state=present) changes the name to the case given here.
     type: str
     required: false
   host_group:
@@ -360,6 +363,10 @@ HOST_GROUP_ARGS = {
     "host_action": {"type": "str", "choices": ["add", "remove"], "required": False},
 }
 
+# The name filter can match more than one group, so the search asks for
+# several and keeps the one with the requested name.
+NAME_SEARCH_LIMIT = 100
+
 
 def argspec():
     """Define the module's argument spec."""
@@ -418,10 +425,20 @@ def get_existing_group(falcon, host_group_id):
 
 
 def find_group_by_name(falcon, name):
-    """Find a host group by name using search."""
-    result = falcon.query_combined_host_groups(filter=f"name:'{name}'", limit=1)
-    if result["status_code"] == 200 and result["body"]["resources"]:
-        return result["body"]["resources"][0]
+    """Find a host group by name.
+
+    The API name filter only matches the lowercase form of a name, so the
+    search uses the lowercase name. The API does not allow two groups whose
+    names differ only in case, so the match is not case-sensitive.
+    """
+    value = name.lower().replace("\\", "\\\\").replace("'", "\\'")
+    result = falcon.query_combined_host_groups(
+        filter=f"name:'{value}'", limit=NAME_SEARCH_LIMIT
+    )
+    if result["status_code"] == 200:
+        for group in result["body"]["resources"] or []:
+            if (group.get("name") or "").lower() == name.lower():
+                return group
     return None
 
 
