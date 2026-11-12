@@ -7,11 +7,14 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import copy
+
 import pytest
 
 from ansible_collections.crowdstrike.falcon.plugins.modules import host_group
 
 NAME = "ansible-unit-fixture-a"
+MIXED_NAME = "Ansible-Unit-Fixture-A"
 GROUP_ID = "00000000000000000000000000000001"
 
 
@@ -38,10 +41,91 @@ def test_present_creates_missing_group(api, run_module):
 
     assert result["changed"] is True
     assert result["host_group"]["id"] == GROUP_ID
-    assert service.called("query_combined_host_groups") == [{"filter": "name:'%s'" % NAME, "limit": 1}]
+    assert service.called("query_combined_host_groups") == [
+        {"filter": "name:'%s'" % NAME, "limit": host_group.NAME_SEARCH_LIMIT}
+    ]
     assert service.called("create_host_groups") == [
         {"name": NAME, "group_type": "static", "description": "Fixture group"}
     ]
+
+
+def mixed_case_query(fixture):
+    """Return query_by_name with the group name in mixed case.
+
+    The API name filter only matches the lowercase form of a name, and the
+    response has the name as it was created.
+    """
+    response = copy.deepcopy(fixture("host_group/query_by_name"))
+    response["body"]["resources"][0]["name"] = MIXED_NAME
+    return response
+
+
+@pytest.mark.parametrize("state", ["present", "absent"])
+def test_mixed_case_name_is_searched_in_lowercase(falcon_api, fixture, run_module, state):
+    service = falcon_api(
+        host_group,
+        {
+            "query_combined_host_groups": [mixed_case_query(fixture)],
+            "delete_host_groups": [fixture("host_group/delete")],
+        },
+    )
+
+    result = run_module(host_group, {"name": MIXED_NAME, "description": "Fixture group", "state": state})
+
+    assert service.called("query_combined_host_groups") == [
+        {"filter": "name:'%s'" % NAME, "limit": host_group.NAME_SEARCH_LIMIT}
+    ]
+    if state == "present":
+        # No create response is given, so a second create fails the test.
+        assert result["changed"] is False
+        assert result["host_group"]["id"] == GROUP_ID
+    else:
+        assert result["changed"] is True
+        assert service.called("delete_host_groups") == [{"ids": [GROUP_ID]}]
+
+
+def test_name_with_other_case_updates_the_name(falcon_api, fixture, run_module):
+    service = falcon_api(
+        host_group,
+        {
+            "query_combined_host_groups": [mixed_case_query(fixture)],
+            "update_host_groups": [fixture("host_group/update_description")],
+            "get_host_groups": [fixture("host_group/get_after_update")],
+        },
+    )
+
+    result = run_module(host_group, {"name": NAME})
+
+    assert result["changed"] is True
+    assert service.called("update_host_groups") == [{"id": GROUP_ID, "name": NAME}]
+
+
+def test_name_search_picks_the_group_with_that_name(api, run_module):
+    # query_page1 has the groups '...-a' and '...-b'.
+    service = api(query_combined_host_groups=["query_page1"], delete_host_groups=["delete"])
+
+    result = run_module(host_group, {"name": "ansible-unit-fixture-b", "state": "absent"})
+
+    assert result["changed"] is True
+    assert service.called("delete_host_groups") == [{"ids": ["00000000000000000000000000000004"]}]
+
+
+def test_name_search_ignores_groups_with_other_names(api, run_module):
+    service = api(query_combined_host_groups=["query_page1"])
+
+    result = run_module(host_group, {"name": "ansible-unit-fixture", "state": "absent"})
+
+    assert result["changed"] is False
+    assert "failed" not in result
+    assert [method for method, _kwargs in service.calls] == ["query_combined_host_groups"]
+
+
+def test_name_search_escapes_quotes(api, run_module):
+    service = api(query_combined_host_groups=["query_by_name_missing"])
+
+    run_module(host_group, {"name": "O'Brien \\ Hosts", "state": "absent"})
+
+    assert service.called("query_combined_host_groups")[0]["filter"] == "name:'o\\'brien \\\\ hosts'"
 
 
 def test_present_creates_dynamic_group_with_rule(api, run_module):
