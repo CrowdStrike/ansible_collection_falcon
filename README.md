@@ -273,12 +273,15 @@ uv run --with ansible-core ansible-galaxy collection install -r tests/requiremen
 FALCON_TEST_DISTRO=rocky9 uv run --with ansible-core --with molecule --with docker molecule test -s configure
 ```
 
-Tests that need a Falcon tenant run locally with your own API credentials. The live API module tests are in `tests/integration/targets`. Run them with `tests/integration/run.py`:
+Tests that need a Falcon tenant run locally with your own API credentials. The live tests for the API modules, lookups and inventory plugins are in `tests/integration/targets`. They make throwaway `ansible-int-*` objects and delete them at the end, and they never act on a real host. Run them with `tests/integration/run.py`, which runs each target on its own and prints a summary. It reads the credentials from `.env`, or from another file with `--env-file`:
 
 ```shell
 uv run tests/integration/run.py --list
-uv run tests/integration/run.py ngsiem_parser
+uv run tests/integration/run.py host_group sensor_update_policy
+uv run tests/integration/run.py --env-file .env.flight-control flight_control
 ```
+
+The hunting rule tests need the Falcon Adversary Intelligence Premium subscription, and the `flight_control` target needs the credentials of a Flight Control parent CID. They run only when `FALCON_TEST_HUNTING=1` or `FALCON_TEST_FLIGHT_CONTROL=1` is set.
 
 ## Contributing
 
