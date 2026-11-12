@@ -1,0 +1,9 @@
+[Unit]
+Description=Dummy CrowdStrike Falcon Sensor (molecule tests)
+
+[Service]
+ExecStart=/opt/CrowdStrike/falconctl daemon
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

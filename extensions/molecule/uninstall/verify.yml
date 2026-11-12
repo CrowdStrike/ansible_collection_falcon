@@ -1,0 +1,21 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Read the installed packages
+      ansible.builtin.package_facts:
+
+    - name: Read the falconctl calls
+      ansible.builtin.slurp:
+        src: /var/log/falconctl-stub.log
+      register: falcon_test_calls
+
+    - name: Check that the sensor is removed
+      ansible.builtin.assert:
+        that:
+          - "'falcon-sensor' not in ansible_facts.packages"
+
+    - name: Check that the maintenance token was applied before the removal
+      ansible.builtin.assert:
+        that:
+          - "'-s -f --maintenance-token=<hidden>' in falcon_test_calls.content | b64decode"

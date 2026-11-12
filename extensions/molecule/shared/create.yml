@@ -1,0 +1,49 @@
+---
+- name: Create
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Build the test images
+      community.docker.docker_image:
+        name: "crowdstrike-falcon-molecule/{{ item.distro }}"
+        tag: latest
+        source: build
+        build:
+          path: "{{ playbook_dir }}/images/{{ item.distro }}"
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.distro }}"
+
+    - name: Start the systemd containers
+      community.docker.docker_container:
+        name: "{{ item.name }}"
+        image: "crowdstrike-falcon-molecule/{{ item.distro }}:latest"
+        state: started
+        privileged: true
+        cgroupns_mode: host
+        volumes:
+          - /sys/fs/cgroup:/sys/fs/cgroup:rw
+        tmpfs:
+          - /run
+          - /run/lock
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Collect the molecule instance config
+      ansible.builtin.set_fact:
+        # molecule turns 'address' into ansible_host, which the docker
+        # connection plugin uses as the container name
+        falcon_test_instances: >-
+          {{ falcon_test_instances | default([]) + [{
+               'instance': item.name, 'address': item.name,
+               'user': 'root', 'connection': 'community.docker.docker'}] }}
+      loop: "{{ molecule_yml.platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Write the molecule instance config
+      ansible.builtin.copy:
+        content: "{{ falcon_test_instances | to_nice_yaml }}"
+        dest: "{{ molecule_instance_config }}"
+        mode: "0600"

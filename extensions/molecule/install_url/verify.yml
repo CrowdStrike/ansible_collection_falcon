@@ -1,0 +1,23 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Read the installed packages
+      ansible.builtin.package_facts:
+
+    - name: Read the sensor version from falconctl
+      crowdstrike.falcon.falconctl_info:
+        name: version
+      register: falcon_test_info
+
+    - name: Check that the downloaded sensor is installed
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.packages['falcon-sensor'][0].version == '7.0.0'
+          - falcon_test_info.falconctl_info.version == '7.0.0'
+
+    - name: Check that the role removed the downloaded package
+      ansible.builtin.stat:
+        path: /tmp/falcon-sensor
+      register: falcon_test_tmp
+      failed_when: falcon_test_tmp.stat.exists

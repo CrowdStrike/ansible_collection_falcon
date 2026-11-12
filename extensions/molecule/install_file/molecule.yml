@@ -1,0 +1,4 @@
+---
+provisioner:
+  playbooks:
+    side_effect: side_effect.yml

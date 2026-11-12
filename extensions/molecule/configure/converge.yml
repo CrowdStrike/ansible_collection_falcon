@@ -1,0 +1,15 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Configure the sensor
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_configure
+      vars:
+        falcon_cid: "{{ falcon_test_cid }}"
+        falcon_provisioning_token: "12345678"
+        falcon_tags: molecule,testing
+        falcon_billing: metered
+        falcon_backend: bpf
+        falcon_feature:
+          - enableLog

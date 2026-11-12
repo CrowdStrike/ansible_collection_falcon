@@ -250,11 +250,13 @@ ansible-rulebook -i inventory -r crowdstrike.falcon.event_stream_example -E FALC
 [![Ansible Test](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/ansible-test.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/ansible-test.yml)
 [![YAML Lint](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/yamllint.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/yamllint.yml)
 [![Python Lint](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/linting.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/linting.yml)
+[![Molecule](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/molecule.yml/badge.svg)](https://github.com/CrowdStrike/ansible_collection_falcon/actions/workflows/molecule.yml)
 
 CI runs on every pull request and does not use Falcon API credentials:
 
 - `ansible-test sanity` and `ansible-test units` on several ansible-core versions, from the oldest supported (2.16) to `devel`
 - A Python 2.7 compile check for the modules that run on managed nodes (`falconctl`, `falconctl_info`)
+- Molecule scenarios for the Linux side of the `falcon_install`, `falcon_configure` and `falcon_uninstall` roles, on Ubuntu 24.04 and Rocky Linux 9
 - `ansible-lint`, `yamllint`, and Python linting
 
 The unit tests for the API plugins do not call the API. They replay responses that were recorded from a real tenant and sanitized, which are in `tests/unit/plugins/fixtures`. When a plugin starts to use a new API call, record the responses again with `tests/unit/record_fixtures.py`. It uses your own API credentials, and it makes and deletes throwaway `ansible-unit-fixture-*` objects in your tenant:
@@ -262,6 +264,13 @@ The unit tests for the API plugins do not call the API. They replay responses th
 ```shell
 uv run tests/unit/record_fixtures.py --list
 uv run --with crowdstrike-falconpy --with python-dotenv tests/unit/record_fixtures.py --dry-run host_group
+```
+
+The molecule scenarios are in `extensions/molecule`. Each one starts a systemd container, builds a dummy `falcon-sensor` package that holds a stub `falconctl`, and runs a role against it, so no sensor or credentials are needed. To run a scenario locally you need Docker, and the checkout must be in an `ansible_collections/crowdstrike/falcon` directory. Set `ANSIBLE_COLLECTIONS_PATH` to the directory that holds `ansible_collections`:
+
+```shell
+uv run --with ansible-core ansible-galaxy collection install -r tests/requirements.yml -p "$ANSIBLE_COLLECTIONS_PATH"
+FALCON_TEST_DISTRO=rocky9 uv run --with ansible-core --with molecule --with docker molecule test -s configure
 ```
 
 Tests that need a Falcon tenant run locally with your own API credentials. The live API module tests are in `tests/integration/targets`. Run them with `tests/integration/run.py`:

@@ -1,0 +1,130 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Read the sensor options
+      crowdstrike.falcon.falconctl_info:
+      register: falcon_test_info
+
+    - name: Read the falcon-sensor service state
+      ansible.builtin.systemd_service:
+        name: falcon-sensor
+      register: falcon_test_service
+
+    - name: Check the options that converge set
+      ansible.builtin.assert:
+        that:
+          - falcon_test_info.falconctl_info.cid == falcon_test_cid[:32] | lower
+          - falcon_test_info.falconctl_info.tags == 'molecule,testing'
+          - falcon_test_info.falconctl_info.billing == 'metered'
+          - falcon_test_info.falconctl_info.backend == 'bpf'
+          - falcon_test_info.falconctl_info.feature == 'enableLog'
+          - falcon_test_info.falconctl_info.apd is none
+          - falcon_test_info.falconctl_info.aph is none
+          - falcon_test_info.falconctl_info.app is none
+          # the role restarts the sensor after a change, which creates the AID
+          - falcon_test_info.falconctl_info.aid | length == 32
+          - falcon_test_service.status.ActiveState == 'active'
+
+    - name: Add a tag with tags_list
+      crowdstrike.falcon.falconctl:
+        state: present
+        tags_list:
+          - tag3
+      register: falcon_test_tags_add
+
+    - name: Add the same tag again
+      crowdstrike.falcon.falconctl:
+        state: present
+        tags_list:
+          - tag3
+      register: falcon_test_tags_again
+
+    - name: Remove the tag with tags_list
+      crowdstrike.falcon.falconctl:
+        state: absent
+        tags_list:
+          - tag3
+      register: falcon_test_tags_remove
+
+    - name: Read the tags
+      crowdstrike.falcon.falconctl_info:
+        name: tags
+      register: falcon_test_tags
+
+    - name: Check the tags_list changes
+      ansible.builtin.assert:
+        that:
+          - falcon_test_tags_add is changed
+          - falcon_test_tags_again is not changed
+          - falcon_test_tags_remove is changed
+          - falcon_test_tags.falconctl_info.tags == 'molecule,testing'
+
+    - name: Set the proxy options with the role
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_configure
+      vars:
+        falcon_apd: "false"
+        falcon_aph: proxy.example.com
+        falcon_app: "8080"
+
+    - name: Read the proxy options
+      crowdstrike.falcon.falconctl_info:
+        name: [apd, aph, app]
+      register: falcon_test_proxy
+
+    - name: Check the proxy options
+      ansible.builtin.assert:
+        that:
+          - falcon_test_proxy.falconctl_info.apd == 'FALSE'
+          - falcon_test_proxy.falconctl_info.aph == 'proxy.example.com'
+          - falcon_test_proxy.falconctl_info.app == '8080'
+
+    - name: Delete options with the role
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_configure
+      vars:
+        falcon_option_set: false
+        falcon_apd: ""
+        falcon_aph: ""
+        falcon_app: ""
+        falcon_billing: ""
+
+    - name: Read the options after the delete
+      crowdstrike.falcon.falconctl_info:
+        name: [apd, aph, app, billing, cid]
+      register: falcon_test_deleted
+
+    - name: Check that only the listed options were deleted
+      ansible.builtin.assert:
+        that:
+          - falcon_test_deleted.falconctl_info.apd is none
+          - falcon_test_deleted.falconctl_info.aph is none
+          - falcon_test_deleted.falconctl_info.app is none
+          - falcon_test_deleted.falconctl_info.billing is none
+          - falcon_test_deleted.falconctl_info.cid == falcon_test_cid[:32] | lower
+
+    - name: Prepare a master image with the role
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_configure
+      vars:
+        falcon_remove_aid: true
+        falcon_cid: "{{ falcon_test_cid }}"
+        falcon_provisioning_token: "12345678"
+
+    - name: Read the AID after the master image prep
+      crowdstrike.falcon.falconctl_info:
+        name: [aid, cid]
+      register: falcon_test_image
+
+    - name: Read the falcon-sensor service state after the master image prep
+      ansible.builtin.systemd_service:
+        name: falcon-sensor
+      register: falcon_test_image_service
+
+    - name: Check that the AID is gone and the sensor is stopped
+      ansible.builtin.assert:
+        that:
+          - falcon_test_image.falconctl_info.aid is none
+          - falcon_test_image.falconctl_info.cid == falcon_test_cid[:32] | lower
+          - falcon_test_image_service.status.ActiveState == 'inactive'

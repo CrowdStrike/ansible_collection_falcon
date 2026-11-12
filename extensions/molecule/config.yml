@@ -1,0 +1,38 @@
+---
+# Shared settings for every scenario. Each scenario runs in its own
+# systemd container, built from shared/images/<distro>. Set
+# FALCON_TEST_DISTRO to ubuntu2404 (default) or rocky9.
+# Install the collections in tests/requirements.yml first.
+shared_state: false
+prerun: false
+
+dependency:
+  name: galaxy
+  enabled: false
+
+driver:
+  name: default
+  options:
+    managed: true
+
+platforms:
+  - name: falcon-${MOLECULE_SCENARIO_NAME}-${FALCON_TEST_DISTRO:-ubuntu2404}
+    distro: ${FALCON_TEST_DISTRO:-ubuntu2404}
+
+provisioner:
+  name: ansible
+  playbooks:
+    create: ../shared/create.yml
+    destroy: ../shared/destroy.yml
+    prepare: ../shared/prepare.yml
+  inventory:
+    group_vars:
+      all:
+        falcon_test_pkg_dir: /srv/falcon-packages
+        falcon_test_pkg_ext: "{{ 'deb' if ansible_facts['pkg_mgr'] == 'apt' else 'rpm' }}"
+        falcon_test_http_port: 8080
+        # A fake CID in the format falconctl checks: 32 hex and a checksum
+        falcon_test_cid: 0123456789ABCDEF0123456789ABCDEF-A1
+
+verifier:
+  name: ansible

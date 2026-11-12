@@ -1,0 +1,13 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Install the dummy sensor from a local file
+      ansible.builtin.include_role:
+        name: crowdstrike.falcon.falcon_install
+      vars:
+        falcon_install_method: file
+        falcon_localfile_path: "{{ falcon_test_pkg_dir }}/falcon-sensor-7.0.0.{{ falcon_test_pkg_ext }}"
+        # current behavior: the role asks for a CID with the file method,
+        # also on Linux where the install does not use it
+        falcon_cid: "{{ falcon_test_cid }}"

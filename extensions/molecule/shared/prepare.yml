@@ -1,0 +1,53 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    # The systemd module cannot wait for the boot to finish
+    - name: Wait until systemd finishes booting  # noqa: command-instead-of-module
+      ansible.builtin.command: systemctl is-system-running --wait
+      register: falcon_test_boot
+      changed_when: false
+      # 'degraded' only means that a unit for real hardware failed
+      failed_when: falcon_test_boot.stdout not in ['running', 'degraded']
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Copy the dummy sensor sources
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /root/dummy-sensor/
+        mode: preserve
+      loop:
+        - files/falconctl.py
+        - files/falcon-sensor.service
+        - files/build-dummy-sensor.sh
+
+    - name: Build the dummy falcon-sensor packages
+      ansible.builtin.command:
+        cmd: >-
+          sh /root/dummy-sensor/build-dummy-sensor.sh {{ item }}
+          /root/dummy-sensor {{ falcon_test_pkg_dir }}
+        creates: "{{ falcon_test_pkg_dir }}/falcon-sensor-{{ item }}.{{ falcon_test_pkg_ext }}"
+      loop:
+        - 7.0.0
+        - 7.1.0
+
+    - name: Install the dummy sensor before the scenario
+      ansible.builtin.package:
+        deb: "{{ falcon_test_pkg if falcon_test_pkg_ext == 'deb' else omit }}"
+        name: "{{ falcon_test_pkg if falcon_test_pkg_ext == 'rpm' else omit }}"
+        state: present
+      vars:
+        falcon_test_pkg: "{{ falcon_test_pkg_dir }}/falcon-sensor-7.0.0.{{ falcon_test_pkg_ext }}"
+      when: falcon_test_preinstall | default(false)
+
+    - name: Serve the packages over HTTP
+      ansible.builtin.command:
+        cmd: >-
+          systemd-run --unit=falcon-test-http
+          python3 -m http.server {{ falcon_test_http_port }}
+          --bind 127.0.0.1 --directory {{ falcon_test_pkg_dir }}
+        creates: /run/systemd/transient/falcon-test-http.service
+      when: falcon_test_http | default(false)

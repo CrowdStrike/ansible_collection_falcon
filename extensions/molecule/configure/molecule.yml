@@ -1,0 +1,9 @@
+---
+provisioner:
+  inventory:
+    group_vars:
+      all:
+        falcon_test_preinstall: true
+        # The dummy sensor creates the AID when its service starts
+        falcon_aid_retries: 5
+        falcon_aid_delay: 2
