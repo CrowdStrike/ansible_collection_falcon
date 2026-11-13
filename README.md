@@ -66,6 +66,7 @@ Name | Description
 [crowdstrike.falcon.ngsiem_parser](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_parser_module.html)|Manage NG-SIEM parsers
 [crowdstrike.falcon.ngsiem_parser_info](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_parser_info_module.html)|Get information about NG-SIEM parsers
 [crowdstrike.falcon.ngsiem_search](https://crowdstrike.github.io/ansible_collection_falcon/ngsiem_search_module.html)|Execute CQL searches against Next-Gen SIEM repositories for incident response and threat hunting
+[crowdstrike.falcon.prevention_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/prevention_policy_info_module.html)|Get information about Falcon prevention policies
 [crowdstrike.falcon.sensor_download](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_module.html)|Download Falcon Sensor Installer
 [crowdstrike.falcon.sensor_download_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_download_info_module.html)|Get information about Falcon Sensor Installers
 [crowdstrike.falcon.sensor_update_builds_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_builds_info_module.html)|Get a list of available sensor build versions

@@ -1,0 +1,1162 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.010579272
+    },
+    "resources": [
+      {
+        "cid": "00000000000000000000000000000002",
+        "created_by": "api-client-id:fixture-client-3",
+        "created_timestamp": "2026-11-13T15:49:22.800861302Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000001",
+        "ioa_rule_groups": [],
+        "modified_by": "api-client-id:fixture-client-3",
+        "modified_timestamp": "2026-11-13T15:49:22.800861302Z",
+        "name": "ansible-unit-fixture-shared",
+        "platform_name": "Linux",
+        "prevention_settings": [
+          {
+            "name": "User-Mode Capabilities",
+            "settings": [
+              {
+                "description": "Upload suspicious files for advanced threat analysis with QuickScan Pro.",
+                "id": "SuspiciousFileAnalysis",
+                "name": "Suspicious File QuickScan Pro Analysis",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Upload all unknown detection-related executables for advanced analysis in the cloud.",
+                "id": "UnknownDetectionRelatedExecutables",
+                "name": "Unknown Detection-Related Executables",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Upload all unknown executables for advanced analysis in the cloud.",
+                "id": "UnknownExecutables",
+                "name": "Unknown Executables",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Blocks attempts to tamper with the sensor. If disabled, the sensor still creates detections for tampering attempts but doesn't block them. Disabling not recommended.",
+                "id": "SensorTamperingProtection",
+                "name": "Sensor Tampering Protection",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Enhanced Visibility",
+            "settings": [
+              {
+                "description": "Allows the sensor to monitor an extended set of changes to environment variables in order to enhance visibility.",
+                "id": "EnhanceEnvironmentVariableVisibility",
+                "name": "Enhance Environment Variable Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Provides visibility into suspicious scripts, including shell and other scripting languages.",
+                "id": "ScriptBasedExecutionMonitoring",
+                "name": "Script-Based Execution Monitoring",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor filesystem activity for additional telemetry and improved detections.",
+                "id": "FilesystemVisibility",
+                "name": "Filesystem Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor network activity for additional telemetry and improved detections.",
+                "id": "NetworkVisibility",
+                "name": "Network Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor and analyze data flows for protection against data breaches and leaks, and to improve data-related detections.",
+                "id": "CloudDataProtectionVisibility",
+                "name": "Cloud Data Protection Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor unencrypted HTTP traffic for malicious patterns and improved detections.",
+                "id": "HTTPVisibility",
+                "name": "Http Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor unencrypted FTP traffic for malicious patterns and improved detections.",
+                "id": "FTPVisibility",
+                "name": "FTP Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor TLS traffic for malicious patterns and improved detections.",
+                "id": "TLSVisibility",
+                "name": "TLS Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor full CLI commands that include pipes and redirects. This is applicable only for User mode.",
+                "id": "ExtendedCommandLineVisibility",
+                "name": "Extended Command Line Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor SMTP, IMAP, and POP3 traffic for malicious patterns and improved detections.",
+                "id": "EmailProtocolVisibility",
+                "name": "Email Protocol Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "When enabled, the sensor will inspect memory-related operations: mmap, mprotect, ptrace and reading/writing remote process memory and produce events.",
+                "id": "MemoryVisibility",
+                "name": "Memory Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor local D-Bus traffic for malicious patterns and improved detections.",
+                "id": "DBusVisibility",
+                "name": "D-Bus Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor activities performed by PHP scripts to provide additional telemetry and improved detections.",
+                "id": "EnhancePHPVisibility",
+                "name": "Enhance PHP Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Mitigates high volume PHP script execution to only the first time it's seen by the server.",
+                "id": "PHPScriptOptimization",
+                "name": "PHP Script Optimization",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor SSH traffic for malicious patterns and improved detections.",
+                "id": "SSHVisibility",
+                "name": "SSH Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor systemd operations for enhanced visibility and improved detections.",
+                "id": "EnhanceSystemdVisibility",
+                "name": "Enhance Systemd Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Cloud Machine Learning",
+            "settings": [
+              {
+                "description": "Use cloud-based machine learning informed by global analysis of executables to detect and kill known malware for your online hosts.",
+                "id": "CloudAntiMalware",
+                "name": "Cloud Anti-malware",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Sensor Machine Learning",
+            "settings": [
+              {
+                "description": "For offline and online hosts, use sensor-based machine learning to identify and analyze unknown executables as they run to detect and prevent malware.",
+                "id": "OnSensorMLSlider",
+                "name": "Sensor Anti-malware",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Quarantine",
+            "settings": [
+              {
+                "description": "Quarantine executable files after they're prevented by NGAV. When this is enabled, we recommend setting anti-malware prevention levels to Moderate or higher and not using other antivirus solutions.",
+                "id": "NextGenAV",
+                "name": "Quarantine",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "On Write",
+            "settings": [
+              {
+                "description": "Use Crowdstrike Intelligence to detect suspicious package files when they're written to disk",
+                "id": "DetectPackageOnWrite",
+                "name": "Detect Package on Write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Use Crowdstrike Intelligence to quarantine suspicious package files when they're written to disk",
+                "id": "QuarantinePackageOnWrite",
+                "name": "Quarantine Package on Write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Provides improved visibility into various script files being written to disk in addition to clouding a portion of their content.",
+                "id": "OnWriteScriptFileVisibility",
+                "name": "On Write Script File Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Terminate the process writing a non-executable file, and associated process activity, when the file is classified as malicious by CrowdStrike's Intelligence analysts.",
+                "id": "TerminateNonExecutablesOnWrite",
+                "name": "Terminate non-executables on write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Execution Blocking",
+            "settings": [
+              {
+                "description": "Block processes matching hashes that you add to IOC Management with the action set to \"Block\" or \"Block, hide detection\".",
+                "id": "CustomBlacklisting",
+                "name": "Custom Blocking",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Block processes that CrowdStrike analysts classify as suspicious. These are focused on dynamic IOAs, such as malware, exploits and other threats.",
+                "id": "PreventSuspiciousProcesses",
+                "name": "Suspicious Processes",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Execution Blocking",
+            "settings": [
+              {
+                "description": "Block new processes originating from files written in a container. This prevents a container from drifting from its immutable runtime state.",
+                "id": "DriftPrevention",
+                "name": "Drift Prevention",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Behavioral Detections",
+            "settings": [
+              {
+                "description": "Use of tagged binaries to automatically create detections for behaviors which occurred within a lookback period.",
+                "id": "RetrospectiveDetections",
+                "name": "Retrospective Detections",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cid": "00000000000000000000000000000002",
+        "created_by": "api-client-id:fixture-client-3",
+        "created_timestamp": "2026-11-13T15:49:23.556999571Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000004",
+        "ioa_rule_groups": [],
+        "modified_by": "api-client-id:fixture-client-3",
+        "modified_timestamp": "2026-11-13T15:49:23.556999571Z",
+        "name": "ansible-unit-fixture-shared",
+        "platform_name": "Windows",
+        "prevention_settings": [
+          {
+            "name": "User-Mode Capabilities",
+            "settings": [
+              {
+                "description": "Upload suspicious files for advanced threat analysis with QuickScan Pro.",
+                "id": "SuspiciousFileAnalysis",
+                "name": "Suspicious File QuickScan Pro Analysis",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Show a pop-up notification to the end user when the Falcon sensor blocks, kills, or quarantines. These messages also show up in the Windows Event Viewer under Applications and Service Logs.",
+                "id": "EndUserNotifications",
+                "name": "Notify End Users",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Upload all unknown detection-related executables for advanced analysis in the cloud.",
+                "id": "UnknownDetectionRelatedExecutables",
+                "name": "Unknown Detection-Related Executables",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Upload all unknown executables for advanced analysis in the cloud.",
+                "id": "UnknownExecutables",
+                "name": "Unknown Executables",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Blocks attempts to tamper with the sensor. If disabled, the sensor still creates detections for tampering attempts but doesn\u2019t block them. Disabling not recommended.",
+                "id": "SensorTamperingProtection",
+                "name": "Sensor Tampering Protection",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Enhanced Visibility",
+            "settings": [
+              {
+                "description": "Allows the sensor to get more data from a user-mode component it loads into all eligible processes, which augments online machine learning and turns on additional detections. Recommend testing with critical applications before full deployment.",
+                "id": "AdditionalUserModeData",
+                "name": "Additional User Mode Data",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Provides visibility into malicious PowerShell interpreter usage. For hosts running Windows 10, Script-Based Execution Monitoring may be used instead.",
+                "id": "InterpreterProtection",
+                "name": "Interpreter-Only",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Provides visibility into malicious System Management Automation engine usage by any application. Requires Interpreter-Only.",
+                "id": "EngineProtectionV2",
+                "name": "Engine (Full Visibility)",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "For hosts running Windows 10 and Servers 2016 and later, provides visibility into suspicious scripts and VBA macros in Office documents. Requires Quarantine & Security Center Registration toggle to be enabled.",
+                "id": "ScriptBasedExecutionMonitoring",
+                "name": "Script-Based Execution Monitoring",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor unencrypted HTTP traffic and certain encrypted HTTPS traffic on the sensor for malicious patterns and generate detection events on non-Server systems.",
+                "id": "HTTPDetections",
+                "name": "HTTP Detections",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Remove certain information from HTTP Detection events, including URL, raw HTTP header and POST bodies if they were present. This does not affect the generation of HTTP Detections, only additional details that would be included and may include personal information (depending on the malware in question). When disabled, the information is used to improve the response to detection events. Has no effect unless HTTP Detections is also enabled.",
+                "id": "RedactHTTPDetectionDetails",
+                "name": "Redact HTTP Detection Details",
+                "type": "toggle",
+                "value": {
+                  "configured": true,
+                  "enabled": true
+                }
+              },
+              {
+                "description": "Provides additional visibility into application exploits by using CPU hardware features that detect suspicious control flows. Available only for hosts running Windows 10 (RS4) or Windows Server 2016 Version 1803 or later and Skylake or later CPU.",
+                "id": "HardwareEnhancedExploitDetection",
+                "name": "Hardware-Enhanced Exploit Detection",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "For hosts running Windows 10 1809 and Server 2019 and later, provides additional visibility into common exploitation techniques used to weaken or circumvent application security.",
+                "id": "EnhancedExploitationVisibility",
+                "name": "Enhanced Exploitation Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to generate additional data from a user-mode component loaded into eligible processes. Higher settings can incur greater performance penalties in exchange for increased visibility. Recommend testing with critical applications before full deployment at a new level.",
+                "id": "ExtendedUserModeDataSlider",
+                "name": "Extended User Mode Data",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              },
+              {
+                "description": "For hosts running Windows Server, increases sensor visibility of loaded DLLs. Improves detection coverage and telemetry, but may cause a small performance impact. Recommend testing with critical applications before full deployment.",
+                "id": "DLLLoadVisibility",
+                "name": "Enhanced DLL Load Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Provides visibility into WSL2 distributions by enabling a Falcon sensor plugin.",
+                "id": "WSL2Visibility",
+                "name": "WSL2 Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Hardware-Enhanced Visibility",
+            "settings": [
+              {
+                "description": "Provides visibility into in-memory attacks by scanning for suspicious artifacts on hosts with the following: an integrated GPU and supporting OS libraries, Windows 10 v1607 (RS1) or later, and a Skylake or newer Intel CPU.",
+                "id": "MemoryScan",
+                "name": "Memory Scanning",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows memory scanning to use the CPU or virtual CPU when an integrated GPU is not available. All Intel processors supported, requires Windows 8.1/2012 R2 or later.",
+                "id": "CPUMemoryScan",
+                "name": "Scan with CPU",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Firmware",
+            "settings": [
+              {
+                "description": "Provides visibility into BIOS. Detects suspicious and unexpected images. Recommend testing to monitor system startup performance before full deployment.",
+                "id": "FirmwareAnalysisExtraction",
+                "name": "BIOS Deep Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Cloud Machine Learning",
+            "settings": [
+              {
+                "description": "Use cloud-based machine learning informed by global analysis of executables to detect and prevent known malware for your online hosts.",
+                "id": "CloudAntiMalware",
+                "name": "Cloud Anti-malware",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              },
+              {
+                "description": "Use cloud-based machine learning informed by global analysis of executables to detect and prevent adware and potentially unwanted programs (PUP) for your online hosts.",
+                "id": "AdwarePUP",
+                "name": "Adware & PUP",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Sensor Machine Learning",
+            "settings": [
+              {
+                "description": "For offline and online hosts, use sensor-based machine learning to identify and analyze unknown executables as they run to detect and prevent malware.",
+                "id": "OnSensorMLSlider",
+                "name": "Sensor Anti-malware",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              },
+              {
+                "description": "Expand ML file size coverage. Existing ML level settings apply.",
+                "id": "ML Large File Handling",
+                "name": "Enhanced ML for larger files",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "On-Demand Scans Machine Learning",
+            "settings": [
+              {
+                "description": "For offline and online hosts running on-demand scans initiated by end users, use sensor-based machine learning to identify and analyze unknown executables to detect and prevent malware.",
+                "id": "OnSensorMLSliderForSensorEndUserScans",
+                "name": "Sensor Anti-malware for End-User Initiated Scans",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              },
+              {
+                "description": "For online hosts running on-demand scans initiated by end users, use cloud-based machine learning informed by global analysis of executables to detect and prevent known malware.",
+                "id": "OnSensorMLSliderForCloudEndUserScans",
+                "name": "Cloud Anti-malware for End-User Initiated Scans",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              }
+            ]
+          },
+          {
+            "name": "On-Demand Scans",
+            "settings": [
+              {
+                "description": "Start an on-demand scan when an end user inserts a USB device. To adjust detection sensitivity, change Anti-malware Detection levels in On-Demand Scans Machine Learning.",
+                "id": "USBInsertionTriggeredScan",
+                "name": "USB Insertion Triggered Scan",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "On Write",
+            "settings": [
+              {
+                "description": "Use machine learning to analyze suspicious files when they're written to disk. To adjust detection sensitivity, change Anti-malware Detection levels in Sensor Machine Learning and Cloud Machine Learning.",
+                "id": "DetectOnWrite",
+                "name": "Detect on Write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Use machine learning to quarantine suspicious files when they're written to disk. To adjust quarantine sensitivity, change Anti-malware Prevention levels in Sensor Machine Learning and Cloud Machine Learning.",
+                "id": "QuarantineOnWrite",
+                "name": "Quarantine on Write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Use Crowdstrike Intelligence to detect suspicious package files when they're written to disk",
+                "id": "DetectPackageOnWrite",
+                "name": "Detect Package on Write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Use Crowdstrike Intelligence to quarantine suspicious package files when they're written to disk",
+                "id": "QuarantinePackageOnWrite",
+                "name": "Quarantine Package on Write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Provides improved visibility into various script files being written to disk in addition to clouding a portion of their content.",
+                "id": "OnWriteScriptFileVisibility",
+                "name": "On Write Script File Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Provides improved visibility of content within known suspicious files of interest in addition to clouding a portion of their content.",
+                "id": "OnWriteSuspiciousFileContentVisibility",
+                "name": "On write suspicious file content visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Terminate the process writing a non-executable file, and associated process activity, when the file is classified as malicious by CrowdStrike's Intelligence analysts.",
+                "id": "TerminateNonExecutablesOnWrite",
+                "name": "Terminate non-executables on write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Quarantine",
+            "settings": [
+              {
+                "description": "Quarantine executable files after they\u2019re prevented by NGAV. When this is enabled, we recommend setting anti-malware prevention levels to Moderate or higher and not using other antivirus solutions. CrowdStrike Falcon registers with Windows Security Center, disabling Windows Defender.",
+                "id": "NextGenAV",
+                "name": "Quarantine & Security Center Registration",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Quarantine executable files after they\u2019re prevented by NGAV.",
+                "id": "NextGenAVQuarantineOnRemovableMedia",
+                "name": "Quarantine on Removable Media",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Microsoft Office File Macro Machine Learning",
+            "settings": [
+              {
+                "description": "Identifies potentially malicious macros in Microsoft Office files and, if prevention is enabled, either quarantines the file or removes the malicious macros before releasing the file back to the host",
+                "id": "CloudAntiMalwareForMicrosoftOfficeFiles",
+                "name": "Cloud Anti-malware For Microsoft Office Files",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Clean Infected Microsoft Office Files",
+            "settings": []
+          },
+          {
+            "name": "Execution Blocking",
+            "settings": [
+              {
+                "description": "Block processes matching hashes that you add to IOC Management with the action set to \"Block\" or \"Block, hide detection\".",
+                "id": "CustomBlacklisting",
+                "name": "Custom Blocking",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Block processes that CrowdStrike analysts classify as suspicious. These are focused on dynamic IOAs, such as malware, exploits and other threats.",
+                "id": "PreventSuspiciousProcesses",
+                "name": "Suspicious Processes",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Block registry operations that CrowdStrike analysts classify as suspicious. Focuses on dynamic IOAs, such as ASEPs and security config changes. The associated process may be killed.",
+                "id": "SuspiciousRegistryOperations",
+                "name": "Suspicious Registry Operations",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Block BCD registry operations that CrowdStrike analysts classify as suspicious. Focuses on dynamic IOAs, such as security config changes. The associated process may be killed. Requires Suspicious Registry operations.",
+                "id": "BootConfigurationDatabaseProtection",
+                "name": "Boot Configuration Database Protection",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "File System Containment will be enabled, this will allow prevention capabilities to automatically contain file system activity.  When disabled each user under active containment will be released and the File System Containment will enter a disabled mode.",
+                "id": "FileSystemContainmentEnabled",
+                "name": "File System Containment",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Block execution of scripts and commands that CrowdStrike analysts classify as suspicious. Requires Interpreter-Only and/or Script-Based Execution Monitoring.",
+                "id": "MaliciousPowershell",
+                "name": "Suspicious Scripts and Commands",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Block processes that CrowdStrike Intelligence analysts classify as malicious. These are focused on static hash-based IOCs.",
+                "id": "IntelPrevention",
+                "name": "Intelligence-Sourced Threats",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Block the loading of kernel drivers that CrowdStrike analysts have identified as malicious. Available on Windows 10 and Windows Server 2016 and later.",
+                "id": "SuspiciousKernelDrivers",
+                "name": "Driver Load Prevention",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Quarantine and block the loading of newly written kernel drivers that CrowdStrike analysts have identified as vulnerable. Available on Windows 10 and Windows 2016 and later.",
+                "id": "VulnerableDriverProtection",
+                "name": "Vulnerable Driver Protection",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Exploit Mitigation",
+            "settings": [
+              {
+                "description": "An Address Space Layout Randomization (ASLR) bypass attempt was detected and blocked. This may have been part of an attempted exploit.",
+                "id": "ForceASLR",
+                "name": "Force ASLR",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "A process that had Force Data Execution Prevention (Force DEP) applied tried to execute non-executable memory and was blocked.",
+                "id": "ForceDEP",
+                "name": "Force DEP",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "A heap spray attempt was detected and blocked. This may have been part of an attempted exploit.",
+                "id": "HeapSprayPreallocation",
+                "name": "Heap Spray Preallocation",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": " Allocating memory to the NULL (0) memory page was detected and blocked. This may have been part of an attempted exploit.",
+                "id": "NullPageAllocation",
+                "name": "NULL Page Allocation",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Overwriting a Structured Exception Handler (SEH) was detected and may have been blocked. This may have been part of an attempted exploit.",
+                "id": "SEHOverwriteProtection",
+                "name": "SEH Overwrite Protection",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ransomware",
+            "settings": [
+              {
+                "description": "Deletion of backups often indicative of ransomware activity.",
+                "id": "BackupDeletion",
+                "name": "Backup Deletion",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "A process associated with Cryptowall was blocked.",
+                "id": "Cryptowall",
+                "name": "Cryptowall",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "A process that created a file with a known ransomware extension was terminated.",
+                "id": "FileEncryption",
+                "name": "File Encryption",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "A process determined to be associated with Locky was blocked.",
+                "id": "Locky",
+                "name": "Locky",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "A process associated with a high volume of file system operations typical of ransomware behavior was terminated.",
+                "id": "FileSystemAccess",
+                "name": "File System Access",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Create an alert when a suspicious process deletes volume shadow copies. Recommended: Use audit mode with a test group to try allowlisting trusted software before turning on Protect.",
+                "id": "VolumeShadowCopyAudit",
+                "name": "Volume Shadow Copy - Audit",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Prevent suspicious processes from deleting volume shadow copies.",
+                "id": "VolumeShadowCopyProtect",
+                "name": "Volume Shadow Copy - Protect",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Exploitation Behavior",
+            "settings": [
+              {
+                "description": "Creation of a process, such as a command prompt, from an exploited browser or browser flash plugin was blocked.",
+                "id": "ApplicationExploitationActivity",
+                "name": "Application Exploitation Activity",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Execution of a command shell was blocked and is indicative of the system hosting a Chopper web page.",
+                "id": "ChopperWebshell",
+                "name": "Chopper Webshell",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "A suspicious file written by a browser attempted to execute and was blocked.",
+                "id": "DriveByDownload",
+                "name": "Drive-by Download",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Kill processes that unexpectedly injected code into another process.",
+                "id": "ProcessHollowing",
+                "name": "Code Injection",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "JavaScript executing from a command line via rundll32.exe was prevented.",
+                "id": "JavaScriptViaRundll32",
+                "name": "JavaScript Execution Via Rundll32",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Lateral Movement and Credential Access",
+            "settings": [
+              {
+                "description": "A command line process associated with Windows logon bypass was prevented from executing.",
+                "id": "WindowsLogonBypassStickyKeys",
+                "name": "Windows Logon Bypass (\"Sticky Keys\")",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Kill suspicious processes determined to be stealing logins and passwords.",
+                "id": "CredentialDumping",
+                "name": "Credential Dumping",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Remediation",
+            "settings": [
+              {
+                "description": "Perform advanced remediation for IOA detections to kill processes, quarantine files, remove scheduled tasks, and clear and delete ASEP registry values.",
+                "id": "AutomatedRemediation",
+                "name": "Advanced Remediation",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Behavioral Detections",
+            "settings": [
+              {
+                "description": "Use AI-powered IOAs to identify and detect potentially malicious behaviors from Living Off the Land binaries (LOLbins) on your online hosts.",
+                "id": "CloudBasedAnomalousProcessExecution",
+                "name": "Cloud-based Anomalous Process Execution",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED"
+                }
+              },
+              {
+                "description": "Use of tagged binaries to automatically create detections for behaviors which occurred within a lookback period.",
+                "id": "RetrospectiveDetections",
+                "name": "Retrospective Detections",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "method": "get_policies",
+  "status_code": 200
+}
