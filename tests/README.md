@@ -337,11 +337,14 @@ def _no_env_credentials(monkeypatch):
 - Fixtures are recorded from a real tenant with `tests/unit/record_fixtures.py`.
   Do not write a fixture file by hand, and do not edit one.
 - Sometimes the tenant cannot give the response that a test needs, for
-  example a success for an action on a real host, or a Flight Control parent
-  response. Then copy a recorded response in the test with `copy.deepcopy`,
-  change only what you need, and say in a docstring why the recorder cannot
-  record it. See `action_response()` in `test_host_hide.py` and `page()` in
-  `test_fctl_child_cids.py`. Do not save the changed copy as a fixture file.
+  example a success for an action on a real host, a Flight Control parent
+  response, or a search that is still running or was stopped (the API deletes
+  a stopped search job, so its status call returns 400). Then copy a recorded
+  response in the test with `copy.deepcopy`, change only what you need, and
+  say in a docstring why the recorder cannot record it. See
+  `action_response()` in `test_host_hide.py`, `page()` in
+  `test_fctl_child_cids.py` and `running()` in `test_ngsiem_search.py`. Do
+  not save the changed copy as a fixture file.
 - Fake values in tests must look like the Sanitizer's values (see below), or
   `test_fixtures_clean.py` and secret scanners can report them.
 
@@ -479,15 +482,27 @@ reads the credentials from another file. `--wait SECONDS` sets how long the
 status (default 2700).
 
 Each service has its own Sanitizer. A fake ID is the order in which that
-service saw the real ID: `...0001` is the first ID that the service saw. If
-you add, remove or move a call in a recorder, the fake IDs after it can
-change. After you record:
+service saw the real ID: `...0001` is the first ID that the service saw.
+Some values are not faked. For example, the version in an NG-SIEM parser ID
+(`...0001:1.3.0`) is the real version, and the API makes a new version each
+time that you record.
+
+A run records every case of the services that you name, and it writes every
+file again. So when you record one service to add one case, the fake IDs and
+other values in the other files of that service can change too. After you
+record:
 
 1. Read `git diff tests/unit/plugins/fixtures` and check that no tenant data
    is in it.
 2. Run the unit tests.
-3. Fix the ID constants in the tests of that service (`GROUP_ID` and so on) if
-   they changed.
+3. If tests fail because values moved, choose one of these:
+   - Keep all the new files, and fix the constants in the tests of that
+     service (`GROUP_ID`, `PARSER_ID` and so on).
+   - If the new case has no fake IDs that link it to the other files, keep
+     only the new file and restore the others with
+     `git checkout -- <files>`. Do not do this when the new case shares an
+     ID with another file (for example the ID of an object that the recorder
+     made and then reads), because the IDs would then not match.
 
 The script writes files but does not delete them. If you remove a case from a
 recorder, delete its fixture file.
@@ -633,6 +648,11 @@ remove it in `always`.
 
 - Use the FQCN for every module and lookup: `crowdstrike.falcon.host_group`,
   `ansible.builtin.assert`, `query('crowdstrike.falcon.fctl_child_cids')`.
+- Read the ansible-lint warnings for a target. Its `args` rule reports an
+  option that a module does not have, but in this repo that rule only warns
+  (`.ansible-lint` puts `experimental` rules in `warn_list`), so the lint run
+  still passes. A value that the API refuses is found only when the target
+  runs against a tenant.
 - Never change or delete an object that the target did not make. Cleanup
   searches only for the prefix of this run.
 - Never act on a real host. Use a device ID that does not exist
@@ -708,6 +728,26 @@ cd ~/src/ansible_collections/crowdstrike/falcon
 Run the `ansible-test` commands from that directory. `run.py` and
 `record_fixtures.py` make their own layout, so they work from any checkout.
 
+### Python and ansible-core versions
+
+Each ansible-core version runs only on some Python versions. For example,
+ansible-core 2.16 needs Python 3.12 or older, and 2.22 needs 3.13 or later.
+If you do not give `--python`, uv uses a Python that it finds, which can be
+3.14. Then `ansible-test` stops with "cannot be executed with Python version
+3.14", or `run.py` runs an ansible-core that does not support that Python.
+
+So when you pin ansible-core with `--with 'ansible-core~=X.Y.0'`, always give
+`--python` to uv. When you also give `--python` to `ansible-test`, use the
+same version:
+
+| ansible-core | Python |
+| --- | --- |
+| 2.16 | 3.12 |
+| 2.18 | 3.12 |
+| 2.20 and later | 3.13 |
+
+These are the versions that CI uses.
+
 ### Sanity tests
 
 Sanity tests need Docker or Podman:
@@ -720,7 +760,8 @@ ansible-test sanity --docker --test validate-modules
 To use a given ansible-core version with `uv`:
 
 ```shell
-uv run --with 'ansible-core~=2.16.0' ansible-test sanity --docker
+uv run --python 3.12 --with 'ansible-core~=2.16.0' ansible-test sanity --docker
+uv run --python 3.13 --with 'ansible-core~=2.22.0' ansible-test sanity --docker
 ```
 
 CI deletes `.devcontainer/`, `.git*` and `.pre-commit-config.yaml` before it
@@ -732,12 +773,12 @@ In a container, as CI does. The container installs
 `tests/unit/requirements.txt` from PyPI:
 
 ```shell
-ansible-test units --docker
-ansible-test units --docker tests/unit/plugins/modules/test_host_group.py
+uv run --python 3.12 --with 'ansible-core~=2.16.0' ansible-test units --docker
+uv run --python 3.12 --with 'ansible-core~=2.16.0' \
+    ansible-test units --docker tests/unit/plugins/modules/test_host_group.py
 ```
 
-Without a container, with `uv`. Give the same Python version to `uv` and to
-`ansible-test`:
+Without a container, with `uv`:
 
 ```shell
 uv run --python 3.13 --with 'ansible-core~=2.20.0' \
@@ -752,11 +793,32 @@ uv run --python 3.13 --with 'ansible-core~=2.20.0' \
     ansible-test units --local --python 3.13 tests/unit/plugins/modules/test_host_group.py
 ```
 
-ansible-core 2.16 needs Python 3.12 or older (`--python 3.12` and
-`'ansible-core~=2.16.0'`). `ansible-test` runs the tests in three groups:
+For ansible-core 2.16, use `--python 3.12` in both places and
+`'ansible-core~=2.16.0'`. `ansible-test` runs the tests in three groups:
 `modules`, `module_utils` and `controller` (lookups, inventory plugins and
 `test_fixtures_clean.py`). Plain `pytest` does not set up the collection
 loader, so the lookup and inventory tests fail with it. Use `ansible-test`.
+
+### Coverage
+
+To find the branches that no test runs, add `--coverage` and then make a
+report. `ansible-test` needs the exact `coverage` version that it pins, so add
+it with `--with`: 7.3.2 for ansible-core 2.16, 7.10.7 for 2.20, 7.15.4 for
+2.22. The pins for each version are in
+`ansible_test/_data/requirements/ansible-test.txt` in ansible-core.
+
+```shell
+uv run --python 3.12 --with 'ansible-core~=2.16.0' \
+    --with pytest --with pytest-xdist --with pytest-mock --with pytest-forked \
+    --with crowdstrike-falconpy --with pyyaml --with coverage==7.3.2 \
+    ansible-test units --local --python 3.12 --coverage
+
+uv run --python 3.12 --with 'ansible-core~=2.16.0' --with coverage==7.3.2 \
+    ansible-test coverage report --python 3.12 --include 'plugins/modules/host_group.py' --show-missing
+```
+
+`--show-missing` lists the lines and branches that did not run. Without
+`--include`, the report also lists the test files.
 
 ### Integration tests
 
@@ -766,13 +828,12 @@ metadata (PEP 723), so `uv run` installs them in a temporary environment. For
 installed next to `ansible-playbook`, because the lookups and inventory
 plugins run in the controller's Python.
 
-The scripts need Python 3.12 or later. With no `--python`, uv uses the first
-such Python that it finds (often 3.12) and installs the newest ansible-core
-that supports it. To test with another version, add `--with`. ansible-core
-2.22 and later need Python 3.13, so for them also add `--python 3.13`:
+With no `--with`, `run.py` gets the newest ansible-core that supports the
+Python that uv uses. To test with another version, pin it with `--with` and
+give `--python` (see the table above):
 
 ```shell
-uv run --with 'ansible-core~=2.16.0' tests/integration/run.py host_group
+uv run --python 3.12 --with 'ansible-core~=2.16.0' tests/integration/run.py host_group
 uv run --python 3.13 --with 'ansible-core~=2.22.0' tests/integration/run.py host_group
 ```
 
@@ -811,6 +872,7 @@ to run them.
 - [ ] The fixtures that the tests use are recorded with a `record_<service>()`
       function in `tests/unit/record_fixtures.py`, registered in `SCENARIOS`.
       No fixture file is written or edited by hand.
+- [ ] Every case that the recorder saves is used by a test.
 - [ ] `test_fixtures_clean.py` passes, and `git diff` of the fixtures has no
       tenant data.
 - [ ] `tests/integration/targets/<target>/` with `aliases` (`unsupported`) and
