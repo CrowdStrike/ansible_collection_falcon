@@ -11,5 +11,6 @@ skip_list:
   - "var-naming[no-role-prefix]"
   - "run-once[task]"
 
-warn_list:
-  - experimental
+# Keep this key: without it ansible-lint falls back to its default warn_list,
+# which downgrades experimental rules such as args[module] to warnings.
+warn_list: []
