@@ -171,7 +171,9 @@ notes:
     I(description), I(config), or the enrichment flags cannot be detected either
     (the API never returns them); they are only applied on create.
   - B(Connection Lookup:) When I(connection_id) is not provided, the module searches
-    by I(name). Prefer I(connection_id) for precise targeting.
+    by I(name). Only a connection whose name is equal to I(name) is used. The
+    comparison ignores case, because the API does not accept two connections whose
+    names differ only in case. Prefer I(connection_id) for precise targeting.
   - B(Ingest token:) For PUSH connections, an ingest token is minted and returned
     once on create as the C(ingest_token) value alongside C(ingest_url). The token
     cannot be retrieved again, so it is a sensitive value - handle and store it
@@ -180,6 +182,9 @@ notes:
     I(wait_timeout)). Token rotation is not supported in this module.
   - B(State Management:) For I(state=absent), if the connection is not found, the
     module exits successfully without making any changes (idempotent).
+  - B(Check mode:) In check mode the module reads the connection and its status,
+    and reports the change that it would make. It does not create, update, delete,
+    pause or resume a connection.
 
 requirements:
   - NGSIEM Data Connections [B(READ), B(WRITE)] API scope
@@ -348,6 +353,9 @@ READABLE_FIELDS = (
 # Provisioning states from which a Pause is accepted by the API.
 PAUSABLE_STATUSES = ("Active", "Error", "Idle")
 
+# Page size for the name lookup. The API accepts a limit of 500 or less.
+LIST_LIMIT = 500
+
 NGSIEM_DATA_CONNECTION_ARGS = {
     "state": {"type": "str", "choices": ["present", "absent"], "default": "present"},
     "connection_id": {"type": "str", "required": False},
@@ -424,11 +432,30 @@ def get_existing(falcon, connection_id):
 
 
 def find_connection_by_name(falcon, name):
-    """Find a data connection by name."""
-    result = falcon.list_data_connections(filter=f"name:'{name}'", limit=1)
-    if result["status_code"] == 200 and result["body"].get("resources"):
-        return result["body"]["resources"][0]
-    return None
+    """Find a data connection by name, with an exact match on the client side.
+
+    The API filter ``name:'x'`` is a substring match that ignores case, so the
+    results can include other connections ('x-renamed', 'my-x'). The module reads
+    all the pages and keeps only the connection whose name is equal to ``name``.
+    The comparison ignores case because the API does not let two connections
+    have names that differ only in case.
+    """
+    wanted = name.casefold()
+    offset = 0
+    while True:
+        result = falcon.list_data_connections(
+            filter=f"name:'{name}'", limit=LIST_LIMIT, offset=offset
+        )
+        if result["status_code"] != 200:
+            return None
+        resources = result["body"].get("resources") or []
+        for connection in resources:
+            if (connection.get("name") or "").casefold() == wanted:
+                return connection
+        offset += len(resources)
+        total = (result["body"].get("meta") or {}).get("pagination", {}).get("total") or 0
+        if not resources or offset >= total:
+            return None
 
 
 def connection_needs_update(current, module):
@@ -471,6 +498,9 @@ def apply_enabled(falcon, module, result, connection_id):
     if enabled is False:
         # Only pause from a pausable state, and only if not already paused.
         if current_status in PAUSABLE_STATUSES:
+            if module.check_mode:
+                result["changed"] = True
+                return
             status_result = falcon.update_connection_status(
                 ids=connection_id, status="Pause"
             )
@@ -480,6 +510,9 @@ def apply_enabled(falcon, module, result, connection_id):
     else:
         # Resume only if currently paused.
         if current_status == "Paused":
+            if module.check_mode:
+                result["changed"] = True
+                return
             status_result = falcon.update_connection_status(
                 ids=connection_id, status="Resume"
             )
@@ -608,18 +641,22 @@ def handle_present(falcon, module, result):
     if current:
         cid = current["id"]
         if connection_needs_update(current, module):
-            body = build_body(module)
-            # NOTE: the API reads the connection ID from the 'parameters' dict.
-            # Passing ids= is silently ignored and returns a 400. See the
-            # feasibility investigation for details.
-            update_result = falcon.update_data_connection(
-                parameters={"ids": cid}, body=body
-            )
-            if update_result["status_code"] not in (200, 201):
-                handle_return_errors(module, result, update_result)
-            result["changed"] = True
-            updated = get_existing(falcon, cid)
-            result["data_connection"] = filter_readable(updated or current)
+            if module.check_mode:
+                result["changed"] = True
+                result["data_connection"] = filter_readable(current)
+            else:
+                body = build_body(module)
+                # NOTE: the API reads the connection ID from the 'parameters' dict.
+                # Passing ids= is silently ignored and returns a 400. See the
+                # feasibility investigation for details.
+                update_result = falcon.update_data_connection(
+                    parameters={"ids": cid}, body=body
+                )
+                if update_result["status_code"] not in (200, 201):
+                    handle_return_errors(module, result, update_result)
+                result["changed"] = True
+                updated = get_existing(falcon, cid)
+                result["data_connection"] = filter_readable(updated or current)
         else:
             result["data_connection"] = filter_readable(current)
 
@@ -631,6 +668,10 @@ def handle_present(falcon, module, result):
                 module.fail_json(
                     msg=f"Parameter '{required}' is required when creating a data connection"
                 )
+
+        if module.check_mode:
+            result["changed"] = True
+            return
 
         body = build_body(module)
         create_result = falcon.create_data_connection(body=body)
@@ -662,6 +703,9 @@ def handle_absent(falcon, module, result):
         current = find_connection_by_name(falcon, name)
 
     if current:
+        if module.check_mode:
+            result["changed"] = True
+            return
         delete_result = falcon.delete_data_connection(ids=current["id"])
         if delete_result["status_code"] not in (200, 201):
             handle_return_errors(module, result, delete_result)
@@ -686,9 +730,6 @@ def main():
     result = dict(
         changed=False,
     )
-
-    if module.check_mode:
-        module.exit_json(**result)
 
     falcon = authenticate(module, NGSIEM)
 

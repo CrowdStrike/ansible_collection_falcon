@@ -98,14 +98,12 @@
         filter: "name:'{{ dc_prefix }}-check'"
       register: check_create_info
 
-    # current behavior: check mode exits before any API call and does not
-    # predict a change
-    - name: "CHECK | Verify check mode made no connection"
+    - name: "CHECK | Verify check mode predicted a create and made no connection"
       ansible.builtin.assert:
         that:
-          - check_create is not changed
+          - check_create is changed
           - check_create_info.data_connections | length == 0
-        fail_msg: "Check mode must not create a connection"
+        fail_msg: "Check mode must predict the create and must not create a connection"
 
     # =====================================================================
     # Phase 1: CREATE
@@ -171,6 +169,70 @@
         fail_msg: >-
           Re-declaring an identical connection should be a no-op. A change here
           usually means drift detection is comparing a connector-overridden field.
+
+    - name: "CHECK | Re-declare the same connection in check mode"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ test_connection_name }}"
+        connector_id: "{{ test_connector_id }}"
+        parser: "{{ test_parser }}"
+      check_mode: true
+      register: check_idempotent
+
+    - name: "CHECK | Delete the connection in check mode"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ test_connection_name }}"
+        state: absent
+      check_mode: true
+      register: check_delete
+
+    - name: "CHECK | Verify check mode predictions"
+      ansible.builtin.assert:
+        that:
+          - check_idempotent is not changed
+          - check_idempotent.data_connection.id == connection_id
+          - check_delete is changed
+        fail_msg: "Check mode did not predict the correct change"
+
+    # =====================================================================
+    # Phase 1c: NAME LOOKUP - the API name filter is a substring match that
+    # ignores case. Only the connection with the same name must be used.
+    # =====================================================================
+
+    - name: "NAME | Delete connections whose names only contain part of the name"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ test_connection_name[:-1] }}"
+        - "{{ test_connection_name[1:] }}"
+      register: near_match_delete
+
+    - name: "NAME | Get the connection by ID after the near-match deletes"
+      crowdstrike.falcon.ngsiem_data_connection_info:
+        connection_ids:
+          - "{{ connection_id }}"
+      register: near_match_info
+
+    - name: "NAME | Verify the connection was not deleted"
+      ansible.builtin.assert:
+        that:
+          - near_match_delete.results | selectattr('changed') | list | length == 0
+          - near_match_info.data_connections | length == 1
+        fail_msg: "A name that only contains part of the connection name must not delete it"
+
+    - name: "NAME | Re-declare the connection with the name in upper case"
+      crowdstrike.falcon.ngsiem_data_connection:
+        name: "{{ test_connection_name | upper }}"
+        connector_id: "{{ test_connector_id }}"
+        parser: "{{ test_parser }}"
+      check_mode: true
+      register: upper_case_check
+
+    - name: "NAME | Verify the upper case name found the connection"
+      ansible.builtin.assert:
+        that:
+          - upper_case_check.data_connection.id == connection_id
+        fail_msg: "The name lookup must ignore case, as the API does"
 
     # =====================================================================
     # Phase 2: READ - Verify via info module

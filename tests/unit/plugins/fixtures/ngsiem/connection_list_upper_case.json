@@ -1,0 +1,37 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 500,
+        "offset": 0,
+        "total": 2
+      },
+      "query_time": 0.17557538
+    },
+    "resources": [
+      {
+        "id": "00000000000000000000000000000007",
+        "last_ingested_volume_one_day": "0 B",
+        "name": "ansible-unit-fixture-connection",
+        "parser_name": "microsoft-edge",
+        "source_type": "Push",
+        "status": "Pending",
+        "vendor_name": "Ansible",
+        "vendor_product_name": "HEC"
+      },
+      {
+        "id": "00000000000000000000000000000008",
+        "last_ingested_volume_one_day": "0 B",
+        "name": "ansible-unit-fixture-connection-renamed",
+        "parser_name": "microsoft-edge",
+        "source_type": "Push",
+        "status": "Pending",
+        "vendor_name": "Ansible",
+        "vendor_product_name": "HEC"
+      }
+    ]
+  },
+  "method": "list_data_connections",
+  "status_code": 200
+}
