@@ -501,11 +501,25 @@ def search(falcon, module):
     if module.params["sort"]:
         args["sort"] = module.params["sort"]
 
+    def query(**kwargs):
+        query_result = falcon.query_combined_policies(**kwargs)
+        status_code = query_result["status_code"]
+        if status_code != 200:
+            # The helper fails only when errors is not empty, so fail here
+            # for a status with no errors, as get_by_ids does.
+            failed = dict(changed=False, prevention_policies=[])
+            handle_return_errors(module, failed, query_result)
+            module.fail_json(
+                msg=f"Unexpected status {status_code} while getting prevention policies",
+                **failed,
+            )
+        return query_result
+
     result = get_paginated_results_info(
         module,
         args,
         MAX_LIMIT,
-        falcon.query_combined_policies,
+        query,
         "prevention_policies",
     )
 

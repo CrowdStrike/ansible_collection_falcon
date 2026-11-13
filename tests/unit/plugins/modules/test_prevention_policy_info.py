@@ -394,6 +394,26 @@ def test_search_bad_filter_fails_with_api_message(api, run_module):
     assert service.calls == [("query_combined_policies", search_kwargs(filter="name:'"))]
 
 
+def test_search_error_status_with_no_errors_fails(api, fixture, run_module):
+    """Fail on a search status that is not 200 when the API sends no errors.
+
+    The tenant cannot give a 500 with errors: [] on demand, so this copies
+    the recorded query_by_name response and changes only the status and the errors.
+    """
+    response = copy.deepcopy(fixture("prevention_policy/query_by_name"))
+    response["status_code"] = 500
+    response["body"]["errors"] = []
+    service = api(query_combined_policies=[response])
+
+    result = run_module(prevention_policy_info, {"name": SHARED})
+
+    assert result["failed"] is True
+    assert result["msg"] == "Unexpected status 500 while getting prevention policies"
+    assert result["errors"] == []
+    assert result["prevention_policies"] == []
+    assert service.calls == [("query_combined_policies", search_kwargs(filter="name:~'%s'" % SHARED))]
+
+
 # Check mode and repeated runs
 
 
