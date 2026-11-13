@@ -1,0 +1,15 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "An item in query string parameter 'ids' has length 7, at least 32 expected"
+      }
+    ],
+    "meta": {
+      "query_time": 0.000191417
+    }
+  },
+  "method": "get_policies",
+  "status_code": 400
+}

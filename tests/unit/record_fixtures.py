@@ -451,6 +451,104 @@ def record_sensor_update_policy(rec, creds):
         cleanup()
 
 
+def drop_long_setting_ids(func):
+    """Wrap a PreventionPolicy call so that settings with a long ID are left out.
+
+    Some public setting IDs have 40 or more characters, and
+    test_fixtures_clean.py treats such a string as an opaque token.
+    """
+
+    @functools.wraps(func)
+    def call(**kwargs):
+        response = func(**kwargs)
+        for policy in resources(response):
+            for category in policy.get("prevention_settings") or []:
+                category["settings"] = [
+                    s for s in category.get("settings") or [] if len(s.get("id") or "") < 40
+                ]
+        return response
+
+    return call
+
+
+def record_prevention_policy(rec, creds):
+    """Record the PreventionPolicy calls used by prevention_policy_info.
+
+    The searches use the kwargs of the module: filter and sort only when set,
+    offset=None and limit=5000. Each filter matches only the fixture policies.
+    """
+    from falconpy import PreventionPolicy
+
+    falcon = PreventionPolicy(**creds)
+    shared = "%s-shared" % PREFIX
+    mixed = "%s-Mixed-Case" % PREFIX
+    created_names = [(shared, "Linux"), (shared, "Windows"), (mixed, "Linux")]
+    missing_id = "f" * 32
+    get_policies = drop_long_setting_ids(falcon.get_policies)
+
+    def fixture_policies():
+        found = resources(falcon.query_combined_policies(filter="name:~'%s'" % PREFIX, offset=None, limit=5000))
+        return [p for p in found if p.get("name", "").casefold().startswith(PREFIX)]
+
+    def cleanup():
+        if rec.dry_run:
+            return
+        # The recorder never enables its policies, and the API creates them
+        # disabled, so they can be deleted at once.
+        ids = [p["id"] for p in fixture_policies()]
+        if ids:
+            falcon.delete_policies(ids=ids)
+        left = fixture_policies()
+        if left:
+            sys.stderr.write("warning: %d prevention policy fixture(s) were not deleted\n" % len(left))
+
+    def search(case, **kwargs):
+        return rec.call(
+            case, "query_combined_policies", drop_long_setting_ids(falcon.query_combined_policies),
+            offset=None, limit=5000, **kwargs,
+        )
+
+    if rec.cleanup_only:
+        cleanup()
+        return
+
+    cleanup()
+    try:
+        ids = []
+        for name, platform in created_names:
+            if rec.dry_run:
+                ids.append("0" * 32)
+                continue
+            response = falcon.create_policies(
+                body={"resources": [{"name": name, "platform_name": platform, "description": "Fixture policy"}]}
+            )
+            ids.append(resources(response)[0]["id"])
+
+        rec.call("get_one", "get_policies", get_policies, ids=[ids[0]])
+        rec.call("get_several", "get_policies", get_policies, ids=[ids[0], ids[1]])
+        rec.call("get_missing", "get_policies", get_policies, ids=[missing_id])
+        rec.call("get_one_missing", "get_policies", get_policies, ids=[ids[0], missing_id])
+        rec.call("get_short_id", "get_policies", get_policies, ids=["abcdefg"])
+
+        # name: shared, on Linux and Windows.
+        search("query_by_name", filter="name:~'%s'" % shared)
+        # name: shared, filter: platform_name:'Windows'.
+        search("query_by_name_platform", filter="name:~'%s'+(platform_name:'Windows')" % shared)
+        # name: the mixed-case name in another case.
+        search("query_by_name_mixed_case", filter="name:~'%s'" % mixed.upper())
+        # name: the prefix, which is only a part of each fixture name.
+        search("query_by_name_partial", filter="name:~'%s'" % PREFIX)
+        # name: a value with a quote and a backslash, escaped as the module does.
+        search("query_by_name_quote", filter="name:~'%s-it\\'s\\\\x'" % PREFIX)
+        # name: shared, filter: a platform with no fixture policy.
+        search("query_by_name_missing", filter="name:~'%s'+(platform_name:'Mac')" % shared)
+        # filter and sort.
+        search("query_sorted", filter="name:~'%s'" % PREFIX, sort="name.asc")
+        search("query_bad_filter", filter="name:'")
+    finally:
+        cleanup()
+
+
 def record_correlation_rule(rec, creds):
     """Record the CorrelationRules calls used by correlation_rule and correlation_rule_info.
 
@@ -1110,6 +1208,7 @@ SCENARIOS = {
     "hunting": record_hunting,
     "intel": record_intel,
     "ngsiem": record_ngsiem,
+    "prevention_policy": record_prevention_policy,
     "sensor_download": record_sensor_download,
     "sensor_update_policy": record_sensor_update_policy,
 }

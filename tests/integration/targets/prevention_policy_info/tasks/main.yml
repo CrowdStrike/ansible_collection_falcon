@@ -1,0 +1,594 @@
+---
+# Integration tests for the prevention_policy_info module
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Prevention policies [READ]
+#
+# The test only reads. It changes nothing in the tenant and makes no objects,
+# so it has no cleanup. It does not assume which policies a tenant has: it
+# reads all policies first and builds every later filter and check from that
+# result. A check that needs data that the tenant does not have (for example
+# two policies with the same name) prints a SKIP message. Policy data is
+# tenant data, so the tasks that return it use no_log and the asserts use
+# quiet. The prefix is only used for names that must not exist.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    pp_prefix: "ansible-int-pp-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+    pp_missing_id: "ffffffffffffffffffffffffffffffff"
+    pp_keys:
+      - id
+      - cid
+      - name
+      - description
+      - platform_name
+      - enabled
+      - groups
+      - created_by
+      - created_timestamp
+      - modified_by
+      - modified_timestamp
+      - prevention_settings
+      - ioa_rule_groups
+    pp_sorts:
+      - name.asc
+      - name.desc
+      - created_timestamp.asc
+      - created_timestamp.desc
+      - modified_timestamp.asc
+      - modified_timestamp.desc
+      - enabled.asc
+      - enabled.desc
+      - created_by.asc
+      - created_by.desc
+      - modified_by.asc
+      - modified_by.desc
+
+- name: Run read-only prevention policy tests
+  block:
+    # =====================================================================
+    # Phase 1: all policies, and the values that the later checks use
+    # =====================================================================
+
+    - name: "EXAMPLE | Get all prevention policies"
+      crowdstrike.falcon.prevention_policy_info:
+      register: pp_all_info
+      no_log: true
+
+    - name: "READ | Verify that the tenant has prevention policies"
+      ansible.builtin.assert:
+        that:
+          - pp_all_info is not changed
+          - pp_all_info.prevention_policies | length > 0
+        fail_msg: "The test needs at least one prevention policy in the tenant"
+        quiet: true
+
+    - name: "READ | Keep the policies of the tenant"
+      ansible.builtin.set_fact:
+        pp_all: "{{ pp_all_info.prevention_policies }}"
+        pp_first: "{{ pp_all_info.prevention_policies[0] }}"
+        pp_all_ids: "{{ pp_all_info.prevention_policies | map(attribute='id') | sort }}"
+        pp_names_lower: "{{ pp_all_info.prevention_policies | map(attribute='name') | map('lower') | list }}"
+        pp_platforms: "{{ pp_all_info.prevention_policies | map(attribute='platform_name') | unique | list }}"
+      no_log: true
+
+    - name: "READ | Choose the values for the later checks from the tenant"
+      ansible.builtin.set_fact:
+        # The docs use platform_default and Windows. Use them when the tenant has them.
+        pp_example_name: >-
+          {{ (pp_all | selectattr('name', 'equalto', 'platform_default') | list | first | default(pp_first)).name }}
+        pp_example_platform: "{{ 'Windows' if 'Windows' in pp_platforms else pp_first.platform_name }}"
+        pp_second: "{{ pp_all[1] if pp_all | length > 1 else {} }}"
+        pp_dup_name: >-
+          {%- set ns = namespace(v='') -%}
+          {%- for n in pp_names_lower -%}
+          {%- if ns.v == '' and (pp_names_lower | select('equalto', n) | list | length) > 1 -%}
+          {%- set ns.v = n -%}
+          {%- endif -%}
+          {%- endfor -%}
+          {{ ns.v }}
+        # A word of a name, split on a hyphen or a space as the API does.
+        pp_name_word: >-
+          {{ pp_all | map(attribute='name')
+             | map('regex_findall', '(?:^|(?<=[-\s]))([A-Za-z0-9_]+)(?=$|[-\s])')
+             | flatten | first | default('') }}
+        # A whole word of a real description. Long words avoid common words.
+        pp_desc_word: >-
+          {{ pp_all | map(attribute='description') | select
+             | map('regex_findall', '\b[A-Za-z]{5,}\b')
+             | flatten | first | default('') }}
+      no_log: true
+
+    - name: "READ | Choose the platform of the example name"
+      ansible.builtin.set_fact:
+        pp_example_name_platform: >-
+          {{ pp_example_platform
+             if (pp_all | selectattr('name', 'equalto', pp_example_name)
+                 | selectattr('platform_name', 'equalto', pp_example_platform) | list | length) > 0
+             else (pp_all | selectattr('name', 'equalto', pp_example_name) | first).platform_name }}
+      no_log: true
+
+    - name: "READ | Verify that each policy has every documented key"
+      ansible.builtin.assert:
+        that:
+          - pp_all | selectattr(item, 'defined') | list | length == pp_all | length
+        fail_msg: "A policy has no '{{ item }}' key"
+        quiet: true
+      loop: "{{ pp_keys }}"
+
+    - name: "READ | Verify the types of the main keys"
+      ansible.builtin.assert:
+        that:
+          - pp_all | map(attribute='enabled') | map('type_debug') | unique == ['bool']
+          - pp_all | map(attribute='groups') | map('type_debug') | unique == ['list']
+          - pp_all | map(attribute='prevention_settings') | map('type_debug') | unique == ['list']
+          - pp_all | map(attribute='ioa_rule_groups') | map('type_debug') | unique == ['list']
+          - pp_all_ids | unique | length == pp_all | length
+        fail_msg: "The policies have a key of an unexpected type, or a repeated ID"
+        quiet: true
+
+    - name: "CHECK | Get all prevention policies in check mode"
+      crowdstrike.falcon.prevention_policy_info:
+      check_mode: true
+      register: pp_check
+      no_log: true
+
+    - name: "CHECK | Verify that check mode gives the same result"
+      ansible.builtin.assert:
+        that:
+          - pp_check is not changed
+          - pp_check.prevention_policies == pp_all
+        fail_msg: "Check mode returned other policies than a normal run"
+        quiet: true
+
+    # =====================================================================
+    # Phase 2: by ID
+    # =====================================================================
+
+    - name: "EXAMPLE | Get prevention policies by ID"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_first.id }}"
+      register: pp_by_id
+      no_log: true
+
+    - name: "BY ID | Verify that one ID gives the policy of the search"
+      ansible.builtin.assert:
+        that:
+          - pp_by_id is not changed
+          - pp_by_id.prevention_policies == [pp_first]
+        fail_msg: "The policy by ID is not the same as the policy of the search"
+        quiet: true
+
+    - name: "SKIP | Skip the two ID check"
+      ansible.builtin.debug:
+        msg: "The tenant has only one prevention policy, so the two ID check is skipped"
+      when: pp_all | length < 2
+
+    - name: "BY ID | Get two policies by ID, the second one first"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_second.id }}"
+          - "{{ pp_first.id }}"
+      register: pp_by_two_ids
+      no_log: true
+      when: pp_all | length > 1
+
+    - name: "BY ID | Verify that two IDs come back in the request order"
+      ansible.builtin.assert:
+        that:
+          - pp_by_two_ids.prevention_policies == [pp_second, pp_first]
+        fail_msg: "Two IDs did not return the two policies in the request order"
+        quiet: true
+      when: pp_all | length > 1
+
+    - name: "BY ID | Get policies with an empty ID list"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids: []
+      register: pp_by_no_ids
+
+    - name: "BY ID | Verify that an empty ID list gives no policies"
+      ansible.builtin.assert:
+        that:
+          - pp_by_no_ids is not changed
+          - pp_by_no_ids.prevention_policies == []
+        fail_msg: "An empty ID list returned policies"
+
+    - name: "BY ID | Get a policy that does not exist"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_missing_id }}"
+      register: pp_by_missing_id
+      ignore_errors: true
+
+    - name: "BY ID | Verify that a missing ID fails"
+      ansible.builtin.assert:
+        that:
+          - pp_by_missing_id is failed
+          - >-
+            pp_by_missing_id.msg == 'Prevention policy not found: ' ~ pp_missing_id
+        fail_msg: "A missing ID did not fail with the expected message"
+
+    - name: "BY ID | Get a real and a missing policy"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_first.id }}"
+          - "{{ pp_missing_id }}"
+      register: pp_by_real_and_missing_id
+      ignore_errors: true
+      no_log: true
+
+    - name: "BY ID | Verify that the failed result has the found policy and the API error"
+      ansible.builtin.assert:
+        that:
+          - pp_by_real_and_missing_id is failed
+          - >-
+            pp_by_real_and_missing_id.msg == 'Prevention policy not found: ' ~ pp_missing_id
+          - pp_by_real_and_missing_id.prevention_policies | map(attribute='id') | list == [pp_first.id]
+          - pp_by_real_and_missing_id.errors | selectattr('id', 'equalto', pp_missing_id) | list | length == 1
+        fail_msg: "A real and a missing ID did not fail with the found policy and the API error"
+        quiet: true
+
+    - name: "BY ID | Get a policy by its ID in upper case"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_first.id | upper }}"
+      register: pp_by_upper_id
+      no_log: true
+
+    - name: "BY ID | Verify that the ID ignores case"
+      ansible.builtin.assert:
+        that:
+          - pp_by_upper_id is not changed
+          - pp_by_upper_id.prevention_policies == [pp_first]
+        fail_msg: "The ID in upper case did not return the policy"
+        quiet: true
+
+    # =====================================================================
+    # Phase 3: by name
+    # =====================================================================
+
+    - name: "EXAMPLE | Get the prevention policies with a name"
+      crowdstrike.falcon.prevention_policy_info:
+        name: "{{ pp_example_name }}"
+      register: pp_by_name
+      no_log: true
+
+    - name: "BY NAME | Verify the policies with the name"
+      ansible.builtin.assert:
+        that:
+          - pp_by_name is not changed
+          - pp_by_name.prevention_policies | length > 0
+          - >-
+            pp_by_name.prevention_policies | map(attribute='name') | map('lower') | unique
+            == [pp_example_name | lower]
+          - >-
+            pp_by_name.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('name', 'search', '(?i)^' ~ (pp_example_name | regex_escape) ~ '$')
+               | map(attribute='id') | sort
+        fail_msg: "The name search did not return every policy with the name"
+        quiet: true
+
+    - name: "BY NAME | Get the policies with the name of the first policy in upper case"
+      crowdstrike.falcon.prevention_policy_info:
+        name: "{{ pp_first.name | upper }}"
+      register: pp_by_name_upper
+      no_log: true
+
+    - name: "BY NAME | Verify that the name ignores case"
+      ansible.builtin.assert:
+        that:
+          - pp_first.id in pp_by_name_upper.prevention_policies | map(attribute='id')
+          - >-
+            pp_by_name_upper.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('name', 'search', '(?i)^' ~ (pp_first.name | regex_escape) ~ '$')
+               | map(attribute='id') | sort
+        fail_msg: "The name in upper case did not return the policies with that name"
+        quiet: true
+
+    - name: "EXAMPLE | Get the prevention policy with a name for one platform"
+      crowdstrike.falcon.prevention_policy_info:
+        name: "{{ pp_example_name }}"
+        filter: "platform_name:'{{ pp_example_name_platform }}'"
+      register: pp_by_name_platform
+      no_log: true
+
+    - name: "BY NAME | Verify the name and the platform"
+      ansible.builtin.assert:
+        that:
+          - pp_by_name_platform.prevention_policies | length > 0
+          - pp_by_name_platform.prevention_policies | map(attribute='platform_name') | unique == [pp_example_name_platform]
+          - >-
+            pp_by_name_platform.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('name', 'equalto', pp_example_name)
+               | selectattr('platform_name', 'equalto', pp_example_name_platform) | map(attribute='id') | sort
+        fail_msg: "The name with a platform filter returned unexpected policies"
+        quiet: true
+
+    - name: "SKIP | Skip the same name check"
+      ansible.builtin.debug:
+        msg: "The tenant has no two prevention policies with the same name, so the same name check is skipped"
+      when: pp_dup_name | length == 0
+
+    - name: "BY NAME | Get the policies of a name that more than one policy has, in lower case"
+      crowdstrike.falcon.prevention_policy_info:
+        name: "{{ pp_dup_name }}"
+      register: pp_by_dup_name
+      no_log: true
+      when: pp_dup_name | length > 0
+
+    - name: "BY NAME | Verify that every policy with the name is returned"
+      ansible.builtin.assert:
+        that:
+          - pp_by_dup_name.prevention_policies | length > 1
+          - pp_by_dup_name.prevention_policies | length == pp_names_lower | select('equalto', pp_dup_name) | list | length
+          - pp_by_dup_name.prevention_policies | map(attribute='name') | map('lower') | unique == [pp_dup_name]
+        fail_msg: "A name that more than one policy has did not return all of them"
+        quiet: true
+      when: pp_dup_name | length > 0
+
+    - name: "BY NAME | Get a name that does not exist"
+      crowdstrike.falcon.prevention_policy_info:
+        name: "{{ pp_prefix }}-missing"
+      register: pp_by_missing_name
+
+    - name: "BY NAME | Get a name with a quote"
+      crowdstrike.falcon.prevention_policy_info:
+        name: "{{ pp_prefix }}-it's"
+      register: pp_by_quote_name
+
+    - name: "BY NAME | Verify that the missing names give no policies"
+      ansible.builtin.assert:
+        that:
+          - pp_by_missing_name is not failed
+          - pp_by_missing_name.prevention_policies == []
+          - pp_by_quote_name is not failed
+          - pp_by_quote_name.prevention_policies == []
+        fail_msg: "A name that does not exist returned policies or failed"
+
+    # =====================================================================
+    # Phase 4: the documented filters
+    # =====================================================================
+
+    - name: "EXAMPLE | Get the enabled Windows prevention policies, sorted by name"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "platform_name:'{{ pp_example_platform }}'+enabled:'true'"
+        sort: name.asc
+      register: pp_example_sorted
+      no_log: true
+
+    - name: "FILTER | Verify the platform and enabled filter (AND) and the name order"
+      ansible.builtin.assert:
+        that:
+          - >-
+            pp_example_sorted.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('platform_name', 'equalto', pp_example_platform)
+               | selectattr('enabled') | map(attribute='id') | sort
+          - >-
+            pp_example_sorted.prevention_policies | map(attribute='name') | list
+            == pp_example_sorted.prevention_policies | map(attribute='name') | sort(case_sensitive=true)
+        fail_msg: "The platform and enabled filter or the name order returned unexpected data"
+        quiet: true
+
+    - name: "FILTER | Get the policies of the platform and the state of the first policy (AND)"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "platform_name:'{{ pp_first.platform_name }}'+enabled:'{{ pp_first.enabled | string | lower }}'"
+      register: pp_and
+      no_log: true
+
+    - name: "FILTER | Verify the AND filter"
+      ansible.builtin.assert:
+        that:
+          - pp_first.id in pp_and.prevention_policies | map(attribute='id')
+          - >-
+            pp_and.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('platform_name', 'equalto', pp_first.platform_name)
+               | selectattr('enabled', 'equalto', pp_first.enabled) | map(attribute='id') | sort
+        fail_msg: "The AND filter returned unexpected policies"
+        quiet: true
+
+    - name: "FILTER | Get the policies of one platform"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "platform_name:'{{ pp_first.platform_name }}'"
+      register: pp_platform
+      no_log: true
+
+    - name: "FILTER | Verify the platform filter"
+      ansible.builtin.assert:
+        that:
+          - >-
+            pp_platform.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('platform_name', 'equalto', pp_first.platform_name) | map(attribute='id') | sort
+        fail_msg: "The platform filter returned unexpected policies"
+        quiet: true
+
+    - name: "SKIP | Skip the platform list check"
+      ansible.builtin.debug:
+        msg: "The tenant has policies of only one platform, so the platform list check is skipped"
+      when: pp_platforms | length < 2
+
+    - name: "FILTER | Get the policies of two platforms with the list form"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "platform_name:['{{ pp_platforms[0] }}','{{ pp_platforms[1] }}']"
+      register: pp_platform_list
+      no_log: true
+      when: pp_platforms | length > 1
+
+    - name: "FILTER | Verify the platform list filter"
+      ansible.builtin.assert:
+        that:
+          - >-
+            pp_platform_list.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('platform_name', 'in', pp_platforms[:2]) | map(attribute='id') | sort
+        fail_msg: "The platform list filter returned unexpected policies"
+        quiet: true
+      when: pp_platforms | length > 1
+
+    - name: "FILTER | Get the enabled and the disabled policies"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "enabled:'{{ item }}'"
+      loop:
+        - "true"
+        - "false"
+      register: pp_enabled
+      no_log: true
+
+    - name: "FILTER | Verify the enabled filters"
+      ansible.builtin.assert:
+        that:
+          - >-
+            pp_enabled.results[0].prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('enabled') | map(attribute='id') | sort
+          - >-
+            pp_enabled.results[1].prevention_policies | map(attribute='id') | sort
+            == pp_all | rejectattr('enabled') | map(attribute='id') | sort
+        fail_msg: "The enabled filters returned unexpected policies"
+        quiet: true
+
+    - name: "SKIP | Skip the description check"
+      ansible.builtin.debug:
+        msg: "No prevention policy has a description with a word of 5 letters or more, so the description check is skipped"
+      when: pp_desc_word | length == 0
+
+    - name: "FILTER | Get the policies with a word of a real description"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "description:~'{{ pp_desc_word }}'"
+      register: pp_desc
+      no_log: true
+      when: pp_desc_word | length > 0
+
+    - name: "FILTER | Verify the description filter"
+      ansible.builtin.assert:
+        that:
+          - pp_desc.prevention_policies | length > 0
+          - >-
+            pp_desc.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('description', 'search', '(?i)(^|[^A-Za-z0-9_])' ~ pp_desc_word ~ '($|[^A-Za-z0-9_])') | map(attribute='id') | sort
+        fail_msg: "The description filter returned other policies than a whole word match"
+        quiet: true
+      when: pp_desc_word | length > 0
+
+    - name: "FILTER | Get the policies with a word of a real name"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "name:~'{{ pp_name_word }}'"
+      register: pp_name_word_info
+      no_log: true
+
+    - name: "FILTER | Verify the name word filter"
+      ansible.builtin.assert:
+        that:
+          - pp_name_word | length > 0
+          - pp_name_word_info.prevention_policies | length > 0
+          - >-
+            pp_name_word_info.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr('name', 'search', '(?i)(^|[- ])' ~ pp_name_word ~ '($|[- ])') | map(attribute='id') | sort
+        fail_msg: "The name word filter returned other policies than a word match"
+        quiet: true
+
+    - name: "FILTER | Get the policies by the documented timestamp filters"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "{{ item.field }}:{{ item.op }}'{{ item.value }}'"
+      loop:
+        - { field: created_timestamp, op: ">", value: "2024-01-01T00:00:00Z" }
+        - { field: created_timestamp, op: "<", value: "2022-01-01T00:00:00Z" }
+        - { field: modified_timestamp, op: ">", value: "2026-01-01T00:00:00Z" }
+      register: pp_time
+      no_log: true
+
+    - name: "FILTER | Verify the timestamp filters"
+      ansible.builtin.assert:
+        that:
+          - >-
+            item.prevention_policies | map(attribute='id') | sort
+            == pp_all | selectattr(item.item.field, item.item.op, item.item.value) | map(attribute='id') | sort
+        fail_msg: "The filter {{ item.item.field }}:{{ item.item.op }}'{{ item.item.value }}' returned unexpected policies"
+        quiet: true
+      loop: "{{ pp_time.results }}"
+      loop_control:
+        label: "{{ item.item.field }} {{ item.item.op }} {{ item.item.value }}"
+
+    - name: "FILTER | Get policies with a bad filter"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "name:'"
+      register: pp_bad_filter
+      ignore_errors: true
+
+    - name: "FILTER | Verify that a bad filter fails"
+      ansible.builtin.assert:
+        that:
+          - pp_bad_filter is failed
+          - "'Invalid filter expression supplied' in pp_bad_filter.msg"
+        fail_msg: "A bad filter did not fail with the API message"
+
+    # =====================================================================
+    # Phase 5: the documented sort values
+    # =====================================================================
+
+    - name: "SORT | Get all policies with each sort value"
+      crowdstrike.falcon.prevention_policy_info:
+        sort: "{{ item }}"
+      loop: "{{ pp_sorts }}"
+      register: pp_sorted
+      no_log: true
+
+    - name: "SORT | Verify the set of policies and the order"
+      ansible.builtin.assert:
+        that:
+          - item.prevention_policies | map(attribute='id') | sort == pp_all_ids
+          - pp_values | length == pp_all | length
+          - not pp_field.endswith('_timestamp') or pp_values | map('length') | unique | list == [19]
+          - not pp_check_order or pp_values == pp_values | sort(reverse=item.item.endswith('.desc'), case_sensitive=true)
+        fail_msg: "The sort {{ item.item }} returned other policies or another order"
+        quiet: true
+      vars:
+        pp_field: "{{ item.item.split('.')[0] }}"
+        # The timestamps sort to the second, so compare the first 19 characters.
+        pp_values: >-
+          {{ item.prevention_policies | map(attribute=pp_field)
+             | map('regex_replace', '^(.{19}).*$', '\1') | list
+             if pp_field.endswith('_timestamp')
+             else item.prevention_policies | map(attribute=pp_field) | list }}
+        pp_check_order: "{{ pp_field in ['name', 'enabled', 'created_timestamp', 'modified_timestamp'] }}"
+      loop: "{{ pp_sorted.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: "SORT | Get policies with a sort value that the module does not allow"
+      crowdstrike.falcon.prevention_policy_info:
+        sort: platform_name.asc  # noqa args[module]
+      register: pp_bad_sort
+      ignore_errors: true
+
+    - name: "SORT | Get policies by ID with a sort"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_missing_id }}"
+        sort: name.asc
+      register: pp_ids_sort
+      ignore_errors: true
+
+    - name: "SORT | Verify that the module refuses both before any API call"
+      ansible.builtin.assert:
+        that:
+          - pp_bad_sort is failed
+          - "'value of sort must be one of' in pp_bad_sort.msg"
+          - "'got: platform_name.asc' in pp_bad_sort.msg"
+          - pp_ids_sort is failed
+          - "pp_ids_sort.msg == 'parameters are mutually exclusive: policy_ids|sort'"
+        fail_msg: "A bad sort or policy_ids with sort did not fail with the module message"

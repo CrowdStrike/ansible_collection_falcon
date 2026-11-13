@@ -1,0 +1,17 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "id": "00000000000000000000000000000005",
+        "message": "Not Found"
+      }
+    ],
+    "meta": {
+      "query_time": 0.00721024
+    },
+    "resources": null
+  },
+  "method": "get_policies",
+  "status_code": 404
+}
