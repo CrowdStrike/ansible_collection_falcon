@@ -1,0 +1,31 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.041809609
+    },
+    "resources": [
+      {
+        "description": "A package for Microsoft Edge events",
+        "display_name": "microsoft-edge",
+        "fields_to_be_removed_before_parsing": [],
+        "fields_to_tag": [
+          "Cps.version",
+          "Vendor",
+          "ecs.version",
+          "event.dataset",
+          "event.kind",
+          "event.module",
+          "event.outcome",
+          "observer.type"
+        ],
+        "id": "00000000000000000000000000000008:1.0.0",
+        "is_built_in": true,
+        "name": "microsoft-edge",
+        "script": "// #region PREPARSE\n/************************************************************\n****** Parse timestamp and log headers\n****** Extract message field for parsing\n****** Parse structured data\n************************************************************/\nreplace(regex=\"\\\\\\\\\", with=\"\\\\\\\\\\\\\", as=\"temp_rawstring\")\n| parseJson(field=\"temp_rawstring\", prefix=\"Vendor.\", excludeEmpty=true, handleNull=discard)\n| parseTimestamp(field=\"Vendor.time\", format=seconds)\n// #endregion\n\n// #region METADATA\n/************************************************************\n****** Static Metadata Definitions\n************************************************************/\n| Parser.version := \"1.0.0\"\n| Vendor := \"microsoft\"\n| ecs.version := \"8.17.0\"\n| Cps.version := \"1.0.0\"\n| event.module := \"edge\"\n| event.kind := \"event\"\n// #endregion\n\n// #region NORMALIZATION\n/************************************************************\n****** Parse unstructured data (i.e. message field)\n****** Normalize fields to data model\n************************************************************/\n| event.action := Vendor.event\n| event.reference := Vendor.event_detail\n| event.reason := Vendor.reason\n| device.id := Vendor.device_id\n| device.model.name := Vendor.device_name\n| url.original := Vendor.url\n| parseUrl(Vendor.url, as=\"url\")\n| url.domain := rename(url.host)\n| url.domain := lower(url.domain)\n| user_agent.original := Vendor.user_agent\n| host.os.type := Vendor.os_platform\n| host.os.version := Vendor.os_version\n| user.email := Vendor.profile_user\n| user.target.email := Vendor.trigger_user\n| user.name := Vendor.device_user\n| case {\n    user.name = /(?<user.domain>.*?)\\\\(?<user.name>.*)/;\n    *;\n }\n\n| event.action match {\n    in(values=[\"passwordReuseEvent\", \"passwordBreachEvent\"]) =>\n        array:append(array=\"event.category[]\", values=[\"iam\"])\n        | array:append(array=\"event.type[]\", values=[\"info\"])\n    ;\n    \"passwordChangedEvent\" =>\n        array:append(array=\"event.category[]\", values=[\"iam\"])\n        | array:append(array=\"event.type[]\", values=[\"change\"])\n    ;\n    in(values=[\"dangerousDownloadEvent\", \"sensitiveDataEvent\", \"unscannedFileEvent\"]) =>\n        array:append(array=\"event.category[]\", values=[\"file\"])\n        | array:append(array=\"event.type[]\", values=[\"info\"])\n    ;\n    in(values=[\"badNavigationEvent\", \"urlFilteringInterstitialEvent\"]) =>\n        array:append(array=\"event.category[]\", values=[\"network\"])\n        | array:append(array=\"event.type[]\", values=[\"info\"])\n    ;\n    \"loginEvent\" =>\n        array:append(array=\"event.category[]\", values=[\"authentication\"])\n        | array:append(array=\"event.type[]\", values=[\"info\"])\n    ;\n    in(values=[\"browserExtensionInstallEvent\", \"browserCrashEvent\"]) =>\n        array:append(array=\"event.category[]\", values=[\"process\"])\n        | array:append(array=\"event.type[]\", values=[\"info\"])\n    ;\n    * => *;\n}\n| host.os.type match {\n    in(values=[\"Windows\", \"win\"]) => host.os.type := \"windows\";\n    * => *;\n}\n// #endregion\n\n// #region POST-NORMALIZATION\n/************************************************************\n****** Post Normalization\n****** Custom parser logic needed after normalization\n************************************************************/\n| drop(temp_rawstring)\n// #endregion"
+      }
+    ]
+  },
+  "method": "get_parser",
+  "status_code": 200
+}

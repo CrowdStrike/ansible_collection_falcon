@@ -1,0 +1,13 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 1.243210052
+    },
+    "resources": [
+      "00000000000000000000000000000003:1.3.0"
+    ]
+  },
+  "method": "delete_parser",
+  "status_code": 200
+}

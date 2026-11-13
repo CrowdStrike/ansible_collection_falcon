@@ -769,15 +769,15 @@ def record_ngsiem(rec, creds):
         parser_id = parser_id_of(created) or "0" * 32
         rec.call(
             "parser_list_by_name", "list_parsers", falcon.list_parsers,
-            repository=repo, filter="name:~'%s'" % parser_name, limit=100,
+            repository=repo, filter="name:~'%s'" % parser_name, limit=500, offset=0,
         )
         rec.call(
             "parser_list_missing", "list_parsers", falcon.list_parsers,
-            repository=repo, filter="name:~'%s-missing'" % PREFIX, limit=100,
+            repository=repo, filter="name:~'%s-missing'" % PREFIX, limit=500, offset=0,
         )
         rec.call(
             "parser_list_bad_filter", "list_parsers", falcon.list_parsers,
-            repository=repo, filter="name:~'", limit=100,
+            repository=repo, filter="name:~'", limit=500, offset=0,
         )
         rec.call(
             "parser_template", "get_parser_template", falcon.get_parser_template,
@@ -794,7 +794,7 @@ def record_ngsiem(rec, creds):
         parser_id = parser_id_of(updated) or parser_id
         rec.call(
             "parser_list_after_update", "list_parsers", falcon.list_parsers,
-            repository=repo, filter="name:~'%s'" % parser_name, limit=100,
+            repository=repo, filter="name:~'%s'" % parser_name, limit=500, offset=0,
         )
         rec.call(
             "parser_template_after_update", "get_parser_template", falcon.get_parser_template,
@@ -821,10 +821,11 @@ def record_ngsiem(rec, creds):
             base_parser_id=base_id, extension_name=ext_name,
         )
         base_id = base_id.split(":")[0]
-        rec.call(
+        extension = rec.call(
             "parser_extension", "create_parser_extension", falcon.create_parser_extension,
             base_parser_id=base_id, extension_name=ext_name,
         )
+        ext_id = parser_id_of(extension) or "0" * 32
         rec.call(
             "parser_info_page", "list_parsers", falcon.list_parsers,
             repository=repo, filter="name:~'%s'" % PREFIX, parser_type="custom", limit=2, offset=0,
@@ -945,6 +946,36 @@ def record_ngsiem(rec, creds):
         rec.call(
             "search_bad_query", "start_search", falcon.start_search,
             repository="search-all", query_string="| | not a query (", start="1h",
+        )
+
+        # Extensions. These calls come last, so that the fake IDs of the
+        # calls above do not change. The clone and the extension still exist.
+        # The API names an extension '<base parser>-<name>'.
+        rec.call("parser_get_base", "get_parser", falcon.get_parser, ids=base_id, repository=repo)
+        rec.call(
+            "parser_list_extension", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'%s'" % ext_name, limit=500, offset=0,
+        )
+        rec.call(
+            "parser_list_base", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'microsoft-edge'", limit=500, offset=0,
+        )
+        rec.call("parser_get_extension", "get_parser", falcon.get_parser, ids=ext_id, repository=repo)
+        rec.call(
+            "parser_info_extension", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'%s'" % PREFIX, parser_type="extension", limit=100, offset=0,
+        )
+        # Two pages: the clone and the extension.
+        rec.call(
+            "parser_list_page1", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'%s'" % PREFIX, limit=1, offset=0,
+        )
+        rec.call(
+            "parser_list_page2", "list_parsers", falcon.list_parsers,
+            repository=repo, filter="name:~'%s'" % PREFIX, limit=1, offset=1,
+        )
+        rec.call(
+            "parser_delete_extension", "delete_parser", falcon.delete_parser, ids=ext_id, repository=repo,
         )
     finally:
         cleanup()
