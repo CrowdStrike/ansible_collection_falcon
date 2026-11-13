@@ -571,7 +571,7 @@
 
     - name: "SORT | Get policies with a sort value that the module does not allow"
       crowdstrike.falcon.prevention_policy_info:
-        sort: platform_name.asc
+        sort: platform_name.asc  # noqa args[module]
       register: pp_bad_sort
       ignore_errors: true
 
