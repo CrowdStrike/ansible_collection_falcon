@@ -259,12 +259,7 @@ CI runs on every pull request and does not use Falcon API credentials:
 - Molecule scenarios for the Linux side of the `falcon_install`, `falcon_configure` and `falcon_uninstall` roles, on Ubuntu 24.04 and Rocky Linux 9
 - `ansible-lint`, `yamllint`, and Python linting
 
-The unit tests for the API plugins do not call the API. They replay responses that were recorded from a real tenant and sanitized, which are in `tests/unit/plugins/fixtures`. When a plugin starts to use a new API call, record the responses again with `tests/unit/record_fixtures.py`. It uses your own API credentials, and it makes and deletes throwaway `ansible-unit-fixture-*` objects in your tenant:
-
-```shell
-uv run tests/unit/record_fixtures.py --list
-uv run tests/unit/record_fixtures.py --dry-run host_group
-```
+[tests/README.md](tests/README.md) tells you how to write and run the unit tests and the live integration tests for the modules, lookups and inventory plugins, and what tests a pull request must include.
 
 The molecule scenarios are in `extensions/molecule`. Each one starts a systemd container, builds a dummy `falcon-sensor` package that holds a stub `falconctl`, and runs a role against it, so no sensor or credentials are needed. To run a scenario locally you need Docker, and the checkout must be in an `ansible_collections/crowdstrike/falcon` directory. Set `ANSIBLE_COLLECTIONS_PATH` to the directory that holds `ansible_collections`:
 
@@ -273,22 +268,7 @@ uv run --with ansible-core ansible-galaxy collection install -r tests/requiremen
 FALCON_TEST_DISTRO=rocky9 uv run --with ansible-core --with molecule --with docker molecule test -s configure
 ```
 
-Tests that need a Falcon tenant run locally with your own API credentials. The live tests for the API modules, lookups and inventory plugins are in `tests/integration/targets`. They make throwaway `ansible-int-*` objects and delete them at the end, and they never act on a real host. Run them with `tests/integration/run.py`, which runs each target on its own and prints a summary. It reads the credentials from `.env`, or from another file with `--env-file`:
-
-```shell
-uv run tests/integration/run.py --list
-uv run tests/integration/run.py host_group sensor_update_policy
-uv run tests/integration/run.py --env-file .env.flight-control flight_control
-```
-
-Both scripts declare their dependencies in inline script metadata, so `uv run` installs them. `run.py` gets the newest ansible-core that works with the Python that uv selects. To test with another version, add it with `--with`, and add `--python` if that version needs a newer Python:
-
-```shell
-uv run --with 'ansible-core~=2.16.0' tests/integration/run.py host_group
-uv run --python 3.13 --with 'ansible-core~=2.22.0' tests/integration/run.py host_group
-```
-
-The hunting rule tests need the Falcon Adversary Intelligence Premium subscription, and the `flight_control` target needs the credentials of a Flight Control parent CID. They run only when `FALCON_TEST_HUNTING=1` or `FALCON_TEST_FLIGHT_CONTROL=1` is set.
+Tests that need a Falcon tenant run locally with your own API credentials. The live tests for the API modules, lookups and inventory plugins are in `tests/integration/targets`. They make throwaway `ansible-int-*` objects and delete them at the end, and they never act on a real host. See [tests/README.md](tests/README.md#integration-tests) for how to run them.
 
 ## Contributing
 

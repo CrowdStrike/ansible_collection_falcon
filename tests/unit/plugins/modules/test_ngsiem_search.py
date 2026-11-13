@@ -88,15 +88,19 @@ def test_search_with_no_events(api, run_module):
 
 
 def test_search_timeout_stops_job_and_fails(api, run_module, fixture):
-    service = api(start_search=["search_start"], get_search_status=[running(fixture)])
+    # No stop_search response is recorded, so the stop call raises. The
+    # module ignores errors from the stop call and fails with the timeout.
+    service = api(
+        start_search=["search_start"],
+        get_search_status=[running(fixture)],
+        stop_search=[Exception("stop_search failed")],
+    )
 
     result = run_module(ngsiem_search, {"query_string": QUERY, "timeout": 15, "poll_interval": 10})
 
     assert result["failed"] is True
     assert result["msg"] == "Query timed out after 15 seconds"
     assert result["query_job_id"] == JOB_ID
-    # No stop_search response is recorded. The module ignores errors from
-    # the stop call, so only the call itself is checked.
     assert service.called("stop_search") == [{"repository": REPO, "id": JOB_ID}]
 
 
