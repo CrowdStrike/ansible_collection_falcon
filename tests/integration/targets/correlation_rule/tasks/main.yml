@@ -11,6 +11,12 @@
 # The Correlation Rules API has a backend provisioning phase where newly created
 # rules enter a "creating" transition state. During this period, rules cannot be
 # updated or deleted. These tests account for that behavior.
+#
+# All rule names start with a prefix that is unique to this run. The cleanup
+# finds the rules of this run with a "starts with" name filter and deletes
+# them by ID. That filter is case-sensitive, so the prefix is lowercase. A rule
+# that is still in the "creating" state cannot be deleted yet, so the cleanup
+# can leave it behind.
 
 - name: Gather minimal facts for timestamp
   ansible.builtin.setup:
@@ -26,7 +32,11 @@
 
 - name: Set test variables
   ansible.builtin.set_fact:
-    test_rule_name: "Ansible Test Rule - {{ ansible_facts.date_time.iso8601_basic_short }}"
+    cr_prefix: "ansible-int-cr-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+
+- name: Set test rule names and settings
+  ansible.builtin.set_fact:
+    test_rule_name: "{{ cr_prefix }}-rule"
     test_search:
       filter: "#event_simpleName=ProcessRollup2"
       lookback: "5m"
@@ -121,6 +131,34 @@
         fail_msg: "Module should skip updates while rule is in transition state"
 
     # =====================================================================
+    # Phase 3b: CHECK MODE
+    # =====================================================================
+
+    - name: "CHECK | Create a rule in check mode"
+      crowdstrike.falcon.correlation_rule:
+        name: "{{ cr_prefix }}-check"
+        severity: 30
+        status: active
+        search: "{{ test_search }}"
+        operation: "{{ test_operation }}"
+      check_mode: true
+      register: check_create
+
+    - name: "CHECK | Look for the check mode rule"
+      crowdstrike.falcon.correlation_rule_info:
+        filter: "name:'{{ cr_prefix }}-check'"
+      register: check_create_info
+
+    # current behavior: check mode exits before any API call and does not
+    # predict a change
+    - name: "CHECK | Verify check mode made no rule"
+      ansible.builtin.assert:
+        that:
+          - check_create is not changed
+          - check_create_info.correlation_rules | length == 0
+        fail_msg: "Check mode must not create a rule"
+
+    # =====================================================================
     # Phase 4: INFO MODULE - Pagination, sorting, latest version
     # =====================================================================
 
@@ -191,7 +229,7 @@
 
     - name: "ABSENT | Delete non-existent rule by name (idempotent)"
       crowdstrike.falcon.correlation_rule:
-        name: "This Rule Does Not Exist - 999999"
+        name: "{{ cr_prefix }}-missing"
         state: absent
       register: absent_noop
 
@@ -205,8 +243,33 @@
   # ALWAYS: Best-effort cleanup
   # =======================================================================
   always:
-    - name: "CLEANUP | Remove test rule (may fail if still in transition)"
-      crowdstrike.falcon.correlation_rule:
-        name: "{{ test_rule_name }}"
-        state: absent
+    - name: "CLEANUP | Find any leftover test rules"
+      crowdstrike.falcon.correlation_rule_info:
+        filter: "name:*'{{ cr_prefix }}*'"
+      register: leftover_rules
       failed_when: false
+
+    - name: "CLEANUP | Delete leftover test rules by ID (may fail if still in transition)"
+      crowdstrike.falcon.correlation_rule:
+        rule_id: "{{ item.rule_id }}"
+        state: absent
+      loop: "{{ leftover_rules.correlation_rules | default([]) }}"
+      loop_control:
+        label: "{{ item.name | default(item.rule_id) }}"
+      failed_when: false
+
+    - name: "CLEANUP | Look for test rules that are still present"
+      crowdstrike.falcon.correlation_rule_info:
+        filter: "name:*'{{ cr_prefix }}*'"
+      register: remaining_rules
+      failed_when: false
+
+    - name: "CLEANUP | Show the test rules that could not be deleted yet"
+      ansible.builtin.debug:
+        msg: >-
+          The rule {{ item.name }} ({{ item.rule_id }}) is in the
+          {{ item.status }} state and was not deleted. Delete it when it
+          leaves the transition state.
+      loop: "{{ remaining_rules.correlation_rules | default([]) }}"
+      loop_control:
+        label: "{{ item.name | default(item.rule_id) }}"
