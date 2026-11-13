@@ -158,6 +158,13 @@ notes:
     latest version is already published.
   - B(State Management:) For I(state=absent), if the rule is not found, the module
     exits successfully without making any changes (idempotent).
+  - B(Transition status:) A new rule stays in the C(creating) status for some
+    time (about 40 minutes). The API refuses updates and deletes while a rule
+    is in a transition status, so the module does not update the rule, and
+    I(state=absent) fails with a message that gives the status.
+  - B(Check mode:) In check mode the module reads the rule and reports the
+    intended change, but it does not create, update, publish or delete the
+    rule.
 
 requirements:
   - Correlation Rules [B(READ), B(WRITE)] API scope
@@ -470,6 +477,16 @@ def publish_rule(falcon, module, result, rule_id):
 TRANSITION_STATUSES = ("creating", "updating", "deleting")
 
 
+def transition_message(rule):
+    """Explain why the API refuses to delete a rule in a transition status."""
+    return (
+        f"Correlation rule '{rule.get('name')}' ({rule.get('rule_id')}) is in the "
+        f"'{rule.get('status')}' status. The API cannot delete a rule until it leaves "
+        "this status, which for a new rule can take about 40 minutes. Run the task "
+        "again later."
+    )
+
+
 def rule_needs_update(current_rule, module):
     """Check if the current rule needs to be updated based on module parameters."""
     if current_rule.get("status") in TRANSITION_STATUSES:
@@ -527,9 +544,6 @@ def main():
         changed=False,
     )
 
-    if module.check_mode:
-        module.exit_json(**result)
-
     falcon = authenticate(module, CorrelationRules)
 
     try:
@@ -546,22 +560,29 @@ def main():
 
             if current_rule:
                 if rule_needs_update(current_rule, module):
-                    update_result = update_rule(
-                        falcon, module, current_rule["rule_id"], customer_id
-                    )
-                    if update_result["status_code"] != 200:
-                        handle_return_errors(module, result, update_result)
-                    result["changed"] = True
+                    if module.check_mode:
+                        result["changed"] = True
+                        result["correlation_rule"] = current_rule
+                    else:
+                        update_result = update_rule(
+                            falcon, module, current_rule["rule_id"], customer_id
+                        )
+                        if update_result["status_code"] != 200:
+                            handle_return_errors(module, result, update_result)
+                        result["changed"] = True
 
-                    updated_rule = get_existing_rule(falcon, current_rule["rule_id"])
-                    result["correlation_rule"] = (
-                        updated_rule if updated_rule else current_rule
-                    )
+                        updated_rule = get_existing_rule(falcon, current_rule["rule_id"])
+                        result["correlation_rule"] = (
+                            updated_rule if updated_rule else current_rule
+                        )
 
-                    if module.params.get("publish"):
-                        publish_rule(falcon, module, result, current_rule["rule_id"])
+                        if module.params.get("publish"):
+                            publish_rule(falcon, module, result, current_rule["rule_id"])
                 else:
                     result["correlation_rule"] = current_rule
+
+            elif module.check_mode:
+                result["changed"] = True
 
             else:
                 create_result = create_rule(falcon, module, customer_id)
@@ -587,10 +608,18 @@ def main():
                 current_rule = find_rule_by_name(falcon, name)
 
             if current_rule:
-                delete_result = delete_rule(falcon, current_rule["rule_id"])
-                if delete_result["status_code"] != 200:
-                    handle_return_errors(module, result, delete_result)
-                result["changed"] = True
+                in_transition = current_rule.get("status") in TRANSITION_STATUSES
+                if module.check_mode:
+                    if in_transition:
+                        module.warn(transition_message(current_rule))
+                    result["changed"] = True
+                else:
+                    delete_result = delete_rule(falcon, current_rule["rule_id"])
+                    if delete_result["status_code"] == 409 and in_transition:
+                        module.fail_json(msg=transition_message(current_rule), **result)
+                    if delete_result["status_code"] != 200:
+                        handle_return_errors(module, result, delete_result)
+                    result["changed"] = True
 
     except Exception as e:
         module.fail_json(

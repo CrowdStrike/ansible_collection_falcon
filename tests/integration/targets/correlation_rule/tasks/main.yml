@@ -149,14 +149,68 @@
         filter: "name:'{{ cr_prefix }}-check'"
       register: check_create_info
 
-    # current behavior: check mode exits before any API call and does not
-    # predict a change
-    - name: "CHECK | Verify check mode made no rule"
+    - name: "CHECK | Verify check mode predicted the create and made no rule"
       ansible.builtin.assert:
         that:
-          - check_create is not changed
+          - check_create is changed
           - check_create_info.correlation_rules | length == 0
-        fail_msg: "Check mode must not create a rule"
+        fail_msg: "Check mode must report the create without making the rule"
+
+    - name: "CHECK | Re-run the create of the existing rule in check mode"
+      crowdstrike.falcon.correlation_rule:
+        name: "{{ test_rule_name }}"
+        severity: 30
+      check_mode: true
+      register: check_existing
+
+    - name: "CHECK | Verify check mode found the existing rule"
+      ansible.builtin.assert:
+        that:
+          - check_existing is not changed
+          - check_existing.correlation_rule.id == rule_id
+        fail_msg: "Check mode must find the existing rule and predict no change"
+
+    - name: "CHECK | Delete the rule in check mode"
+      crowdstrike.falcon.correlation_rule:
+        rule_id: "{{ rule_id }}"
+        state: absent
+      check_mode: true
+      register: check_delete
+
+    - name: "CHECK | Confirm the rule still exists after the check mode delete"
+      crowdstrike.falcon.correlation_rule_info:
+        rule_ids:
+          - "{{ rule_id }}"
+      register: check_still_there
+
+    - name: "CHECK | Verify check mode predicted the delete and did not delete"
+      ansible.builtin.assert:
+        that:
+          - check_delete is changed
+          - check_still_there.correlation_rules | length == 1
+        fail_msg: "Check mode must report the delete without deleting the rule"
+
+    # =====================================================================
+    # Phase 3c: DELETE WHILE CREATING
+    # =====================================================================
+
+    - name: "TRANSITION | Delete the rule while it is still creating"
+      crowdstrike.falcon.correlation_rule:
+        rule_id: "{{ rule_id }}"
+        state: absent
+      register: delete_creating
+      ignore_errors: true
+      when: check_still_there.correlation_rules[0].status == 'creating'
+
+    - name: "TRANSITION | Verify the delete failed with a clear message"
+      ansible.builtin.assert:
+        that:
+          - delete_creating is failed
+          - delete_creating is not changed
+          - "\"is in the 'creating' status\" in delete_creating.msg"
+          - "'Run the task again later' in delete_creating.msg"
+        fail_msg: "A delete while the rule is creating must fail with a clear message"
+      when: check_still_there.correlation_rules[0].status == 'creating'
 
     # =====================================================================
     # Phase 4: INFO MODULE - Pagination, sorting, latest version
