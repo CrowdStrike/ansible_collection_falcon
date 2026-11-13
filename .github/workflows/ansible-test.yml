@@ -4,12 +4,14 @@ on:
   push:
     branches: [ main ]
     paths:
+      - 'galaxy.yml'
       - 'plugins/**'
       - 'tests/unit/**'
       - '.github/workflows/ansible-test.yml'
 
   pull_request:
     paths:
+      - 'galaxy.yml'
       - 'plugins/**'
       - 'tests/unit/**'
       - '.github/workflows/ansible-test.yml'

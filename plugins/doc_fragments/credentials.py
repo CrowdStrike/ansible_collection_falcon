@@ -64,7 +64,7 @@ options:
       - Extended headers that are prepended to the default headers dictionary.
     type: dict
 requirements:
-  - python >= 3.8
+  - python >= 3.12
   - crowdstrike-falconpy >= 1.5.0
 """
 
