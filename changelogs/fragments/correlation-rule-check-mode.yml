@@ -2,3 +2,4 @@
 bugfixes:
   - correlation_rule - support check mode. Before this fix, the module exited with ``changed=false`` before it read the rule. Now it reads the rule and reports the create, update or delete that a real run would make.
   - correlation_rule - give a clear error message when ``state=absent`` cannot delete a rule that is still in a transition status such as ``creating``. Before this fix, the module failed with the raw API message ``cannot delete unpublished version while rule is in transition state``.
+  - correlation_rule - document that the API can set a rule to ``inactive`` when the rule leaves the ``creating`` or ``updating`` status, also when the rule was created or updated with ``status=active``.

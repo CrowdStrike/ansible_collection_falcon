@@ -68,6 +68,9 @@ options:
       - The operational status of the rule.
       - C(active) enables the rule.
       - C(inactive) disables the rule without deleting it.
+      - "B(Note:) The API can set a rule to C(inactive) when the rule leaves the
+        C(creating) or C(updating) status, also when the rule was created or
+        updated with C(active). See the notes."
     type: str
     choices: ["active", "inactive"]
     required: false
@@ -162,6 +165,12 @@ notes:
     time (about 40 minutes). The API refuses updates and deletes while a rule
     is in a transition status, so the module does not update the rule, and
     I(state=absent) fails with a message that gives the status.
+  - B(Status after a transition:) A rule that is created with I(status=active)
+    can be C(inactive) when it leaves the C(creating) status. An update to
+    I(status=active) starts an C(updating) status of about the same time, and
+    the rule can be C(inactive) again after it. Thus a task with
+    I(status=active) can report a change on each run that comes after a
+    transition.
   - B(Check mode:) In check mode the module reads the rule and reports the
     intended change, but it does not create, update, publish or delete the
     rule.
