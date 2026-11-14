@@ -860,15 +860,37 @@ def record_ngsiem(rec, creds):
         )
         rec.call(
             "connection_list_by_name", "list_data_connections", falcon.list_data_connections,
-            filter="name:'%s'" % connection_name, limit=1,
+            filter="name:'%s'" % connection_name, limit=500, offset=0,
         )
         rec.call(
             "connection_list_missing", "list_data_connections", falcon.list_data_connections,
-            filter="name:'%s-missing'" % PREFIX, limit=1,
+            filter="name:'%s-missing'" % PREFIX, limit=500, offset=0,
         )
         rec.call(
             "connection_list_bad_filter", "list_data_connections", falcon.list_data_connections,
             filter="name:'", limit=1,
+        )
+        # The name filter is a substring match that ignores case. A second
+        # connection with a longer name shows the results that the module
+        # must not use.
+        if not rec.dry_run:
+            falcon.create_data_connection(body=dict(body, name=connection_name + "-renamed"))
+        partial = connection_name[:-4]
+        rec.call(
+            "connection_list_near_match", "list_data_connections", falcon.list_data_connections,
+            filter="name:'%s'" % partial, limit=500, offset=0,
+        )
+        rec.call(
+            "connection_list_near_match_page1", "list_data_connections", falcon.list_data_connections,
+            filter="name:'%s'" % partial, limit=1, offset=0,
+        )
+        rec.call(
+            "connection_list_near_match_page2", "list_data_connections", falcon.list_data_connections,
+            filter="name:'%s'" % partial, limit=1, offset=1,
+        )
+        rec.call(
+            "connection_list_upper_case", "list_data_connections", falcon.list_data_connections,
+            filter="name:'%s'" % connection_name.upper(), limit=500, offset=0,
         )
         rec.call(
             "connection_status_new", "get_provisioning_status", falcon.get_provisioning_status,

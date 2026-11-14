@@ -13,6 +13,10 @@ from ansible_collections.crowdstrike.falcon.plugins.modules import ngsiem_data_c
 
 NAME = "ansible-unit-fixture-connection"
 CONNECTION_ID = "00000000000000000000000000000007"
+# A second fixture connection, named NAME + "-renamed".
+RENAMED_ID = "00000000000000000000000000000008"
+# The search that the module sends for NAME.
+SEARCH = {"filter": "name:'%s'" % NAME, "limit": 500, "offset": 0}
 # The built-in HEC connector, from the module examples.
 HEC_CONNECTOR = "a1bfd0c4380f436790cb41afc2b95f38"
 TOKEN = "command:ExternalGetDataConnectionToken"
@@ -90,7 +94,7 @@ def test_create_waits_for_ingest_token(api, run_module, clock):
     result = run_module(ngsiem_data_connection, CREATE)
 
     assert result["changed"] is True
-    assert service.called("list_data_connections") == [{"filter": "name:'%s'" % NAME, "limit": 1}]
+    assert service.called("list_data_connections") == [SEARCH]
     assert service.called("create_data_connection") == [{"body": CREATE}]
     # The first request returns 202 while the connection is provisioned.
     assert service.called(TOKEN) == [{"ids": CONNECTION_ID}, {"ids": CONNECTION_ID}]
@@ -242,15 +246,137 @@ def test_absent_missing_connection_is_not_changed(api, run_module):
     assert "delete_data_connection" not in methods(service)
 
 
-def test_check_mode_makes_no_api_calls(api, run_module):
+# The name filter of the API is a substring match that ignores case. The
+# near-match search was for NAME[:-4], and it returned NAME and NAME-renamed.
+PARTIAL = NAME[:-4]
+
+
+def test_absent_does_not_delete_a_near_match(api, run_module):
+    service = api(list_data_connections=["connection_list_near_match"])
+
+    result = run_module(ngsiem_data_connection, {"name": PARTIAL, "state": "absent"})
+
+    assert result["changed"] is False
+    assert "delete_data_connection" not in methods(service)
+
+
+def test_present_does_not_update_a_near_match(api, run_module):
+    service = api(
+        list_data_connections=["connection_list_near_match"],
+        create_data_connection=["connection_create"],
+        get_connection_by_id=["connection_get"],
+        **{TOKEN: ["token_again"]}
+    )
+
+    result = run_module(ngsiem_data_connection, dict(CREATE, name=PARTIAL))
+
+    # No connection has the name PARTIAL, so the module creates one.
+    assert result["changed"] is True
+    assert "update_data_connection" not in methods(service)
+    assert service.called("create_data_connection") == [{"body": dict(CREATE, name=PARTIAL)}]
+
+
+def test_absent_deletes_the_exact_match_on_a_later_page(api, run_module, monkeypatch):
+    monkeypatch.setattr(ngsiem_data_connection, "LIST_LIMIT", 1)
+    service = api(
+        list_data_connections=["connection_list_near_match_page1", "connection_list_near_match_page2"],
+        delete_data_connection=["connection_delete"],
+    )
+
+    # The pages come from the PARTIAL search; NAME-renamed is on page 2.
+    result = run_module(ngsiem_data_connection, {"name": NAME + "-renamed", "state": "absent"})
+
+    assert result["changed"] is True
+    assert [call["offset"] for call in service.called("list_data_connections")] == [0, 1]
+    assert service.called("delete_data_connection") == [{"ids": RENAMED_ID}]
+
+
+def test_name_lookup_stops_after_the_last_page(api, run_module, monkeypatch):
+    monkeypatch.setattr(ngsiem_data_connection, "LIST_LIMIT", 1)
+    service = api(
+        list_data_connections=["connection_list_near_match_page1", "connection_list_near_match_page2"],
+    )
+
+    result = run_module(ngsiem_data_connection, {"name": PARTIAL, "state": "absent"})
+
+    assert result["changed"] is False
+    assert len(service.called("list_data_connections")) == 2
+
+
+def test_name_lookup_ignores_case(api, run_module):
+    # The API refuses a second connection whose name differs only in case.
+    service = api(
+        list_data_connections=["connection_list_upper_case"],
+        delete_data_connection=["connection_delete"],
+    )
+
+    result = run_module(ngsiem_data_connection, {"name": NAME.upper(), "state": "absent"})
+
+    assert result["changed"] is True
+    assert service.called("delete_data_connection") == [{"ids": CONNECTION_ID}]
+
+
+def test_check_mode_predicts_create(api, run_module):
     service = api(list_data_connections=["connection_list_missing"])
 
     result = run_module(ngsiem_data_connection, CREATE, check_mode=True)
 
-    # current behavior: check mode exits before it reads the connection, so
-    # it never predicts a change.
+    assert result["changed"] is True
+    assert methods(service) == ["list_data_connections"]
+
+
+def test_check_mode_matching_connection_is_not_changed(api, run_module):
+    service = api(list_data_connections=["connection_list_by_name"])
+
+    result = run_module(ngsiem_data_connection, CREATE, check_mode=True)
+
     assert result["changed"] is False
-    assert service.calls == []
+    assert result["data_connection"] == READABLE
+    assert methods(service) == ["list_data_connections"]
+
+
+def test_check_mode_predicts_update(api, run_module):
+    service = api(get_connection_by_id=["connection_get"])
+
+    result = run_module(
+        ngsiem_data_connection,
+        {"connection_id": CONNECTION_ID, "name": NAME + "-renamed"},
+        check_mode=True,
+    )
+
+    assert result["changed"] is True
+    assert result["data_connection"] == READABLE
+    assert methods(service) == ["get_connection_by_id"]
+
+
+def test_check_mode_predicts_pause(api, run_module):
+    service = api(
+        list_data_connections=["connection_list_by_name"],
+        get_provisioning_status=["connection_status"],
+    )
+
+    result = run_module(ngsiem_data_connection, {"name": NAME, "enabled": False}, check_mode=True)
+
+    assert result["changed"] is True
+    assert methods(service) == ["list_data_connections", "get_provisioning_status"]
+
+
+def test_check_mode_predicts_delete(api, run_module):
+    service = api(list_data_connections=["connection_list_by_name"])
+
+    result = run_module(ngsiem_data_connection, {"name": NAME, "state": "absent"}, check_mode=True)
+
+    assert result["changed"] is True
+    assert methods(service) == ["list_data_connections"]
+
+
+def test_check_mode_absent_missing_connection_is_not_changed(api, run_module):
+    service = api(list_data_connections=["connection_list_missing"])
+
+    result = run_module(ngsiem_data_connection, {"name": NAME, "state": "absent"}, check_mode=True)
+
+    assert result["changed"] is False
+    assert methods(service) == ["list_data_connections"]
 
 
 def test_name_or_connection_id_is_required(api, run_module):
