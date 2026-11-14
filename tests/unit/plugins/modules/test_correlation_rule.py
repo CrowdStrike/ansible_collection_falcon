@@ -57,6 +57,14 @@ def methods(service):
     return [method for method, _kwargs in service.calls]
 
 
+def warning_text(result):
+    # ansible-core 2.19+ returns warnings as dicts, 2.20 nests the text.
+    return " ".join(
+        w if isinstance(w, str) else w.get("msg", w.get("event", {}).get("msg", ""))
+        for w in result.get("warnings", [])
+    )
+
+
 def test_present_creates_missing_rule(api, run_module):
     service = api(get_rules_combined=["query_by_name_missing"], create_rule=["create"])
 
@@ -198,8 +206,27 @@ def test_absent_deletes_existing_rule(api, run_module):
     assert "get_sensor_installer_ccid" not in methods(service)
 
 
-def test_absent_rule_in_transition_fails_with_api_message(api, run_module):
-    api(get_rules_combined=["query_by_name_creating"], delete_rules=["delete_in_transition"])
+def test_absent_rule_in_transition_fails_with_clear_message(api, run_module):
+    service = api(get_rules_combined=["query_by_name_creating"], delete_rules=["delete_in_transition"])
+
+    result = run_module(correlation_rule, {"name": NAME, "state": "absent"})
+
+    assert result["failed"] is True
+    assert result["changed"] is False
+    # The API returns 409 "cannot delete unpublished version while rule is
+    # in transition state".
+    assert result["msg"] == (
+        "Correlation rule '%s' (%s) is in the 'creating' status. The API cannot "
+        "delete a rule until it leaves this status, which for a new rule can take "
+        "about 40 minutes. Run the task again later." % (NAME, RULE_ID)
+    )
+    assert service.called("delete_rules") == [{"ids": [RULE_ID]}]
+
+
+def test_absent_409_for_rule_not_in_transition_fails_with_api_message(api, run_module):
+    # The rule can leave its transition status after the lookup; then the
+    # module gives the message from the API.
+    api(get_rules_combined=["query_by_name"], delete_rules=["delete_in_transition"])
 
     result = run_module(correlation_rule, {"name": NAME, "state": "absent"})
 
@@ -216,15 +243,86 @@ def test_absent_missing_rule_is_not_changed(api, run_module):
     assert "delete_rules" not in methods(service)
 
 
-def test_check_mode_makes_no_api_calls(api, run_module):
+def test_check_mode_predicts_create_without_creating(api, run_module):
     service = api(get_rules_combined=["query_by_name_missing"])
+
+    result = run_module(correlation_rule, dict(MATCHING, publish=True), check_mode=True)
+
+    assert result["changed"] is True
+    assert methods(service) == ["get_sensor_installer_ccid", "get_rules_combined"]
+
+
+def test_check_mode_matching_rule_is_not_changed(api, run_module):
+    service = api(get_rules_combined=["query_by_name"])
 
     result = run_module(correlation_rule, MATCHING, check_mode=True)
 
-    # current behavior: check mode exits before it reads the rule, so it
-    # never predicts a change.
     assert result["changed"] is False
-    assert service.calls == []
+    assert result["correlation_rule"]["rule_id"] == RULE_ID
+    assert methods(service) == ["get_sensor_installer_ccid", "get_rules_combined"]
+
+
+def test_check_mode_predicts_update_without_updating(api, run_module):
+    service = api(get_rules_combined=["query_by_name"])
+
+    result = run_module(
+        correlation_rule,
+        {"name": NAME, "description": "Fixture rule, updated", "publish": True},
+        check_mode=True,
+    )
+
+    assert result["changed"] is True
+    assert result["correlation_rule"]["rule_id"] == RULE_ID
+    assert methods(service) == ["get_sensor_installer_ccid", "get_rules_combined"]
+
+
+def test_check_mode_rule_in_transition_is_not_changed(api, run_module):
+    # A real run does not update a rule in transition, so check mode does not
+    # predict a change.
+    service = api(get_rules_combined=["query_by_name_creating"])
+
+    result = run_module(correlation_rule, dict(MATCHING, description="changed"), check_mode=True)
+
+    assert result["changed"] is False
+    assert "update_rule" not in methods(service)
+
+
+def test_check_mode_by_id_that_does_not_exist_fails(api, run_module):
+    api(get_rules=["get_missing"])
+
+    result = run_module(correlation_rule, {"rule_id": RULE_ID}, check_mode=True)
+
+    assert result["failed"] is True
+    assert result["msg"] == "Correlation rule with ID '%s' not found" % RULE_ID
+
+
+def test_check_mode_predicts_delete_without_deleting(api, run_module):
+    service = api(get_rules=["get_one"])
+
+    result = run_module(correlation_rule, {"rule_id": RULE_ID, "state": "absent"}, check_mode=True)
+
+    assert result["changed"] is True
+    assert methods(service) == ["get_rules"]
+    assert warning_text(result) == ""
+
+
+def test_check_mode_delete_of_rule_in_transition_warns(api, run_module):
+    service = api(get_rules_combined=["query_by_name_creating"])
+
+    result = run_module(correlation_rule, {"name": NAME, "state": "absent"}, check_mode=True)
+
+    assert result["changed"] is True
+    assert "delete_rules" not in methods(service)
+    assert "is in the 'creating' status" in warning_text(result)
+
+
+def test_check_mode_delete_of_missing_rule_is_not_changed(api, run_module):
+    service = api(get_rules_combined=["query_by_name_missing"])
+
+    result = run_module(correlation_rule, {"name": NAME, "state": "absent"}, check_mode=True)
+
+    assert result["changed"] is False
+    assert methods(service) == ["get_rules_combined"]
 
 
 @pytest.mark.parametrize("state", ["present", "absent"])
