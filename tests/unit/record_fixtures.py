@@ -472,7 +472,7 @@ def drop_long_setting_ids(func):
 
 
 def record_prevention_policy(rec, creds):
-    """Record the PreventionPolicy calls used by prevention_policy_info.
+    """Record the PreventionPolicy calls used by prevention_policy and prevention_policy_info.
 
     The searches use the kwargs of the module: filter and sort only when set,
     offset=None and limit=5000. Each filter matches only the fixture policies.
@@ -493,9 +493,14 @@ def record_prevention_policy(rec, creds):
     def cleanup():
         if rec.dry_run:
             return
-        # The recorder never enables its policies, and the API creates them
-        # disabled, so they can be deleted at once.
-        ids = [p["id"] for p in fixture_policies()]
+        # The API creates the policies disabled, but the lifecycle below
+        # enables one, so a run that stopped early can leave it enabled.
+        found = fixture_policies()
+        enabled = [p["id"] for p in found if p.get("enabled")]
+        if enabled:
+            # The API does not delete an enabled policy.
+            falcon.perform_policies_action(action_name="disable", ids=enabled)
+        ids = [p["id"] for p in found]
         if ids:
             falcon.delete_policies(ids=ids)
         left = fixture_policies()
@@ -545,6 +550,48 @@ def record_prevention_policy(rec, creds):
         # filter and sort.
         search("query_sorted", filter="name:~'%s'" % PREFIX, sort="name.asc")
         search("query_bad_filter", filter="name:'")
+
+        # prevention_policy: the lifecycle of one more policy, with the kwargs of the module.
+        crud = "%s-crud" % PREFIX
+        created = rec.call(
+            "create", "create_policies", drop_long_setting_ids(falcon.create_policies),
+            body={"resources": [{"name": crud, "platform_name": "Linux", "description": "Fixture policy"}]},
+        )
+        crud_id = "0" * 32 if rec.dry_run else resources(created)[0]["id"]
+        rec.call(
+            "query_by_exact_name", "query_combined_policies", drop_long_setting_ids(falcon.query_combined_policies),
+            filter="name:~'%s'+platform_name:'Linux'" % crud, limit=5000,
+        )
+        rec.call(
+            "query_by_exact_name_missing", "query_combined_policies",
+            drop_long_setting_ids(falcon.query_combined_policies),
+            filter="name:~'%s'+platform_name:'Mac'" % crud, limit=5000,
+        )
+        # A second policy with the name of the crud policy on the same platform.
+        rec.call(
+            "create_duplicate", "create_policies", drop_long_setting_ids(falcon.create_policies),
+            body={"resources": [{"name": crud, "platform_name": "Linux"}]},
+        )
+        rec.call(
+            "update_missing", "update_policies", drop_long_setting_ids(falcon.update_policies),
+            body={"resources": [{"id": missing_id, "description": "x"}]},
+        )
+        rec.call(
+            "update_description", "update_policies", drop_long_setting_ids(falcon.update_policies),
+            body={"resources": [{"id": crud_id, "description": "Updated fixture policy"}]},
+        )
+        rec.call(
+            "enable", "perform_policies_action", drop_long_setting_ids(falcon.perform_policies_action),
+            action_name="enable", ids=[crud_id],
+        )
+        rec.call("get_enabled", "get_policies", get_policies, ids=[crud_id])
+        rec.call("delete_enabled", "delete_policies", falcon.delete_policies, ids=[crud_id])
+        rec.call(
+            "disable", "perform_policies_action", drop_long_setting_ids(falcon.perform_policies_action),
+            action_name="disable", ids=[crud_id],
+        )
+        rec.call("get_disabled", "get_policies", get_policies, ids=[crud_id])
+        rec.call("delete", "delete_policies", falcon.delete_policies, ids=[crud_id])
     finally:
         cleanup()
 
