@@ -618,7 +618,7 @@ def main():
             **result,
         )
 
-    if not module._diff:
+    if not module._diff:  # pylint: disable=protected-access
         result.pop("diff", None)
     module.exit_json(**result)
 
