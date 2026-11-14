@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "Policy ansible-unit-fixture-crud is enabled, cannot delete enabled policies"
+      }
+    ],
+    "meta": {
+      "query_time": 0.004156617
+    },
+    "resources": null
+  },
+  "method": "delete_policies",
+  "status_code": 400
+}
