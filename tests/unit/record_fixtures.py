@@ -311,6 +311,11 @@ def record_host_group(rec, creds):
             "query_page2", "query_combined_host_groups", falcon.query_combined_host_groups,
             filter=name_filter, limit=2, offset=2, sort="name.asc",
         )
+        # 500 is the largest page size that the search API accepts.
+        rec.call(
+            "query_sort_desc", "query_combined_host_groups", falcon.query_combined_host_groups,
+            filter=name_filter, limit=500, offset=0, sort="name.desc",
+        )
         rec.call(
             "query_bad_filter", "query_combined_host_groups", falcon.query_combined_host_groups,
             filter="name:'", limit=1,

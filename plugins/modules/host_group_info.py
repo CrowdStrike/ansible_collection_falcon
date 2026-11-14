@@ -44,7 +44,7 @@ options:
   limit:
     description:
       - Maximum number of host groups to return.
-      - Must be between 1 and 5000.
+      - Must be between 1 and 500.
     type: int
     default: 100
   offset:
@@ -55,11 +55,30 @@ options:
     default: 0
   sort:
     description:
-      - Property to sort results by.
-      - Prefix with C(-) for descending order.
-      - "Examples: C(name), C(-created_timestamp), C(group_type)."
+      - Property and direction to sort results by, in the form C(<property>.asc) or C(<property>.desc).
+      - When not set, the API returns the groups sorted by name.
+      - The API sorts C(name), C(created_by) and C(modified_by) by character code,
+        so names that start with an uppercase letter come before names that start
+        with a lowercase letter.
+      - Many groups can have the same C(group_type), C(created_by) or C(modified_by)
+        value. When you page through the results with I(offset), sort by C(name) or by
+        a timestamp. With the other properties, a group can be returned on more than
+        one page or on no page.
     type: str
     required: false
+    choices:
+      - name.asc
+      - name.desc
+      - created_by.asc
+      - created_by.desc
+      - created_timestamp.asc
+      - created_timestamp.desc
+      - group_type.asc
+      - group_type.desc
+      - modified_by.asc
+      - modified_by.desc
+      - modified_timestamp.asc
+      - modified_timestamp.desc
   include_members:
     description:
       - Whether to include detailed member information for each host group.
@@ -98,10 +117,10 @@ EXAMPLES = r"""
     filter: "name:*'production*'"
     limit: 50
 
-- name: Get dynamic host groups created in the last 7 days
+- name: Get dynamic host groups created in the last 7 days, newest first
   crowdstrike.falcon.host_group_info:
-    filter: "group_type:'dynamic'+created_timestamp:>'{{ (ansible_date_time.epoch | int - 604800) }}'"
-    sort: "-created_timestamp"
+    filter: "group_type:'dynamic'+created_timestamp:>'{{ '%Y-%m-%dT%H:%M:%SZ' | strftime(now().timestamp() - 604800, utc=true) }}'"
+    sort: created_timestamp.desc
 
 - name: Get host group information including member details
   crowdstrike.falcon.host_group_info:
@@ -112,6 +131,7 @@ EXAMPLES = r"""
   crowdstrike.falcon.host_group_info:
     limit: 100
     offset: "{{ page * 100 }}"
+    sort: name.asc
   loop: "{{ range(0, total_groups // 100 + 1) | list }}"
   loop_control:
     loop_var: page
@@ -146,9 +166,12 @@ host_groups:
       returned: success
       sample: "dynamic"
     assignment_rule:
-      description: The assignment rule for dynamic groups (FQL filter).
+      description:
+        - The assignment rule of the group. For a dynamic group, it is the FQL filter that
+          selects its hosts. For a static group, it lists the hosts of the group.
+        - The API does not return this key for some groups.
       type: str
-      returned: success
+      returned: when the API returns it
       sample: "platform_name:'Linux'+tags:'production'"
     created_by:
       description: The user who created the host group.
@@ -170,11 +193,6 @@ host_groups:
       type: str
       returned: success
       sample: "2024-02-01T14:22:30.000000Z"
-    group_hash:
-      description: A hash representing the current state of the group.
-      type: str
-      returned: success
-      sample: "abc123def456789"
     members:
       description: List of host group members (only when include_members=true).
       type: list
@@ -255,12 +273,30 @@ except ImportError:
     HAS_FALCONPY = False
     FALCONPY_IMPORT_ERROR = traceback.format_exc()
 
+# The API accepts only these values and returns 400 for any other value,
+# including a "-<property>" prefix or a property with no direction.
+SORT_CHOICES = [
+    "%s.%s" % (prop, direction)
+    for prop in (
+        "name",
+        "created_by",
+        "created_timestamp",
+        "group_type",
+        "modified_by",
+        "modified_timestamp",
+    )
+    for direction in ("asc", "desc")
+]
+
+# The search API returns 400 for a page size over 500.
+MAX_LIMIT = 500
+
 HOST_GROUP_INFO_ARGS = {
     "host_groups": {"type": "list", "elements": "str", "required": False},
     "filter": {"type": "str", "required": False},
     "limit": {"type": "int", "default": 100},
     "offset": {"type": "int", "default": 0},
-    "sort": {"type": "str", "required": False},
+    "sort": {"type": "str", "required": False, "choices": SORT_CHOICES},
     "include_members": {"type": "bool", "default": False},
 }
 
@@ -283,8 +319,8 @@ def validate_params(module):
 
     # Validate limit range
     limit = module.params["limit"]
-    if limit < 1 or limit > 5000:
-        module.fail_json(msg="Parameter 'limit' must be between 1 and 5000")
+    if limit < 1 or limit > MAX_LIMIT:
+        module.fail_json(msg=f"Parameter 'limit' must be between 1 and {MAX_LIMIT}")
 
     # Validate offset
     offset = module.params["offset"]

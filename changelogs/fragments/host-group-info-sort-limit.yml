@@ -1,0 +1,7 @@
+---
+bugfixes:
+  - host_group_info - the ``sort`` option now accepts only the values that the Host Groups API accepts, in the form ``<property>.asc`` or ``<property>.desc`` for ``name``, ``created_by``, ``created_timestamp``, ``group_type``, ``modified_by`` and ``modified_timestamp``. The documentation said to put ``-`` before a property for descending order, but the API rejects ``-created_timestamp`` and a property with no direction such as ``name``. An unsupported value now fails before the API call, with a list of the valid values. Use ``created_timestamp.desc`` instead of ``-created_timestamp``.
+  - host_group_info - the ``limit`` option now accepts values from 1 to 500. The API rejects a page size over 500, but the module documented and accepted values up to 5000.
+  - host_group_info - remove ``group_hash`` from the return values, because the API does not return it, and document that ``assignment_rule`` is not returned for every group.
+  - host_group_info - fix the example that finds the dynamic groups created in the last 7 days. The API does not accept a timestamp in epoch seconds in a ``created_timestamp`` filter, so the example now uses an ISO 8601 timestamp.
+  - host_group_info - document that a sort on ``group_type``, ``created_by`` or ``modified_by`` can repeat or skip groups across pages, because many groups have the same value. Sort by ``name`` or a timestamp to page through the results.
