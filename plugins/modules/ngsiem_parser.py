@@ -50,6 +50,9 @@ options:
       - The API stores custom parsers with a C(custom-) prefix, so a parser
         created as C(my-parser) is stored as C(custom-my-parser). Both names
         find the parser.
+      - The API stores an extension as C(<base parser>-<name>), so an
+        extension of C(microsoft-edge) created as C(my-ext) is stored as
+        C(microsoft-edge-my-ext). Both names find the extension.
     type: str
     required: false
   parser_id:
@@ -104,6 +107,11 @@ notes:
   - B(Parser Lookup:) When I(parser_id) is not provided, the module searches for
     a parser named C(custom-<name>) or exactly I(name). If both exist,
     C(custom-<name>) is used, unless I(name) already starts with C(custom-).
+    With I(extension_of), the module searches only for an extension named
+    C(<base parser>-<name>) or I(name). Without I(extension_of), I(parser_yaml), and
+    I(clone_from), for example with I(state=absent), the module also finds an
+    extension named C(<base parser>-<name>) when no other parser has the
+    name. If more than one extension has the name, the module fails.
     Prefer I(parser_id) for precise targeting.
   - B(State Management:) For I(state=absent), if the parser is not found, the
     module exits successfully without making any changes (idempotent). A stale
@@ -143,6 +151,12 @@ EXAMPLES = r"""
 - name: Delete a parser by name
   crowdstrike.falcon.ngsiem_parser:
     name: my-custom-parser
+    state: absent
+
+- name: Delete an extension by the name it was created with
+  crowdstrike.falcon.ngsiem_parser:
+    name: my-parser-extension
+    extension_of: "10f55deaa2893f60b87af305f44f80bf"
     state: absent
 
 - name: Delete a parser by ID
@@ -218,6 +232,13 @@ MINIMUM_FALCONPY_VERSION = "1.6.3"
 # The API adds this prefix to the names of custom parsers.
 CUSTOM_PARSER_PREFIX = "custom-"
 
+# The parser_type of an extension. The API names an extension
+# '<base parser>-<name>'.
+EXTENSION_PARSER_TYPE = "extension"
+
+# The largest page that the list endpoint returns.
+LIST_PAGE_SIZE = 500
+
 NGSIEM_PARSER_ARGS = {
     "state": {"type": "str", "choices": ["present", "absent"], "default": "present"},
     "repository": {"type": "str", "default": "parsers-repository"},
@@ -264,32 +285,105 @@ def validate_params(module):
             )
 
 
+def list_all_parsers(falcon, module, **params):
+    """Return the parser summaries from all pages of the list endpoint."""
+    items = []
+    while True:
+        result = falcon.list_parsers(
+            repository=module.params["repository"],
+            limit=LIST_PAGE_SIZE,
+            offset=len(items),
+            **params,
+        )
+        if result["status_code"] != 200:
+            break
+        page = result["body"].get("resources") or []
+        items.extend(page)
+        total = (result["body"].get("meta") or {}).get("pagination", {}).get("total")
+        if len(page) < LIST_PAGE_SIZE or (total is not None and len(items) >= total):
+            break
+    return items
+
+
+def get_parser_name(falcon, module, parser_id):
+    """Return the name of a parser, or None if the parser is not found."""
+    result = falcon.get_parser(ids=parser_id, repository=module.params["repository"])
+    if result["status_code"] == 200 and result["body"].get("resources"):
+        return result["body"]["resources"][0].get("name")
+    return None
+
+
+def is_base_parser(falcon, module, name):
+    """Return True if a parser that is not an extension has this exact name."""
+    return any(
+        item.get("Name") == name and item.get("parser_type") != EXTENSION_PARSER_TYPE
+        for item in list_all_parsers(falcon, module, filter=f"name:~'{name}'")
+    )
+
+
+def find_extension_by_name(falcon, module, name, items):
+    """Find the extension named '<base parser>-<name>' in items.
+
+    The suffix alone can also match an extension that has a longer name, so
+    the part before '-<name>' must be the name of a parser that exists.
+    """
+    suffix = "-" + name
+    matches = [
+        item
+        for item in items
+        if item.get("parser_type") == EXTENSION_PARSER_TYPE
+        and (item.get("Name") or "").endswith(suffix)
+        and is_base_parser(falcon, module, item["Name"][: -len(suffix)])
+    ]
+    if len(matches) > 1:
+        module.fail_json(
+            msg=f"More than one extension is named '{name}': "
+            f"{', '.join(item['Name'] for item in matches)}. "
+            "Use 'extension_of' or 'parser_id' to select one."
+        )
+    return matches[0] if matches else None
+
+
 def find_parser_by_name(falcon, module, name):
     """Find a parser by name via the substring filter, then exact match.
 
     The API stores a custom parser created as 'foo' with the name 'custom-foo',
     so both 'foo' and 'custom-foo' match. 'custom-foo' is tried first, unless
     the name already starts with 'custom-'.
+
+    The API stores an extension of the parser 'bar' as 'bar-foo'. With
+    extension_of, only an extension named 'bar-foo' or 'foo' matches. Without
+    it, an extension is found only if no other parser matches and the task
+    does not create a custom parser or a clone, because those are never
+    extensions.
     """
+    items = list_all_parsers(falcon, module, filter=f"name:~'{name}'")
+    by_name = {}
+    for item in items:
+        by_name.setdefault(item.get("Name"), item)
+
+    extension_of = module.params.get("extension_of")
+    if extension_of:
+        base_name = get_parser_name(falcon, module, extension_of)
+        candidates = [f"{base_name}-{name}", name] if base_name else [name]
+        for candidate in candidates:
+            item = by_name.get(candidate)
+            if item and item.get("parser_type") == EXTENSION_PARSER_TYPE:
+                return item
+        return None
+
     prefixed = CUSTOM_PARSER_PREFIX + name
     if name.startswith(CUSTOM_PARSER_PREFIX):
         candidates = [name, prefixed]
     else:
         candidates = [prefixed, name]
+    for candidate in candidates:
+        if candidate in by_name:
+            return by_name[candidate]
 
-    result = falcon.list_parsers(
-        repository=module.params["repository"],
-        filter=f"name:~'{name}'",
-        limit=100,
-    )
-    if result["status_code"] == 200 and result["body"].get("resources"):
-        by_name = {}
-        for item in result["body"]["resources"]:
-            by_name.setdefault(item.get("Name"), item)
-        for candidate in candidates:
-            if candidate in by_name:
-                return by_name[candidate]
-    return None
+    if module.params.get("parser_yaml") or module.params.get("clone_from"):
+        return None
+    return find_extension_by_name(falcon, module, name, items)
 
 
 def unversioned_id(parser_id):
@@ -303,18 +397,13 @@ def get_parser_by_id(falcon, module, parser_id):
     The list shows only the latest version of a parser, and each update makes
     a new version. Thus an ID with an earlier version also finds the parser.
     """
-    result = falcon.list_parsers(
-        repository=module.params["repository"],
-        limit=500,
-    )
-    if result["status_code"] == 200 and result["body"].get("resources"):
-        items = result["body"]["resources"]
-        for item in items:
-            if item.get("ID") == parser_id:
-                return item
-        for item in items:
-            if unversioned_id(item.get("ID") or "") == unversioned_id(parser_id):
-                return item
+    items = list_all_parsers(falcon, module)
+    for item in items:
+        if item.get("ID") == parser_id:
+            return item
+    for item in items:
+        if unversioned_id(item.get("ID") or "") == unversioned_id(parser_id):
+            return item
     return None
 
 

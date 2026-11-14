@@ -3,20 +3,20 @@
     "errors": [],
     "meta": {
       "pagination": {
-        "limit": 100,
+        "limit": 500,
         "offset": 0,
         "total": 1
       },
-      "query_time": 1.012522636
+      "query_time": 0.964353006
     },
     "resources": [
       {
-        "ID": "00000000000000000000000000000001:1.4.0",
+        "ID": "00000000000000000000000000000001:1.8.0",
         "Name": "custom-ansible-unit-fixture-parser",
         "built_by": "User",
-        "current_version": "1.4.0",
+        "current_version": "1.8.0",
         "impacted_connections": false,
-        "latest_version": "1.4.0",
+        "latest_version": "1.8.0",
         "parser_type": "custom",
         "pass_through_alerts": false,
         "product": [
@@ -25,7 +25,7 @@
         "rollback_available": true,
         "update_available": false,
         "vendor": "ansible",
-        "version": "1.4.0"
+        "version": "1.8.0"
       }
     ]
   },

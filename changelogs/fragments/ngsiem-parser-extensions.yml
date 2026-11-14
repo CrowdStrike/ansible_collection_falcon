@@ -1,0 +1,6 @@
+---
+bugfixes:
+  - ngsiem_parser - find an extension by the ``name`` it was created with. The API stores an extension as ``<base parser>-<name>``, so a second run with the same ``extension_of`` failed with ``404 parser not found``, and ``state=absent`` with the name did not delete the extension.
+  - ngsiem_parser - read all pages of the parser list. Before this fix, the module read only the first 500 parsers, so it did not find a parser that was not on the first page.
+minor_changes:
+  - ngsiem_parser_info - add ``extension`` to the choices of ``parser_type``.

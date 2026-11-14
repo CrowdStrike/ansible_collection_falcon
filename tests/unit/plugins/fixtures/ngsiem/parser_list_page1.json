@@ -1,0 +1,34 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 1,
+        "offset": 0,
+        "total": 2
+      },
+      "query_time": 0.819506292
+    },
+    "resources": [
+      {
+        "ID": "00000000000000000000000000000002:1.4.0",
+        "Name": "custom-ansible-unit-fixture-clone",
+        "built_by": "User",
+        "current_version": "1.4.0",
+        "impacted_connections": false,
+        "latest_version": "1.4.0",
+        "parser_type": "custom",
+        "pass_through_alerts": false,
+        "product": [
+          "ansible"
+        ],
+        "rollback_available": false,
+        "update_available": false,
+        "vendor": "ansible",
+        "version": "1.4.0"
+      }
+    ]
+  },
+  "method": "list_parsers",
+  "status_code": 200
+}
