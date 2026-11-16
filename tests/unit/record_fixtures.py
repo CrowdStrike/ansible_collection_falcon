@@ -486,9 +486,10 @@ def record_prevention_policy(rec, creds):
     The searches use the kwargs of the module: filter and sort only when set,
     offset=None and limit=5000. Each filter matches only the fixture policies.
     """
-    from falconpy import PreventionPolicy
+    from falconpy import HostGroup, PreventionPolicy
 
     falcon = PreventionPolicy(**creds)
+    groups = HostGroup(**creds)
     shared = "%s-shared" % PREFIX
     mixed = "%s-Mixed-Case" % PREFIX
     created_names = [(shared, "Linux"), (shared, "Windows"), (mixed, "Linux")]
@@ -515,6 +516,9 @@ def record_prevention_policy(rec, creds):
         left = fixture_policies()
         if left:
             sys.stderr.write("warning: %d prevention policy fixture(s) were not deleted\n" % len(left))
+        group_ids = [g["id"] for g in resources(groups.query_combined_host_groups(filter="name:*'%s-pp-*'" % PREFIX))]
+        if group_ids:
+            groups.delete_host_groups(ids=group_ids)
 
     def search(case, **kwargs):
         return rec.call(
@@ -600,6 +604,36 @@ def record_prevention_policy(rec, creds):
             action_name="disable", ids=[crud_id],
         )
         rec.call("get_disabled", "get_policies", get_policies, ids=[crud_id])
+
+        # prevention_policy host_groups: two new static groups, added to and removed from the crud policy.
+        group_ids = ["1" * 32, "2" * 32]
+        if not rec.dry_run:
+            group_ids = [
+                resources(groups.create_host_groups(name="%s-pp-%s" % (PREFIX, suffix), group_type="static"))[0]["id"]
+                for suffix in ("a", "b")
+            ]
+        rec.call("hg_get_found", "get_host_groups", groups.get_host_groups, ids=group_ids)
+        rec.call("hg_get_some_missing", "get_host_groups", groups.get_host_groups, ids=[group_ids[0], missing_id])
+        rec.call("hg_get_all_missing", "get_host_groups", groups.get_host_groups, ids=[missing_id])
+        rec.call("hg_get_bad_id", "get_host_groups", groups.get_host_groups, ids=["abcdefg"])
+        action = drop_long_setting_ids(falcon.perform_policies_action)
+        rec.call(
+            "add_groups", "perform_policies_action", action, action_name="add-host-group", ids=[crud_id],
+            action_parameters=[{"name": "group_id", "value": g} for g in group_ids],
+        )
+        rec.call("get_with_groups", "get_policies", get_policies, ids=[crud_id])
+        rec.call(
+            "remove_group", "perform_policies_action", action, action_name="remove-host-group", ids=[crud_id],
+            action_parameters=[{"name": "group_id", "value": group_ids[0]}],
+        )
+        rec.call(
+            "add_groups_missing_policy", "perform_policies_action", action, action_name="add-host-group",
+            ids=[missing_id], action_parameters=[{"name": "group_id", "value": group_ids[0]}],
+        )
+        rec.call(
+            "remove_groups_missing_policy", "perform_policies_action", action, action_name="remove-host-group",
+            ids=[missing_id], action_parameters=[{"name": "group_id", "value": group_ids[0]}],
+        )
         rec.call("delete", "delete_policies", falcon.delete_policies, ids=[crud_id])
     finally:
         cleanup()

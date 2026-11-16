@@ -21,8 +21,7 @@ description:
   - The same task creates the prevention policy when it is missing, updates it when
     it is different, and deletes it with I(state=absent).
   - The module finds a policy by I(policy_id), or by I(name) and I(platform_name).
-  - The module does not manage the prevention settings, the host groups or the
-    IOA rule groups of the policy.
+  - The module does not manage the prevention settings or the IOA rule groups of the policy.
 
 options:
   state:
@@ -71,6 +70,26 @@ options:
       - A new policy is disabled unless this is C(true).
       - When not set, the module does not change it.
     type: bool
+  host_groups:
+    description:
+      - The IDs of the host groups to assign the prevention policy to.
+      - The IDs are compared without regard to case. An ID that is in the list more than once
+        counts once.
+      - The module fails before any change when a host group to add does not exist.
+      - When not set, the module does not change the host groups of the policy.
+      - Ignored with I(state=absent).
+    type: list
+    elements: str
+  purge_host_groups:
+    description:
+      - If I(purge_host_groups=true) and I(host_groups) is set, the module removes the host groups
+        of the policy that are not in I(host_groups).
+      - If I(host_groups) is not set, the module does not change the host groups, even if
+        I(purge_host_groups=true).
+      - With I(host_groups=[]) and I(purge_host_groups=true), the module removes all the host groups
+        of the policy.
+    type: bool
+    default: false
 
 extends_documentation_fragment:
   - crowdstrike.falcon.credentials
@@ -88,12 +107,17 @@ attributes:
 seealso:
   - module: crowdstrike.falcon.prevention_policy_info
     description: Get information about Falcon prevention policies.
+  - module: crowdstrike.falcon.host_group
+    description: Manage Falcon host groups.
+  - module: crowdstrike.falcon.host_group_info
+    description: Get information about Falcon host groups.
   - name: Prevention Policy API reference
     description: The CrowdStrike API operations that this module uses.
     link: https://developer.crowdstrike.com/api-reference/collections/prevention-policy
 
 requirements:
   - Prevention policies [B(READ), B(WRITE)] API scope
+  - Host Groups [B(READ)] API scope, only when I(host_groups) adds host groups
 
 author:
   - Carlos Matos (@carlosmmatos)
@@ -118,6 +142,22 @@ EXAMPLES = r"""
     name: "Example prevention policy"
     platform_name: Windows
     enabled: false
+
+- name: Assign the policy to two host groups
+  crowdstrike.falcon.prevention_policy:
+    name: "Example prevention policy"
+    platform_name: Windows
+    host_groups:
+      - "abcdef1234567890abcdef1234567890"
+      - "1234567890abcdef1234567890abcdef"
+
+- name: Set the exact host groups of the policy and remove the others
+  crowdstrike.falcon.prevention_policy:
+    name: "Example prevention policy"
+    platform_name: Windows
+    host_groups:
+      - "abcdef1234567890abcdef1234567890"
+    purge_host_groups: true
 
 - name: Delete the policy by name and platform
   crowdstrike.falcon.prevention_policy:
@@ -383,7 +423,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils.falconpy_utils 
 
 FALCONPY_IMPORT_ERROR = None
 try:
-    from falconpy import PreventionPolicy
+    from falconpy import HostGroup, PreventionPolicy
 
     HAS_FALCONPY = True
 except ImportError:
@@ -408,6 +448,8 @@ PREVENTION_POLICY_ARGS = {
     },
     "description": {"type": "str", "required": False},
     "enabled": {"type": "bool", "required": False},
+    "host_groups": {"type": "list", "elements": "str", "required": False},
+    "purge_host_groups": {"type": "bool", "default": False},
 }
 
 
@@ -424,6 +466,8 @@ def validate_params(module):
     for key in ("name", "policy_id"):
         if module.params[key] is not None and not module.params[key]:
             module.fail_json(msg=f"Parameter '{key}' must not be empty")
+    if module.params["host_groups"] is not None and not all(module.params["host_groups"]):
+        module.fail_json(msg="Parameter 'host_groups' must not contain an empty ID")
 
 
 def escape_fql_value(value):
@@ -474,9 +518,73 @@ def find_by_name(falcon, module, result, name, platform_name):
     return matches[0] if matches else None
 
 
-def diff_view(policy):
+def wanted_group_ids(module):
+    """Return the set of wanted host group IDs, or None when host_groups is not set."""
+    if module.params["host_groups"] is None:
+        return None
+    # The API IDs are lower case, and the API ignores the upper-case form of an ID.
+    return {group_id.lower() for group_id in module.params["host_groups"]}
+
+
+def current_group_ids(policy):
+    """Return the set of host group IDs that the policy is assigned to."""
+    return {(group.get("id") or "").lower() for group in policy.get("groups") or []}
+
+
+def group_changes(module, policy):
+    """Return the sorted host group IDs to add and to remove."""
+    wanted = wanted_group_ids(module)
+    if wanted is None:
+        return [], []
+    current = current_group_ids(policy) if policy else set()
+    to_add = sorted(wanted - current)
+    to_remove = sorted(current - wanted) if module.params["purge_host_groups"] else []
+    return to_add, to_remove
+
+
+def check_host_groups(module, result, group_ids):
+    """Fail when a host group to add does not exist."""
+    if not group_ids:
+        return
+    host_group = authenticate(module, HostGroup)
+    api_result = host_group.get_host_groups(ids=group_ids)
+    if api_result["status_code"] == 200:
+        return
+    if api_result["status_code"] == 404:
+        # The API returns 404 with the found groups in resources (or null).
+        found = {
+            (group.get("id") or "").lower()
+            for group in api_result["body"].get("resources") or []
+        }
+        missing = sorted(set(group_ids) - found)
+        if missing:
+            module.fail_json(msg=f"Host groups not found: {', '.join(missing)}", **result)
+    check_status(module, result, api_result, "checking the host groups of")
+
+
+def change_groups(falcon, module, result, policy_id, changes):
+    """Remove, then add host groups of a policy, with one call for each action.
+
+    changes maps the action ("remove" or "add") to the sorted host group IDs.
+    """
+    for action in ("remove", "add"):
+        group_ids = changes.get(action)
+        if not group_ids:
+            continue
+        api_result = falcon.perform_policies_action(
+            action_name=f"{action}-host-group",
+            ids=[policy_id],
+            action_parameters=[{"name": "group_id", "value": group_id} for group_id in group_ids],
+        )
+        check_status(module, result, api_result, f"trying to {action} host groups of")
+
+
+def diff_view(module, policy, group_ids=None):
     """Return the fields of a policy that the diff shows."""
-    return {key: policy.get(key) for key in DIFF_FIELDS if key in policy}
+    view = {key: policy.get(key) for key in DIFF_FIELDS if key in policy}
+    if module.params["host_groups"] is not None and module.params["state"] == "present":
+        view["groups"] = sorted(current_group_ids(policy) if group_ids is None else group_ids)
+    return view
 
 
 def set_enabled(falcon, module, result, policy_id, enabled):
@@ -494,10 +602,16 @@ def create_policy(falcon, module, result):
         wanted["description"] = params["description"]
     # A new policy is disabled.
     after = dict(wanted, enabled=bool(params["enabled"]))
+    to_add = group_changes(module, None)[0]
+
+    # Check the host groups first, so a missing ID fails before the policy exists.
+    check_host_groups(module, result, to_add)
 
     result["changed"] = True
-    result["diff"] = {"before": {}, "after": after}
+    result["diff"] = {"before": {}, "after": diff_view(module, after, to_add)}
     if module.check_mode:
+        if params["host_groups"] is not None:
+            after["groups"] = [{"id": group_id} for group_id in to_add]
         result["prevention_policy"] = after
         return
 
@@ -507,6 +621,8 @@ def create_policy(falcon, module, result):
 
     if params["enabled"]:
         set_enabled(falcon, module, result, new_id, True)
+
+    change_groups(falcon, module, result, new_id, {"add": to_add})
 
     result["prevention_policy"] = get_by_id(falcon, module, result, new_id)
 
@@ -524,17 +640,23 @@ def update_policy(falcon, module, result, current):
     if params["enabled"] is not None and bool(current.get("enabled")) != params["enabled"]:
         new_enabled = params["enabled"]
 
-    if new_description is None and new_enabled is None:
+    to_add, to_remove = group_changes(module, current)
+
+    if new_description is None and new_enabled is None and not to_add and not to_remove:
         return
 
-    after = diff_view(current)
+    check_host_groups(module, result, to_add)
+
+    after = diff_view(module, current)
     if new_description is not None:
         after["description"] = new_description
     if new_enabled is not None:
         after["enabled"] = new_enabled
+    if "groups" in after:
+        after["groups"] = sorted((set(after["groups"]) - set(to_remove)) | set(to_add))
 
     result["changed"] = True
-    result["diff"] = {"before": diff_view(current), "after": after}
+    result["diff"] = {"before": diff_view(module, current), "after": after}
     if module.check_mode:
         return
 
@@ -548,6 +670,8 @@ def update_policy(falcon, module, result, current):
     if new_enabled is not None:
         set_enabled(falcon, module, result, current["id"], new_enabled)
 
+    change_groups(falcon, module, result, current["id"], {"remove": to_remove, "add": to_add})
+
     # Read again: the write responses can be incomplete.
     result["prevention_policy"] = get_by_id(falcon, module, result, current["id"])
 
@@ -558,7 +682,7 @@ def delete_policy(falcon, module, result, current):
         return
 
     result["changed"] = True
-    result["diff"] = {"before": diff_view(current), "after": {}}
+    result["diff"] = {"before": diff_view(module, current), "after": {}}
     if module.check_mode:
         return
 
