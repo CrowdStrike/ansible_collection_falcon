@@ -648,6 +648,8 @@ def record_prevention_policy(rec, creds):
             "remove_group", "perform_policies_action", action, action_name="remove-host-group", ids=[crud_id],
             action_parameters=[{"name": "group_id", "value": group_ids[0]}],
         )
+        # Only IDs that the calls above saw, so the fake IDs of the cases below do not move.
+        rec.call("get_after_remove", "get_policies", get_policies, ids=[crud_id])
         rec.call(
             "add_groups_missing_policy", "perform_policies_action", action, action_name="add-host-group",
             ids=[missing_id], action_parameters=[{"name": "group_id", "value": group_ids[0]}],

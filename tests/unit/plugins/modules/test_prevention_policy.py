@@ -516,7 +516,7 @@ def test_present_adds_host_groups_after_create(group_api, run_module):
 
 def test_purge_removes_only_current_members_not_wanted(group_api, run_module):
     policy, groups, built = group_api(
-        get_policies=["get_with_groups", "get_with_groups"],
+        get_policies=["get_with_groups", "get_after_remove"],
         perform_policies_action=["remove_group"],
     )
 
@@ -528,6 +528,8 @@ def test_purge_removes_only_current_members_not_wanted(group_api, run_module):
     assert result["changed"] is True
     assert result["diff"]["before"]["groups"] == [GROUP_1, GROUP_2]
     assert result["diff"]["after"]["groups"] == [GROUP_2]
+    # The module returns the policy that it read after the remove.
+    assert [g["id"] for g in result["prevention_policy"]["groups"]] == [GROUP_2]
     # Nothing to add, so the module does not build a HostGroup client.
     assert built == ["PreventionPolicy"]
     assert groups.calls == []
