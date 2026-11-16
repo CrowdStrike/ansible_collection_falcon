@@ -36,18 +36,30 @@ Each service is sanitized on its own, so a fake ID such as
 tests use these fake IDs, so check the tests of a service after you record it
 again.
 
+--only writes only the named cases and keeps the other files of the service.
+It still makes every call of the service, so the Sanitizer sees the real IDs
+in the same order and gives the same fake IDs. Before it writes, it compares
+the fake values of each case that it does not write with the file of that
+case. If one is different (the API returned the objects in another order,
+for example), it writes no files: then record the whole service.
+
 'uv run' reads the script metadata at the top of this file and installs
 FalconPy and python-dotenv in a temporary environment.
 
 Usage:
     uv run tests/unit/record_fixtures.py [--env-file PATH] [--dry-run] [SERVICE ...]
+    uv run tests/unit/record_fixtures.py [--env-file PATH] SERVICE --only CASE [CASE ...]
+    uv run tests/unit/record_fixtures.py [--env-file PATH] --only SERVICE:CASE [SERVICE:CASE ...]
     uv run tests/unit/record_fixtures.py --list
 
---cleanup deletes the fixture objects that an interrupted run left behind.
+--dry-run SERVICE lists the cases of a service. --cleanup deletes the fixture
+objects that an interrupted run left behind.
 """
 
 import argparse
+import contextlib
 import functools
+import io
 import ipaddress
 import json
 import os
@@ -106,6 +118,11 @@ URL_KEYS = {"ingest_url"}
 # Opaque pagination tokens. A scroll offset encodes a device ID.
 OPAQUE_KEYS = {"offset", "after", "next_token"}
 DROP_KEYS = {"trace_id", "powered_by"}
+# The values that the Sanitizer makes. --only compares them across runs.
+FAKE_VALUE_RE = re.compile(
+    r"0{24}\d{8}|00000000-0000-0000-0000-\d{12}|user\d+@example\.com|192\.0\.2\.\d+|2001:db8::[0-9a-f]+"
+    r"|00-00-5e-00-53-[0-9a-f]{2}|opaque-token-\d+|\b(?:host|tag|asset)\d+\b"
+)
 
 
 def is_fake_hex32(value):
@@ -231,6 +248,8 @@ class Recorder:
         self.wait = wait
         self.cleanup_only = cleanup_only
         self.files = {}
+        # The case names in call order, also in a dry run.
+        self.cases = []
 
     def save(self, case, method, response):
         """Sanitize a FalconPy response and keep it as fixtures/<service>/<case>.json."""
@@ -244,6 +263,7 @@ class Recorder:
 
     def call(self, case, method, func, **kwargs):
         """Call func(**kwargs), save the response as case, and return it."""
+        self.cases.append(case)
         if self.dry_run:
             print("  %s/%s <- %s(%s)" % (self.service, case, method, ", ".join(sorted(kwargs))))
             return {"status_code": 0, "body": {"resources": [], "errors": []}}
@@ -987,21 +1007,22 @@ def record_ngsiem(rec, creds):
             "connection_status_new", "get_provisioning_status", falcon.get_provisioning_status,
             ids=connection_id,
         )
-        token = rec.call(
-            "token_first", "command:ExternalGetDataConnectionToken", uber.command,
-            action="ExternalGetDataConnectionToken", ids=connection_id,
-        )
+
+        def get_token(case):
+            return rec.call(
+                case, "command:ExternalGetDataConnectionToken", uber.command,
+                action="ExternalGetDataConnectionToken", ids=connection_id,
+            )
+
+        token = get_token("token_first")
         deadline = time.time() + 180
         while not rec.dry_run and token.get("status_code") == 202 and time.time() < deadline:
             time.sleep(5)
-            token = rec.call(
-                "token_ready", "command:ExternalGetDataConnectionToken", uber.command,
-                action="ExternalGetDataConnectionToken", ids=connection_id,
-            )
-        rec.call(
-            "token_again", "command:ExternalGetDataConnectionToken", uber.command,
-            action="ExternalGetDataConnectionToken", ids=connection_id,
-        )
+            token = get_token("token_ready")
+        if rec.dry_run:
+            # The loop above does not run in a dry run. List its case, so that --only accepts it.
+            get_token("token_ready")
+        get_token("token_again")
         rec.call(
             "connection_update", "update_data_connection", falcon.update_data_connection,
             parameters={"ids": connection_id}, body=dict(body, parser="microsoft-edge"),
@@ -1010,7 +1031,7 @@ def record_ngsiem(rec, creds):
             "connection_status", "get_provisioning_status", falcon.get_provisioning_status,
             ids=connection_id,
         )
-        if (resources(status) or [{}])[0].get("status") in ("Active", "Error", "Idle"):
+        if rec.dry_run or (resources(status) or [{}])[0].get("status") in ("Active", "Error", "Idle"):
             rec.call(
                 "connection_pause", "update_connection_status", falcon.update_connection_status,
                 ids=connection_id, status="Pause",
@@ -1050,6 +1071,12 @@ def record_ngsiem(rec, creds):
             while not rec.dry_run and not (status.get("body") or {}).get("done") and time.time() < deadline:
                 time.sleep(5)
                 status = rec.call(
+                    case + "_done", "get_search_status", falcon.get_search_status,
+                    repository="search-all", search_id=job_id,
+                )
+            if rec.dry_run:
+                # The loop above does not run in a dry run. List its case, so that --only accepts it.
+                rec.call(
                     case + "_done", "get_search_status", falcon.get_search_status,
                     repository="search-all", search_id=job_id,
                 )
@@ -1173,9 +1200,10 @@ def record_discover(rec, creds):
         filter="hostname:'%s-missing'" % PREFIX, limit=2,
     )
     rec.call("query_bad_filter", "query_hosts", falcon.query_hosts, filter="hostname:'", limit=2)
-    if resources(page1):
+    # A dry run lists these cases too, so that --only accepts them.
+    if resources(page1) or rec.dry_run:
         rec.call("hosts_page1", "get_hosts", get_hosts, ids=resources(page1))
-    if resources(page2):
+    if resources(page2) or rec.dry_run:
         rec.call("hosts_page2", "get_hosts", get_hosts, ids=resources(page2))
 
 
@@ -1369,6 +1397,79 @@ def load_env(env_file):
     load_dotenv(dotenv_path=env_file, override=False)
 
 
+def parse_only(names, services):
+    """Return {service: set of cases} for the --only names, or raise ValueError.
+
+    A name is SERVICE:CASE, or only CASE when the command names one service.
+    The cases of each service come from a dry run, so a wrong name fails
+    before any API call.
+    """
+    selected = {}
+    for name in names:
+        service, _sep, case = name.rpartition(":")
+        if not service:
+            if len(services) != 1:
+                raise ValueError("--only %s: name one service, or use SERVICE:CASE" % name)
+            service = services[0]
+        if service not in SCENARIOS:
+            raise ValueError("--only %s: unknown service %s" % (name, service))
+        if services and service not in services:
+            raise ValueError("--only %s: %s is not one of the services to record" % (name, service))
+        selected.setdefault(service, set()).add(case)
+    unselected = [s for s in services if s not in selected]
+    if unselected:
+        raise ValueError("--only names no case of: %s" % ", ".join(unselected))
+    for service, cases in sorted(selected.items()):
+        rec = Recorder(service, Sanitizer(), dry_run=True)
+        with contextlib.redirect_stdout(io.StringIO()):
+            SCENARIOS[service](rec, {})
+        unknown = sorted(cases - set(rec.cases))
+        if unknown:
+            raise ValueError(
+                "--only: %s does not record %s. Run --dry-run %s to list its cases."
+                % (service, ", ".join(unknown), service)
+            )
+    return selected
+
+
+def fake_values(data):
+    """Return the fake values in data in document order, to compare two recordings of a case.
+
+    An object with a fake value also adds its name, so that two objects
+    that changed places in a list are found, also when the list is the
+    first place where the service saw their IDs.
+    """
+    if isinstance(data, dict):
+        found = [v for _k, value in sorted(data.items()) for v in fake_values(value)]
+        name = data.get("name") or data.get("Name")
+        if found and isinstance(name, str):
+            found.insert(0, "name=" + name)
+        return found
+    if isinstance(data, list):
+        return [v for value in data for v in fake_values(value)]
+    if isinstance(data, str):
+        return FAKE_VALUE_RE.findall(data)
+    return []
+
+
+def order_problems(rec, cases):
+    """Return the cases not in cases whose fake values differ from their fixture file.
+
+    The Sanitizer gives fake values in the order in which it sees the real
+    values. If a case that is not written now has other fake values than its
+    file, the order changed since the files were recorded, and the new files
+    would not agree with the old ones.
+    """
+    problems = []
+    for case, data in rec.files.items():
+        path = FIXTURES_DIR / rec.service / (case + ".json")
+        if case in cases or data is None or not path.is_file():
+            continue
+        if fake_values(data) != fake_values(json.loads(path.read_text())):
+            problems.append("%s/%s" % (rec.service, case))
+    return problems
+
+
 def main():
     """Parse arguments, run the requested scenarios, and write the fixtures."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
@@ -1384,6 +1485,11 @@ def main():
         "--cleanup", action="store_true",
         help="Only delete the fixture objects that an earlier run left behind.",
     )
+    parser.add_argument(
+        "--only", nargs="+", metavar="CASE",
+        help="Write only these cases (SERVICE:CASE, or CASE with one service). "
+        "Every call of the service still runs, so the fake IDs stay the same.",
+    )
     args = parser.parse_args()
 
     if args.list:
@@ -1395,6 +1501,18 @@ def main():
     if unknown:
         sys.stderr.write("error: unknown service(s): %s\n" % ", ".join(unknown))
         return 1
+
+    only = None
+    if args.only:
+        if args.cleanup:
+            sys.stderr.write("error: --only cannot be used with --cleanup\n")
+            return 1
+        try:
+            only = parse_only(args.only, args.services)
+        except ValueError as error:
+            sys.stderr.write("error: %s\n" % error)
+            return 1
+        services = args.services or sorted(only)
 
     creds = {}
     secrets = {}
@@ -1424,6 +1542,24 @@ def main():
 
     if args.dry_run or args.cleanup:
         return 0
+
+    if only:
+        problems = []
+        for rec in recorders:
+            # A case that depends on a live response (a paused connection,
+            # for example) is not always recorded.
+            missing = sorted(case for case in only[rec.service] if rec.files.get(case) is None)
+            problems += ["%s/%s was not recorded" % (rec.service, case) for case in missing]
+            problems += ["%s has other fake values than its file" % name for name in order_problems(rec, only[rec.service])]
+        if problems:
+            sys.stderr.write(
+                "error: --only cannot keep the other files of the service; no files written. "
+                "Record the whole service instead:\n"
+            )
+            sys.stderr.write("".join("  %s\n" % p for p in problems))
+            return 1
+        for rec in recorders:
+            rec.files = {case: data for case, data in rec.files.items() if case in only[rec.service]}
 
     # Check every file before any file is written.
     outputs = {}

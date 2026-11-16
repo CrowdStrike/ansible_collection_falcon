@@ -2,17 +2,17 @@
   "body": {
     "errors": [],
     "meta": {
-      "query_time": 0.060684169
+      "query_time": 0.009842391
     },
     "resources": [
       {
         "created_by": "api-client-id:fixture-client-2",
-        "created_timestamp": "2026-11-09T20:24:09.045928193Z",
+        "created_timestamp": "2026-11-16T16:37:59.064271606Z",
         "description": "Fixture group",
         "group_type": "static",
         "id": "00000000000000000000000000000001",
         "modified_by": "api-client-id:fixture-client-2",
-        "modified_timestamp": "2026-11-09T20:24:09.045928193Z",
+        "modified_timestamp": "2026-11-16T16:37:59.064271606Z",
         "name": "ansible-unit-fixture-a"
       }
     ]
