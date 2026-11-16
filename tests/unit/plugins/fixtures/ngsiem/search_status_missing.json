@@ -1,0 +1,13 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "message": "No query with id=P000-AnsibleUnitFixtureNoSuchSearch"
+      }
+    ],
+    "resources": []
+  },
+  "method": "get_search_status",
+  "status_code": 404
+}

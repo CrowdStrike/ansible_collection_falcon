@@ -69,7 +69,7 @@ options:
   timeout:
     description:
       - Maximum time in seconds to wait for query completion.
-      - Query will be canceled if it exceeds this timeout.
+      - When the timeout is reached, the module stops the search job and fails.
       - Set to 0 to disable timeout (use with caution for long-running queries).
     type: int
     default: 300
@@ -154,12 +154,17 @@ events:
     }
   ]
 cancelled:
-  description: Whether the query was cancelled before completion.
+  description:
+    - The value of C(cancelled) in the last search status.
+    - The API deletes a search job that is stopped, so a stopped job makes the module fail,
+      and this value is C(false) when the module succeeds.
   type: bool
   returned: always
   sample: false
 done:
-  description: Whether the query completed successfully.
+  description:
+    - Whether the search job completed.
+    - Always C(true) when the module succeeds.
   type: bool
   returned: always
   sample: true
@@ -279,6 +284,21 @@ def stop_search(falcon, module, job_id):
     )
 
 
+def fail_on_status_error(module, job_id, result):
+    """Fail with the API error of a search status call."""
+    # Status errors are in body.errors, not in resources as for start_search
+    errors = (result.get("body") or {}).get("errors") or []
+    message = "Unknown API error"
+    if errors and isinstance(errors[0], dict):
+        message = errors[0].get("message") or message
+    module.fail_json(
+        msg=f"Failed to get the status of search job {job_id} (HTTP {result['status_code']}): {message}",
+        query_job_id=job_id,
+        errors=errors,
+        api_error=result
+    )
+
+
 def wait_for_completion(falcon, module, job_id):
     """Wait for search job completion with polling."""
     timeout = module.params["timeout"]
@@ -303,19 +323,18 @@ def wait_for_completion(falcon, module, job_id):
         result = get_search_results(falcon, module, job_id)
 
         if result["status_code"] != 200:
+            fail_on_status_error(module, job_id, result)
+
+        # A cancelled job has no results to return, so fail before the done check
+        body = result["body"]
+        if body.get("cancelled", False):
             module.fail_json(
-                msg="Failed to get search status",
+                msg=f"Search job {job_id} was cancelled",
                 query_job_id=job_id,
-                api_error=result
+                cancelled=True
             )
 
-        # Check if job is complete
-        body = result["body"]
         if body.get("done", False):
-            return body
-
-        # Check if job was cancelled
-        if body.get("cancelled", False):
             return body
 
         # Wait before next poll
@@ -355,7 +374,7 @@ def main():
         query_result = start_search(falcon, module)
 
         if query_result["status_code"] != 200:
-            # Handle API errors from start_search
+            # FalconPy returns the start_search response under resources, not body
             if "resources" in query_result and "errors" in query_result["resources"]:
                 errors = query_result["resources"]["errors"]
                 if errors:
@@ -405,12 +424,6 @@ def main():
                 "total_events": len(search_results.get("events", [])),
                 "execution_time": time.time() - start_time,
             })
-
-            # If the job was cancelled or failed, indicate it in the result
-            if search_results.get("cancelled", False):
-                result["msg"] = "Search job was cancelled"
-            elif not search_results.get("done", False):
-                result["msg"] = "Search job did not complete successfully"
         else:
             result["msg"] = "Check mode - search job started but not executed"
 

@@ -1,0 +1,12 @@
+{
+  "body": {
+    "errors": [
+      {
+        "message": "No content was received for this request."
+      }
+    ],
+    "resources": []
+  },
+  "method": "stop_search",
+  "status_code": 200
+}
