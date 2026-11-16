@@ -50,6 +50,26 @@ def running(fixture):
     return response
 
 
+def cancelled(fixture):
+    """Return the recorded finished search as a search that was cancelled.
+
+    No live response had "cancelled": true. The API deletes a stopped job,
+    and its next status call returns an error (search_status_stopped), so
+    this copy of the same method sets the fields that the module reads.
+    """
+    response = copy.deepcopy(fixture("ngsiem/search_status"))
+    response.pop("method", None)
+    response["body"].update(cancelled=True, done=False, events=[])
+    return response
+
+
+def status_error_msg(fixture, case, job_id=JOB_ID):
+    """Return the module msg for a recorded status error."""
+    response = fixture("ngsiem/" + case)
+    message = response["body"]["errors"][0]["message"]
+    return f"Failed to get the status of search job {job_id} (HTTP {response['status_code']}): {message}"
+
+
 def test_search_returns_events(api, run_module):
     service = api(start_search=["search_start"], get_search_status=["search_status"])
 
@@ -59,6 +79,7 @@ def test_search_returns_events(api, run_module):
     assert service.called("get_search_status") == [{"repository": REPO, "search_id": JOB_ID}]
     assert result["query_job_id"] == JOB_ID
     assert result["done"] is True
+    assert result["cancelled"] is False
     assert result["total_events"] == 2
     assert [e["fixture"] for e in result["events"]] == ["a", "b"]
     assert "msg" not in result
@@ -88,8 +109,8 @@ def test_search_with_no_events(api, run_module):
 
 
 def test_search_timeout_stops_job_and_fails(api, run_module, fixture):
-    # No stop_search response is recorded, so the stop call raises. The
-    # module ignores errors from the stop call and fails with the timeout.
+    # current behavior: the module ignores an error of the stop call and
+    # fails with the timeout. Here the stop call raises.
     service = api(
         start_search=["search_start"],
         get_search_status=[running(fixture)],
@@ -102,6 +123,115 @@ def test_search_timeout_stops_job_and_fails(api, run_module, fixture):
     assert result["msg"] == "Query timed out after 15 seconds"
     assert result["query_job_id"] == JOB_ID
     assert service.called("stop_search") == [{"repository": REPO, "id": JOB_ID}]
+
+
+def test_search_timeout_stops_job_once(api, run_module, fixture, clock):
+    service = api(
+        start_search=["search_start"],
+        get_search_status=[running(fixture)],
+        stop_search=["search_stopped_stop"],
+    )
+
+    result = run_module(ngsiem_search, {"query_string": QUERY, "timeout": 15, "poll_interval": 10})
+
+    assert result["failed"] is True
+    assert result["msg"] == "Query timed out after 15 seconds"
+    assert result["query_job_id"] == JOB_ID
+    assert service.called("stop_search") == [{"repository": REPO, "id": JOB_ID}]
+    methods = [method for method, _kwargs in service.calls]
+    assert methods[-1] == "stop_search"
+    assert methods.count("stop_search") == 1
+
+
+@pytest.mark.parametrize(
+    "start, case",
+    [
+        # The recorded status is for a job ID that never existed, so its
+        # message names another ID than the job of search_start.
+        ("search_start", "search_status_missing"),
+        # The recorder started this job, stopped it, then read its status.
+        ("search_stopped_start", "search_status_stopped"),
+    ],
+    ids=["job-not-found", "job-stopped"],
+)
+def test_search_status_error_fails_with_api_error(api, run_module, fixture, clock, start, case):
+    service = api(start_search=[start], get_search_status=[case])
+    job_id = fixture("ngsiem/" + start)["resources"]["id"]
+
+    result = run_module(ngsiem_search, {"query_string": QUERY, "start": "1h"})
+
+    assert result["failed"] is True
+    assert result["msg"] == status_error_msg(fixture, case, job_id)
+    assert result["query_job_id"] == job_id
+    assert result["errors"] == fixture("ngsiem/" + case)["body"]["errors"]
+    assert result["api_error"]["status_code"] == fixture("ngsiem/" + case)["status_code"]
+    assert [method for method, _kwargs in service.calls] == ["start_search", "get_search_status"]
+    assert service.called("get_search_status") == [{"repository": REPO, "search_id": job_id}]
+    assert clock.sleeps == []
+
+
+def test_search_status_error_after_running_poll_fails(api, run_module, fixture, clock):
+    service = api(
+        start_search=["search_start"],
+        get_search_status=[running(fixture), "search_status_missing"],
+    )
+
+    result = run_module(ngsiem_search, {"query_string": QUERY})
+
+    assert result["failed"] is True
+    assert result["msg"] == status_error_msg(fixture, "search_status_missing")
+    assert result["errors"] == fixture("ngsiem/search_status_missing")["body"]["errors"]
+    assert [method for method, _kwargs in service.calls] == ["start_search", "get_search_status", "get_search_status"]
+    assert clock.sleeps == [10]
+
+
+def test_search_query_fails_while_running(api, run_module, fixture, clock):
+    service = api(
+        start_search=["search_lookup_missing_start"],
+        get_search_status=["search_status_lookup_missing"],
+    )
+    job_id = fixture("ngsiem/search_lookup_missing_start")["resources"]["id"]
+    errors = fixture("ngsiem/search_status_lookup_missing")["body"]["errors"]
+
+    result = run_module(ngsiem_search, {"query_string": QUERY})
+
+    assert result["failed"] is True
+    assert result["msg"] == f"Failed to get the status of search job {job_id} (HTTP 400): {errors[0]['message']}"
+    assert "Can't find" in result["msg"]
+    assert result["query_job_id"] == job_id
+    assert result["errors"] == errors
+    assert service.called("get_search_status") == [{"repository": REPO, "search_id": job_id}]
+    assert "stop_search" not in [method for method, _kwargs in service.calls]
+    assert clock.sleeps == []
+
+
+def test_search_cancelled_job_fails(api, run_module, fixture, clock):
+    service = api(start_search=["search_start"], get_search_status=[cancelled(fixture)])
+
+    result = run_module(ngsiem_search, {"query_string": QUERY, "start": "1h"})
+
+    assert result["failed"] is True
+    assert result["msg"] == f"Search job {JOB_ID} was cancelled"
+    assert result["cancelled"] is True
+    assert result["query_job_id"] == JOB_ID
+    assert [method for method, _kwargs in service.calls] == ["start_search", "get_search_status"]
+    assert service.called("get_search_status") == [{"repository": REPO, "search_id": JOB_ID}]
+    assert clock.sleeps == []
+
+
+def test_search_cancelled_after_running_poll_fails(api, run_module, fixture, clock):
+    # The last response repeats, so a module that kept polling would make a third status call.
+    service = api(
+        start_search=["search_start"],
+        get_search_status=[running(fixture), cancelled(fixture)],
+    )
+
+    result = run_module(ngsiem_search, {"query_string": QUERY, "poll_interval": 5})
+
+    assert result["failed"] is True
+    assert result["msg"] == f"Search job {JOB_ID} was cancelled"
+    assert [method for method, _kwargs in service.calls] == ["start_search", "get_search_status", "get_search_status"]
+    assert clock.sleeps == [5]
 
 
 def test_bad_query_fails_with_api_message(api, run_module):

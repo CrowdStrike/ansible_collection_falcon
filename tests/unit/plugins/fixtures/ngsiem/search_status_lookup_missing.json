@@ -1,0 +1,13 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "Can't find \"ansible-unit-fixture-no-such-file.csv\". Verify the file name is correct and try again.\n```\n 1: createEvents([\"fixture=a\"]) | kvParse() | match(file=\"ansible-unit-fixture-no-such-file.csv\", field=fixture)\n                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n```"
+      }
+    ],
+    "resources": []
+  },
+  "method": "get_search_status",
+  "status_code": 400
+}

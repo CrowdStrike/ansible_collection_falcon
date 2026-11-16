@@ -1120,6 +1120,62 @@ def record_ngsiem(rec, creds):
         rec.call(
             "parser_delete_extension", "delete_parser", falcon.delete_parser, ids=ext_id, repository=repo,
         )
+
+        # Search status errors. These calls come after the extensions, so
+        # that the fake IDs of the calls above do not change.
+        rec.call(
+            "search_status_missing", "get_search_status", falcon.get_search_status,
+            repository="search-all", search_id="P000-AnsibleUnitFixtureNoSuchSearch",
+        )
+        # The API deletes a job that is stopped, so the next status call is an
+        # error and never returns "cancelled": true.
+        no_event_query = "#event_simpleName=AnsibleUnitFixtureNoSuchEvent | head(1)"
+        started = rec.call(
+            "search_stopped_start", "start_search", falcon.start_search,
+            repository="search-all", query_string=no_event_query, start="1h",
+        )
+        stopped_id = (started.get("resources") or {}).get("id", "0")
+        try:
+            rec.call(
+                "search_stopped_stop", "stop_search", falcon.stop_search,
+                repository="search-all", id=stopped_id,
+            )
+            rec.call(
+                "search_status_stopped", "get_search_status", falcon.get_search_status,
+                repository="search-all", search_id=stopped_id,
+            )
+        finally:
+            if not rec.dry_run:
+                # A second stop of a job that is gone returns 404.
+                falcon.stop_search(repository="search-all", id=stopped_id)
+        # A query that starts and then fails while it runs: the lookup file does not exist.
+        started = rec.call(
+            "search_lookup_missing_start", "start_search", falcon.start_search,
+            repository="search-all", start="1h",
+            query_string=(
+                'createEvents(["fixture=a"]) | kvParse() '
+                '| match(file="ansible-unit-fixture-no-such-file.csv", field=fixture)'
+            ),
+        )
+        lookup_id = (started.get("resources") or {}).get("id", "0")
+        try:
+            status = rec.call(
+                "search_status_lookup_missing", "get_search_status", falcon.get_search_status,
+                repository="search-all", search_id=lookup_id,
+            )
+            deadline = time.time() + 30
+            while (
+                not rec.dry_run and status.get("status_code") == 200
+                and not (status.get("body") or {}).get("done") and time.time() < deadline
+            ):
+                time.sleep(2)
+                status = rec.call(
+                    "search_status_lookup_missing", "get_search_status", falcon.get_search_status,
+                    repository="search-all", search_id=lookup_id,
+                )
+        finally:
+            if not rec.dry_run:
+                falcon.stop_search(repository="search-all", id=lookup_id)
     finally:
         cleanup()
 

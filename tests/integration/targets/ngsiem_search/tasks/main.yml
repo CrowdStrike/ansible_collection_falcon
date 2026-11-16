@@ -39,6 +39,7 @@
           - ns_search is not changed
           - ns_search.done
           - not ns_search.cancelled
+          - ns_search.msg is not defined
           - ns_search.query_job_id | length > 0
           - ns_search.total_events == 2
           - ns_search.events | map(attribute='ansible_int') | sort == ['a', 'b']
@@ -90,5 +91,28 @@
       ansible.builtin.assert:
         that:
           - ns_bad is failed
-          - ns_bad.msg | length > 0
-        fail_msg: "A query that is not valid should fail"
+          - "'Expected an expression' in ns_bad.msg"
+        fail_msg: "A query that is not valid should fail with the API message"
+
+    # The API starts this job, and the status call fails with 400 because
+    # the lookup file does not exist.
+    - name: "ERROR | Search with a query that fails while it runs"
+      crowdstrike.falcon.ngsiem_search:
+        query_string: '{{ ns_events }} | match(file="ansible-int-no-such-file.csv", field=ansible_int)'
+        start: "1h"
+        poll_interval: 5
+        timeout: 60
+      register: ns_run_error
+      ignore_errors: true
+
+    - name: "ERROR | Verify the run time error fails with the status message"
+      ansible.builtin.assert:
+        that:
+          - ns_run_error is failed
+          - ns_run_error.msg is match('Failed to get the status of search job ')
+          - "'(HTTP 400)' in ns_run_error.msg"
+          - "'ansible-int-no-such-file.csv' in ns_run_error.msg"
+          - ns_run_error.query_job_id | length > 0
+          - ns_run_error.query_job_id in ns_run_error.msg
+          - ns_run_error.errors | length > 0
+        fail_msg: "A query that fails while it runs should fail with the status error"

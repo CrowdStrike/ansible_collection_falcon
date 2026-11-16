@@ -1,0 +1,5 @@
+---
+bugfixes:
+  - ngsiem_search - when the search status call fails, fail with the job ID, the HTTP status code and the error message of the API, for example ``No query with id=<id>`` for a search job that the API deleted, or the error of a query that fails while it runs. The module also returns the API errors in ``errors``. Before this fix, the module failed with only ``Failed to get search status``.
+  - ngsiem_search - fail with ``Search job <id> was cancelled`` when the search status has ``cancelled`` set to true. The API deletes a stopped search job, so the status call for a stopped job fails with the error described above. Before this fix, the module returned success with the message ``Search job was cancelled``.
+  - ngsiem_search - document the ``cancelled`` and ``done`` return values as they work. ``cancelled`` is ``false`` and ``done`` is ``true`` when the module succeeds, and the return keys did not change. The ``timeout`` option now says that the module stops the search job and fails when the timeout is reached.

@@ -1,0 +1,13 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "No query with id=P212-g1noZmHi7VGqFLYIiH8EmcHc"
+      }
+    ],
+    "resources": []
+  },
+  "method": "get_search_status",
+  "status_code": 400
+}

@@ -339,8 +339,9 @@ def _no_env_credentials(monkeypatch):
 - An error fixture MUST come from the same method that the test calls.
 - Sometimes the tenant cannot give the response that a test needs, for
   example a success for an action on a real host, a Flight Control parent
-  response, or a search that is still running or was stopped (the API deletes
-  a stopped search job, so its status call returns 400). Then copy a recorded
+  response, or a search that is still running or was cancelled (the API
+  deletes a stopped search job, so its status call returns 400 and then 404,
+  never `"cancelled": true`). Then copy a recorded
   response in the test with `copy.deepcopy`, change only what you need, and
   say in a docstring why the recorder cannot record it. See
   `action_response()` in `test_host_hide.py`, `page()` in
