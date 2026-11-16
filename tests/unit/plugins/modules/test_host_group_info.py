@@ -59,6 +59,30 @@ def test_second_page(api, run_module):
     assert result["meta"]["pagination"]["total"] == 3
 
 
+def test_descending_sort_with_largest_page(api, run_module):
+    service = api(query_combined_host_groups=["query_sort_desc"])
+
+    result = run_module(host_group_info, {"sort": "name.desc", "limit": 500})
+
+    assert service.called("query_combined_host_groups") == [{"sort": "name.desc", "limit": 500, "offset": 0}]
+    assert [g["name"] for g in result["host_groups"]] == [
+        "ansible-unit-fixture-c",
+        "ansible-unit-fixture-b",
+        "ansible-unit-fixture-a",
+    ]
+    assert result["meta"]["pagination"] == {"offset": 0, "limit": 500, "total": 3}
+
+
+@pytest.mark.parametrize("sort", host_group_info.SORT_CHOICES)
+def test_every_sort_choice_is_passed_to_the_api(api, run_module, sort):
+    service = api(query_combined_host_groups=["query_page1"])
+
+    result = run_module(host_group_info, {"sort": sort})
+
+    assert not result.get("failed"), result.get("msg")
+    assert service.called("query_combined_host_groups") == [{"sort": sort, "limit": 100, "offset": 0}]
+
+
 def test_empty_result(api, run_module):
     # A search with no match returns resources: null.
     api(query_combined_host_groups=["query_by_name_missing"])
@@ -99,11 +123,19 @@ def test_api_error_fails_with_message(api, run_module):
     "args, message",
     [
         ({"host_groups": [GROUP_ID], "filter": "x"}, "mutually exclusive"),
-        ({"limit": 0}, "between 1 and 5000"),
-        ({"limit": 5001}, "between 1 and 5000"),
+        ({"limit": 0}, "between 1 and 500"),
+        ({"limit": 501}, "between 1 and 500"),
         ({"offset": -1}, "0 or greater"),
+        # The API returns 400 for each of these sort values.
+        ({"sort": "-created_timestamp"}, "value of sort must be one of"),
+        ({"sort": "name"}, "value of sort must be one of"),
+        ({"sort": "name.ASC"}, "value of sort must be one of"),
+        ({"sort": "description.asc"}, "value of sort must be one of"),
     ],
-    ids=["ids-and-filter", "limit-0", "limit-5001", "negative-offset"],
+    ids=[
+        "ids-and-filter", "limit-0", "limit-501", "negative-offset",
+        "sort-dash-prefix", "sort-no-direction", "sort-uppercase-direction", "sort-unsupported-property",
+    ],
 )
 def test_invalid_arguments_fail(api, run_module, args, message):
     service = api()
