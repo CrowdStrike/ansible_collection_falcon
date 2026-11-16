@@ -299,6 +299,71 @@
         fail_msg: "Extension creation failed"
       when: ootb_parsers.parsers | length > 0
 
+    # A second create_parser_extension with the same name returns 404
+    # 'parser not found', so the module must find the extension
+    - name: "EXT | Re-run the extension create"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_ext_name }}"
+        extension_of: "{{ ootb_parsers.parsers[0].id | regex_replace(':.*$', '') }}"
+      register: ext_again
+      when: ootb_parsers.parsers | length > 0
+
+    - name: "EXT | Verify the extension was not created again"
+      ansible.builtin.assert:
+        that:
+          - ext_again is not changed
+          - ext_again.parser.id == ext_result.parser.id
+        fail_msg: "Re-running the extension create must find the extension"
+      when: ootb_parsers.parsers | length > 0
+
+    - name: "EXT | Find the extension by type"
+      crowdstrike.falcon.ngsiem_parser_info:
+        name: "{{ test_ext_name }}"
+        parser_type: extension
+        definitions: false
+      register: ext_info
+      when: ootb_parsers.parsers | length > 0
+
+    - name: "EXT | Verify the type filter found the extension"
+      ansible.builtin.assert:
+        that:
+          - ext_info.parsers | map(attribute='id') | list == [ext_result.parser.id]
+          - ext_info.parsers[0].parser_type == 'extension'
+        fail_msg: "parser_type=extension did not find the extension"
+      when: ootb_parsers.parsers | length > 0
+
+    - name: "EXT | Delete the extension in check mode by the name it was created with"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_ext_name }}"
+        state: absent
+      check_mode: true
+      register: ext_check_delete
+      when: ootb_parsers.parsers | length > 0
+
+    - name: "EXT | Delete the extension by the name it was created with"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_ext_name }}"
+        state: absent
+      register: ext_delete
+      when: ootb_parsers.parsers | length > 0
+
+    - name: "EXT | Delete the extension again"
+      crowdstrike.falcon.ngsiem_parser:
+        name: "{{ test_ext_name }}"
+        extension_of: "{{ ootb_parsers.parsers[0].id | regex_replace(':.*$', '') }}"
+        state: absent
+      register: ext_delete_again
+      when: ootb_parsers.parsers | length > 0
+
+    - name: "EXT | Verify the extension was deleted"
+      ansible.builtin.assert:
+        that:
+          - ext_check_delete is changed
+          - ext_delete is changed
+          - ext_delete_again is not changed
+        fail_msg: "Deleting the extension by name failed or was not idempotent"
+      when: ootb_parsers.parsers | length > 0
+
     # =====================================================================
     # Phase 7: AUTH TOKEN PASSTHROUGH
     # =====================================================================

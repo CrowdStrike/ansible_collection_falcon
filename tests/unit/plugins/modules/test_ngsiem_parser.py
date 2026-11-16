@@ -16,13 +16,18 @@ NAME = "ansible-unit-fixture-parser"
 # The API adds 'custom-' to the names of custom parsers.
 STORED_NAME = "custom-" + NAME
 UNVERSIONED_ID = "00000000000000000000000000000001"
-PARSER_ID = UNVERSIONED_ID + ":1.3.0"
+PARSER_ID = UNVERSIONED_ID + ":1.7.0"
 # The ID of the new version that update_parser_from_template makes.
-UPDATED_ID = UNVERSIONED_ID + ":1.4.0"
+UPDATED_ID = UNVERSIONED_ID + ":1.8.0"
 OTHER_ID = "00000000000000000000000000000005:1.0.0"
 CLONE_NAME = "ansible-unit-fixture-clone"
-CLONE_ID = "00000000000000000000000000000002:1.2.0"
-EXTENSION_ID = "00000000000000000000000000000003:1.1.0"
+CLONE_UNVERSIONED_ID = "00000000000000000000000000000002"
+CLONE_ID = CLONE_UNVERSIONED_ID + ":1.4.0"
+EXTENSION_ID = "00000000000000000000000000000003:1.3.0"
+EXT_NAME = "ansible-unit-fixture-ext"
+BASE_ID = "00000000000000000000000000000008"
+# The API names an extension '<base parser>-<name>'.
+STORED_EXT_NAME = "microsoft-edge-" + EXT_NAME
 
 # The template that tests/unit/record_fixtures.py used to create the parser.
 YAML = """$schema: https://schemas.humio.com/parser/v0.3.0
@@ -86,7 +91,7 @@ def test_present_creates_missing_parser(api, run_module):
     assert result["parser"]["id"] == PARSER_ID
     assert result["parser"]["name"] == STORED_NAME
     assert service.called("list_parsers") == [
-        {"repository": REPO, "filter": "name:~'%s'" % NAME, "limit": 100}
+        {"repository": REPO, "filter": "name:~'%s'" % NAME, "limit": 500, "offset": 0}
     ]
     assert service.called("create_parser_from_template") == [
         {"repository": REPO, "name": NAME, "yaml_template": CREATED_YAML}
@@ -223,31 +228,180 @@ def test_extension_creates_parser(api, run_module):
     service = api(
         list_parsers=["parser_list_missing"],
         create_parser_extension=["parser_extension"],
-        # A 404, so the module returns only the ID of the extension.
-        get_parser=["parser_get_missing"],
+        # The base parser, then a 404, so the module returns only the ID of
+        # the extension.
+        get_parser=["parser_get_base", "parser_get_missing"],
     )
 
-    result = run_module(ngsiem_parser, {"name": "ansible-unit-fixture-ext", "extension_of": "microsoft-edge"})
+    result = run_module(ngsiem_parser, {"name": EXT_NAME, "extension_of": BASE_ID})
 
     assert result["changed"] is True
     assert result["parser"] == {"id": EXTENSION_ID}
     assert service.called("create_parser_extension") == [
-        {"base_parser_id": "microsoft-edge", "extension_name": "ansible-unit-fixture-ext"}
+        {"base_parser_id": BASE_ID, "extension_name": EXT_NAME}
     ]
 
 
 def test_extension_of_versioned_base_fails_with_api_message(api, run_module):
     api(
         list_parsers=["parser_list_missing"],
+        get_parser=["parser_get_base"],
         create_parser_extension=["parser_extension_versioned_base"],
     )
 
-    result = run_module(
-        ngsiem_parser, {"name": "ansible-unit-fixture-ext", "extension_of": "microsoft-edge:1.0.0"}
-    )
+    result = run_module(ngsiem_parser, {"name": EXT_NAME, "extension_of": BASE_ID + ":1.0.0"})
 
     assert result["failed"] is True
     assert result["msg"].startswith("base_parser_id cannot contain version identifiers")
+
+
+@pytest.mark.parametrize("name", [EXT_NAME, STORED_EXT_NAME], ids=["created-name", "stored-name"])
+def test_extension_that_exists_is_not_created_again(api, run_module, name):
+    # A second create_parser_extension with the same name returns 404
+    # 'parser not found', so the module must find the extension.
+    service = api(
+        list_parsers=["parser_list_extension"],
+        get_parser=["parser_get_base", "parser_get_extension"],
+    )
+
+    result = run_module(ngsiem_parser, {"name": name, "extension_of": BASE_ID})
+
+    assert result["changed"] is False
+    assert "create_parser_extension" not in methods(service)
+    assert result["parser"]["id"] == EXTENSION_ID
+    assert result["parser"]["name"] == STORED_EXT_NAME
+    assert service.called("get_parser") == [
+        {"ids": BASE_ID, "repository": REPO},
+        {"ids": EXTENSION_ID, "repository": REPO},
+    ]
+
+
+def test_extension_of_another_base_is_created(api, run_module):
+    # The base parser has another name, so the extension that exists is not
+    # a match.
+    service = api(
+        list_parsers=["parser_list_extension"],
+        get_parser=["parser_get_clone", "parser_get_missing"],
+        create_parser_extension=["parser_extension"],
+    )
+
+    result = run_module(ngsiem_parser, {"name": EXT_NAME, "extension_of": CLONE_UNVERSIONED_ID})
+
+    assert result["changed"] is True
+    assert service.called("create_parser_extension") == [
+        {"base_parser_id": CLONE_UNVERSIONED_ID, "extension_name": EXT_NAME}
+    ]
+
+
+def test_absent_deletes_extension_by_created_name(api, run_module):
+    service = api(
+        list_parsers=["parser_list_extension", "parser_list_base"],
+        delete_parser=["parser_delete_extension"],
+    )
+
+    result = run_module(ngsiem_parser, {"name": EXT_NAME, "state": "absent"})
+
+    assert result["changed"] is True
+    assert service.called("delete_parser") == [{"ids": EXTENSION_ID, "repository": REPO}]
+    # The second search checks that 'microsoft-edge' is a base parser.
+    assert service.called("list_parsers")[1] == {
+        "repository": REPO, "filter": "name:~'microsoft-edge'", "limit": 500, "offset": 0,
+    }
+
+
+def test_absent_deletes_extension_with_extension_of(api, run_module):
+    service = api(
+        list_parsers=["parser_list_extension"],
+        get_parser=["parser_get_base"],
+        delete_parser=["parser_delete_extension"],
+    )
+
+    result = run_module(ngsiem_parser, {"name": EXT_NAME, "extension_of": BASE_ID, "state": "absent"})
+
+    assert result["changed"] is True
+    assert service.called("delete_parser") == [{"ids": EXTENSION_ID, "repository": REPO}]
+
+
+def test_absent_suffix_of_extension_name_is_not_a_match(api, run_module):
+    # 'fixture-ext' is also a suffix of the extension name, but there is no
+    # base parser named 'microsoft-edge-ansible-unit'.
+    service = api(list_parsers=["parser_list_extension", "parser_list_missing"])
+
+    result = run_module(ngsiem_parser, {"name": "fixture-ext", "state": "absent"})
+
+    assert result["changed"] is False
+    assert "delete_parser" not in methods(service)
+
+
+def test_absent_two_extensions_with_the_name_fails(falcon_api, fixture, run_module):
+    # Not recorded: the recorded extension, and the same extension of a
+    # second base parser.
+    listed = fixture("ngsiem/parser_list_extension")
+    ext = listed["body"]["resources"][0]
+    other = dict(ext, ID=OTHER_ID, Name="watchguard-firebox-" + EXT_NAME)
+    listed["body"]["resources"] = [ext, other]
+    bases = fixture("ngsiem/parser_list_base")
+    other_bases = fixture("ngsiem/parser_list_base")
+    other_bases["body"]["resources"][0]["Name"] = "watchguard-firebox"
+    service = falcon_api(ngsiem_parser, {"list_parsers": [listed, bases, other_bases]})
+
+    result = run_module(ngsiem_parser, {"name": EXT_NAME, "state": "absent"})
+
+    assert result["failed"] is True
+    assert "More than one extension is named '%s'" % EXT_NAME in result["msg"]
+    assert "delete_parser" not in methods(service)
+
+
+def test_custom_parser_name_does_not_find_extension(api, run_module):
+    # parser_yaml makes a custom parser, which is never an extension.
+    service = api(
+        list_parsers=["parser_list_extension"],
+        create_parser_from_template=["parser_create"],
+        get_parser=["parser_get"],
+    )
+
+    result = run_module(
+        ngsiem_parser, {"name": EXT_NAME, "parser_yaml": YAML.format(name=EXT_NAME, dataset="fixture")}
+    )
+
+    assert result["changed"] is True
+    assert service.called("list_parsers") == [
+        {"repository": REPO, "filter": "name:~'%s'" % EXT_NAME, "limit": 500, "offset": 0}
+    ]
+
+
+def test_list_reads_all_pages(falcon_api, fixture, run_module, monkeypatch):
+    # Pages of one parser: the clone, then the extension.
+    monkeypatch.setattr(ngsiem_parser, "LIST_PAGE_SIZE", 1)
+    service = falcon_api(
+        ngsiem_parser,
+        {
+            "list_parsers": [fixture("ngsiem/parser_list_page1"), fixture("ngsiem/parser_list_page2")],
+            "get_parser": [fixture("ngsiem/parser_get_extension")],
+        },
+    )
+
+    result = run_module(ngsiem_parser, {"parser_id": EXTENSION_ID})
+
+    assert result["parser"]["id"] == EXTENSION_ID
+    assert service.called("list_parsers") == [
+        {"repository": REPO, "limit": 1, "offset": 0},
+        {"repository": REPO, "limit": 1, "offset": 1},
+    ]
+
+
+def test_list_stops_at_the_total(falcon_api, fixture, run_module, monkeypatch):
+    # The second page is full, but the total says that it is the last one.
+    monkeypatch.setattr(ngsiem_parser, "LIST_PAGE_SIZE", 1)
+    service = falcon_api(
+        ngsiem_parser,
+        {"list_parsers": [fixture("ngsiem/parser_list_page1"), fixture("ngsiem/parser_list_page2")]},
+    )
+
+    result = run_module(ngsiem_parser, {"parser_id": OTHER_ID})
+
+    assert result["failed"] is True
+    assert len(service.called("list_parsers")) == 2
 
 
 def test_present_by_parser_id_returns_parser(api, run_module):
@@ -258,7 +412,7 @@ def test_present_by_parser_id_returns_parser(api, run_module):
     assert result["changed"] is False
     assert result["parser"]["name"] == STORED_NAME
     # A lookup by ID lists the parsers without a filter.
-    assert service.called("list_parsers") == [{"repository": REPO, "limit": 500}]
+    assert service.called("list_parsers") == [{"repository": REPO, "limit": 500, "offset": 0}]
 
 
 @pytest.mark.parametrize(

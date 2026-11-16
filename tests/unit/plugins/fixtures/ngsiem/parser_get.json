@@ -2,7 +2,7 @@
   "body": {
     "errors": [],
     "meta": {
-      "query_time": 0.011764228
+      "query_time": 0.010309852
     },
     "resources": [
       {
@@ -19,7 +19,7 @@
           "event.outcome",
           "observer.type"
         ],
-        "id": "00000000000000000000000000000001:1.3.0",
+        "id": "00000000000000000000000000000001:1.7.0",
         "is_built_in": false,
         "name": "custom-ansible-unit-fixture-parser",
         "script": "parseJson()\n| Cps.version := \"1.0.0\"\n| Vendor := \"ansible\"\n| ecs.version := \"9.0.0\"\n| event.dataset := \"ansible.fixture\"\n| event.kind := \"event\"\n| event.module := \"ansible\"\n| event.outcome := \"success\"\n| observer.type := \"test\""

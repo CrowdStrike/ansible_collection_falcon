@@ -2,7 +2,7 @@
   "body": {
     "errors": [],
     "meta": {
-      "query_time": 0.012269765
+      "query_time": 0.013250879
     },
     "resources": [
       {
@@ -19,7 +19,7 @@
           "event.outcome",
           "observer.type"
         ],
-        "id": "00000000000000000000000000000002:1.2.0",
+        "id": "00000000000000000000000000000002:1.4.0",
         "is_built_in": false,
         "name": "custom-ansible-unit-fixture-clone",
         "script": "parseJson()\n| Cps.version := \"1.0.0\"\n| Vendor := \"ansible\"\n| ecs.version := \"9.0.0\"\n| event.dataset := \"ansible.fixture.updated\"\n| event.kind := \"event\"\n| event.module := \"ansible\"\n| event.outcome := \"success\"\n| observer.type := \"test\""

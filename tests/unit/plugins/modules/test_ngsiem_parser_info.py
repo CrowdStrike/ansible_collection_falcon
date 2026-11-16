@@ -12,8 +12,8 @@ import pytest
 from ansible_collections.crowdstrike.falcon.plugins.modules import ngsiem_parser_info
 
 REPO = "parsers-repository"
-PARSER_ID = "00000000000000000000000000000001:1.4.0"
-CLONE_ID = "00000000000000000000000000000002:1.2.0"
+PARSER_ID = "00000000000000000000000000000001:1.8.0"
+CLONE_ID = "00000000000000000000000000000002:1.4.0"
 
 
 @pytest.fixture
@@ -88,6 +88,21 @@ def test_missing_definition_keeps_summary(api, run_module):
     result = run_module(ngsiem_parser_info, {"parser_ids": [PARSER_ID]})
 
     assert result["parsers"] == [{"id": PARSER_ID}]
+
+
+def test_parser_type_extension(api, run_module):
+    service = api(list_parsers=["parser_info_extension"])
+
+    result = run_module(
+        ngsiem_parser_info,
+        {"name": "ansible-unit-fixture", "parser_type": "extension", "definitions": False},
+    )
+
+    assert service.called("list_parsers")[0]["parser_type"] == "extension"
+    # The API names an extension '<base parser>-<name>'.
+    assert [(p["name"], p["parser_type"]) for p in result["parsers"]] == [
+        ("microsoft-edge-ansible-unit-fixture-ext", "extension")
+    ]
 
 
 def test_update_available_is_sent_as_lowercase_string(api, run_module):

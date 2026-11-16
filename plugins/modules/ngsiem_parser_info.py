@@ -20,8 +20,9 @@ description:
   - Returns detailed information for one or more NG-SIEM parsers in the
     CrowdStrike Falcon platform.
   - Parsers transform raw log data into normalized events for Next-Gen SIEM.
-    They come in two types - built-in B(ootb) (out-of-the-box) parsers shipped
-    by CrowdStrike, and B(custom) parsers created in your tenant.
+    They come in three types - built-in B(ootb) (out-of-the-box) parsers
+    shipped by CrowdStrike, B(custom) parsers created in your tenant, and
+    B(extension) parsers that extend a built-in parser.
   - By default the full parser definition (including the C(script),
     C(fields_to_tag), and C(test_cases)) is returned for each parser. Set
     I(definitions=false) to return only the lightweight list metadata.
@@ -50,8 +51,10 @@ options:
       - Filter parsers by type.
       - C(ootb) returns only built-in (out-of-the-box) parsers.
       - C(custom) returns only custom parsers created in your tenant.
+      - C(extension) returns only extensions of built-in parsers. The API names
+        an extension C(<base parser>-<name>).
     type: str
-    choices: ["ootb", "custom"]
+    choices: ["ootb", "custom", "extension"]
     required: false
   update_available:
     description:
@@ -110,6 +113,10 @@ EXAMPLES = r"""
   crowdstrike.falcon.ngsiem_parser_info:
     parser_type: custom
 
+- name: Get only extensions of built-in parsers
+  crowdstrike.falcon.ngsiem_parser_info:
+    parser_type: extension
+
 - name: Get parsers whose name contains 'watchguard'
   crowdstrike.falcon.ngsiem_parser_info:
     name: watchguard
@@ -152,7 +159,7 @@ parsers:
       returned: success
       sample: "redhat-insights"
     parser_type:
-      description: The type of the parser (ootb or custom).
+      description: The type of the parser (ootb, custom, or extension).
       type: str
       returned: success
       sample: "custom"
@@ -251,7 +258,11 @@ MINIMUM_FALCONPY_VERSION = "1.6.3"
 NGSIEM_PARSER_INFO_ARGS = {
     "parser_ids": {"type": "list", "elements": "str", "required": False},
     "name": {"type": "str", "required": False},
-    "parser_type": {"type": "str", "choices": ["ootb", "custom"], "required": False},
+    "parser_type": {
+        "type": "str",
+        "choices": ["ootb", "custom", "extension"],
+        "required": False,
+    },
     "update_available": {"type": "bool", "required": False},
     "definitions": {"type": "bool", "default": True},
     "limit": {"type": "int", "default": 100},

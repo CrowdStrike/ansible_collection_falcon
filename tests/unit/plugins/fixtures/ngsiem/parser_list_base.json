@@ -1,0 +1,52 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 500,
+        "offset": 0,
+        "total": 2
+      },
+      "query_time": 2.888493609
+    },
+    "resources": [
+      {
+        "ID": "00000000000000000000000000000008:1.0.0",
+        "Name": "microsoft-edge",
+        "built_by": "CrowdStrike",
+        "changelog": "Initial release with support for Microsoft Edge browser events; Normalized fields to CPS standard including user.name, user.email, host.os.type, and host.os.version; Added categorization for various Edge events including password, file, web, authentication, and process events",
+        "current_version": "1.0.0",
+        "impacted_connections": true,
+        "latest_version": "1.0.0",
+        "parser_type": "ootb",
+        "pass_through_alerts": false,
+        "product": [
+          "edge"
+        ],
+        "rollback_available": false,
+        "update_available": false,
+        "vendor": "microsoft",
+        "version": "1.0.0"
+      },
+      {
+        "ID": "00000000000000000000000000000003:1.3.0",
+        "Name": "microsoft-edge-ansible-unit-fixture-ext",
+        "built_by": "User",
+        "current_version": "1.3.0",
+        "impacted_connections": false,
+        "latest_version": "1.3.0",
+        "parser_type": "extension",
+        "pass_through_alerts": false,
+        "product": [
+          "edge"
+        ],
+        "rollback_available": false,
+        "update_available": false,
+        "vendor": "microsoft",
+        "version": "1.3.0"
+      }
+    ]
+  },
+  "method": "list_parsers",
+  "status_code": 200
+}
