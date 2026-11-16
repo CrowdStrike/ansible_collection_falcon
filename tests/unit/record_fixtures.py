@@ -379,6 +379,10 @@ def record_sensor_update_policy(rec, creds):
         "kernels_filtered", "query_combined_kernels", falcon.query_combined_kernels,
         filter="release:'%s'" % release, offset=None, limit=500,
     )
+    rec.call(
+        "kernels_bad_filter", "query_combined_kernels", falcon.query_combined_kernels,
+        filter="release:'", offset=None, limit=500,
+    )
 
     rec.call(
         "token_bulk", "reveal_uninstall_token", falcon.reveal_uninstall_token,

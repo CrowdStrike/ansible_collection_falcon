@@ -186,8 +186,15 @@ def test_present_by_id_that_does_not_exist_fails(api, run_module):
     assert result["msg"] == "Correlation rule with ID '%s' not found" % RULE_ID
 
 
-def test_customer_id_lookup_failure_fails(api, run_module):
-    api(get_sensor_installer_ccid=["query_bad_filter"])
+def test_customer_id_lookup_failure_fails(api, fixture, run_module):
+    # The recorder's API client has the Sensor Download scope, so it cannot
+    # record a CCID error: change a copy of a recorded response.
+    response = copy.deepcopy(fixture("correlation_rule/ccid"))
+    del response["method"]
+    response["status_code"] = 403
+    response["body"]["resources"] = []
+    response["body"]["errors"] = [{"code": 403, "message": "access denied, scope not permitted"}]
+    api(get_sensor_installer_ccid=[response])
 
     result = run_module(correlation_rule, MATCHING)
 

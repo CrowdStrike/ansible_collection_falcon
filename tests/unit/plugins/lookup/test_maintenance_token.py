@@ -7,6 +7,8 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import copy
+
 import pytest
 
 from ansible.errors import AnsibleError
@@ -47,10 +49,16 @@ def test_token_for_each_device(lookup):
     assert [c["device_id"] for c in service.called("reveal_uninstall_token")] == [DEVICE_ID, DEVICE_ID]
 
 
-def test_api_error_raises(lookup):
-    # Any error response has the same shape; the token API itself returns a
-    # token for a device ID that does not exist.
-    plugin, _service = lookup("get_missing")
+def test_api_error_raises(falcon_api, fixture):
+    # The token API returns a token for a device ID that does not exist, so
+    # the recorder cannot record an error: change a copy of a recorded response.
+    response = copy.deepcopy(fixture("sensor_update_policy/token_missing_device"))
+    del response["method"]
+    response["status_code"] = 404
+    response["body"]["resources"] = []
+    response["body"]["errors"] = [{"code": 404, "message": "Not Found"}]
+    falcon_api(maintenance_token, {"reveal_uninstall_token": [response]})
+    plugin = lookup_loader.get("crowdstrike.falcon.maintenance_token")
 
     with pytest.raises(AnsibleError, match="Unable to fetch maintenance token: .*Not Found"):
         plugin.run([DEVICE_ID], variables={})

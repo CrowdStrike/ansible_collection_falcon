@@ -336,6 +336,7 @@ def _no_env_credentials(monkeypatch):
 
 - Fixtures are recorded from a real tenant with `tests/unit/record_fixtures.py`.
   Do not write a fixture file by hand, and do not edit one.
+- An error fixture MUST come from the same method that the test calls.
 - Sometimes the tenant cannot give the response that a test needs, for
   example a success for an action on a real host, a Flight Control parent
   response, or a search that is still running or was stopped (the API deletes

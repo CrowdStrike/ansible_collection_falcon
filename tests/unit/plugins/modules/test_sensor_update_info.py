@@ -9,6 +9,8 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import copy
+
 import pytest
 
 from ansible_collections.crowdstrike.falcon.plugins.modules import (
@@ -79,15 +81,20 @@ def test_builds_info_returns_builds(api, run_module):
     assert all(" " not in b["sensor_version"] for b in result["builds"])
 
 
-def test_builds_info_api_error_fails(api, run_module):
-    # Any error response has the same shape; the builds API itself returns
-    # 200 for a platform it does not know.
-    api(sensor_update_builds_info, query_combined_builds=["query_bad_filter"])
+def test_builds_info_api_error_fails(falcon_api, fixture, run_module):
+    # The builds API returns 200 for an unknown platform or stage, so the
+    # recorder cannot record an error: change a copy of a recorded response.
+    response = copy.deepcopy(fixture("sensor_update_policy/builds_linux"))
+    del response["method"]
+    response["status_code"] = 500
+    response["body"]["resources"] = []
+    response["body"]["errors"] = [{"code": 500, "message": "Internal server error"}]
+    falcon_api(sensor_update_builds_info, {"query_combined_builds": [response]})
 
     result = run_module(sensor_update_builds_info, {})
 
     assert result["failed"] is True
-    assert result["msg"] == "Invalid filter expression supplied"
+    assert result["msg"] == "Internal server error"
 
 
 def test_kernel_support_info_returns_kernels(api, run_module):
@@ -114,7 +121,7 @@ def test_kernel_support_info_follows_pagination(api, run_module):
 
 
 def test_kernel_support_info_api_error_fails(api, run_module):
-    api(kernel_support_info, query_combined_kernels=["query_bad_filter"])
+    api(kernel_support_info, query_combined_kernels=["kernels_bad_filter"])
 
     result = run_module(kernel_support_info, {"filter": "release:'"})
 
