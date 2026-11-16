@@ -7,16 +7,16 @@
         "offset": 0,
         "total": 1
       },
-      "query_time": 0.892004965
+      "query_time": 0.918608677
     },
     "resources": [
       {
-        "ID": "00000000000000000000000000000003:1.3.0",
+        "ID": "00000000000000000000000000000003:1.10.0",
         "Name": "microsoft-edge-ansible-unit-fixture-ext",
         "built_by": "User",
-        "current_version": "1.3.0",
+        "current_version": "1.10.0",
         "impacted_connections": false,
-        "latest_version": "1.3.0",
+        "latest_version": "1.10.0",
         "parser_type": "extension",
         "pass_through_alerts": false,
         "product": [
@@ -25,7 +25,7 @@
         "rollback_available": false,
         "update_available": false,
         "vendor": "microsoft",
-        "version": "1.3.0"
+        "version": "1.10.0"
       }
     ]
   },

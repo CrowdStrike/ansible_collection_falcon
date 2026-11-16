@@ -7,16 +7,16 @@
         "offset": 0,
         "total": 2
       },
-      "query_time": 1.013979646
+      "query_time": 1.009544368
     },
     "resources": [
       {
-        "ID": "00000000000000000000000000000002:1.4.0",
+        "ID": "00000000000000000000000000000002:1.11.0",
         "Name": "custom-ansible-unit-fixture-clone",
         "built_by": "User",
-        "current_version": "1.4.0",
+        "current_version": "1.11.0",
         "impacted_connections": false,
-        "latest_version": "1.4.0",
+        "latest_version": "1.11.0",
         "parser_type": "custom",
         "pass_through_alerts": false,
         "product": [
@@ -25,15 +25,15 @@
         "rollback_available": false,
         "update_available": false,
         "vendor": "ansible",
-        "version": "1.4.0"
+        "version": "1.11.0"
       },
       {
-        "ID": "00000000000000000000000000000001:1.8.0",
+        "ID": "00000000000000000000000000000001:1.22.0",
         "Name": "custom-ansible-unit-fixture-parser",
         "built_by": "User",
-        "current_version": "1.8.0",
+        "current_version": "1.22.0",
         "impacted_connections": false,
-        "latest_version": "1.8.0",
+        "latest_version": "1.22.0",
         "parser_type": "custom",
         "pass_through_alerts": false,
         "product": [
@@ -42,7 +42,7 @@
         "rollback_available": true,
         "update_available": false,
         "vendor": "ansible",
-        "version": "1.8.0"
+        "version": "1.22.0"
       }
     ]
   },
