@@ -516,9 +516,11 @@ When you add a case to a service or need one case again, use `--only` with the
 case names that `--dry-run SERVICE` lists. The script still makes every call
 of the service, so the fake IDs stay the same, but it writes only the named
 files. Before it writes, it compares the fake IDs and names of every other
-case with its file, and it writes nothing if one is different (for example
-when the API returned two objects in another order). Then record the whole
-service. Add a new call after the calls that exist, so that it does not move
+case with its file, and it writes nothing if an object has another fake ID
+(for example when two objects that the service saw first in one list changed
+places). Then record the whole service. A list of objects with a unique name
+and platform can come back in another order without a stop. Add a new call
+after the calls that exist, so that it does not move
 the fake IDs of the other cases. After a change to the API or to FalconPy,
 record the whole service without `--only`, so that every file shows the new
 responses.
