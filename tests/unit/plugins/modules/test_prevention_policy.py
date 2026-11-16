@@ -408,3 +408,344 @@ def test_delete_of_enabled_policy_error_fails(api, run_module):
     assert result["failed"] is True
     assert result["msg"] == "Policy ansible-unit-fixture-crud is enabled, cannot delete enabled policies"
     assert service.calls == [get_call(), action_call("disable"), ("delete_policies", {"ids": [POLICY_ID]})]
+
+
+# Host groups
+
+# The two static groups that record_prevention_policy() made, after sanitizing.
+GROUP_1 = "00000000000000000000000000000008"
+GROUP_2 = "00000000000000000000000000000009"
+
+
+@pytest.fixture
+def group_api(monkeypatch, api, falcon_api, fixture):
+    """Return a function that gives each service class its own FakeService.
+
+    The module calls authenticate(module, PreventionPolicy) and, to check the
+    groups to add, authenticate(module, HostGroup). The patched authenticate
+    picks the fake by the class name and keeps the names in order.
+    """
+
+    def make(host_group=None, **policy_responses):
+        policy = api(**policy_responses)
+        # attr: a name that the module does not use, so that this call does
+        # not replace the patched authenticate of the policy service.
+        groups = falcon_api(
+            prevention_policy,
+            {"get_host_groups": [fixture("prevention_policy/" + case) for case in host_group or []]},
+            attr="_unit_test_host_group",
+        )
+        built = []
+
+        def authenticate(module, service_class):
+            built.append(service_class.__name__)
+            return groups if service_class.__name__ == "HostGroup" else policy
+
+        monkeypatch.setattr(prevention_policy, "authenticate", authenticate)
+        return policy, groups, built
+
+    return make
+
+
+def hg_call(*ids):
+    return ("get_host_groups", {"ids": list(ids)})
+
+
+def group_action_call(action, *ids):
+    return (
+        "perform_policies_action",
+        {
+            "action_name": "%s-host-group" % action,
+            "ids": [POLICY_ID],
+            "action_parameters": [{"name": "group_id", "value": group_id} for group_id in ids],
+        },
+    )
+
+
+def test_host_groups_not_set_makes_no_group_call(group_api, run_module):
+    policy, groups, built = group_api(query_combined_policies=["query_by_exact_name"])
+
+    result = run_module(prevention_policy, by_name(purge_host_groups=True, _ansible_diff=True))
+
+    assert result["changed"] is False
+    assert built == ["PreventionPolicy"]
+    assert groups.calls == []
+    assert policy.calls == [search_call()]
+
+
+def test_present_adds_host_groups_on_update(group_api, run_module):
+    policy, groups, built = group_api(
+        host_group=["hg_get_found"],
+        query_combined_policies=["query_by_exact_name"],
+        perform_policies_action=["add_groups"],
+        get_policies=["get_with_groups"],
+    )
+
+    result = run_module(prevention_policy, by_name(host_groups=[GROUP_2, GROUP_1], _ansible_diff=True))
+
+    assert result["changed"] is True
+    assert [g["id"] for g in result["prevention_policy"]["groups"]] == [GROUP_1, GROUP_2]
+    assert result["diff"]["before"]["groups"] == []
+    assert result["diff"]["after"]["groups"] == [GROUP_1, GROUP_2]
+    assert built == ["PreventionPolicy", "HostGroup"]
+    assert groups.calls == [hg_call(GROUP_1, GROUP_2)]
+    assert policy.calls == [search_call(), group_action_call("add", GROUP_1, GROUP_2), get_call()]
+
+
+def test_present_adds_host_groups_after_create(group_api, run_module):
+    policy, groups, _built = group_api(
+        host_group=["hg_get_found"],
+        query_combined_policies=["query_by_exact_name_missing"],
+        create_policies=["create"],
+        perform_policies_action=["add_groups"],
+        get_policies=["get_with_groups"],
+    )
+
+    result = run_module(prevention_policy, by_name(host_groups=[GROUP_1, GROUP_2], _ansible_diff=True))
+
+    assert result["changed"] is True
+    assert result["diff"]["after"]["groups"] == [GROUP_1, GROUP_2]
+    assert groups.calls == [hg_call(GROUP_1, GROUP_2)]
+    assert policy.calls == [
+        search_call(),
+        create_call(),
+        group_action_call("add", GROUP_1, GROUP_2),
+        get_call(),
+    ]
+
+
+def test_purge_removes_only_current_members_not_wanted(group_api, run_module):
+    policy, groups, built = group_api(
+        get_policies=["get_with_groups", "get_with_groups"],
+        perform_policies_action=["remove_group"],
+    )
+
+    result = run_module(
+        prevention_policy,
+        {"policy_id": POLICY_ID, "host_groups": [GROUP_2], "purge_host_groups": True, "_ansible_diff": True},
+    )
+
+    assert result["changed"] is True
+    assert result["diff"]["before"]["groups"] == [GROUP_1, GROUP_2]
+    assert result["diff"]["after"]["groups"] == [GROUP_2]
+    # Nothing to add, so the module does not build a HostGroup client.
+    assert built == ["PreventionPolicy"]
+    assert groups.calls == []
+    assert policy.calls == [get_call(), group_action_call("remove", GROUP_1), get_call()]
+
+
+def test_purge_with_empty_list_removes_all_groups(group_api, run_module):
+    policy, groups, _built = group_api(
+        get_policies=["get_with_groups", "get_disabled"],
+        perform_policies_action=["remove_group"],
+    )
+
+    result = run_module(
+        prevention_policy,
+        {"policy_id": POLICY_ID, "host_groups": [], "purge_host_groups": True, "_ansible_diff": True},
+    )
+
+    assert result["changed"] is True
+    assert result["diff"]["after"]["groups"] == []
+    assert groups.calls == []
+    assert policy.calls == [get_call(), group_action_call("remove", GROUP_1, GROUP_2), get_call()]
+
+
+def test_without_purge_extra_groups_stay(group_api, run_module):
+    policy, groups, built = group_api(get_policies=["get_with_groups"])
+
+    result = run_module(prevention_policy, {"policy_id": POLICY_ID, "host_groups": [GROUP_2]})
+
+    assert result["changed"] is False
+    assert built == ["PreventionPolicy"]
+    assert groups.calls == []
+    assert policy.calls == [get_call()]
+
+
+def test_same_host_groups_make_no_write_and_no_group_call(group_api, run_module):
+    policy, groups, built = group_api(get_policies=["get_with_groups"])
+
+    result = run_module(
+        prevention_policy,
+        {"policy_id": POLICY_ID, "host_groups": [GROUP_1, GROUP_2], "purge_host_groups": True},
+    )
+
+    assert result["changed"] is False
+    assert built == ["PreventionPolicy"]
+    assert groups.calls == []
+    assert policy.calls == [get_call()]
+
+
+def test_check_mode_predicts_group_update_with_reads_only(group_api, run_module):
+    policy, groups, _built = group_api(
+        host_group=["hg_get_found"],
+        query_combined_policies=["query_by_exact_name"],
+    )
+
+    result = run_module(
+        prevention_policy, by_name(host_groups=[GROUP_1, GROUP_2], _ansible_diff=True), check_mode=True
+    )
+
+    assert result["changed"] is True
+    assert result["diff"]["before"]["groups"] == []
+    assert result["diff"]["after"]["groups"] == [GROUP_1, GROUP_2]
+    assert groups.calls == [hg_call(GROUP_1, GROUP_2)]
+    assert policy.calls == [search_call()]
+
+
+def test_check_mode_predicts_purge_with_reads_only(group_api, run_module):
+    policy, groups, built = group_api(get_policies=["get_with_groups"])
+
+    result = run_module(
+        prevention_policy,
+        {"policy_id": POLICY_ID, "host_groups": [GROUP_2], "purge_host_groups": True, "_ansible_diff": True},
+        check_mode=True,
+    )
+
+    assert result["changed"] is True
+    assert result["diff"]["before"]["groups"] == [GROUP_1, GROUP_2]
+    assert result["diff"]["after"]["groups"] == [GROUP_2]
+    assert built == ["PreventionPolicy"]
+    assert groups.calls == []
+    assert policy.calls == [get_call()]
+
+
+def test_check_mode_predicts_create_with_groups_with_reads_only(group_api, run_module):
+    policy, groups, _built = group_api(
+        host_group=["hg_get_found"],
+        query_combined_policies=["query_by_exact_name_missing"],
+    )
+
+    result = run_module(
+        prevention_policy, by_name(host_groups=[GROUP_2, GROUP_1], _ansible_diff=True), check_mode=True
+    )
+
+    assert result["changed"] is True
+    assert result["diff"] == {
+        "before": {},
+        "after": {"name": NAME, "platform_name": "Linux", "enabled": False, "groups": [GROUP_1, GROUP_2]},
+    }
+    assert result["prevention_policy"]["groups"] == [{"id": GROUP_1}, {"id": GROUP_2}]
+    assert groups.calls == [hg_call(GROUP_1, GROUP_2)]
+    assert policy.calls == [search_call()]
+
+
+def test_upper_case_and_duplicate_ids_are_sent_once_in_lower_case(group_api, run_module):
+    """The recorded IDs have only digits, so .lower() cannot change them.
+
+    A hex ID with letters shows the case handling. Only the kwargs matter
+    here; the recorded 200 responses are reused for the calls.
+    """
+    hex_id = "abcdef1234567890abcdef1234567890"
+    policy, groups, _built = group_api(
+        host_group=["hg_get_found"],
+        query_combined_policies=["query_by_exact_name"],
+        perform_policies_action=["add_groups"],
+        get_policies=["get_with_groups"],
+    )
+
+    result = run_module(prevention_policy, by_name(host_groups=[hex_id.upper(), hex_id, GROUP_1, GROUP_1]))
+
+    assert result["changed"] is True
+    assert groups.calls == [hg_call(GROUP_1, hex_id)]
+    assert policy.calls == [search_call(), group_action_call("add", GROUP_1, hex_id), get_call()]
+
+
+def test_empty_host_group_id_fails_before_any_call(group_api, run_module):
+    policy, groups, built = group_api()
+
+    result = run_module(prevention_policy, by_name(host_groups=[GROUP_1, ""]))
+
+    assert result["failed"] is True
+    assert result["msg"] == "Parameter 'host_groups' must not contain an empty ID"
+    assert built == []
+    assert policy.calls == []
+    assert groups.calls == []
+
+
+def test_missing_host_group_fails_before_any_write(group_api, run_module):
+    policy, groups, _built = group_api(
+        host_group=["hg_get_some_missing"],
+        query_combined_policies=["query_by_exact_name"],
+    )
+
+    result = run_module(prevention_policy, by_name(host_groups=[GROUP_1, MISSING_ID]))
+
+    assert result["failed"] is True
+    assert result["msg"] == "Host groups not found: %s" % MISSING_ID
+    assert groups.calls == [hg_call(MISSING_ID, GROUP_1)]
+    assert policy.calls == [search_call()]
+
+
+def test_missing_host_group_fails_before_create(group_api, run_module):
+    policy, groups, _built = group_api(
+        host_group=["hg_get_all_missing"],
+        query_combined_policies=["query_by_exact_name_missing"],
+    )
+
+    result = run_module(prevention_policy, by_name(host_groups=[MISSING_ID]))
+
+    assert result["failed"] is True
+    assert result["msg"] == "Host groups not found: %s" % MISSING_ID
+    assert groups.calls == [hg_call(MISSING_ID)]
+    assert policy.calls == [search_call()]
+
+
+def test_host_group_check_error_fails_with_api_message(group_api, run_module):
+    policy, groups, _built = group_api(
+        host_group=["hg_get_bad_id"],
+        query_combined_policies=["query_by_exact_name"],
+    )
+
+    result = run_module(prevention_policy, by_name(host_groups=["abcdefg"]))
+
+    assert result["failed"] is True
+    assert result["msg"] == "An item in query string parameter 'ids' has length 7, at least 32 expected"
+    assert groups.calls == [hg_call("abcdefg")]
+    assert policy.calls == [search_call()]
+
+
+def test_add_host_groups_error_fails_with_api_message(group_api, run_module):
+    policy, groups, _built = group_api(
+        host_group=["hg_get_found"],
+        query_combined_policies=["query_by_exact_name"],
+        perform_policies_action=["add_groups_missing_policy"],
+    )
+
+    result = run_module(prevention_policy, by_name(host_groups=[GROUP_1]))
+
+    assert result["failed"] is True
+    assert result["msg"] == "Policy %s not found for update." % MISSING_ID
+    assert groups.calls == [hg_call(GROUP_1)]
+    assert policy.calls == [search_call(), group_action_call("add", GROUP_1)]
+
+
+def test_remove_host_groups_error_fails_with_api_message(group_api, run_module):
+    policy, groups, _built = group_api(
+        get_policies=["get_with_groups"],
+        perform_policies_action=["remove_groups_missing_policy"],
+    )
+
+    result = run_module(
+        prevention_policy, {"policy_id": POLICY_ID, "host_groups": [GROUP_2], "purge_host_groups": True}
+    )
+
+    assert result["failed"] is True
+    assert result["msg"] == "Policy %s not found for update." % MISSING_ID
+    assert groups.calls == []
+    assert policy.calls == [get_call(), group_action_call("remove", GROUP_1)]
+
+
+def test_absent_ignores_host_groups(group_api, run_module):
+    policy, groups, built = group_api(get_policies=["get_disabled"], delete_policies=["delete"])
+
+    result = run_module(
+        prevention_policy,
+        {"policy_id": POLICY_ID, "state": "absent", "host_groups": [GROUP_1], "_ansible_diff": True},
+    )
+
+    assert result["changed"] is True
+    assert "groups" not in result["diff"]["before"]
+    assert built == ["PreventionPolicy"]
+    assert groups.calls == []
+    assert policy.calls == [get_call(), ("delete_policies", {"ids": [POLICY_ID]})]

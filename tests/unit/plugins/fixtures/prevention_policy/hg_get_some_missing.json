@@ -1,0 +1,28 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "id": "00000000000000000000000000000005",
+        "message": "Not Found"
+      }
+    ],
+    "meta": {
+      "query_time": 0.237073036
+    },
+    "resources": [
+      {
+        "created_by": "api-client-id:fixture-client-3",
+        "created_timestamp": "2026-11-16T15:47:02.199269915Z",
+        "description": "",
+        "group_type": "static",
+        "id": "00000000000000000000000000000008",
+        "modified_by": "api-client-id:fixture-client-3",
+        "modified_timestamp": "2026-11-16T15:47:02.199269915Z",
+        "name": "ansible-unit-fixture-pp-a"
+      }
+    ]
+  },
+  "method": "get_host_groups",
+  "status_code": 404
+}

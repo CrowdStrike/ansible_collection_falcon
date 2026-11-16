@@ -6,19 +6,24 @@
 #   FALCON_CLIENT_SECRET - API client secret
 #   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
 #
-# API scopes: Prevention policies [READ, WRITE]
+# API scopes: Prevention policies [READ, WRITE], Host Groups [READ, WRITE]
 #
 # The test creates, updates, enables, disables and deletes prevention
 # policies whose names start with the prefix of this run
 # (ansible-int-pp-<timestamp>). It runs the module examples, check mode,
-# diff mode and a second run of each change. It does not assign a policy to
-# a host group and does not change any other policy.
+# diff mode and a second run of each change. It creates two static host
+# groups with the prefix of this run, assigns a policy to them, and removes
+# them from the policy. It does not change any other policy or host group.
 #
 # Cleanup: the always section searches with filter "name:~'<prefix>'". The
 # ~ operator matches names that start with the value, without regard to case,
 # so the cleanup keeps only the names that start with the prefix of this run
 # and deletes each policy by ID. The form name:*'<prefix>*' returns no
 # policies when the value has a hyphen, so the test does not use it.
+# The host groups are found with filter "name:*'<prefix>*'", as in the
+# host_group target. The Host Groups API matches a name filter only with the
+# lowercase form, so the prefix is lowercase. The cleanup deletes the
+# policies first, then each host group of this run by ID.
 
 - name: Gather minimal facts for timestamp
   ansible.builtin.setup:
@@ -40,6 +45,9 @@
   ansible.builtin.set_fact:
     pp_name: "{{ pp_prefix }}-policy"
     pp_byid_name: "{{ pp_prefix }}-byid"
+    pp_hg_policy_name: "{{ pp_prefix }}-hg-policy"
+    pp_hg_a_name: "{{ pp_prefix }}-hg-a"
+    pp_hg_b_name: "{{ pp_prefix }}-hg-b"
 
 - name: Run the prevention_policy lifecycle
   block:
@@ -362,6 +370,226 @@
           - pp_byid_info.prevention_policies | selectattr('name', 'equalto', pp_byid_name) | list | length == 0
         fail_msg: "The delete by ID failed or was not idempotent"
 
+    # ---- Host groups ----
+    - name: "HOST GROUPS | Create the first static host group"
+      crowdstrike.falcon.host_group:
+        name: "{{ pp_hg_a_name }}"
+        description: "Ansible integration test"
+      register: pp_hg_a
+
+    - name: "HOST GROUPS | Create the second static host group"
+      crowdstrike.falcon.host_group:
+        name: "{{ pp_hg_b_name }}"
+        description: "Ansible integration test"
+      register: pp_hg_b
+
+    - name: "HOST GROUPS | Save the host group IDs"
+      ansible.builtin.set_fact:
+        pp_hg_a_id: "{{ pp_hg_a.host_group.id }}"
+        pp_hg_b_id: "{{ pp_hg_b.host_group.id }}"
+
+    - name: "HOST GROUPS | Create a policy with the first group in check mode"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "{{ pp_hg_a_id }}"
+      check_mode: true
+      register: pp_hg_create_check
+
+    - name: "HOST GROUPS | Search for the policy after check mode"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "name:~'{{ pp_hg_policy_name }}'"
+      register: pp_hg_create_check_info
+
+    - name: "HOST GROUPS | Verify that check mode predicted a change and created nothing"
+      ansible.builtin.assert:
+        that:
+          - pp_hg_create_check is changed
+          - pp_hg_create_check_info.prevention_policies | selectattr('name', 'equalto', pp_hg_policy_name) | list | length == 0
+        fail_msg: "Check mode did not predict the create or created the policy"
+
+    - name: "HOST GROUPS | Create a policy with the first group"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "{{ pp_hg_a_id }}"
+      diff: true
+      register: pp_hg_create
+
+    - name: "HOST GROUPS | Read the new policy"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_hg_create.prevention_policy.id }}"
+      register: pp_hg_create_info
+
+    - name: "HOST GROUPS | Create the policy with the first group again"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "{{ pp_hg_a_id }}"
+      register: pp_hg_create_again
+
+    - name: "HOST GROUPS | Verify the new policy has the first group and the second run changed nothing"
+      ansible.builtin.assert:
+        that:
+          - pp_hg_create is changed
+          - pp_hg_create.diff.after.groups == [pp_hg_a_id]
+          - pp_hg_create_info.prevention_policies[0].groups | map(attribute='id') | list == [pp_hg_a_id]
+          - pp_hg_create_again is not changed
+        fail_msg: "The policy does not have the first group, or the second run changed it"
+
+    - name: "HOST GROUPS | Add the second group without purge"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "{{ pp_hg_b_id }}"
+      register: pp_hg_add_b
+
+    - name: "HOST GROUPS | Read the policy after the add"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_hg_create.prevention_policy.id }}"
+      register: pp_hg_add_b_info
+
+    - name: "HOST GROUPS | Verify that both groups are assigned"
+      ansible.builtin.assert:
+        that:
+          - pp_hg_add_b is changed
+          - pp_hg_add_b_info.prevention_policies[0].groups | map(attribute='id') | sort == [pp_hg_a_id, pp_hg_b_id] | sort
+        fail_msg: "The add without purge did not keep the first group or did not add the second"
+
+    - name: "EXAMPLE | Assign the policy to two host groups"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "{{ pp_hg_a_id }}"
+          - "{{ pp_hg_b_id }}"
+      register: pp_hg_example_two
+
+    - name: "HOST GROUPS | Verify that the example changed nothing when both groups are assigned"
+      ansible.builtin.assert:
+        that:
+          - pp_hg_example_two is not changed
+        fail_msg: "The example with both assigned groups was not idempotent"
+
+    - name: "HOST GROUPS | Keep only the second group with purge in check mode"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "{{ pp_hg_b_id }}"
+        purge_host_groups: true
+      check_mode: true
+      diff: true
+      register: pp_hg_purge_check
+
+    - name: "HOST GROUPS | Read the policy after the purge in check mode"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_hg_create.prevention_policy.id }}"
+      register: pp_hg_purge_check_info
+
+    - name: "HOST GROUPS | Verify the purge prediction, its diff and that nothing was removed"
+      ansible.builtin.assert:
+        that:
+          - pp_hg_purge_check is changed
+          - pp_hg_purge_check.diff.before.groups == [pp_hg_a_id, pp_hg_b_id] | sort
+          - pp_hg_purge_check.diff.after.groups == [pp_hg_b_id]
+          - pp_hg_purge_check_info.prevention_policies[0].groups | map(attribute='id') | sort == [pp_hg_a_id, pp_hg_b_id] | sort
+        fail_msg: "Check mode did not predict the purge, or removed a group"
+
+    - name: "EXAMPLE | Set the exact host groups of the policy and remove the others"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "{{ pp_hg_b_id }}"
+        purge_host_groups: true
+      register: pp_hg_purge
+
+    - name: "HOST GROUPS | Read the policy after the purge"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_hg_create.prevention_policy.id }}"
+      register: pp_hg_purge_info
+
+    - name: "HOST GROUPS | Purge again"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "{{ pp_hg_b_id }}"
+        purge_host_groups: true
+      register: pp_hg_purge_again
+
+    - name: "HOST GROUPS | Use the upper-case form of the ID and a duplicate"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "{{ pp_hg_b_id | upper }}"
+          - "{{ pp_hg_b_id }}"
+        purge_host_groups: true
+      register: pp_hg_upper
+
+    - name: "HOST GROUPS | Verify that only the second group is left and the later runs changed nothing"
+      ansible.builtin.assert:
+        that:
+          - pp_hg_purge is changed
+          - pp_hg_purge_info.prevention_policies[0].groups | map(attribute='id') | list == [pp_hg_b_id]
+          - pp_hg_purge_again is not changed
+          - pp_hg_upper is not changed
+        fail_msg: "The purge did not leave only the second group, or a later run changed the policy"
+
+    - name: "HOST GROUPS | Add a host group that does not exist"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups:
+          - "ffffffffffffffffffffffffffffffff"
+      register: pp_hg_missing
+      ignore_errors: true
+
+    - name: "HOST GROUPS | Read the policy after the missing group"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_hg_create.prevention_policy.id }}"
+      register: pp_hg_missing_info
+
+    - name: "HOST GROUPS | Verify that the missing group failed and changed nothing"
+      ansible.builtin.assert:
+        that:
+          - pp_hg_missing is failed
+          - "'Host groups not found' in pp_hg_missing.msg"
+          - pp_hg_missing_info.prevention_policies[0].groups | map(attribute='id') | list == [pp_hg_b_id]
+        fail_msg: "A missing host group did not fail, or the policy groups changed"
+
+    - name: "HOST GROUPS | Remove all host groups"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_hg_policy_name }}"
+        platform_name: Windows
+        host_groups: []
+        purge_host_groups: true
+      register: pp_hg_clear
+
+    - name: "HOST GROUPS | Read the policy after removing all groups"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_hg_create.prevention_policy.id }}"
+      register: pp_hg_clear_info
+
+    - name: "HOST GROUPS | Verify that the policy has no host groups"
+      ansible.builtin.assert:
+        that:
+          - pp_hg_clear is changed
+          - pp_hg_clear_info.prevention_policies[0].groups | default([], true) | length == 0
+        fail_msg: "An empty list with purge did not remove all host groups"
+
   always:
     - name: "CLEANUP | Find the policies of this run"
       crowdstrike.falcon.prevention_policy_info:
@@ -389,3 +617,31 @@
         that:
           - pp_left | length == 0
         fail_msg: "Policies of this run are left: {{ pp_left | map(attribute='id') | join(', ') }}"
+
+    - name: "CLEANUP | Find the host groups of this run"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:*'{{ pp_prefix }}*'"
+      register: pp_hg_cleanup_info
+      failed_when: false
+
+    - name: "CLEANUP | Delete each host group of this run by ID"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ item.id }}"
+        state: absent
+      loop: "{{ pp_hg_cleanup_info.host_groups | default([]) | selectattr('name', 'match', '^' ~ (pp_prefix | regex_escape)) | list }}"
+      loop_control:
+        label: "{{ item.id }}"
+      failed_when: false
+
+    - name: "CLEANUP | Find the host groups of this run again"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:*'{{ pp_prefix }}*'"
+      register: pp_hg_cleanup_left
+
+    - name: "CLEANUP | Verify that no host group of this run is left"
+      vars:
+        pp_hg_left: "{{ pp_hg_cleanup_left.host_groups | default([]) | selectattr('name', 'match', '^' ~ (pp_prefix | regex_escape)) | list }}"
+      ansible.builtin.assert:
+        that:
+          - pp_hg_left | length == 0
+        fail_msg: "Host groups of this run are left: {{ pp_hg_left | map(attribute='id') | join(', ') }}"
