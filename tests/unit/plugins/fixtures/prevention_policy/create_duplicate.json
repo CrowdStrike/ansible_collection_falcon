@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "Duplicate policy name ansible-unit-fixture-crud for Linux platform."
+      }
+    ],
+    "meta": {
+      "query_time": 0.055317101
+    },
+    "resources": null
+  },
+  "method": "create_policies",
+  "status_code": 400
+}

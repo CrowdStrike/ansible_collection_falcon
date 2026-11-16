@@ -1,0 +1,391 @@
+---
+# Integration tests for the prevention_policy module
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Prevention policies [READ, WRITE]
+#
+# The test creates, updates, enables, disables and deletes prevention
+# policies whose names start with the prefix of this run
+# (ansible-int-pp-<timestamp>). It runs the module examples, check mode,
+# diff mode and a second run of each change. It does not assign a policy to
+# a host group and does not change any other policy.
+#
+# Cleanup: the always section searches with filter "name:~'<prefix>'". The
+# ~ operator matches names that start with the value, without regard to case,
+# so the cleanup keeps only the names that start with the prefix of this run
+# and deletes each policy by ID. The form name:*'<prefix>*' returns no
+# policies when the value has a hyphen, so the test does not use it.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set the test prefix
+  ansible.builtin.set_fact:
+    pp_prefix: "ansible-int-pp-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+
+- name: Set the test names
+  ansible.builtin.set_fact:
+    pp_name: "{{ pp_prefix }}-policy"
+    pp_byid_name: "{{ pp_prefix }}-byid"
+
+- name: Run the prevention_policy lifecycle
+  block:
+    # ---- Create ----
+    - name: "CREATE | Create the policy in check mode"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        description: "Managed by Ansible"
+        enabled: true
+      check_mode: true
+      register: pp_create_check
+
+    - name: "CREATE | Search for the policy after check mode"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "name:~'{{ pp_name }}'+platform_name:'Windows'"
+      register: pp_create_check_info
+
+    - name: "CREATE | Verify that check mode predicted a change and created nothing"
+      ansible.builtin.assert:
+        that:
+          - pp_create_check is changed
+          - pp_create_check_info.prevention_policies | selectattr('name', 'equalto', pp_name) | list | length == 0
+        fail_msg: "Check mode did not predict the create or created the policy"
+
+    - name: "EXAMPLE | Create an enabled Windows prevention policy"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        description: "Managed by Ansible"
+        enabled: true
+      diff: true
+      register: pp_create
+
+    - name: "CREATE | Read the policy"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_create.prevention_policy.id }}"
+      register: pp_create_info
+
+    - name: "CREATE | Verify the new policy and the diff"
+      ansible.builtin.assert:
+        that:
+          - pp_create is changed
+          - pp_create.diff.before == {}
+          - pp_create.diff.after.name == pp_name
+          - pp_create.diff.after.enabled
+          - pp_create_info.prevention_policies | length == 1
+          - pp_create_info.prevention_policies[0].name == pp_name
+          - pp_create_info.prevention_policies[0].platform_name == 'Windows'
+          - pp_create_info.prevention_policies[0].description == 'Managed by Ansible'
+          - pp_create_info.prevention_policies[0].enabled
+        fail_msg: "The created policy does not have the wanted values"
+
+    - name: "CREATE | Create the policy again"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        description: "Managed by Ansible"
+        enabled: true
+      register: pp_create_again
+
+    - name: "CREATE | Verify that the second run changed nothing"
+      ansible.builtin.assert:
+        that:
+          - pp_create_again is not changed
+          - pp_create_again.prevention_policy.id == pp_create.prevention_policy.id
+        fail_msg: "The second create was not idempotent"
+
+    # ---- Update ----
+    - name: "UPDATE | Update the description in check mode"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        description: "Updated by Ansible"
+      check_mode: true
+      register: pp_update_check
+
+    - name: "UPDATE | Read the policy after check mode"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_create.prevention_policy.id }}"
+      register: pp_update_check_info
+
+    - name: "UPDATE | Verify that check mode predicted a change and changed nothing"
+      ansible.builtin.assert:
+        that:
+          - pp_update_check is changed
+          - pp_update_check_info.prevention_policies[0].description == 'Managed by Ansible'
+        fail_msg: "Check mode did not predict the update or changed the policy"
+
+    - name: "EXAMPLE | Update the description of the policy"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        description: "Updated by Ansible"
+      diff: true
+      register: pp_update
+
+    - name: "UPDATE | Read the policy"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_create.prevention_policy.id }}"
+      register: pp_update_info
+
+    - name: "UPDATE | Verify the description and the diff"
+      ansible.builtin.assert:
+        that:
+          - pp_update is changed
+          - pp_update.diff.before.description == 'Managed by Ansible'
+          - pp_update.diff.after.description == 'Updated by Ansible'
+          - pp_update_info.prevention_policies[0].description == 'Updated by Ansible'
+          - pp_update_info.prevention_policies[0].enabled
+        fail_msg: "The update did not apply the description"
+
+    - name: "UPDATE | Update the description again"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        description: "Updated by Ansible"
+      register: pp_update_again
+
+    - name: "UPDATE | Verify that the second run changed nothing"
+      ansible.builtin.assert:
+        that:
+          - pp_update_again is not changed
+        fail_msg: "The second update was not idempotent"
+
+    - name: "EXAMPLE | Disable the policy"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        enabled: false
+      diff: true
+      register: pp_disable
+
+    - name: "UPDATE | Read the disabled policy"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_create.prevention_policy.id }}"
+      register: pp_disable_info
+
+    - name: "UPDATE | Disable the policy again"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        enabled: false
+      register: pp_disable_again
+
+    - name: "UPDATE | Verify the disable and the second run"
+      ansible.builtin.assert:
+        that:
+          - pp_disable is changed
+          - pp_disable.diff.before.enabled
+          - not pp_disable.diff.after.enabled
+          - not pp_disable_info.prevention_policies[0].enabled
+          - pp_disable_again is not changed
+        fail_msg: "The disable did not apply or was not idempotent"
+
+    - name: "UPDATE | Use the name in upper case"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name | upper }}"
+        platform_name: Windows
+        description: "Updated by Ansible"
+      register: pp_upper
+
+    - name: "UPDATE | Verify that the upper case name found the same policy"
+      ansible.builtin.assert:
+        that:
+          - pp_upper is not changed
+          - pp_upper.prevention_policy.id == pp_create.prevention_policy.id
+          - pp_upper.prevention_policy.name == pp_name
+        fail_msg: "A name in another case did not find the same policy"
+
+    - name: "UPDATE | Clear the description"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        description: ""
+      register: pp_clear
+
+    - name: "UPDATE | Read the policy after the clear"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_create.prevention_policy.id }}"
+      register: pp_clear_info
+
+    - name: "UPDATE | Clear the description again"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        description: ""
+      register: pp_clear_again
+
+    - name: "UPDATE | Verify that the description is empty"
+      ansible.builtin.assert:
+        that:
+          - pp_clear is changed
+          - pp_clear_info.prevention_policies[0].description == ''
+          - pp_clear_again is not changed
+        fail_msg: "An empty description did not clear it, or the second run changed it"
+
+    # ---- Same name on another platform ----
+    - name: "PLATFORM | Create a policy with the same name for Linux"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Linux
+      register: pp_linux
+
+    - name: "PLATFORM | Search for the policies with the name"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "name:~'{{ pp_name }}'"
+      register: pp_platform_info
+
+    - name: "PLATFORM | Verify that there are two policies"
+      ansible.builtin.assert:
+        that:
+          - pp_linux is changed
+          - pp_linux.prevention_policy.id != pp_create.prevention_policy.id
+          - pp_linux.prevention_policy.platform_name == 'Linux'
+          - pp_platform_matches | length == 2
+          - pp_platform_matches | map(attribute='platform_name') | sort == ['Linux', 'Windows']
+        fail_msg: "The same name on two platforms did not give two policies"
+      vars:
+        pp_platform_matches: "{{ pp_platform_info.prevention_policies | selectattr('name', 'equalto', pp_name) | list }}"
+
+    # ---- Delete ----
+    - name: "DELETE | Enable the Windows policy before the delete"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        enabled: true
+      register: pp_enable
+
+    - name: "DELETE | Delete the policy in check mode"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        state: absent
+      check_mode: true
+      register: pp_delete_check
+
+    - name: "DELETE | Read the policy after check mode"
+      crowdstrike.falcon.prevention_policy_info:
+        policy_ids:
+          - "{{ pp_create.prevention_policy.id }}"
+      register: pp_delete_check_info
+
+    - name: "DELETE | Verify that check mode predicted a change and deleted nothing"
+      ansible.builtin.assert:
+        that:
+          - pp_enable is changed
+          - pp_delete_check is changed
+          - pp_delete_check_info.prevention_policies | length == 1
+          - pp_delete_check_info.prevention_policies[0].enabled
+        fail_msg: "Check mode did not predict the delete or changed the policy"
+
+    - name: "EXAMPLE | Delete the policy by name and platform"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        state: absent
+      diff: true
+      register: pp_delete
+
+    - name: "DELETE | Search for the policies with the name after the delete"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "name:~'{{ pp_name }}'"
+      register: pp_delete_info
+
+    - name: "DELETE | Delete the policy again"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_name }}"
+        platform_name: Windows
+        state: absent
+      register: pp_delete_again
+
+    - name: "DELETE | Verify that the enabled Windows policy is deleted and Linux stays"
+      ansible.builtin.assert:
+        that:
+          - pp_delete is changed
+          - pp_delete.diff.before.name == pp_name
+          - pp_delete.diff.after == {}
+          - pp_delete_matches | length == 1
+          - pp_delete_matches[0].platform_name == 'Linux'
+          - pp_delete_again is not changed
+        fail_msg: "The delete of the enabled policy failed or was not idempotent"
+      vars:
+        pp_delete_matches: "{{ pp_delete_info.prevention_policies | selectattr('name', 'equalto', pp_name) | list }}"
+
+    - name: "DELETE | Create a policy to delete by ID"
+      crowdstrike.falcon.prevention_policy:
+        name: "{{ pp_byid_name }}"
+        platform_name: Mac
+      register: pp_byid
+
+    - name: "EXAMPLE | Delete a prevention policy by ID"
+      crowdstrike.falcon.prevention_policy:
+        policy_id: "{{ pp_byid.prevention_policy.id }}"
+        state: absent
+      register: pp_byid_delete
+
+    - name: "DELETE | Delete the policy by ID again"
+      crowdstrike.falcon.prevention_policy:
+        policy_id: "{{ pp_byid.prevention_policy.id }}"
+        state: absent
+      register: pp_byid_delete_again
+
+    - name: "DELETE | Search for the policy after the delete by ID"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "name:~'{{ pp_byid_name }}'"
+      register: pp_byid_info
+
+    - name: "DELETE | Verify the delete by ID"
+      ansible.builtin.assert:
+        that:
+          - pp_byid is changed
+          - pp_byid_delete is changed
+          - pp_byid_delete_again is not changed
+          - pp_byid_info.prevention_policies | selectattr('name', 'equalto', pp_byid_name) | list | length == 0
+        fail_msg: "The delete by ID failed or was not idempotent"
+
+  always:
+    - name: "CLEANUP | Find the policies of this run"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "name:~'{{ pp_prefix }}'"
+      register: pp_cleanup_info
+
+    - name: "CLEANUP | Delete each policy of this run by ID"
+      crowdstrike.falcon.prevention_policy:
+        policy_id: "{{ item.id }}"
+        state: absent
+      loop: "{{ pp_cleanup_info.prevention_policies | default([]) | selectattr('name', 'match', '^' ~ (pp_prefix | regex_escape)) | list }}"
+      loop_control:
+        label: "{{ item.id }}"
+      failed_when: false
+
+    - name: "CLEANUP | Find the policies of this run again"
+      crowdstrike.falcon.prevention_policy_info:
+        filter: "name:~'{{ pp_prefix }}'"
+      register: pp_cleanup_left
+
+    - name: "CLEANUP | Verify that no policy of this run is left"
+      vars:
+        pp_left: "{{ pp_cleanup_left.prevention_policies | default([]) | selectattr('name', 'match', '^' ~ (pp_prefix | regex_escape)) | list }}"
+      ansible.builtin.assert:
+        that:
+          - pp_left | length == 0
+        fail_msg: "Policies of this run are left: {{ pp_left | map(attribute='id') | join(', ') }}"

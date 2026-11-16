@@ -1,0 +1,11 @@
+{
+  "body": {
+    "errors": null,
+    "meta": {
+      "query_time": 0.174226385
+    },
+    "resources": null
+  },
+  "method": "delete_policies",
+  "status_code": 200
+}

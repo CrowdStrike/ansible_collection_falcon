@@ -1,0 +1,383 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.208230452
+    },
+    "resources": [
+      {
+        "cid": "00000000000000000000000000000002",
+        "created_by": "api-client-id:fixture-client-3",
+        "created_timestamp": "2026-11-14T00:01:30.579391363Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000007",
+        "ioa_rule_groups": [],
+        "modified_by": "api-client-id:fixture-client-3",
+        "modified_timestamp": "2026-11-14T00:01:30.579391363Z",
+        "name": "ansible-unit-fixture-crud",
+        "platform_name": "Linux",
+        "prevention_settings": [
+          {
+            "name": "User-Mode Capabilities",
+            "settings": [
+              {
+                "description": "Upload suspicious files for advanced threat analysis with QuickScan Pro.",
+                "id": "SuspiciousFileAnalysis",
+                "name": "Suspicious File QuickScan Pro Analysis",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Upload all unknown detection-related executables for advanced analysis in the cloud.",
+                "id": "UnknownDetectionRelatedExecutables",
+                "name": "Unknown Detection-Related Executables",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Upload all unknown executables for advanced analysis in the cloud.",
+                "id": "UnknownExecutables",
+                "name": "Unknown Executables",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Blocks attempts to tamper with the sensor. If disabled, the sensor still creates detections for tampering attempts but doesn't block them. Disabling not recommended.",
+                "id": "SensorTamperingProtection",
+                "name": "Sensor Tampering Protection",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Enhanced Visibility",
+            "settings": [
+              {
+                "description": "Allows the sensor to monitor an extended set of changes to environment variables in order to enhance visibility.",
+                "id": "EnhanceEnvironmentVariableVisibility",
+                "name": "Enhance Environment Variable Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Provides visibility into suspicious scripts, including shell and other scripting languages.",
+                "id": "ScriptBasedExecutionMonitoring",
+                "name": "Script-Based Execution Monitoring",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor filesystem activity for additional telemetry and improved detections.",
+                "id": "FilesystemVisibility",
+                "name": "Filesystem Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor network activity for additional telemetry and improved detections.",
+                "id": "NetworkVisibility",
+                "name": "Network Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor and analyze data flows for protection against data breaches and leaks, and to improve data-related detections.",
+                "id": "CloudDataProtectionVisibility",
+                "name": "Cloud Data Protection Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor unencrypted HTTP traffic for malicious patterns and improved detections.",
+                "id": "HTTPVisibility",
+                "name": "Http Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor unencrypted FTP traffic for malicious patterns and improved detections.",
+                "id": "FTPVisibility",
+                "name": "FTP Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor TLS traffic for malicious patterns and improved detections.",
+                "id": "TLSVisibility",
+                "name": "TLS Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor full CLI commands that include pipes and redirects. This is applicable only for User mode.",
+                "id": "ExtendedCommandLineVisibility",
+                "name": "Extended Command Line Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor SMTP, IMAP, and POP3 traffic for malicious patterns and improved detections.",
+                "id": "EmailProtocolVisibility",
+                "name": "Email Protocol Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "When enabled, the sensor will inspect memory-related operations: mmap, mprotect, ptrace and reading/writing remote process memory and produce events.",
+                "id": "MemoryVisibility",
+                "name": "Memory Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor local D-Bus traffic for malicious patterns and improved detections.",
+                "id": "DBusVisibility",
+                "name": "D-Bus Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor activities performed by PHP scripts to provide additional telemetry and improved detections.",
+                "id": "EnhancePHPVisibility",
+                "name": "Enhance PHP Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Mitigates high volume PHP script execution to only the first time it's seen by the server.",
+                "id": "PHPScriptOptimization",
+                "name": "PHP Script Optimization",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor SSH traffic for malicious patterns and improved detections.",
+                "id": "SSHVisibility",
+                "name": "SSH Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows the sensor to monitor systemd operations for enhanced visibility and improved detections.",
+                "id": "EnhanceSystemdVisibility",
+                "name": "Enhance Systemd Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Cloud Machine Learning",
+            "settings": [
+              {
+                "description": "Use cloud-based machine learning informed by global analysis of executables to detect and kill known malware for your online hosts.",
+                "id": "CloudAntiMalware",
+                "name": "Cloud Anti-malware",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Sensor Machine Learning",
+            "settings": [
+              {
+                "description": "For offline and online hosts, use sensor-based machine learning to identify and analyze unknown executables as they run to detect and prevent malware.",
+                "id": "OnSensorMLSlider",
+                "name": "Sensor Anti-malware",
+                "type": "mlslider",
+                "value": {
+                  "detection": "DISABLED",
+                  "prevention": "DISABLED"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Quarantine",
+            "settings": [
+              {
+                "description": "Quarantine executable files after they're prevented by NGAV. When this is enabled, we recommend setting anti-malware prevention levels to Moderate or higher and not using other antivirus solutions.",
+                "id": "NextGenAV",
+                "name": "Quarantine",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "On Write",
+            "settings": [
+              {
+                "description": "Use Crowdstrike Intelligence to detect suspicious package files when they're written to disk",
+                "id": "DetectPackageOnWrite",
+                "name": "Detect Package on Write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Use Crowdstrike Intelligence to quarantine suspicious package files when they're written to disk",
+                "id": "QuarantinePackageOnWrite",
+                "name": "Quarantine Package on Write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Provides improved visibility into various script files being written to disk in addition to clouding a portion of their content.",
+                "id": "OnWriteScriptFileVisibility",
+                "name": "On Write Script File Visibility",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Terminate the process writing a non-executable file, and associated process activity, when the file is classified as malicious by CrowdStrike's Intelligence analysts.",
+                "id": "TerminateNonExecutablesOnWrite",
+                "name": "Terminate non-executables on write",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Execution Blocking",
+            "settings": [
+              {
+                "description": "Block processes matching hashes that you add to IOC Management with the action set to \"Block\" or \"Block, hide detection\".",
+                "id": "CustomBlacklisting",
+                "name": "Custom Blocking",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Block processes that CrowdStrike analysts classify as suspicious. These are focused on dynamic IOAs, such as malware, exploits and other threats.",
+                "id": "PreventSuspiciousProcesses",
+                "name": "Suspicious Processes",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Execution Blocking",
+            "settings": [
+              {
+                "description": "Block new processes originating from files written in a container. This prevents a container from drifting from its immutable runtime state.",
+                "id": "DriftPrevention",
+                "name": "Drift Prevention",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Behavioral Detections",
+            "settings": [
+              {
+                "description": "Use of tagged binaries to automatically create detections for behaviors which occurred within a lookback period.",
+                "id": "RetrospectiveDetections",
+                "name": "Retrospective Detections",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "method": "create_policies",
+  "status_code": 201
+}

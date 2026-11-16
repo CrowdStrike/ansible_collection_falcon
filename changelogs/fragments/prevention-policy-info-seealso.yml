@@ -1,0 +1,3 @@
+---
+trivial:
+  - prevention_policy_info - add a ``seealso`` link to the ``prevention_policy`` module in the documentation.

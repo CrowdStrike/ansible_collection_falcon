@@ -100,6 +100,8 @@ attributes:
     platforms: all
 
 seealso:
+  - module: crowdstrike.falcon.prevention_policy
+    description: Create, update and delete Falcon prevention policies.
   - name: Prevention Policy API reference
     description: The CrowdStrike API operations that this module uses.
     link: https://developer.crowdstrike.com/api-reference/collections/prevention-policy
