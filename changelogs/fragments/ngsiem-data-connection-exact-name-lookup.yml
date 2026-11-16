@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - ngsiem_data_connection - find a connection by ``name`` only when its name is equal to ``name``. The API name filter also returns connections that only contain the name (for example ``foo-renamed`` or ``xfoo`` for ``foo``), and the module used the first result, so ``state=present`` could update and ``state=absent`` could delete a different connection. The comparison ignores case, because the API does not accept two connections whose names differ only in case.
+  - ngsiem_data_connection - check mode now reads the connection and reports the change that the module would make. Before, check mode stopped before the lookup and always reported no change.

@@ -3,11 +3,11 @@
     "errors": [],
     "meta": {
       "pagination": {
-        "limit": 1,
+        "limit": 500,
         "offset": 0,
         "total": 1
       },
-      "query_time": 0.106732429
+      "query_time": 0.097790592
     },
     "resources": [
       {
