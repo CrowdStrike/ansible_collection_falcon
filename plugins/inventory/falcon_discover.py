@@ -71,7 +71,7 @@ options:
     default: false
 requirements:
   - Assets [B(READ)] API scope
-  - python >= 3.8
+  - python >= 3.12
   - crowdstrike-falconpy >= 1.5.0
 notes:
   - If no credentials are provided, FalconPy will attempt to use the API credentials via environment variables.

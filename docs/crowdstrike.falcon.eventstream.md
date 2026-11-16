@@ -8,7 +8,7 @@ An ansible-rulebook event source plugin for generating events from the Falcon Ev
 
 ## Requirements
 
-- Python 3.6+
+- Python 3.12+
 - Python requirements are listed in [requirements.txt](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/requirements.txt)
 - Ensure the following API scopes are enabled:
   - **Event Streams**: [read]

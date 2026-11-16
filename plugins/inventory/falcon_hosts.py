@@ -70,7 +70,7 @@ options:
       default: ['hostname', 'external_ip', 'local_ip']
 requirements:
   - Hosts [B(READ)] API scope
-  - python >= 3.8
+  - python >= 3.12
   - crowdstrike-falconpy >= 1.5.0
 notes:
   - By default, Ansible will deduplicate the C(inventory_hostname), so if multiple hosts have the same hostname, only

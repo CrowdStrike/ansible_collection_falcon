@@ -1,0 +1,4 @@
+---
+bugfixes:
+  - module_utils - the API modules, lookups and inventories now send the collection version in the ``crowdstrike-ansible/<version>`` user agent. Since version 4.3.0, the user agent sent ``4.2.1`` because the version in ``module_utils/version.py`` was not updated at each release. A unit test now makes sure that this version is the same as the ``galaxy.yml`` version.
+  - Update the Python requirement in the module, lookup, inventory and event source documentation from 3.8 (3.6 for the event source) to 3.12, which is the minimum Python version of the collection.
