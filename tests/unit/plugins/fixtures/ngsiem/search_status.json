@@ -5,13 +5,13 @@
     "events": [
       {
         "@rawstring": "fixture=a",
-        "@timestamp": 1794336238298,
+        "@timestamp": 1794863422006,
         "@timestamp.nanos": "0",
         "fixture": "a"
       },
       {
         "@rawstring": "fixture=b",
-        "@timestamp": 1794336238298,
+        "@timestamp": 1794863422006,
         "@timestamp.nanos": "0",
         "fixture": "b"
       }
@@ -26,16 +26,16 @@
         "staticCostRate": 0.0
       },
       "digestFlow": {
-        "ingestTimeKnownGood": 1794336202155,
-        "maxIngestLatency": 27833,
-        "minIngestTimeIncluded": 1794336202155
+        "ingestTimeKnownGood": 1794863387960,
+        "maxIngestLatency": 26109,
+        "minIngestTimeIncluded": 1794863387960
       },
       "eventCount": 2,
       "extraData": {},
       "filterQuery": {
         "allowEventSkipping": false,
         "computeFieldStats": false,
-        "end": 1794336238232,
+        "end": 1794863421969,
         "includeDeletedEvents": false,
         "ingestEnd": 9223372036854775807,
         "ingestStart": 0,
@@ -47,7 +47,7 @@
         "noResultUntilDone": false,
         "queryString": "*",
         "showQueryEventDistribution": false,
-        "start": 1794332638232,
+        "start": 1794859821969,
         "useIngestTime": false
       },
       "isAggregate": true,
@@ -55,7 +55,7 @@
       "pollAfter": 1000,
       "processedBytes": 0,
       "processedEvents": 0,
-      "queryEnd": 1794336238232,
+      "queryEnd": 1794863421969,
       "querySpent": {
         "day": {
           "liveCost": 0,
@@ -78,13 +78,13 @@
           "staticCost": 2
         }
       },
-      "queryStart": 1794332638232,
+      "queryStart": 1794859821969,
       "queuedMillis": 0,
       "quotaTotalSpent": {
         "day": {
           "liveCost": 0,
-          "queryCount": 0,
-          "staticCost": 0
+          "queryCount": 22,
+          "staticCost": 828
         },
         "hour": {
           "liveCost": 0,
@@ -104,7 +104,7 @@
       },
       "responderVHost": 8,
       "resultBufferSize": 2,
-      "timeMillis": 1035,
+      "timeMillis": 2324,
       "totalWork": 1048576,
       "warnings": [],
       "workDone": 1048576

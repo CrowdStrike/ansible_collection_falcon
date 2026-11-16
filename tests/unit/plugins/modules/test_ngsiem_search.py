@@ -15,7 +15,7 @@ from ansible_collections.crowdstrike.falcon.plugins.modules import ngsiem_search
 
 REPO = "search-all"
 QUERY = 'createEvents(["fixture=a", "fixture=b"]) | kvParse()'
-JOB_ID = "P656-Y5Jqftis4Rm6Et5EjijUmgDm"
+JOB_ID = "P656-kFRk311Xmal8zlXu1ISrnhSd"
 
 
 @pytest.fixture

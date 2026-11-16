@@ -6,11 +6,11 @@
         "offset": 0,
         "total": 1
       },
-      "query_time": 0.170091377
+      "query_time": 0.16370358
     },
     "resources": {
-      "created_at": "2026-11-10T18:43:51Z",
-      "expires_at": "2126-11-11T18:43:51Z",
+      "created_at": "2026-11-16T21:10:15Z",
+      "expires_at": "2126-11-17T21:10:15Z",
       "ingest_url": "https://ingest.example.com/services/collector",
       "token": "REDACTED"
     }

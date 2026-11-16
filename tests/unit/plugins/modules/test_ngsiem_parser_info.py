@@ -12,8 +12,8 @@ import pytest
 from ansible_collections.crowdstrike.falcon.plugins.modules import ngsiem_parser_info
 
 REPO = "parsers-repository"
-PARSER_ID = "00000000000000000000000000000001:1.8.0"
-CLONE_ID = "00000000000000000000000000000002:1.4.0"
+PARSER_ID = "00000000000000000000000000000001:1.22.0"
+CLONE_ID = "00000000000000000000000000000002:1.11.0"
 
 
 @pytest.fixture
