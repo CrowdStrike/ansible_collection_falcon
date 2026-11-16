@@ -470,6 +470,10 @@ uv run tests/unit/record_fixtures.py --dry-run host_group
 # Record one service
 uv run tests/unit/record_fixtures.py host_group
 
+# Record one service, but write only some of its cases
+uv run tests/unit/record_fixtures.py host_group --only get_one query_by_name
+uv run tests/unit/record_fixtures.py --only host_group:get_one prevention_policy:get_one
+
 # Delete the ansible-unit-fixture-* objects that an interrupted run left behind
 uv run tests/unit/record_fixtures.py --cleanup host_group
 ```
@@ -507,6 +511,17 @@ record:
 
 The script writes files but does not delete them. If you remove a case from a
 recorder, delete its fixture file.
+
+When you add a case to a service or need one case again, use `--only` with the
+case names that `--dry-run SERVICE` lists. The script still makes every call
+of the service, so the fake IDs stay the same, but it writes only the named
+files. Before it writes, it compares the fake IDs and names of every other
+case with its file, and it writes nothing if one is different (for example
+when the API returned two objects in another order). Then record the whole
+service. Add a new call after the calls that exist, so that it does not move
+the fake IDs of the other cases. After a change to the API or to FalconPy,
+record the whole service without `--only`, so that every file shows the new
+responses.
 
 ## Integration targets
 
