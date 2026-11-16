@@ -40,8 +40,10 @@ again.
 It still makes every call of the service, so the Sanitizer sees the real IDs
 in the same order and gives the same fake IDs. Before it writes, it compares
 the fake values of each case that it does not write with the file of that
-case. If one is different (the API returned the objects in another order,
-for example), it writes no files: then record the whole service.
+case. If an object has another fake ID than in its file (two objects that
+the service saw first in one list changed places, for example), it writes no
+files: then record the whole service. A list of objects with a unique name
+and platform can come back in another order; that is not a difference.
 
 'uv run' reads the script metadata at the top of this file and installs
 FalconPy and python-dotenv in a temporary environment.
@@ -646,6 +648,8 @@ def record_prevention_policy(rec, creds):
             "remove_group", "perform_policies_action", action, action_name="remove-host-group", ids=[crud_id],
             action_parameters=[{"name": "group_id", "value": group_ids[0]}],
         )
+        # Only IDs that the calls above saw, so the fake IDs of the cases below do not move.
+        rec.call("get_after_remove", "get_policies", get_policies, ids=[crud_id])
         rec.call(
             "add_groups_missing_policy", "perform_policies_action", action, action_name="add-host-group",
             ids=[missing_id], action_parameters=[{"name": "group_id", "value": group_ids[0]}],
@@ -1432,12 +1436,23 @@ def parse_only(names, services):
     return selected
 
 
+def identity(item):
+    """Return the name and platform of an API object, or None if it has no name."""
+    if not isinstance(item, dict):
+        return None
+    name = item.get("name") or item.get("Name")
+    return (name, str(item.get("platform_name"))) if isinstance(name, str) else None
+
+
 def fake_values(data):
-    """Return the fake values in data in document order, to compare two recordings of a case.
+    """Return the fake values in data, to compare two recordings of a case.
 
     An object with a fake value also adds its name, so that two objects
     that changed places in a list are found, also when the list is the
-    first place where the service saw their IDs.
+    first place where the service saw their IDs. A list of objects with a
+    unique name and platform is compared in any order, because the API
+    does not always return such a list in the same order. Each object
+    still keeps its own fake values.
     """
     if isinstance(data, dict):
         found = [v for _k, value in sorted(data.items()) for v in fake_values(value)]
@@ -1446,7 +1461,11 @@ def fake_values(data):
             found.insert(0, "name=" + name)
         return found
     if isinstance(data, list):
-        return [v for value in data for v in fake_values(value)]
+        items = [fake_values(value) for value in data]
+        keys = [identity(value) for value in data]
+        if None not in keys and len(set(keys)) == len(keys):
+            items = [found for _key, found in sorted(zip(keys, items))]
+        return [v for found in items for v in found]
     if isinstance(data, str):
         return FAKE_VALUE_RE.findall(data)
     return []
