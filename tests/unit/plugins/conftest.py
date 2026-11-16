@@ -44,6 +44,10 @@ class FakeService(object):
     _no_unexpected_api_calls fixture fails every test that has an unexpected
     call, unless the FakeService was made with allow_unexpected=True.
 
+    A dict response with a "method" key (a recorded fixture) must come from
+    the method under call. Any other response is also kept in unexpected
+    and raises AssertionError.
+
     override() is keyed as "override:<METHOD> <route>" and command() as
     "command:<operation_id>".
     """
@@ -73,6 +77,14 @@ class FakeService(object):
             if isinstance(response, Exception):
                 raise response
             return response
+        # A recorded fixture keeps the method it came from. A response from
+        # another method can make a test pass for the wrong reason.
+        recorded = response.get("method", name)
+        if recorded != name:
+            self.unexpected.append((name, kwargs))
+            raise AssertionError(
+                "response recorded from %s returned for %s" % (recorded, name)
+            )
         # Plugins may change the response, so each call gets its own copy.
         result = {k: copy.deepcopy(v) for k, v in response.items() if k != "method"}
         result.setdefault("headers", {})
