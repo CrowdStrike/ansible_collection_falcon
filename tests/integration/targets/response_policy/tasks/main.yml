@@ -1,0 +1,775 @@
+---
+# Integration tests for the response_policy and response_policy_info modules
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Response policies [READ, WRITE], Host Groups [READ, WRITE]
+#
+# The test creates, updates, enables, disables and deletes Real Time Response
+# policies whose names start with the prefix of this run
+# (ansible-int-rp-<timestamp>), on Linux, Windows and Mac. It runs the module
+# examples, check mode, diff mode, a second run of each change, and the
+# settings that a platform does not have. It creates two static host groups
+# with the prefix of this run, assigns a policy to them, and removes one of
+# them from the policy. It does not change any other policy or host group.
+#
+# Cleanup: the always section searches with filter "name:~'<prefix>'". The
+# ~ operator matches whole words of the name without regard to case, so the
+# cleanup keeps only the names that start with the prefix of this run,
+# disables each enabled policy (the API does not delete an enabled policy) and
+# deletes each policy by ID. The form name:*'<prefix>*' returns no policies
+# when the value has a hyphen, so the test does not use it.
+# The host groups are found with filter "name:*'<prefix>*'", as in the
+# host_group target. The Host Groups API matches a name filter only with the
+# lowercase form, so the prefix is lowercase. The cleanup deletes the
+# policies first, then each host group of this run by ID.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set the test prefix
+  ansible.builtin.set_fact:
+    rp_prefix: "ansible-int-rp-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+
+- name: Set the test names
+  ansible.builtin.set_fact:
+    rp_linux_name: "{{ rp_prefix }}-linux"
+    rp_win_name: "{{ rp_prefix }}-windows"
+    rp_mac_name: "{{ rp_prefix }}-mac"
+    rp_missing_name: "{{ rp_prefix }}-missing"
+    rp_hg_a_name: "{{ rp_prefix }}-hg-a"
+    rp_hg_b_name: "{{ rp_prefix }}-hg-b"
+    rp_missing_id: "ffffffffffffffffffffffffffffffff"
+
+- name: Run the response_policy lifecycle
+  vars:
+    # Each value maps the API setting ID to value.enabled, for the policy read in the task.
+    rp_linux_flat: "{{ rp_linux_read.response_policies[0].settings | map(attribute='settings') | flatten }}"
+    rp_linux_vals: "{{ dict(rp_linux_flat | map(attribute='id') | zip(rp_linux_flat | map(attribute='value.enabled'))) }}"
+  block:
+    # ---- Create ----
+    - name: "CREATE | Create the Linux policy in check mode"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        description: "Managed by Ansible"
+        enabled: true
+        real_time_functionality: true
+        custom_scripts: true
+        put_command: true
+      check_mode: true
+      register: rp_create_check
+
+    - name: "CREATE | Search for the policy after check mode"
+      crowdstrike.falcon.response_policy_info:
+        name: "{{ rp_linux_name }}"
+      register: rp_create_check_info
+
+    - name: "CREATE | Verify that check mode predicted a change and created nothing"
+      ansible.builtin.assert:
+        that:
+          - rp_create_check is changed
+          - rp_create_check_info.response_policies | length == 0
+        fail_msg: "Check mode did not predict the create or created the policy"
+
+    - name: "EXAMPLE | Create an enabled Linux Real Time Response policy"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        description: "Managed by Ansible"
+        enabled: true
+        real_time_functionality: true
+        custom_scripts: true
+        put_command: true
+      diff: true
+      register: rp_create
+
+    - name: "CREATE | Save the Linux policy ID"
+      ansible.builtin.set_fact:
+        rp_linux_id: "{{ rp_create.response_policy.id }}"
+
+    - name: "CREATE | Read the policy"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "CREATE | Verify the new policy, its settings and the diff"
+      ansible.builtin.assert:
+        that:
+          - rp_create is changed
+          - rp_create.diff.before == {}
+          - rp_create.diff.after.name == rp_linux_name
+          - rp_create.diff.after.enabled
+          - >-
+            rp_create.diff.after.settings == {'real_time_functionality': true, 'custom_scripts': true,
+            'get_command': false, 'put_command': true, 'exec_command': false}
+          - rp_linux_read.response_policies | length == 1
+          - rp_linux_read.response_policies[0].name == rp_linux_name
+          - rp_linux_read.response_policies[0].platform_name == 'Linux'
+          - rp_linux_read.response_policies[0].description == 'Managed by Ansible'
+          - rp_linux_read.response_policies[0].enabled
+          - rp_linux_vals | length == 5
+          - rp_linux_vals.RealTimeFunctionality
+          - rp_linux_vals.CustomScripts
+          - rp_linux_vals.PutCommand
+          - not rp_linux_vals.GetCommand
+          - not rp_linux_vals.ExecCommand
+        fail_msg: "The created policy does not have the wanted values"
+
+    - name: "CREATE | Create the policy again"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        description: "Managed by Ansible"
+        enabled: true
+        real_time_functionality: true
+        custom_scripts: true
+        put_command: true
+      register: rp_create_again
+
+    - name: "CREATE | Verify that the second run changed nothing"
+      ansible.builtin.assert:
+        that:
+          - rp_create_again is not changed
+          - rp_create_again.response_policy.id == rp_linux_id
+        fail_msg: "The second create was not idempotent"
+
+    # ---- Update ----
+    - name: "UPDATE | Turn on the exec command in check mode"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        exec_command: true
+      check_mode: true
+      diff: true
+      register: rp_update_check
+
+    - name: "UPDATE | Read the policy after check mode"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "UPDATE | Verify that check mode predicted a change and changed nothing"
+      ansible.builtin.assert:
+        that:
+          - rp_update_check is changed
+          - not rp_update_check.diff.before.settings.exec_command
+          - rp_update_check.diff.after.settings.exec_command
+          - not rp_linux_vals.ExecCommand
+        fail_msg: "Check mode did not predict the update or changed the policy"
+
+    - name: "UPDATE | Turn on only the exec command"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        exec_command: true
+      diff: true
+      register: rp_update_one
+
+    - name: "UPDATE | Read the policy after the one setting update"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "UPDATE | Verify that only the exec command changed"
+      ansible.builtin.assert:
+        that:
+          - rp_update_one is changed
+          - not rp_update_one.diff.before.settings.exec_command
+          - rp_update_one.diff.after.settings.exec_command
+          - rp_update_one.diff.before.settings.put_command
+          - rp_linux_vals.ExecCommand
+          - rp_linux_vals.RealTimeFunctionality
+          - rp_linux_vals.CustomScripts
+          - rp_linux_vals.PutCommand
+          - not rp_linux_vals.GetCommand
+          - rp_linux_read.response_policies[0].description == 'Managed by Ansible'
+          - rp_linux_read.response_policies[0].enabled
+        fail_msg: "The update of one setting changed other values"
+
+    - name: "UPDATE | Turn on only the exec command again"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        exec_command: true
+      register: rp_update_one_again
+
+    - name: "UPDATE | Change the description and turn on the get command in one task"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        description: "Updated by Ansible"
+        get_command: true
+      diff: true
+      register: rp_update_combo
+
+    - name: "UPDATE | Read the policy after the combined update"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "UPDATE | Verify the combined update"
+      ansible.builtin.assert:
+        that:
+          - rp_update_one_again is not changed
+          - rp_update_combo is changed
+          - rp_update_combo.diff.before.description == 'Managed by Ansible'
+          - rp_update_combo.diff.after.description == 'Updated by Ansible'
+          - rp_update_combo.diff.after.settings.get_command
+          - rp_linux_read.response_policies[0].description == 'Updated by Ansible'
+          - rp_linux_vals.GetCommand
+          - rp_linux_vals.ExecCommand
+        fail_msg: "The combined update did not apply both values"
+
+    - name: "EXAMPLE | Turn off the get command of the Linux policy"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        get_command: false
+      register: rp_get_off
+
+    - name: "UPDATE | Read the policy after the get command is off"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "UPDATE | Verify that the get command is off"
+      ansible.builtin.assert:
+        that:
+          - rp_get_off is changed
+          - not rp_linux_vals.GetCommand
+          - rp_linux_vals.ExecCommand
+        fail_msg: "The get command is not off"
+
+    - name: "UPDATE | Clear the description"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        description: ""
+      register: rp_clear
+
+    - name: "UPDATE | Read the policy after the clear"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "UPDATE | Clear the description again"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        description: ""
+      register: rp_clear_again
+
+    - name: "UPDATE | Verify that the description is empty"
+      ansible.builtin.assert:
+        that:
+          - rp_clear is changed
+          - rp_linux_read.response_policies[0].description == ''
+          - rp_clear_again is not changed
+        fail_msg: "An empty description did not clear it, or the second run changed it"
+
+    - name: "UPDATE | Disable the policy"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        enabled: false
+      diff: true
+      register: rp_disable
+
+    - name: "UPDATE | Read the disabled policy"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "UPDATE | Disable the policy again"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        enabled: false
+      register: rp_disable_again
+
+    - name: "UPDATE | Verify the disable and the second run"
+      ansible.builtin.assert:
+        that:
+          - rp_disable is changed
+          - rp_disable.diff.before.enabled
+          - not rp_disable.diff.after.enabled
+          - not rp_linux_read.response_policies[0].enabled
+          - rp_disable_again is not changed
+        fail_msg: "The disable did not apply or was not idempotent"
+
+    - name: "UPDATE | Enable the policy"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        enabled: true
+      register: rp_enable
+
+    - name: "UPDATE | Read the enabled policy"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "UPDATE | Verify the enable"
+      ansible.builtin.assert:
+        that:
+          - rp_enable is changed
+          - rp_linux_read.response_policies[0].enabled
+        fail_msg: "The enable did not apply"
+
+    - name: "UPDATE | Find the policy by the upper-case form of its ID"
+      crowdstrike.falcon.response_policy:
+        policy_id: "{{ rp_linux_id | upper }}"
+        enabled: true
+        exec_command: true
+      register: rp_upper
+
+    - name: "UPDATE | Verify that the upper-case ID found the same policy"
+      ansible.builtin.assert:
+        that:
+          - rp_upper is not changed
+          - rp_upper.response_policy.id == rp_linux_id
+        fail_msg: "The upper-case ID did not find the same policy"
+
+    # ---- Settings that a platform does not have ----
+    - name: "PLATFORM | Turn on the memdump command of the Linux policy"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        memdump_command: true
+      register: rp_linux_memdump
+      ignore_errors: true
+
+    - name: "PLATFORM | Read the Linux policy after the failure"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "PLATFORM | Verify that the memdump command failed on Linux and changed nothing"
+      ansible.builtin.assert:
+        that:
+          - rp_linux_memdump is failed
+          - rp_linux_memdump is not changed
+          - "'not available for Linux' in rp_linux_memdump.msg"
+          - rp_linux_vals | length == 5
+          - "'MemDumpCommand' not in rp_linux_vals"
+          - rp_linux_read.response_policies[0].modified_timestamp == rp_upper.response_policy.modified_timestamp
+        fail_msg: "A Linux setting that the platform does not have did not fail, or changed the policy"
+
+    - name: "EXAMPLE | Create a Windows Real Time Response policy that allows Falcon scripts"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_win_name }}"
+        platform_name: Windows
+        real_time_functionality: true
+        custom_scripts: true
+        falcon_scripts: true
+      register: rp_win
+
+    - name: "PLATFORM | Turn on the memdump and xmemdump commands of the Windows policy"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_win_name }}"
+        platform_name: Windows
+        memdump_command: true
+        xmemdump_command: true
+      register: rp_win_memdump
+
+    - name: "PLATFORM | Read the Windows policy"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_win.response_policy.id }}"
+      register: rp_win_read
+
+    - name: "PLATFORM | Verify the Windows settings"
+      vars:
+        rp_win_flat: "{{ rp_win_read.response_policies[0].settings | map(attribute='settings') | flatten }}"
+        rp_win_vals: "{{ dict(rp_win_flat | map(attribute='id') | zip(rp_win_flat | map(attribute='value.enabled'))) }}"
+      ansible.builtin.assert:
+        that:
+          - rp_win is changed
+          - rp_win_memdump is changed
+          - rp_win_read.response_policies[0].platform_name == 'Windows'
+          - not rp_win_read.response_policies[0].enabled
+          - rp_win_vals.RealTimeFunctionality
+          - rp_win_vals.CustomScripts
+          - rp_win_vals.FalconScripts
+          - rp_win_vals.MemDumpCommand
+          - rp_win_vals.XMemDumpCommand
+          - not rp_win_vals.GetCommand
+          - not rp_win_vals.PutAndRunCommand
+        fail_msg: "The Windows policy does not have the wanted settings"
+
+    - name: "PLATFORM | Create a Mac policy with the put-and-run command"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_mac_name }}"
+        platform_name: Mac
+        put_and_run_command: true
+      register: rp_mac
+
+    - name: "PLATFORM | Create the Mac policy again"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_mac_name }}"
+        platform_name: Mac
+        put_and_run_command: true
+      register: rp_mac_again
+
+    - name: "PLATFORM | Turn on Falcon scripts of the Mac policy by ID"
+      crowdstrike.falcon.response_policy:
+        policy_id: "{{ rp_mac.response_policy.id }}"
+        falcon_scripts: true
+      register: rp_mac_falcon_scripts
+      ignore_errors: true
+
+    - name: "READ | Get the Mac policy by name with response_policy_info"
+      crowdstrike.falcon.response_policy_info:
+        name: "{{ rp_mac_name | upper }}"
+      register: rp_mac_read
+
+    - name: "PLATFORM | Verify the Mac policy and that Falcon scripts failed on Mac"
+      vars:
+        rp_mac_flat: "{{ rp_mac_read.response_policies[0].settings | map(attribute='settings') | flatten }}"
+        rp_mac_vals: "{{ dict(rp_mac_flat | map(attribute='id') | zip(rp_mac_flat | map(attribute='value.enabled'))) }}"
+      ansible.builtin.assert:
+        that:
+          - rp_mac is changed
+          - rp_mac_again is not changed
+          - rp_mac_falcon_scripts is failed
+          - rp_mac_falcon_scripts is not changed
+          - "'not available for Mac' in rp_mac_falcon_scripts.msg"
+          - rp_mac_read.response_policies | length == 1
+          - rp_mac_read.response_policies[0].id == rp_mac.response_policy.id
+          - rp_mac_read.response_policies[0].name == rp_mac_name
+          - rp_mac_read.response_policies[0].platform_name == 'Mac'
+          - rp_mac_vals.PutAndRunCommand
+          - not rp_mac_vals.RealTimeFunctionality
+          - "'FalconScripts' not in rp_mac_vals"
+          - rp_mac_read.response_policies[0].modified_timestamp == rp_mac.response_policy.modified_timestamp
+        fail_msg: "The Mac policy is wrong, or a Mac setting that the platform does not have did not fail"
+
+    # ---- Missing policy ID ----
+    - name: "MISSING | Update a policy ID that does not exist"
+      crowdstrike.falcon.response_policy:
+        policy_id: "{{ rp_missing_id }}"
+        enabled: true
+      register: rp_missing_present
+      ignore_errors: true
+
+    - name: "MISSING | Delete a policy ID that does not exist"
+      crowdstrike.falcon.response_policy:
+        policy_id: "{{ rp_missing_id }}"
+        state: absent
+      register: rp_missing_absent
+
+    - name: "MISSING | Verify the missing policy ID results"
+      ansible.builtin.assert:
+        that:
+          - rp_missing_present is failed
+          - "'Response policy not found' in rp_missing_present.msg"
+          - rp_missing_absent is not changed
+          - rp_missing_absent is not failed
+        fail_msg: "A missing policy ID did not fail with state=present, or was not a no-op with state=absent"
+
+    # ---- Host groups ----
+    - name: "HOST GROUPS | Create the first static host group"
+      crowdstrike.falcon.host_group:
+        name: "{{ rp_hg_a_name }}"
+        description: "Ansible integration test"
+      register: rp_hg_a
+
+    - name: "HOST GROUPS | Create the second static host group"
+      crowdstrike.falcon.host_group:
+        name: "{{ rp_hg_b_name }}"
+        description: "Ansible integration test"
+      register: rp_hg_b
+
+    - name: "HOST GROUPS | Save the host group IDs"
+      ansible.builtin.set_fact:
+        rp_hg_a_id: "{{ rp_hg_a.host_group.id }}"
+        rp_hg_b_id: "{{ rp_hg_b.host_group.id }}"
+
+    - name: "HOST GROUPS | Create a policy with a host group that does not exist"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_missing_name }}"
+        platform_name: Linux
+        host_groups:
+          - "{{ rp_hg_a_id }}"
+          - "{{ rp_missing_id }}"
+      register: rp_hg_missing
+      ignore_errors: true
+
+    - name: "HOST GROUPS | Search for the policy after the missing group"
+      crowdstrike.falcon.response_policy_info:
+        name: "{{ rp_missing_name }}"
+      register: rp_hg_missing_info
+
+    - name: "HOST GROUPS | Verify that the missing group failed before any change"
+      ansible.builtin.assert:
+        that:
+          - rp_hg_missing is failed
+          - rp_hg_missing is not changed
+          - "'Host groups not found: ' ~ rp_missing_id in rp_hg_missing.msg"
+          - rp_hg_missing_info.response_policies | length == 0
+        fail_msg: "A missing host group did not fail, or the policy was created"
+
+    - name: "EXAMPLE | Assign the policy to two host groups"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        host_groups:
+          - "{{ rp_hg_a_id }}"
+          - "{{ rp_hg_b_id }}"
+      diff: true
+      register: rp_hg_two
+
+    - name: "HOST GROUPS | Read the policy after the add"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "HOST GROUPS | Assign the policy to the first group only, without purge"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        host_groups:
+          - "{{ rp_hg_a_id | upper }}"
+      register: rp_hg_add_again
+
+    - name: "HOST GROUPS | Verify that both groups are assigned and the second run changed nothing"
+      ansible.builtin.assert:
+        that:
+          - rp_hg_two is changed
+          - rp_hg_two.diff.before.groups == []
+          - rp_hg_two.diff.after.groups == [rp_hg_a_id, rp_hg_b_id] | sort
+          - rp_linux_read.response_policies[0].groups | map(attribute='id') | sort == [rp_hg_a_id, rp_hg_b_id] | sort
+          - rp_hg_add_again is not changed
+        fail_msg: "The policy does not have both groups, or the second run changed it"
+
+    - name: "HOST GROUPS | Keep only the first group with purge in check mode"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        host_groups:
+          - "{{ rp_hg_a_id }}"
+        purge_host_groups: true
+      check_mode: true
+      register: rp_hg_purge_check
+
+    - name: "HOST GROUPS | Read the policy after the purge in check mode"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_hg_purge_check_info
+
+    - name: "HOST GROUPS | Verify the purge prediction and that nothing was removed"
+      ansible.builtin.assert:
+        that:
+          - rp_hg_purge_check is changed
+          - rp_hg_purge_check_info.response_policies[0].groups | map(attribute='id') | sort == [rp_hg_a_id, rp_hg_b_id] | sort
+        fail_msg: "Check mode did not predict the purge, or removed a group"
+
+    - name: "EXAMPLE | Set the exact host groups of the policy and remove the others"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        host_groups:
+          - "{{ rp_hg_a_id }}"
+        purge_host_groups: true
+      register: rp_hg_purge
+
+    - name: "HOST GROUPS | Read the policy after the purge"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "HOST GROUPS | Purge again"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        host_groups:
+          - "{{ rp_hg_a_id }}"
+        purge_host_groups: true
+      register: rp_hg_purge_again
+
+    - name: "HOST GROUPS | Verify that only the first group is left and the settings stay"
+      ansible.builtin.assert:
+        that:
+          - rp_hg_purge is changed
+          - rp_linux_read.response_policies[0].groups | map(attribute='id') | list == [rp_hg_a_id]
+          - rp_hg_purge_again is not changed
+          - rp_linux_vals.RealTimeFunctionality
+          - rp_linux_vals.ExecCommand
+        fail_msg: "The purge did not leave only the first group, or the second run changed the policy"
+
+    # ---- Delete ----
+    - name: "DELETE | Delete the enabled Linux policy in check mode"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        state: absent
+      check_mode: true
+      register: rp_delete_check
+
+    - name: "DELETE | Read the policy after check mode"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_linux_id }}"
+      register: rp_linux_read
+
+    - name: "DELETE | Verify that check mode predicted a change and deleted nothing"
+      ansible.builtin.assert:
+        that:
+          - rp_delete_check is changed
+          - rp_linux_read.response_policies | length == 1
+          - rp_linux_read.response_policies[0].enabled
+        fail_msg: "Check mode did not predict the delete or changed the policy"
+
+    - name: "EXAMPLE | Delete the policy by name and platform"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        state: absent
+      diff: true
+      register: rp_delete
+
+    - name: "DELETE | Search for the Linux policy after the delete"
+      crowdstrike.falcon.response_policy_info:
+        name: "{{ rp_linux_name }}"
+      register: rp_delete_info
+
+    - name: "DELETE | Delete the Linux policy again"
+      crowdstrike.falcon.response_policy:
+        name: "{{ rp_linux_name }}"
+        platform_name: Linux
+        state: absent
+      register: rp_delete_again
+
+    - name: "DELETE | Verify that the enabled policy is deleted and the second run changed nothing"
+      ansible.builtin.assert:
+        that:
+          - rp_delete is changed
+          - rp_delete.diff.before.name == rp_linux_name
+          - rp_delete.diff.before.enabled
+          - rp_delete.diff.after == {}
+          - rp_delete_info.response_policies | length == 0
+          - rp_delete_again is not changed
+        fail_msg: "The delete of the enabled policy failed or was not idempotent"
+
+    - name: "EXAMPLE | Delete a Real Time Response policy by ID"
+      crowdstrike.falcon.response_policy:
+        policy_id: "{{ rp_win.response_policy.id }}"
+        state: absent
+      register: rp_byid_delete
+
+    - name: "DELETE | Delete the policy by ID again"
+      crowdstrike.falcon.response_policy:
+        policy_id: "{{ rp_win.response_policy.id }}"
+        state: absent
+      register: rp_byid_delete_again
+
+    - name: "DELETE | Search for the Windows policy after the delete by ID"
+      crowdstrike.falcon.response_policy_info:
+        name: "{{ rp_win_name }}"
+      register: rp_byid_info
+
+    - name: "DELETE | Verify the delete by ID"
+      ansible.builtin.assert:
+        that:
+          - rp_byid_delete is changed
+          - rp_byid_delete_again is not changed
+          - rp_byid_info.response_policies | length == 0
+        fail_msg: "The delete by ID failed or was not idempotent"
+
+  always:
+    - name: "CLEANUP | Find the policies of this run"
+      crowdstrike.falcon.response_policy_info:
+        filter: "name:~'{{ rp_prefix }}'"
+      register: rp_cleanup_info
+
+    - name: "CLEANUP | Keep the policies whose names start with the prefix of this run"
+      ansible.builtin.set_fact:
+        rp_cleanup: >-
+          {{ rp_cleanup_info.response_policies | default([])
+             | selectattr('name', 'match', '^' ~ (rp_prefix | regex_escape), ignorecase=true) | list }}
+
+    - name: "CLEANUP | Disable each enabled policy of this run"
+      crowdstrike.falcon.response_policy:
+        policy_id: "{{ item.id }}"
+        enabled: false
+      loop: "{{ rp_cleanup | selectattr('enabled') | list }}"
+      loop_control:
+        label: "{{ item.id }}"
+      failed_when: false
+
+    - name: "CLEANUP | Delete each policy of this run by ID"
+      crowdstrike.falcon.response_policy:
+        policy_id: "{{ item.id }}"
+        state: absent
+      loop: "{{ rp_cleanup }}"
+      loop_control:
+        label: "{{ item.id }}"
+      failed_when: false
+
+    - name: "CLEANUP | Find the policies of this run again"
+      crowdstrike.falcon.response_policy_info:
+        filter: "name:~'{{ rp_prefix }}'"
+      register: rp_cleanup_left
+
+    - name: "CLEANUP | Verify that no policy of this run is left"
+      vars:
+        rp_left: >-
+          {{ rp_cleanup_left.response_policies | default([])
+             | selectattr('name', 'match', '^' ~ (rp_prefix | regex_escape), ignorecase=true) | list }}
+      ansible.builtin.assert:
+        that:
+          - rp_left | length == 0
+        fail_msg: "Policies of this run are left: {{ rp_left | map(attribute='id') | join(', ') }}"
+
+    - name: "CLEANUP | Find the host groups of this run"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:*'{{ rp_prefix }}*'"
+      register: rp_hg_cleanup_info
+      failed_when: false
+
+    - name: "CLEANUP | Delete each host group of this run by ID"
+      crowdstrike.falcon.host_group:
+        host_group: "{{ item.id }}"
+        state: absent
+      loop: "{{ rp_hg_cleanup_info.host_groups | default([]) | selectattr('name', 'match', '^' ~ (rp_prefix | regex_escape)) | list }}"
+      loop_control:
+        label: "{{ item.id }}"
+      failed_when: false
+
+    - name: "CLEANUP | Find the host groups of this run again"
+      crowdstrike.falcon.host_group_info:
+        filter: "name:*'{{ rp_prefix }}*'"
+      register: rp_hg_cleanup_left
+
+    - name: "CLEANUP | Verify that no host group of this run is left"
+      vars:
+        rp_hg_left: "{{ rp_hg_cleanup_left.host_groups | default([]) | selectattr('name', 'match', '^' ~ (rp_prefix | regex_escape)) | list }}"
+      ansible.builtin.assert:
+        that:
+          - rp_hg_left | length == 0
+        fail_msg: "Host groups of this run are left: {{ rp_hg_left | map(attribute='id') | join(', ') }}"
