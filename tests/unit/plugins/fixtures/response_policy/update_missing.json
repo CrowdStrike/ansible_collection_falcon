@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "message": "policy id 00000000000000000000000000000005 not found"
+      }
+    ],
+    "meta": {
+      "query_time": 0.007217017
+    },
+    "resources": null
+  },
+  "method": "update_policies",
+  "status_code": 404
+}

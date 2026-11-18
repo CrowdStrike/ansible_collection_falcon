@@ -1,0 +1,515 @@
+---
+# Integration tests for the response_policy_info module
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Response policies [READ]
+#
+# The test only reads. It changes nothing in the tenant and makes no objects,
+# so it has no cleanup. Other runs can make and delete Real Time Response
+# policies while this test runs, so the checks never compare a search with an
+# earlier read of all policies. Each check uses the three platform_default
+# policies (one for each of Windows, Mac and Linux, which every tenant has and
+# which nobody can delete or rename), or values that the same search returned.
+# Policy data is tenant data, so the tasks that return it use no_log and the
+# asserts use quiet. The prefix is only used for names that must not exist.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    rp_prefix: "ansible-int-rp-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+    rp_missing_id: "ffffffffffffffffffffffffffffffff"
+    rp_keys:
+      - id
+      - cid
+      - name
+      - description
+      - platform_name
+      - enabled
+      - groups
+      - created_by
+      - created_timestamp
+      - modified_by
+      - modified_timestamp
+      - settings
+    rp_sorts:
+      - name.asc
+      - name.desc
+      - created_timestamp.asc
+      - created_timestamp.desc
+      - modified_timestamp.asc
+      - modified_timestamp.desc
+      - enabled.asc
+      - enabled.desc
+      - created_by.asc
+      - created_by.desc
+      - modified_by.asc
+      - modified_by.desc
+
+- name: Run read-only Real Time Response policy tests
+  block:
+    # =====================================================================
+    # Phase 1: all policies, and the platform_default policies
+    # =====================================================================
+
+    - name: "EXAMPLE | Get all Real Time Response policies"
+      crowdstrike.falcon.response_policy_info:
+      register: rp_all_info
+      no_log: true
+
+    - name: "READ | Keep the platform_default policies"
+      ansible.builtin.set_fact:
+        rp_all: "{{ rp_all_info.response_policies }}"
+        rp_pd: "{{ rp_all_info.response_policies | selectattr('name', 'equalto', 'platform_default') | list }}"
+      no_log: true
+
+    - name: "READ | Keep the values that the later checks use"
+      ansible.builtin.set_fact:
+        rp_pd_ids: "{{ rp_pd | map(attribute='id') | sort }}"
+        rp_pd_win: "{{ rp_pd | selectattr('platform_name', 'equalto', 'Windows') | first }}"
+        rp_pd_linux: "{{ rp_pd | selectattr('platform_name', 'equalto', 'Linux') | first }}"
+        # A whole word of a platform_default description. Long words avoid common words.
+        rp_desc_word: >-
+          {{ rp_pd | map(attribute='description') | select
+             | map('regex_findall', '\b[A-Za-z]{5,}\b')
+             | flatten | first | default('') }}
+      no_log: true
+
+    - name: "READ | Verify the policies and the three platform_default policies"
+      ansible.builtin.assert:
+        that:
+          - rp_all_info is not changed
+          - rp_all | length > 0
+          - rp_pd | length == 3
+          - rp_pd | map(attribute='platform_name') | sort == ['Linux', 'Mac', 'Windows']
+          - rp_all | map(attribute='id') | unique | length == rp_all | length
+        fail_msg: "The tenant must have one platform_default policy for each platform, and no repeated ID"
+        quiet: true
+
+    - name: "READ | Verify that each policy has every documented key"
+      ansible.builtin.assert:
+        that:
+          - rp_all | selectattr(item, 'defined') | list | length == rp_all | length
+        fail_msg: "A policy has no '{{ item }}' key"
+        quiet: true
+      loop: "{{ rp_keys }}"
+
+    - name: "READ | Verify the types of the main keys"
+      ansible.builtin.assert:
+        that:
+          - rp_all | map(attribute='enabled') | map('type_debug') | unique == ['bool']
+          - rp_all | map(attribute='groups') | map('type_debug') | unique == ['list']
+          - rp_all | map(attribute='settings') | map('type_debug') | unique == ['list']
+          - rp_pd | map(attribute='settings') | map('length') | min > 0
+        fail_msg: "The policies have a key of an unexpected type, or a platform_default policy has no settings"
+        quiet: true
+
+    - name: "CHECK | Get all Real Time Response policies in check mode"
+      crowdstrike.falcon.response_policy_info:
+      check_mode: true
+      register: rp_check
+      no_log: true
+
+    - name: "CHECK | Verify that check mode reads the policies"
+      ansible.builtin.assert:
+        that:
+          - rp_check is not changed
+          - >-
+            rp_check.response_policies | selectattr('name', 'equalto', 'platform_default')
+            | map(attribute='id') | sort == rp_pd_ids
+        fail_msg: "Check mode did not return the platform_default policies"
+        quiet: true
+
+    # =====================================================================
+    # Phase 2: by ID
+    # =====================================================================
+
+    - name: "EXAMPLE | Get Real Time Response policies by ID"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_pd_win.id }}"
+      register: rp_by_id
+      no_log: true
+
+    - name: "BY ID | Verify that one ID gives the policy of the search"
+      ansible.builtin.assert:
+        that:
+          - rp_by_id is not changed
+          - rp_by_id.response_policies | length == 1
+          - rp_by_id.response_policies[0].id == rp_pd_win.id
+          - rp_by_id.response_policies[0].name == rp_pd_win.name
+          - rp_by_id.response_policies[0].platform_name == 'Windows'
+          - rp_by_id.response_policies[0].enabled == rp_pd_win.enabled
+        fail_msg: "The policy by ID is not the policy of the search"
+        quiet: true
+
+    - name: "BY ID | Get two policies by ID, the Linux one first"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_pd_linux.id }}"
+          - "{{ rp_pd_win.id }}"
+      register: rp_by_two_ids
+      no_log: true
+
+    - name: "BY ID | Verify that two IDs come back in the request order"
+      ansible.builtin.assert:
+        that:
+          - rp_by_two_ids.response_policies | map(attribute='id') | list == [rp_pd_linux.id, rp_pd_win.id]
+        fail_msg: "Two IDs did not return the two policies in the request order"
+        quiet: true
+
+    - name: "BY ID | Get policies with an empty ID list"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids: []
+      register: rp_by_no_ids
+
+    - name: "BY ID | Verify that an empty ID list gives no policies"
+      ansible.builtin.assert:
+        that:
+          - rp_by_no_ids is not changed
+          - rp_by_no_ids.response_policies == []
+        fail_msg: "An empty ID list returned policies"
+
+    - name: "BY ID | Get a policy that does not exist"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_missing_id }}"
+      register: rp_by_missing_id
+      ignore_errors: true
+
+    - name: "BY ID | Verify that a missing ID fails"
+      ansible.builtin.assert:
+        that:
+          - rp_by_missing_id is failed
+          - >-
+            rp_by_missing_id.msg == 'Response policy not found: ' ~ rp_missing_id
+          - rp_by_missing_id.response_policies == []
+        fail_msg: "A missing ID did not fail with the expected message"
+
+    - name: "BY ID | Get a real and a missing policy"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_pd_win.id }}"
+          - "{{ rp_missing_id }}"
+      register: rp_by_real_and_missing_id
+      ignore_errors: true
+      no_log: true
+
+    - name: "BY ID | Verify that the failed result has the found policy and the API error"
+      ansible.builtin.assert:
+        that:
+          - rp_by_real_and_missing_id is failed
+          - >-
+            rp_by_real_and_missing_id.msg == 'Response policy not found: ' ~ rp_missing_id
+          - rp_by_real_and_missing_id.response_policies | map(attribute='id') | list == [rp_pd_win.id]
+          - rp_by_real_and_missing_id.errors | selectattr('id', 'equalto', rp_missing_id) | list | length == 1
+        fail_msg: "A real and a missing ID did not fail with the found policy and the API error"
+        quiet: true
+
+    - name: "BY ID | Get a policy by its ID in upper case"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_pd_win.id | upper }}"
+      register: rp_by_upper_id
+      no_log: true
+
+    - name: "BY ID | Verify that the ID ignores case"
+      ansible.builtin.assert:
+        that:
+          - rp_by_upper_id is not changed
+          - rp_by_upper_id.response_policies | map(attribute='id') | list == [rp_pd_win.id]
+        fail_msg: "The ID in upper case did not return the policy"
+        quiet: true
+
+    # =====================================================================
+    # Phase 3: by name
+    # =====================================================================
+
+    - name: "EXAMPLE | Get the Real Time Response policies with a name"
+      crowdstrike.falcon.response_policy_info:
+        name: platform_default
+      register: rp_by_name
+      no_log: true
+
+    - name: "BY NAME | Get the platform_default policies with the name in upper case"
+      crowdstrike.falcon.response_policy_info:
+        name: PLATFORM_DEFAULT
+      register: rp_by_name_upper
+      no_log: true
+
+    - name: "BY NAME | Verify that the name gives the three platform_default policies and ignores case"
+      ansible.builtin.assert:
+        that:
+          - rp_by_name is not changed
+          - rp_by_name.response_policies | map(attribute='id') | sort == rp_pd_ids
+          - rp_by_name_upper.response_policies | map(attribute='id') | sort == rp_pd_ids
+        fail_msg: "The name search did not return the three platform_default policies"
+        quiet: true
+
+    - name: "EXAMPLE | Get the Real Time Response policy with a name for one platform"
+      crowdstrike.falcon.response_policy_info:
+        name: platform_default
+        filter: "platform_name:'Windows'"
+      register: rp_by_name_platform
+      no_log: true
+
+    - name: "BY NAME | Verify the name and the platform"
+      ansible.builtin.assert:
+        that:
+          - rp_by_name_platform.response_policies | map(attribute='id') | list == [rp_pd_win.id]
+        fail_msg: "The name with a platform filter did not return the Windows platform_default policy"
+        quiet: true
+
+    - name: "BY NAME | Get a name that does not exist"
+      crowdstrike.falcon.response_policy_info:
+        name: "{{ rp_prefix }}-missing"
+      register: rp_by_missing_name
+
+    - name: "BY NAME | Get a name with a quote"
+      crowdstrike.falcon.response_policy_info:
+        name: "{{ rp_prefix }}-it's"
+      register: rp_by_quote_name
+
+    - name: "BY NAME | Verify that the missing names give no policies"
+      ansible.builtin.assert:
+        that:
+          - rp_by_missing_name is not failed
+          - rp_by_missing_name.response_policies == []
+          - rp_by_quote_name is not failed
+          - rp_by_quote_name.response_policies == []
+        fail_msg: "A name that does not exist returned policies or failed"
+
+    # =====================================================================
+    # Phase 4: the documented filters
+    # =====================================================================
+
+    - name: "EXAMPLE | Get the enabled Windows Real Time Response policies, sorted by name"
+      crowdstrike.falcon.response_policy_info:
+        filter: "platform_name:'Windows'+enabled:'true'"
+        sort: name.asc
+      register: rp_example_sorted
+      no_log: true
+
+    - name: "FILTER | Verify the platform and enabled filter (AND) and the name order"
+      ansible.builtin.assert:
+        that:
+          - rp_example_sorted.response_policies | length > 0
+          - rp_example_sorted.response_policies | map(attribute='platform_name') | unique == ['Windows']
+          - rp_example_sorted.response_policies | rejectattr('enabled') | list == []
+          - (rp_pd_win.id in rp_example_sorted.response_policies | map(attribute='id')) == rp_pd_win.enabled
+          - >-
+            rp_example_sorted.response_policies | map(attribute='name') | list
+            == rp_example_sorted.response_policies | map(attribute='name') | sort(case_sensitive=true)
+        fail_msg: "The platform and enabled filter or the name order returned unexpected data"
+        quiet: true
+
+    - name: "FILTER | Get the Windows policies"
+      crowdstrike.falcon.response_policy_info:
+        filter: "platform_name:'Windows'"
+      register: rp_platform
+      no_log: true
+
+    - name: "FILTER | Get the Windows and Mac policies with the list form"
+      crowdstrike.falcon.response_policy_info:
+        filter: "platform_name:['Windows','Mac']"
+      register: rp_platform_list
+      no_log: true
+
+    - name: "FILTER | Verify the platform filters"
+      ansible.builtin.assert:
+        that:
+          - rp_platform.response_policies | map(attribute='platform_name') | unique == ['Windows']
+          - rp_pd_win.id in rp_platform.response_policies | map(attribute='id')
+          - rp_platform_list.response_policies | map(attribute='platform_name') | unique | sort == ['Mac', 'Windows']
+          - >-
+            rp_platform_list.response_policies | selectattr('name', 'equalto', 'platform_default')
+            | map(attribute='id') | sort
+            == rp_pd | selectattr('platform_name', 'in', ['Windows', 'Mac']) | map(attribute='id') | sort
+        fail_msg: "The platform filters returned unexpected policies"
+        quiet: true
+
+    - name: "FILTER | Get the enabled and the disabled policies"
+      crowdstrike.falcon.response_policy_info:
+        filter: "enabled:'{{ item }}'"
+      loop:
+        - "true"
+        - "false"
+      register: rp_enabled
+      no_log: true
+
+    - name: "FILTER | Verify the enabled filters"
+      ansible.builtin.assert:
+        that:
+          - rp_enabled.results[0].response_policies | rejectattr('enabled') | list == []
+          - rp_enabled.results[1].response_policies | selectattr('enabled') | list == []
+          - >-
+            rp_enabled.results[0].response_policies | selectattr('name', 'equalto', 'platform_default')
+            | map(attribute='id') | sort
+            == rp_pd | selectattr('enabled') | map(attribute='id') | sort
+          - >-
+            rp_enabled.results[1].response_policies | selectattr('name', 'equalto', 'platform_default')
+            | map(attribute='id') | sort
+            == rp_pd | rejectattr('enabled') | map(attribute='id') | sort
+          - (rp_enabled.results[0].response_policies + rp_enabled.results[1].response_policies) | length > 0
+        fail_msg: "The enabled filters returned unexpected policies"
+        quiet: true
+
+    - name: "FILTER | Get the policies by the documented name filters"
+      crowdstrike.falcon.response_policy_info:
+        filter: "{{ item }}"
+      loop:
+        - "name:~'platform_default'"
+        - "name:*'platform*'"
+      register: rp_name_filters
+      no_log: true
+
+    - name: "FILTER | Verify the name filters"
+      ansible.builtin.assert:
+        that:
+          - >-
+            item.response_policies | selectattr('name', 'equalto', 'platform_default')
+            | map(attribute='id') | sort == rp_pd_ids
+          - item.response_policies | rejectattr('name', 'search', '(?i)platform') | list == []
+        fail_msg: "The filter {{ item.item }} returned unexpected policies"
+        quiet: true
+      loop: "{{ rp_name_filters.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: "SKIP | Skip the description check"
+      ansible.builtin.debug:
+        msg: "No platform_default policy has a description with a word of 5 letters or more, so the description check is skipped"
+      when: rp_desc_word | length == 0
+
+    - name: "FILTER | Get the policies with a word of a platform_default description"
+      crowdstrike.falcon.response_policy_info:
+        filter: "description:~'{{ rp_desc_word }}'"
+      register: rp_desc
+      no_log: true
+      when: rp_desc_word | length > 0
+
+    - name: "FILTER | Verify the description filter"
+      ansible.builtin.assert:
+        that:
+          - rp_desc.response_policies | length > 0
+          - >-
+            rp_desc.response_policies | rejectattr('description', 'search', rp_desc_regex) | list == []
+          - >-
+            rp_desc.response_policies | selectattr('name', 'equalto', 'platform_default') | map(attribute='id') | sort
+            == rp_pd | selectattr('description', 'search', rp_desc_regex) | map(attribute='id') | sort
+          - rp_pd | selectattr('description', 'search', rp_desc_regex) | list | length > 0
+        fail_msg: "The description filter returned other policies than a whole word match"
+        quiet: true
+      vars:
+        rp_desc_regex: "{{ '(?i)(^|[^A-Za-z0-9_])' ~ rp_desc_word ~ '($|[^A-Za-z0-9_])' }}"
+      when: rp_desc_word | length > 0
+
+    - name: "FILTER | Get the policies by the documented timestamp filters"
+      crowdstrike.falcon.response_policy_info:
+        filter: "{{ item.field }}:{{ item.op }}'{{ item.value }}'"
+      loop:
+        - { field: created_timestamp, op: ">", value: "2024-01-01T00:00:00Z" }
+        - { field: created_timestamp, op: "<", value: "2022-01-01T00:00:00Z" }
+        - { field: modified_timestamp, op: ">", value: "2026-01-01T00:00:00Z" }
+      register: rp_time
+      no_log: true
+
+    - name: "FILTER | Verify the timestamp filters"
+      ansible.builtin.assert:
+        that:
+          - >-
+            item.response_policies | rejectattr(item.item.field, item.item.op, item.item.value) | list == []
+          - >-
+            item.response_policies | selectattr('name', 'equalto', 'platform_default') | map(attribute='id') | sort
+            == rp_pd | selectattr(item.item.field, item.item.op, item.item.value) | map(attribute='id') | sort
+        fail_msg: "The filter {{ item.item.field }}:{{ item.item.op }}'{{ item.item.value }}' returned unexpected policies"
+        quiet: true
+      loop: "{{ rp_time.results }}"
+      loop_control:
+        label: "{{ item.item.field }} {{ item.item.op }} {{ item.item.value }}"
+
+    - name: "FILTER | Get policies with a bad filter"
+      crowdstrike.falcon.response_policy_info:
+        filter: "name:'"
+      register: rp_bad_filter
+      ignore_errors: true
+
+    - name: "FILTER | Verify that a bad filter fails"
+      ansible.builtin.assert:
+        that:
+          - rp_bad_filter is failed
+          - "'Invalid filter expression supplied' in rp_bad_filter.msg"
+        fail_msg: "A bad filter did not fail with the API message"
+
+    # =====================================================================
+    # Phase 5: the documented sort values
+    # =====================================================================
+
+    - name: "SORT | Get all policies with each sort value"
+      crowdstrike.falcon.response_policy_info:
+        sort: "{{ item }}"
+      loop: "{{ rp_sorts }}"
+      register: rp_sorted
+      no_log: true
+
+    - name: "SORT | Verify the policies and the order"
+      ansible.builtin.assert:
+        that:
+          - >-
+            item.response_policies | selectattr('name', 'equalto', 'platform_default')
+            | map(attribute='id') | sort == rp_pd_ids
+          - rp_values | length == item.response_policies | length
+          - not rp_field.endswith('_timestamp') or rp_values | map('length') | unique | list == [19]
+          - not rp_check_order or rp_values == rp_values | sort(reverse=item.item.endswith('.desc'), case_sensitive=true)
+        fail_msg: "The sort {{ item.item }} returned other policies or another order"
+        quiet: true
+      vars:
+        rp_field: "{{ item.item.split('.')[0] }}"
+        # The timestamps sort to the second, so compare the first 19 characters.
+        rp_values: >-
+          {{ item.response_policies | map(attribute=rp_field)
+             | map('regex_replace', '^(.{19}).*$', '\1') | list
+             if rp_field.endswith('_timestamp')
+             else item.response_policies | map(attribute=rp_field) | list }}
+        rp_check_order: "{{ rp_field in ['name', 'enabled', 'created_timestamp', 'modified_timestamp'] }}"
+      loop: "{{ rp_sorted.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: "SORT | Get policies with a sort value that the module does not allow"
+      crowdstrike.falcon.response_policy_info:
+        sort: platform_name.asc  # noqa args[module]
+      register: rp_bad_sort
+      ignore_errors: true
+
+    - name: "SORT | Get policies by ID with a sort"
+      crowdstrike.falcon.response_policy_info:
+        policy_ids:
+          - "{{ rp_missing_id }}"
+        sort: name.asc
+      register: rp_ids_sort
+      ignore_errors: true
+
+    - name: "SORT | Verify that the module refuses both before any API call"
+      ansible.builtin.assert:
+        that:
+          - rp_bad_sort is failed
+          - "'value of sort must be one of' in rp_bad_sort.msg"
+          - "'got: platform_name.asc' in rp_bad_sort.msg"
+          - rp_ids_sort is failed
+          - "rp_ids_sort.msg == 'parameters are mutually exclusive: policy_ids|sort'"
+        fail_msg: "A bad sort or policy_ids with sort did not fail with the module message"

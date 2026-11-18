@@ -1,0 +1,297 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 5000,
+        "offset": 3,
+        "total": 3
+      },
+      "query_time": 0.012792177
+    },
+    "resources": [
+      {
+        "cid": "00000000000000000000000000000002",
+        "created_by": "api-client-id:fixture-client-3",
+        "created_timestamp": "2026-11-18T19:25:25.58316509Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000001",
+        "modified_by": "api-client-id:fixture-client-3",
+        "modified_timestamp": "2026-11-18T19:25:25.58316509Z",
+        "name": "ansible-unit-fixture-shared",
+        "platform_name": "Linux",
+        "settings": [
+          {
+            "name": "Enable/Disable",
+            "settings": [
+              {
+                "description": "Allow those with Real Time Responder roles to remotely connect to hosts. Required for all RTR commands and scripts and for partner software update policies.",
+                "id": "RealTimeFunctionality",
+                "name": "Real Time Response",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Custom scripts",
+            "settings": [
+              {
+                "description": "Allows those with RTR Active Responder and RTR Administrator roles to run custom scripts",
+                "id": "CustomScripts",
+                "name": "Custom Scripts",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "High risk commands",
+            "settings": [
+              {
+                "description": "Extract files from a remote host via the CrowdStrike cloud",
+                "id": "GetCommand",
+                "name": "get",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Send files to a remote host via the CrowdStrike cloud. Required for partner software update policies",
+                "id": "PutCommand",
+                "name": "put",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Run any executable on the remote host",
+                "id": "ExecCommand",
+                "name": "run",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cid": "00000000000000000000000000000002",
+        "created_by": "api-client-id:fixture-client-3",
+        "created_timestamp": "2026-11-18T19:25:26.160181183Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000004",
+        "modified_by": "api-client-id:fixture-client-3",
+        "modified_timestamp": "2026-11-18T19:25:26.160181183Z",
+        "name": "ansible-unit-fixture-shared",
+        "platform_name": "Windows",
+        "settings": [
+          {
+            "name": "Enable/Disable",
+            "settings": [
+              {
+                "description": "Allow those with Real Time Responder roles to remotely connect to hosts. Required for all RTR commands and scripts and for partner software update policies.",
+                "id": "RealTimeFunctionality",
+                "name": "Real Time Response",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Scripts",
+            "settings": [
+              {
+                "description": "Allows those with RTR Active Responder and RTR Administrator roles to run custom scripts",
+                "id": "CustomScripts",
+                "name": "Custom Scripts",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows those with the RTR Administrator role to run Falcon scripts. Requires custom scripts to be enabled.",
+                "id": "FalconScripts",
+                "name": "Falcon Scripts",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "High risk commands",
+            "settings": [
+              {
+                "description": "Extract files from a remote host via the CrowdStrike cloud",
+                "id": "GetCommand",
+                "name": "get",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Send files to a remote host via the CrowdStrike cloud. Required for partner software update policies",
+                "id": "PutCommand",
+                "name": "put",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Dump process memory of a remote host",
+                "id": "MemDumpCommand",
+                "name": "memdump",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Dump the complete memory of a remote host",
+                "id": "XMemDumpCommand",
+                "name": "xmemdump",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Run any executable on the remote host",
+                "id": "ExecCommand",
+                "name": "run",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Send files to a secure directory on a remote host via the CrowdStrike cloud and execute them with a single command",
+                "id": "PutAndRunCommand",
+                "name": "put-and-run",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "cid": "00000000000000000000000000000002",
+        "created_by": "api-client-id:fixture-client-3",
+        "created_timestamp": "2026-11-18T19:25:26.742398864Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000006",
+        "modified_by": "api-client-id:fixture-client-3",
+        "modified_timestamp": "2026-11-18T19:25:26.742398864Z",
+        "name": "ansible-unit-fixture-Mixed-Case",
+        "platform_name": "Linux",
+        "settings": [
+          {
+            "name": "Enable/Disable",
+            "settings": [
+              {
+                "description": "Allow those with Real Time Responder roles to remotely connect to hosts. Required for all RTR commands and scripts and for partner software update policies.",
+                "id": "RealTimeFunctionality",
+                "name": "Real Time Response",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Custom scripts",
+            "settings": [
+              {
+                "description": "Allows those with RTR Active Responder and RTR Administrator roles to run custom scripts",
+                "id": "CustomScripts",
+                "name": "Custom Scripts",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "High risk commands",
+            "settings": [
+              {
+                "description": "Extract files from a remote host via the CrowdStrike cloud",
+                "id": "GetCommand",
+                "name": "get",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Send files to a remote host via the CrowdStrike cloud. Required for partner software update policies",
+                "id": "PutCommand",
+                "name": "put",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Run any executable on the remote host",
+                "id": "ExecCommand",
+                "name": "run",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "method": "query_combined_policies",
+  "status_code": 200
+}

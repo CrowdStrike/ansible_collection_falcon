@@ -1,0 +1,15 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "An item in query string parameter 'ids' has length 7, at least 32 expected"
+      }
+    ],
+    "meta": {
+      "query_time": 0.000251246
+    }
+  },
+  "method": "get_host_groups",
+  "status_code": 400
+}

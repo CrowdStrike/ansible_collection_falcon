@@ -1429,6 +1429,179 @@ def record_hunting(rec, creds):
     )
 
 
+def record_response_policy(rec, creds):
+    """Record the ResponsePolicies calls used by response_policy and response_policy_info.
+
+    The searches use the kwargs of the module: filter and sort only when set,
+    offset=None and limit=5000. Each filter matches only the fixture policies.
+    """
+    from falconpy import HostGroup, ResponsePolicies
+
+    falcon = ResponsePolicies(**creds)
+    groups = HostGroup(**creds)
+    shared = "%s-shared" % PREFIX
+    mixed = "%s-Mixed-Case" % PREFIX
+    created_names = [(shared, "Linux"), (shared, "Windows"), (mixed, "Linux")]
+    missing_id = "f" * 32
+
+    def fixture_policies():
+        # name:*'x*' finds nothing when the value has a "-", so use ~ and check the prefix here.
+        found = resources(falcon.query_combined_policies(filter="name:~'%s'" % PREFIX, offset=None, limit=5000))
+        return [p for p in found if p.get("name", "").casefold().startswith(PREFIX)]
+
+    def cleanup():
+        if rec.dry_run:
+            return
+        found = fixture_policies()
+        enabled = [p["id"] for p in found if p.get("enabled")]
+        if enabled:
+            # The API does not delete an enabled policy.
+            falcon.perform_policies_action(action_name="disable", ids=enabled)
+        ids = [p["id"] for p in found]
+        if ids:
+            falcon.delete_policies(ids=ids)
+        left = fixture_policies()
+        if left:
+            sys.stderr.write("warning: %d response policy fixture(s) were not deleted\n" % len(left))
+        group_ids = [g["id"] for g in resources(groups.query_combined_host_groups(filter="name:*'%s-rp-*'" % PREFIX))]
+        if group_ids:
+            groups.delete_host_groups(ids=group_ids)
+
+    def search(case, **kwargs):
+        return rec.call(case, "query_combined_policies", falcon.query_combined_policies, offset=None, limit=5000, **kwargs)
+
+    if rec.cleanup_only:
+        cleanup()
+        return
+
+    cleanup()
+    try:
+        ids = []
+        for name, platform in created_names:
+            if rec.dry_run:
+                ids.append("0" * 32)
+                continue
+            response = falcon.create_policies(
+                body={"resources": [{"name": name, "platform_name": platform, "description": "Fixture policy"}]}
+            )
+            ids.append(resources(response)[0]["id"])
+
+        rec.call("get_one", "get_policies", falcon.get_policies, ids=[ids[0]])
+        rec.call("get_several", "get_policies", falcon.get_policies, ids=[ids[0], ids[1]])
+        rec.call("get_missing", "get_policies", falcon.get_policies, ids=[missing_id])
+        rec.call("get_one_missing", "get_policies", falcon.get_policies, ids=[ids[0], missing_id])
+        rec.call("get_short_id", "get_policies", falcon.get_policies, ids=["abcdefg"])
+
+        # name: shared, on Linux and Windows.
+        search("query_by_name", filter="name:~'%s'" % shared)
+        # name: shared, filter: platform_name:'Windows'.
+        search("query_by_name_platform", filter="name:~'%s'+(platform_name:'Windows')" % shared)
+        # name: the mixed-case name in another case.
+        search("query_by_name_mixed_case", filter="name:~'%s'" % mixed.upper())
+        # name: the prefix, which is only a part of each fixture name.
+        search("query_by_name_partial", filter="name:~'%s'" % PREFIX)
+        # name: a value with a quote and a backslash, escaped as the module does.
+        search("query_by_name_quote", filter="name:~'%s-it\\'s\\\\x'" % PREFIX)
+        # name: shared, filter: a platform with no fixture policy.
+        search("query_by_name_missing", filter="name:~'%s'+(platform_name:'Mac')" % shared)
+        # filter and sort.
+        search("query_sorted", filter="name:~'%s'" % PREFIX, sort="name.asc")
+        search("query_bad_filter", filter="name:'")
+
+        # response_policy: the lifecycle of one more policy, with the kwargs of the module.
+        crud = "%s-crud" % PREFIX
+
+        def setting(setting_id):
+            return [{"id": setting_id, "value": {"enabled": True}}]
+
+        created = rec.call(
+            "create", "create_policies", falcon.create_policies,
+            body={"resources": [{
+                "name": crud, "platform_name": "Linux", "description": "Fixture policy",
+                "settings": setting("RealTimeFunctionality"),
+            }]},
+        )
+        crud_id = "0" * 32 if rec.dry_run else resources(created)[0]["id"]
+        created_windows = rec.call(
+            "create_windows", "create_policies", falcon.create_policies,
+            body={"resources": [{
+                "name": crud, "platform_name": "Windows", "description": "Fixture policy",
+                "settings": setting("FalconScripts"),
+            }]},
+        )
+        windows_id = "0" * 32 if rec.dry_run else resources(created_windows)[0]["id"]
+        rec.call("get_windows", "get_policies", falcon.get_policies, ids=[windows_id])
+        rec.call(
+            "query_by_exact_name", "query_combined_policies", falcon.query_combined_policies,
+            filter="name:~'%s'+platform_name:'Linux'" % crud, limit=5000,
+        )
+        rec.call(
+            "query_by_exact_name_missing", "query_combined_policies", falcon.query_combined_policies,
+            filter="name:~'%s'+platform_name:'Mac'" % crud, limit=5000,
+        )
+        # A second policy with the name of the crud policy on the same platform.
+        rec.call(
+            "create_duplicate", "create_policies", falcon.create_policies,
+            body={"resources": [{"name": crud, "platform_name": "Linux"}]},
+        )
+        rec.call(
+            "update_missing", "update_policies", falcon.update_policies,
+            body={"resources": [{"id": missing_id, "description": "x"}]},
+        )
+        rec.call(
+            "update_description", "update_policies", falcon.update_policies,
+            body={"resources": [{"id": crud_id, "description": "Updated fixture policy"}]},
+        )
+        rec.call(
+            "update_settings", "update_policies", falcon.update_policies,
+            body={"resources": [{"id": crud_id, "settings": setting("CustomScripts")}]},
+        )
+        rec.call(
+            "update_both", "update_policies", falcon.update_policies,
+            body={"resources": [{"id": crud_id, "description": "Fixture policy", "settings": setting("GetCommand")}]},
+        )
+        rec.call("get_updated", "get_policies", falcon.get_policies, ids=[crud_id])
+        rec.call("enable", "perform_policies_action", falcon.perform_policies_action, action_name="enable", ids=[crud_id])
+        rec.call("get_enabled", "get_policies", falcon.get_policies, ids=[crud_id])
+        rec.call("delete_enabled", "delete_policies", falcon.delete_policies, ids=[crud_id])
+        rec.call(
+            "disable", "perform_policies_action", falcon.perform_policies_action, action_name="disable", ids=[crud_id]
+        )
+        rec.call("get_disabled", "get_policies", falcon.get_policies, ids=[crud_id])
+
+        # response_policy host_groups: two new static groups, added to and removed from the crud policy.
+        group_ids = ["1" * 32, "2" * 32]
+        if not rec.dry_run:
+            group_ids = [
+                resources(groups.create_host_groups(name="%s-rp-%s" % (PREFIX, suffix), group_type="static"))[0]["id"]
+                for suffix in ("a", "b")
+            ]
+        rec.call("hg_get_found", "get_host_groups", groups.get_host_groups, ids=group_ids)
+        rec.call("hg_get_some_missing", "get_host_groups", groups.get_host_groups, ids=[group_ids[0], missing_id])
+        rec.call("hg_get_all_missing", "get_host_groups", groups.get_host_groups, ids=[missing_id])
+        rec.call("hg_get_bad_id", "get_host_groups", groups.get_host_groups, ids=["abcdefg"])
+        rec.call(
+            "add_groups", "perform_policies_action", falcon.perform_policies_action,
+            action_name="add-host-group", ids=[crud_id],
+            action_parameters=[{"name": "group_id", "value": g} for g in group_ids],
+        )
+        rec.call("get_with_groups", "get_policies", falcon.get_policies, ids=[crud_id])
+        rec.call(
+            "remove_group", "perform_policies_action", falcon.perform_policies_action,
+            action_name="remove-host-group", ids=[crud_id],
+            action_parameters=[{"name": "group_id", "value": group_ids[0]}],
+        )
+        rec.call("get_after_remove", "get_policies", falcon.get_policies, ids=[crud_id])
+        rec.call(
+            "add_groups_missing_policy", "perform_policies_action", falcon.perform_policies_action,
+            action_name="add-host-group", ids=[missing_id],
+            action_parameters=[{"name": "group_id", "value": group_ids[0]}],
+        )
+        rec.call("delete", "delete_policies", falcon.delete_policies, ids=[crud_id])
+    finally:
+        cleanup()
+
+
 SCENARIOS = {
     "auth": record_auth,
     "correlation_rule": record_correlation_rule,
@@ -1440,6 +1613,7 @@ SCENARIOS = {
     "intel": record_intel,
     "ngsiem": record_ngsiem,
     "prevention_policy": record_prevention_policy,
+    "response_policy": record_response_policy,
     "sensor_download": record_sensor_download,
     "sensor_update_policy": record_sensor_update_policy,
 }

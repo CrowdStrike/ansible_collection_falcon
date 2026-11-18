@@ -1,0 +1,132 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.002006598
+    },
+    "resources": [
+      {
+        "cid": "00000000000000000000000000000002",
+        "created_by": "api-client-id:fixture-client-3",
+        "created_timestamp": "2026-11-18T19:30:44.145282944Z",
+        "description": "Fixture policy",
+        "enabled": false,
+        "groups": [],
+        "id": "00000000000000000000000000000008",
+        "modified_by": "api-client-id:fixture-client-3",
+        "modified_timestamp": "2026-11-18T19:30:44.185982016Z",
+        "name": "ansible-unit-fixture-crud",
+        "platform_name": "Windows",
+        "settings": [
+          {
+            "name": "Enable/Disable",
+            "settings": [
+              {
+                "description": "Allow those with Real Time Responder roles to remotely connect to hosts. Required for all RTR commands and scripts and for partner software update policies.",
+                "id": "RealTimeFunctionality",
+                "name": "Real Time Response",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          },
+          {
+            "name": "Scripts",
+            "settings": [
+              {
+                "description": "Allows those with RTR Active Responder and RTR Administrator roles to run custom scripts",
+                "id": "CustomScripts",
+                "name": "Custom Scripts",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Allows those with the RTR Administrator role to run Falcon scripts. Requires custom scripts to be enabled.",
+                "id": "FalconScripts",
+                "name": "Falcon Scripts",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": true
+                }
+              }
+            ]
+          },
+          {
+            "name": "High risk commands",
+            "settings": [
+              {
+                "description": "Extract files from a remote host via the CrowdStrike cloud",
+                "id": "GetCommand",
+                "name": "get",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Send files to a remote host via the CrowdStrike cloud. Required for partner software update policies",
+                "id": "PutCommand",
+                "name": "put",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Dump process memory of a remote host",
+                "id": "MemDumpCommand",
+                "name": "memdump",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Dump the complete memory of a remote host",
+                "id": "XMemDumpCommand",
+                "name": "xmemdump",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Run any executable on the remote host",
+                "id": "ExecCommand",
+                "name": "run",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              },
+              {
+                "description": "Send files to a secure directory on a remote host via the CrowdStrike cloud and execute them with a single command",
+                "id": "PutAndRunCommand",
+                "name": "put-and-run",
+                "type": "toggle",
+                "value": {
+                  "configured": false,
+                  "enabled": false
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "method": "get_policies",
+  "status_code": 200
+}
