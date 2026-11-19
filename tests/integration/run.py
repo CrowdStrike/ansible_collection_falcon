@@ -45,6 +45,8 @@ has. They skip their tests unless you opt in:
     with Python 3 and an RTR policy that allows custom scripts and ``put``)
   * ``FALCON_TEST_RTR_CONTAIN=1``: the rtr_connection target also contains the
     host, runs tasks on it while it is contained, and lifts containment
+  * ``FALCON_TEST_ALERT_IDS=<id>,<id>``: the alert target (composite IDs of
+    test alerts that the target may change; it restores them)
 
 'uv run' reads the script metadata at the top of this file and installs
 ansible-core, FalconPy and python-dotenv in a temporary environment. The

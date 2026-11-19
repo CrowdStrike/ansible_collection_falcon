@@ -1700,6 +1700,134 @@ def record_alerts(rec, creds):
     )
 
 
+ALERT_WRITE_FIELDS = (
+    "composite_id", "status", "resolution", "tags", "assigned_to_uuid", "assigned_to_uid",
+    "assigned_to_name", "show_in_ui", "comments",
+)
+
+
+def record_alert_write(rec, creds):
+    """Record the Alerts calls used by alert.
+
+    Writes only to the two test alerts that ALERT_WRITE_FILTER finds, and puts
+    back their status, tags, resolution, assignee and show_in_ui at the end.
+    A comment cannot be removed, so the recorder adds one comment only.
+    FALCON_ALERT_WRITE_FILTER is an FQL filter "device.hostname:'<host>'+<more>"
+    that matches the two test alerts; the host part finds an assignee to reuse.
+    """
+    import datetime
+    import uuid
+    from falconpy import Alerts
+
+    falcon = Alerts(**creds)
+
+    def hide_names(func):
+        # The assignee name is a person name, so the fixture keeps a fixed text.
+        def call(**kwargs):
+            response = func(**kwargs)
+            for item in resources(response):
+                if isinstance(item, dict) and item.get("assigned_to_name"):
+                    item["assigned_to_name"] = "fixture-user"
+            return response
+        return call
+
+    get_alerts = hide_names(keep_fields(falcon.get_alerts_v2, ALERT_WRITE_FIELDS))
+    write_filter = os.environ.get("FALCON_ALERT_WRITE_FILTER", "")
+    if rec.dry_run:
+        ids = ["x:ind:x:1", "x:ind:x:2"]
+    else:
+        found = resources(falcon.get_alerts_combined(filter=write_filter, limit=10))
+        names = [a.get("display_name") or "" for a in found]
+        if len(found) != 2 or not all(n.startswith("TestTrigger") for n in names):
+            raise SystemExit("alert_write: expected exactly 2 TestTrigger alerts, found %d" % len(found))
+        ids = sorted(a["composite_id"] for a in found)
+    if rec.cleanup_only:
+        return
+
+    def state():
+        body = falcon.get_alerts_v2(composite_ids=ids)["body"]
+        return {a["composite_id"]: {k: a.get(k) for k in ALERT_WRITE_FIELDS} for a in body.get("resources") or []}
+
+    def summary(states):
+        # Print no assignee name or email, only whether the alert has one.
+        return [
+            {"status": v["status"], "resolution": v["resolution"], "tags": v["tags"],
+             "assigned": bool(v["assigned_to_uuid"] or v["assigned_to_name"]),
+             "show_in_ui": v["show_in_ui"], "comments": len(v["comments"] or [])}
+            for _key, v in sorted(states.items())
+        ]
+
+    def update(case, actions, target=None):
+        return rec.call(case, "update_alerts_v3", falcon.update_alerts_v3,
+                        composite_ids=target or ids, action_parameters=actions)
+
+    def get(case, target=None):
+        return rec.call(case, "get_alerts_v2", get_alerts, composite_ids=target or ids)
+
+    before = {} if rec.dry_run else state()
+    print("  before: %s" % summary(before))
+    assignee = {}
+    if not rec.dry_run:
+        host_alerts = resources(falcon.get_alerts_combined(filter=write_filter.split("+")[0], limit=500))
+        assigned = [a for a in host_alerts if a.get("assigned_to_uuid") and a.get("assigned_to_uid")]
+        if assigned:
+            assignee = {"uuid": assigned[0]["assigned_to_uuid"], "uid": assigned[0]["assigned_to_uid"]}
+    tag = "%s-tag" % PREFIX
+    first = before.get(ids[0], {})
+    status = "reopened" if first.get("status") == "in_progress" else "in_progress"
+    cid = ids[0].split(":", 1)[0]
+    missing_id = "%s:ind:%s:0-0-0" % (cid, "f" * 32)
+    try:
+        get("get_before")
+        get("get_one_missing", target=[ids[0], missing_id])
+        update("update_status", [{"name": "update_status", "value": status}])
+        get("get_after_status")
+        update("update_tags", [{"name": "add_tag", "value": "true_positive"}, {"name": "add_tag", "value": tag}])
+        get("get_after_tags")
+        update("update_resolution_change", [{"name": "add_tag", "value": "false_positive"}])
+        get("get_after_resolution_change")
+        update("update_remove_tags", [{"name": "remove_tag", "value": "false_positive"}, {"name": "remove_tag", "value": tag}])
+        get("get_after_remove_tags")
+        if assignee or rec.dry_run:
+            update("update_assign_uuid", [{"name": "assign_to_uuid", "value": assignee.get("uuid", "x")}])
+            get("get_after_assign_uuid")
+            update("update_unassign", [{"name": "unassign", "value": ""}])
+            get("get_after_unassign")
+            update("update_assign_user_id", [{"name": "assign_to_user_id", "value": assignee.get("uid", "x")}])
+            get("get_after_assign_user_id")
+        flip = "true" if first.get("show_in_ui") is False else "false"
+        update("update_show_in_ui", [{"name": "show_in_ui", "value": flip}])
+        get("get_after_show_in_ui")
+        # The dots keep the text under 40 characters of one run, which test_fixtures_clean.py rejects.
+        text = "%s-comment-%s" % (PREFIX, datetime.datetime.now(datetime.timezone.utc).strftime("%Y.%m.%dT%H%M%SZ"))
+        update("update_comment", [{"name": "append_comment", "value": text}], target=[ids[0]])
+        update("update_unknown_uuid", [{"name": "assign_to_uuid", "value": str(uuid.uuid4())}])
+    finally:
+        if not rec.dry_run:
+            now = state()
+            for cid_, old in before.items():
+                cur = now.get(cid_, {})
+                actions = [{"name": "update_status", "value": old["status"]}]
+                for t in set(cur.get("tags") or []) - set(old.get("tags") or []):
+                    actions.append({"name": "remove_tag", "value": t})
+                for t in set(old.get("tags") or []) - set(cur.get("tags") or []):
+                    actions.append({"name": "add_tag", "value": t})
+                if old.get("assigned_to_uuid"):
+                    if cur.get("assigned_to_uuid") != old["assigned_to_uuid"]:
+                        actions.append({"name": "assign_to_uuid", "value": old["assigned_to_uuid"]})
+                elif any(cur.get(k) for k in ("assigned_to_uuid", "assigned_to_uid", "assigned_to_name")):
+                    actions.append({"name": "unassign", "value": ""})
+                actions.append({"name": "show_in_ui", "value": "true" if old.get("show_in_ui") else "false"})
+                falcon.update_alerts_v3(composite_ids=[cid_], action_parameters=actions)
+            after = state()
+            same = all(
+                {k: v for k, v in after[i].items() if k != "comments"} == {k: v for k, v in before[i].items() if k != "comments"}
+                for i in before
+            )
+            print("  restored: %s" % same)
+            print("  after: %s" % summary(after))
+
+
 def record_response_policy(rec, creds):
     """Record the ResponsePolicies calls used by response_policy and response_policy_info.
 
@@ -2120,6 +2248,7 @@ def record_rtr(rec, creds):
 
 
 SCENARIOS = {
+    "alert_write": record_alert_write,
     "alerts": record_alerts,
     "auth": record_auth,
     "case": record_case,

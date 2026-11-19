@@ -1,0 +1,18 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "bad request"
+      }
+    ],
+    "meta": {
+      "query_time": 0.011207163,
+      "writes": {
+        "resources_affected": 0
+      }
+    }
+  },
+  "method": "update_alerts_v3",
+  "status_code": 400
+}

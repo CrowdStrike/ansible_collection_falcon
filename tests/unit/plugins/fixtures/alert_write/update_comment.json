@@ -1,0 +1,12 @@
+{
+  "body": {
+    "meta": {
+      "query_time": 1.522093812,
+      "writes": {
+        "resources_affected": 1
+      }
+    }
+  },
+  "method": "update_alerts_v3",
+  "status_code": 200
+}

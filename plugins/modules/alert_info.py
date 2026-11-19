@@ -102,6 +102,7 @@ attributes:
     platforms: all
 
 seealso:
+  - module: crowdstrike.falcon.alert
   - name: Alerts API reference
     description: The CrowdStrike API operations that this module uses.
     link: https://developer.crowdstrike.com/api-reference/collections/alerts

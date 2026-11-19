@@ -47,6 +47,7 @@ Name | Description
 [crowdstrike.falcon.falconctl](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_module.html)|Configure CrowdStrike Falcon Sensor (Linux)
 [crowdstrike.falcon.falconctl_info](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_info_module.html)|Get Values Associated with Falcon Sensor (Linux)
 [crowdstrike.falcon.fctl_child_cid_info](https://crowdstrike.github.io/ansible_collection_falcon/fctl_child_cid_info_module.html)|Retrieve details about Flight Control child CIDs
+[crowdstrike.falcon.alert](https://crowdstrike.github.io/ansible_collection_falcon/alert_module.html)|Manage Falcon alerts
 [crowdstrike.falcon.alert_info](https://crowdstrike.github.io/ansible_collection_falcon/alert_info_module.html)|Get information about Falcon alerts
 [crowdstrike.falcon.auth](https://crowdstrike.github.io/ansible_collection_falcon/auth_module.html)|Manage Authentication with Falcon API
 [crowdstrike.falcon.case](https://crowdstrike.github.io/ansible_collection_falcon/case_module.html)|Create and update Falcon cases
