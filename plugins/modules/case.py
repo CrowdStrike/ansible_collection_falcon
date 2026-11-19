@@ -36,6 +36,9 @@ options:
       - With no I(id), the module finds the case by this exact, case-sensitive name.
         It creates the case when no case has this name, and updates it when one case has it.
         It fails when more than one case has this name; give I(id) in that case.
+      - For a name with a single quote or a backslash, the module searches with the
+        part of the name before that character, then compares the full names.
+        It fails when the name starts with one of these characters; give I(id) in that case.
       - The name search does not see a new case for about 20 seconds.
         A later task in the same play that changes this case should use the I(id)
         from the C(case) return value.
@@ -427,11 +430,6 @@ def validate_params(module):
             module.fail_json(msg=f"Parameter '{key}' must not contain an empty value")
 
 
-def fql_quote(value):
-    """Escape a value for a single-quoted FQL string."""
-    return value.replace("\\", "\\\\").replace("'", "\\'")
-
-
 def check_status(module, result, api_result, action):
     """Fail on an API error, also when the API returns no error message."""
     status_code = api_result["status_code"]
@@ -457,24 +455,61 @@ def get_by_id(falcon, module, case_id, result=None):
     return cases[0]
 
 
-def find_by_name(falcon, module, name):
-    """Return the case with exactly this name, or None."""
-    query_result = falcon.query_case_ids(
-        filter=f"name:'{fql_quote(name)}'", limit=NAME_SEARCH_LIMIT
-    )
-    check_status(module, {}, query_result, "searching for cases")
-    ids = query_result["body"].get("resources") or []
-    if not ids:
-        return None
+def name_filter(module, name):
+    """Return the FQL filter that finds the cases with this name.
 
-    matches = [c for c in get_cases(falcon, module, ids) if c.get("name") == name]
-    if len(matches) > 1:
+    An exact name:'x' filter finds no case whose name holds a single quote
+    or a backslash, also when they are escaped. For such a name, search with
+    the part before the first of them as a prefix. find_by_name compares the
+    names in Python.
+    """
+    special = [i for i in (name.find("'"), name.find("\\")) if i >= 0]
+    if not special:
+        return f"name:'{name}'"
+    prefix = name[:min(special)]
+    if not prefix:
         module.fail_json(
             msg=(
-                f"More than one case has the name '{name}': "
-                f"{', '.join(c['id'] for c in matches)}. Use 'id' to choose the case."
+                "The case API cannot search for a name that starts with a single quote "
+                "or a backslash. Use 'id' to choose the case."
             )
         )
+    return f"name:*'{prefix}*'"
+
+
+def search_pages(falcon, module, fql):
+    """Yield the case IDs that the filter finds, one page at a time."""
+    offset = 0
+    while True:
+        query_result = falcon.query_case_ids(filter=fql, limit=NAME_SEARCH_LIMIT, offset=offset)
+        check_status(module, {}, query_result, "searching for cases")
+        body = query_result["body"]
+        page = body.get("resources") or []
+        if page:
+            yield page
+        offset += len(page)
+        total = ((body.get("meta") or {}).get("pagination") or {}).get("total", 0)
+        if not page or offset >= total:
+            return
+
+
+def find_by_name(falcon, module, name):
+    """Return the case with exactly this name, or None.
+
+    A prefix search (for a name with a quote or a backslash) can find many
+    cases, so the pages are read one at a time, and the search stops at the
+    second exact match.
+    """
+    matches = []
+    for ids in search_pages(falcon, module, name_filter(module, name)):
+        matches.extend(c for c in get_cases(falcon, module, ids) if c.get("name") == name)
+        if len(matches) > 1:
+            module.fail_json(
+                msg=(
+                    f"More than one case has the name '{name}', for example "
+                    f"{', '.join(c['id'] for c in matches)}. Use 'id' to choose the case."
+                )
+            )
     return matches[0] if matches else None
 
 

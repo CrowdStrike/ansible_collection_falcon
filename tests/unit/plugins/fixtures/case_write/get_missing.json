@@ -2,7 +2,7 @@
   "body": {
     "errors": [],
     "meta": {
-      "query_time": 0.01673507,
+      "query_time": 0.011777403,
       "writes": {
         "resources_affected": 0
       }

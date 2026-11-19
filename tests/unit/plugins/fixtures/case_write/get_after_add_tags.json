@@ -2,7 +2,7 @@
   "body": {
     "errors": [],
     "meta": {
-      "query_time": 0.077906732,
+      "query_time": 0.026452784,
       "writes": {
         "resources_affected": 0
       }
@@ -52,7 +52,7 @@
           "full_name": "",
           "uuid": ""
         },
-        "created_timestamp": "2026-11-19T15:16:19.133696Z",
+        "created_timestamp": "2026-11-19T15:48:05.916998Z",
         "creation_actor": {
           "type": ""
         },
@@ -103,11 +103,11 @@
           "full_name": "",
           "uuid": "00000000000000000000000000000003"
         },
-        "name": "ansible-dev-case-unit-20261119101616",
+        "name": "ansible-dev-case-unit-20261119104803",
         "read_only": {
           "is_read_only": false
         },
-        "reference_id": "E82-7",
+        "reference_id": "E82-28",
         "severity": 50,
         "severity_info": {
           "level": "Medium"
@@ -121,7 +121,7 @@
         "update_actor": {
           "type": ""
         },
-        "updated_timestamp": "2026-11-19T15:16:30.966793Z",
+        "updated_timestamp": "2026-11-19T15:48:18.331961Z",
         "version": 4
       }
     ]

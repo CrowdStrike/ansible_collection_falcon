@@ -2,7 +2,7 @@
   "body": {
     "errors": [],
     "meta": {
-      "query_time": 0.026650474,
+      "query_time": 0.087098914,
       "writes": {
         "resources_affected": 1
       }
@@ -11,7 +11,11 @@
       {
         "analysis_results": {
           "alerts": {
-            "records": []
+            "records": [
+              {
+                "id": "fixture-cid:cwpp:fixture-aid:fixture-alert-1"
+              }
+            ]
           },
           "cloud_assets": {
             "records": []
@@ -41,19 +45,19 @@
         "cid": "00000000000000000000000000000001",
         "consistency": {
           "consistent": false,
-          "version": 0
+          "version": 1
         },
         "created_by": {
           "email": "",
           "full_name": "",
           "uuid": ""
         },
-        "created_timestamp": "2026-11-19T15:16:19.133696Z",
+        "created_timestamp": "2026-11-19T15:48:05.916998Z",
         "creation_actor": {
           "type": ""
         },
         "description": "Unit fixture case updated",
-        "end_timestamp": null,
+        "end_timestamp": "2026-11-18T19:21:31Z",
         "evidence": {
           "adversary_evidence": {
             "records": []
@@ -99,16 +103,16 @@
           "full_name": "",
           "uuid": "00000000000000000000000000000003"
         },
-        "name": "ansible-dev-case-unit-20261119101616",
+        "name": "ansible-dev-case-unit-20261119104803",
         "read_only": {
           "is_read_only": false
         },
-        "reference_id": "E82-7",
+        "reference_id": "E82-28",
         "severity": 50,
         "severity_info": {
           "level": "Medium"
         },
-        "start_timestamp": null,
+        "start_timestamp": "2026-11-10T17:26:24.970100987Z",
         "status": "in_progress",
         "tags": [
           "ansible-dev-t1"
@@ -116,7 +120,7 @@
         "update_actor": {
           "type": ""
         },
-        "updated_timestamp": "2026-11-19T15:16:29.488552Z",
+        "updated_timestamp": "2026-11-19T15:48:17.103194Z",
         "version": 3
       }
     ]

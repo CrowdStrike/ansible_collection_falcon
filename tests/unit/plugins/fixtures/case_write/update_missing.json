@@ -7,7 +7,7 @@
       }
     ],
     "meta": {
-      "query_time": 0.065760187,
+      "query_time": 0.020059648,
       "writes": {
         "resources_affected": 0
       }

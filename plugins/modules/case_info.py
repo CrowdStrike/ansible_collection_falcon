@@ -36,6 +36,9 @@ options:
       - The FQL filter to search for cases.
       - C(name:'Phishing investigation') is an exact, case-sensitive match of the name.
         A part of the name matches nothing.
+      - An exact name filter does not find a name with a single quote or a backslash,
+        also when they are escaped. Use a prefix filter such as C(name:*'Phishing*')
+        with the part of the name before that character.
       - C(name:*'phishing*') matches the names that start with C(phishing).
       - C(status:'closed') matches the cases with a status.
       - C(tags:'malware') matches the cases with a tag.

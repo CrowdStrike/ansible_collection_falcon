@@ -54,7 +54,12 @@
 
     - name: "READ | Keep the values that the later checks use"
       ansible.builtin.set_fact:
-        case_first: "{{ case_all_info.cases[:1] | first | default({}, true) }}"
+        # An exact name filter finds no name with a quote or a backslash,
+        # so the name checks use a case whose name has neither.
+        case_first: >-
+          {{ case_all_info.cases
+             | rejectattr('name', 'search', "['\\\\]")
+             | list | first | default({}, true) }}
         case_closed: "{{ case_all_info.cases | selectattr('status', 'defined') | selectattr('status', 'equalto', 'closed') | list }}"
         case_tagged: "{{ case_all_info.cases | selectattr('tags', 'defined') | selectattr('tags') | list }}"
       no_log: true

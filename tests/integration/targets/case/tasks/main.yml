@@ -52,6 +52,9 @@
     case_renamed: "{{ case_prefix }}-renamed"
     case_check_name: "{{ case_prefix }}-check"
     case_ev_name: "{{ case_prefix }}-evidence"
+    case_dup_name: "{{ case_prefix }}-dup"
+    case_quote_name: >-
+      {{ case_prefix }}-it's a \ case
     case_missing_id: "00000000-0000-4000-8000-000000000000"
 
 - name: Run the case lifecycle
@@ -400,6 +403,118 @@
           - case_by_name.cases[0].id == case_id
           - case_check_read.cases | length == 0
 
+    - name: "NAME | Run the module by name with the current values"
+      crowdstrike.falcon.case:
+        name: "{{ case_renamed }}"
+        severity: 60
+        tags:
+          - ansible-int-b
+      register: case_name_same
+
+    - name: "NAME | Change the severity by name"
+      crowdstrike.falcon.case:
+        name: "{{ case_renamed }}"
+        severity: 70
+      register: case_name_update
+
+    - name: "NAME | Read the case after the change by name"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read
+
+    - name: "NAME | Verify that the module found the case by name"
+      ansible.builtin.assert:
+        that:
+          - case_name_same is not changed
+          - case_name_same.case.id == case_id
+          - case_name_update is changed
+          - case_name_update.case.id == case_id
+          - case_read.cases[0].severity == 70
+
+    - name: "NAME | Set the same name again by ID"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        name: "{{ case_renamed }}"
+      register: case_dup_noop
+
+    - name: "NAME | Make a second case with the same name"
+      crowdstrike.falcon.case:
+        name: "{{ case_dup_name }}"
+        severity: 10
+      register: case_dup
+
+    - name: "NAME | Remember the second case ID for the cleanup"
+      ansible.builtin.set_fact:
+        case_made_ids: "{{ case_made_ids + [case_dup.case.id] }}"
+
+    - name: "NAME | Rename the second case to the name of the first"
+      crowdstrike.falcon.case:
+        id: "{{ case_dup.case.id }}"
+        name: "{{ case_renamed }}"
+
+    - name: "NAME | Wait until the name search finds both cases"
+      crowdstrike.falcon.case_info:
+        filter: "name:'{{ case_renamed }}'"
+      register: case_two
+      until: case_two.cases | length == 2
+      retries: 12
+      delay: 5
+
+    - name: "NAME | Run the module by name when two cases have that name"
+      crowdstrike.falcon.case:
+        name: "{{ case_renamed }}"
+        severity: 80
+      register: case_name_two
+      ignore_errors: true
+
+    - name: "NAME | Verify that the module fails and lists both IDs"
+      ansible.builtin.assert:
+        that:
+          - case_dup_noop is not changed
+          - case_name_two is failed
+          - "'More than one case has the name' in case_name_two.msg"
+          - case_id in case_name_two.msg
+          - case_dup.case.id in case_name_two.msg
+
+    - name: "NAME | Make a case with a quote and a backslash in its name"
+      crowdstrike.falcon.case:
+        name: "{{ case_quote_name }}"
+        severity: 10
+      register: case_quote
+
+    - name: "NAME | Remember the quote case ID for the cleanup"
+      ansible.builtin.set_fact:
+        case_made_ids: "{{ case_made_ids + [case_quote.case.id] }}"
+
+    - name: "NAME | Set the prefix filter of the quote case"
+      ansible.builtin.set_fact:
+        # An exact name filter finds no name with a quote or a backslash,
+        # so search with the part of the name before the quote.
+        case_quote_filter: "name:*'{{ case_prefix }}-it*'"
+
+    - name: "NAME | Wait until the prefix filter finds the quote case"
+      crowdstrike.falcon.case_info:
+        filter: "{{ case_quote_filter }}"
+      register: case_quote_found
+      until: case_quote_found.cases | length == 1
+      retries: 12
+      delay: 5
+
+    - name: "NAME | Find the quote case by name with the module"
+      crowdstrike.falcon.case:
+        name: "{{ case_quote_name }}"
+        severity: 10
+      register: case_quote_again
+
+    - name: "NAME | Verify that the module finds the quote case by name"
+      ansible.builtin.assert:
+        that:
+          - case_quote.case.name == case_quote_name
+          - case_quote_found.cases[0].id == case_quote.case.id
+          - case_quote_again is not changed
+          - case_quote_again.case.id == case_quote.case.id
+
     # =====================================================================
     # Phase 6: close
     # =====================================================================
@@ -429,6 +544,7 @@
           - case_close_again is not changed
           - case_read.cases[0].status == "closed"
           - case_read.cases[0].name == case_renamed
+          - case_read.cases[0].severity == 70
           - case_read.cases[0].tags == ["ansible-int-b"]
 
   always:

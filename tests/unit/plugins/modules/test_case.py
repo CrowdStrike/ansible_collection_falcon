@@ -15,7 +15,7 @@ from ansible_collections.crowdstrike.falcon.plugins.module_utils import falconpy
 from ansible_collections.crowdstrike.falcon.plugins.modules import case
 
 # The cases that record_case_write() made, and the fake IDs that the Sanitizer gave them.
-NAME = "ansible-dev-case-unit-20261119101616"
+NAME = "ansible-dev-case-unit-20261119104803"
 NAME_FILTER = "name:'%s'" % NAME
 CASE_ID = "00000000-0000-0000-0000-000000000001"
 DUP_ID = "00000000-0000-0000-0000-000000000002"
@@ -43,8 +43,8 @@ def api(falcon_api, fixture):
     return make
 
 
-def search():
-    return ("query_case_ids", {"filter": NAME_FILTER, "limit": 100})
+def search(fql=None, offset=0):
+    return ("query_case_ids", {"filter": fql or NAME_FILTER, "limit": 100, "offset": offset})
 
 
 def get(*ids):
@@ -53,18 +53,6 @@ def get(*ids):
 
 def update(fields, version, case_id=CASE_ID):
     return ("update_case_fields", {"body": {"id": case_id, "expected_version": version, "fields": fields}})
-
-
-def write_response(fixture, name):
-    """Return a recorded get response under the method of a tag call.
-
-    The add_case_tags and delete_case_tags responses were recorded with the
-    real alert hash in the evidence and were dropped; the module reads only
-    their status_code. The case in the body is the same as the next read.
-    """
-    response = copy.deepcopy(fixture("case_write/" + name))
-    response.pop("method")
-    return response
 
 
 # Argument validation (no call)
@@ -167,15 +155,95 @@ def test_create_check_mode_makes_no_write(api, run_module):
     assert service.calls == [search()]
 
 
-def test_name_with_quote_is_escaped(api, run_module):
+@pytest.mark.parametrize(
+    "name, fql",
+    [
+        ("it's a case", "name:*'it*'"),
+        ("a \\ b 'c'", "name:*'a *'"),
+    ],
+)
+def test_name_with_quote_or_backslash_searches_with_a_prefix(api, run_module, name, fql):
+    """An exact name filter finds no name with ' or \\ (record row 51), so use the prefix."""
     service = api(query_case_ids=["query_name_none"])
 
-    result = run_module(case, {"name": "it's a \\ case", "severity": 30}, check_mode=True)
+    result = run_module(case, {"name": name, "severity": 30}, check_mode=True)
 
     assert not result.get("failed"), result.get("msg")
     assert result["changed"] is True
-    assert result["case"]["name"] == "it's a \\ case"
-    assert service.calls == [("query_case_ids", {"filter": "name:'it\\'s a \\\\ case'", "limit": 100})]
+    assert result["case"]["name"] == name
+    assert service.calls == [search(fql)]
+
+
+@pytest.mark.parametrize("name", ["'quoted'", "\\path"])
+def test_name_that_starts_with_quote_or_backslash_fails(api, run_module, name):
+    service = api()
+
+    result = run_module(case, {"name": name, "severity": 30})
+
+    assert result["failed"] is True
+    assert "Use 'id' to choose the case" in result["msg"]
+    assert service.calls == []
+
+
+def pages_of(fixture, query, read):
+    """Split a recorded search and its read into two pages of one case each.
+
+    Built from the recorded query_name_two and get_two responses (two cases
+    with the same name, total 2): page 1 and read 1 hold the first case,
+    page 2 and read 2 the second.
+    """
+    two = fixture("case_write/" + query)
+    both = fixture("case_write/" + read)
+    pages, reads = [], []
+    for n in (0, 1):
+        page = copy.deepcopy(two)
+        page.pop("method")
+        page["body"]["resources"] = two["body"]["resources"][n:n + 1]
+        pages.append(page)
+        found = copy.deepcopy(both)
+        found.pop("method")
+        # Each read returns the case of its own page.
+        found["body"]["resources"] = [
+            c for c in both["body"]["resources"] if c["id"] == two["body"]["resources"][n]
+        ]
+        reads.append(found)
+    return pages, reads, two["body"]["resources"]
+
+
+def test_prefix_search_reads_every_page_and_compares_names(api, fixture, run_module):
+    """No case has the exact name, so the module reads both pages and plans a create."""
+    pages, reads, ids = pages_of(fixture, "query_name_two", "get_two")
+    service = api(query_case_ids=pages, get_cases=reads)
+    prefix_name = NAME + "-x'y"
+
+    result = run_module(case, {"name": prefix_name, "severity": 30}, check_mode=True)
+
+    assert not result.get("failed"), result.get("msg")
+    assert result["changed"] is True
+    assert "id" not in result["case"]
+    fql = "name:*'%s*'" % (NAME + "-x")
+    assert service.calls == [search(fql), get(ids[0]), search(fql, offset=1), get(ids[1])]
+
+
+def test_name_search_stops_at_the_second_exact_match(api, fixture, run_module):
+    """Two exact matches on pages 1 and 2 of a search with a total of 3.
+
+    The total of each page is set to 3, so a module that does not stop
+    would ask for page 3; the fake service has no third response.
+    """
+    pages, reads, ids = pages_of(fixture, "query_name_two", "get_two")
+    for page in pages:
+        page["body"]["meta"]["pagination"]["total"] = 3
+    service = api(query_case_ids=pages, get_cases=reads)
+
+    result = run_module(case, {"name": NAME, "severity": 30})
+
+    assert result["failed"] is True
+    assert result["msg"] == (
+        "More than one case has the name '%s', for example %s, %s. Use 'id' to choose the case."
+        % (NAME, ids[0], ids[1])
+    )
+    assert service.calls == [search(), get(ids[0]), search(offset=1), get(ids[1])]
 
 
 def test_failed_read_after_create_keeps_changed_and_the_case(api, fixture, run_module):
@@ -204,7 +272,8 @@ def test_duplicate_name_fails_and_lists_ids(api, run_module):
 
     assert result["failed"] is True
     assert result["msg"] == (
-        "More than one case has the name '%s': %s, %s. Use 'id' to choose the case." % (NAME, CASE_ID, DUP_ID)
+        "More than one case has the name '%s', for example %s, %s. Use 'id' to choose the case."
+        % (NAME, CASE_ID, DUP_ID)
     )
     assert service.calls == [search(), get(DUP_ID, CASE_ID)]
 
@@ -353,10 +422,10 @@ def test_same_assignee_in_upper_case_makes_no_write(api, fixture, run_module):
 # Tags and alerts
 
 
-def test_add_only_missing_tags(api, fixture, run_module):
+def test_add_only_missing_tags(api, run_module):
     service = api(
         get_cases=["get_after_several", "get_after_add_tags"],
-        add_case_tags=[write_response(fixture, "get_after_add_tags")],
+        add_case_tags=["add_tags"],
     )
 
     result = run_module(case, {"id": CASE_ID, "tags": ["ansible-dev-t1", "ansible-dev-t2"]})
@@ -367,10 +436,10 @@ def test_add_only_missing_tags(api, fixture, run_module):
     ]
 
 
-def test_purge_tags_removes_only_extra_tags(api, fixture, run_module):
+def test_purge_tags_removes_only_extra_tags(api, run_module):
     service = api(
         get_cases=["get_after_add_tags", "get_after_delete_tag"],
-        delete_case_tags=[write_response(fixture, "get_after_delete_tag")],
+        delete_case_tags=["delete_tag"],
     )
 
     result = run_module(case, {"id": CASE_ID, "tags": ["ansible-dev-t2"], "purge_tags": True, "_ansible_diff": True})
@@ -432,10 +501,10 @@ def test_update_check_mode_reads_only(api, run_module):
     assert result["diff"]["after"]["tags"] == ["ansible-dev-t2"]
 
 
-def test_update_writes_fields_then_tags_then_alerts(api, fixture, run_module):
+def test_update_writes_fields_then_tags_then_alerts(api, run_module):
     service = api(
         get_cases=["get_plain", "get_after_add_alerts"], update_case_fields=["update_description"],
-        add_case_tags=[write_response(fixture, "get_after_add_tags")], add_case_alert_evidence=["add_alerts"],
+        add_case_tags=["add_tags"], add_case_alert_evidence=["add_alerts"],
     )
 
     result = run_module(case, {"id": DUP_ID, "severity": 40, "tags": ["t"], "alerts": [ALERT_ID]})

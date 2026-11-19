@@ -1557,7 +1557,7 @@ def record_case_write(rec, creds):
         return call
 
     def search(case):
-        return rec.call(case, "query_case_ids", falcon.query_case_ids, filter=name_filter, limit=100)
+        return rec.call(case, "query_case_ids", falcon.query_case_ids, filter=name_filter, limit=100, offset=0)
 
     def wait_for(count):
         # The name search does not see a new case for about 20 seconds.
