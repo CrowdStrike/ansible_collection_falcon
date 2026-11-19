@@ -78,6 +78,9 @@ REQUIRED_ENV = ("FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET")
 SECRET_ENV = ("FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET", "FALCON_MEMBER_CID", "FALCON_CID")
 
 PREFIX = "ansible-unit-fixture"
+# The cases that case_info reads. The API cannot delete a case, so the
+# recorder reads these existing test cases and creates none.
+CASE_PREFIX = "ansible-dev-case-"
 
 HEX32_RE = re.compile(r"(?<![0-9a-fA-F])[0-9a-fA-F]{32}(?![0-9a-fA-F])")
 UUID_RE = re.compile(
@@ -1431,6 +1434,230 @@ def record_hunting(rec, creds):
     )
 
 
+def record_case(rec, creds):
+    """Record the CaseManagement calls used by case_info.
+
+    Read only: the API cannot delete a case, so this records the cases that
+    exist and creates none. Every filter matches only the test cases, whose
+    names start with CASE_PREFIX. The searches use the kwargs of the module:
+    limit and offset, and filter, q and sort only when set.
+
+    The tenant must have at least two cases whose names start with
+    CASE_PREFIX, all of them closed, and at least one of them with a tag.
+    Make them once with the Falcon console or the API and close them.
+    """
+    from falconpy import CaseManagement
+
+    falcon = CaseManagement(**creds)
+    prefix = "name:*'%s*'" % CASE_PREFIX
+
+    def search(case, limit=100, offset=0, **kwargs):
+        return rec.call(case, "query_case_ids", falcon.query_case_ids, limit=limit, offset=offset, **kwargs)
+
+    if rec.cleanup_only:
+        return
+
+    if not rec.dry_run:
+        # Check before any recording, so that no fixture is written.
+        existing = resources(falcon.query_case_ids(limit=100, offset=0, filter=prefix))
+        if len(existing) < 2:
+            raise SystemExit(
+                "case: found %d case(s) whose names start with %s, need at least 2. "
+                "Make them with the Falcon console or the API and close them."
+                % (len(existing), CASE_PREFIX)
+            )
+
+    found = search("query_by_prefix", filter=prefix)
+    search("query_by_prefix_sorted", filter=prefix, sort="name.asc")
+    search("query_closed", filter="%s+status:'closed'" % prefix)
+    search("query_q", q=CASE_PREFIX)
+    search("query_page_1", limit=1, offset=0, filter=prefix, sort="name.asc")
+    search("query_page_2", limit=1, offset=1, filter=prefix, sort="name.asc")
+    search("query_empty", filter="name:'ansible-dev-none-xyz'")
+    search("query_bad_filter", filter="name:")
+    search("query_bad_sort", filter=prefix, sort="nosuchfield.asc")
+
+    def get_cases(**kwargs):
+        # An alert ID has a hash of 64 characters, which test_fixtures_clean.py
+        # treats as a token, so the alert records of the evidence are left out.
+        response = falcon.get_cases(**kwargs)
+        for case in resources(response):
+            for part in ("evidence", "analysis_results"):
+                alerts = (case.get(part) or {}).get("alerts")
+                if alerts:
+                    alerts["records"] = []
+        return response
+
+    ids = sorted(resources(found)) if not rec.dry_run else ["0" * 32, "1" * 32]
+    rec.call("get_several", "get_cases", get_cases, body={"ids": ids})
+    rec.call("get_missing", "get_cases", get_cases, body={"ids": ["f" * 32]})
+
+
+# The fake alert ID that the case_write fixtures hold instead of the real one.
+FAKE_ALERT_ID = "fixture-cid:cwpp:fixture-aid:fixture-alert-1"
+# The environment variable with the ID of the one alert that case_write adds
+# as evidence (an alert of the test tenant). The alert status is not changed.
+CASE_ALERT_ENV = "FALCON_CASE_ALERT_ID"
+
+
+def replace_strings(data, old, new):
+    """Return a copy of data with old replaced by new in every string."""
+    if isinstance(data, dict):
+        return {k: replace_strings(v, old, new) for k, v in data.items()}
+    if isinstance(data, list):
+        return [replace_strings(v, old, new) for v in data]
+    if isinstance(data, str):
+        return data.replace(old, new)
+    return data
+
+
+def record_case_write(rec, creds):
+    """Record the CaseManagement write calls used by case.
+
+    The API cannot delete a case. This makes at most two cases with the same
+    name, ansible-dev-case-unit-<timestamp>, and closes each of them in the
+    finally path; closed cases stay in the tenant. It adds one existing
+    alert as evidence and does not change the alert. It sets no real
+    assignee, so no user gets an email.
+
+    The alert ID holds the CID and a hash of 64 characters, which
+    test_fixtures_clean.py treats as a token, so each response gets
+    FAKE_ALERT_ID instead of the real ID before it is saved.
+    """
+    import time
+
+    from falconpy import Alerts, CaseManagement
+
+    falcon = CaseManagement(**creds)
+    name = "ansible-dev-case-unit-%s" % time.strftime("%Y%m%d%H%M%S")
+    name_filter = "name:'%s'" % name
+    missing_id = "00000000-0000-0000-0000-000000000000"
+    made = []
+    closed = set()
+
+    if rec.cleanup_only:
+        return
+
+    alert_id = "cwpp:alert"
+    if not rec.dry_run:
+        if not os.environ.get(CASE_ALERT_ENV):
+            raise SystemExit("case_write: set %s to the ID of a test alert." % CASE_ALERT_ENV)
+        alert_filter = "id:'%s'" % os.environ[CASE_ALERT_ENV]
+        alert_ids = resources(Alerts(**creds).query_alerts_v2(filter=alert_filter))
+        if len(alert_ids) != 1:
+            raise SystemExit("case_write: found %d alert(s) for the evidence, need 1." % len(alert_ids))
+        alert_id = alert_ids[0]
+    alert_hash = alert_id.rsplit(":", 1)[-1]
+
+    def fake_alert(func):
+        def call(**kwargs):
+            response = func(**kwargs)
+            if rec.dry_run:
+                return response
+            response = replace_strings(response, alert_id, FAKE_ALERT_ID)
+            return replace_strings(response, alert_hash, "fixture-alert-hash")
+        return call
+
+    def search(case):
+        return rec.call(case, "query_case_ids", falcon.query_case_ids, filter=name_filter, limit=100, offset=0)
+
+    def wait_for(count):
+        # The name search does not see a new case for about 20 seconds.
+        deadline = time.time() + 60
+        while not rec.dry_run and time.time() < deadline:
+            if len(resources(falcon.query_case_ids(filter=name_filter, limit=100))) >= count:
+                return
+            time.sleep(5)
+        if not rec.dry_run:
+            raise SystemExit("case_write: the name search did not find %d case(s) in 60 s." % count)
+
+    def get(case, ids):
+        return rec.call(case, "get_cases", fake_alert(falcon.get_cases), body={"ids": ids})
+
+    def version(case_id):
+        if rec.dry_run:
+            return 1
+        return resources(falcon.get_cases(body={"ids": [case_id]}))[0]["version"]
+
+    def update(case, case_id, fields, expected=None):
+        return rec.call(
+            case, "update_case_fields", fake_alert(falcon.update_case_fields),
+            body={
+                "id": case_id,
+                "expected_version": version(case_id) if expected is None else expected,
+                "fields": fields,
+            },
+        )
+
+    def new_id(response):
+        found = resources(response)
+        if found:
+            made.append(found[0]["id"])
+            return found[0]["id"]
+        return "00000000-0000-0000-0000-00000000000%d" % (len(made) + 1)
+
+    try:
+        search("query_name_none")
+        case_id = new_id(rec.call(
+            "create", "create_case", fake_alert(falcon.create_case),
+            body={
+                "name": name, "description": "Unit fixture case", "severity": 30,
+                "tags": ["ansible-dev-t1"], "evidence": {"alerts": [{"id": alert_id}]},
+            },
+        ))
+        get("get_created", [case_id])
+        wait_for(1)
+        search("query_name_one")
+
+        update("update_description", case_id, {"description": "Unit fixture case updated"})
+        get("get_after_description", [case_id])
+        update("update_several", case_id, {"status": "in_progress", "severity": 50})
+        get("get_after_several", [case_id])
+        rec.call(
+            "add_tags", "add_case_tags", fake_alert(falcon.add_case_tags),
+            body={"id": case_id, "tags": ["ansible-dev-t2"]},
+        )
+        get("get_after_add_tags", [case_id])
+        rec.call(
+            "delete_tag", "delete_case_tags", fake_alert(falcon.delete_case_tags), id=case_id, tag="ansible-dev-t1"
+        )
+        get("get_after_delete_tag", [case_id])
+        update("update_unassign", case_id, {"remove_user_assignment": True})
+        get("get_after_unassign", [case_id])
+        update("update_conflict", case_id, {"severity": 60}, expected=version(case_id) + 5)
+        update("update_missing", missing_id, {"severity": 60}, expected=1)
+        update("update_bad_assignee", case_id, {"assigned_to_user_uuid": missing_id})
+        get("get_missing", [missing_id])
+
+        # The second case has the same name, no tags and no alerts.
+        dup_id = new_id(rec.call(
+            "create_plain", "create_case", fake_alert(falcon.create_case),
+            body={"name": name, "description": "Unit fixture case", "severity": 30},
+        ))
+        get("get_plain", [dup_id])
+        rec.call(
+            "add_alerts", "add_case_alert_evidence", fake_alert(falcon.add_case_alert_evidence),
+            body={"id": dup_id, "alerts": [{"id": alert_id}]},
+        )
+        get("get_after_add_alerts", [dup_id])
+        wait_for(2)
+        search("query_name_two")
+        get("get_two", sorted([case_id, dup_id]))
+
+        update("update_close", case_id, {"status": "closed"})
+        closed.add(case_id)
+        get("get_after_close", [case_id])
+    finally:
+        for made_id in made:
+            if made_id not in closed:
+                falcon.update_case_fields(
+                    body={"id": made_id, "expected_version": version(made_id), "fields": {"status": "closed"}}
+                )
+        for made_id in made:
+            print("  case_write: made case %s, status %s" % (
+                made_id, resources(falcon.get_cases(body={"ids": [made_id]}))[0]["status"]))
+
+
 def record_response_policy(rec, creds):
     """Record the ResponsePolicies calls used by response_policy and response_policy_info.
 
@@ -1852,6 +2079,8 @@ def record_rtr(rec, creds):
 
 SCENARIOS = {
     "auth": record_auth,
+    "case": record_case,
+    "case_write": record_case_write,
     "correlation_rule": record_correlation_rule,
     "discover": record_discover,
     "flight_control": record_flight_control,

@@ -1,0 +1,22 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 100,
+        "offset": 0,
+        "total": 2
+      },
+      "query_time": 0.133422731,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": [
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000002"
+    ]
+  },
+  "method": "query_case_ids",
+  "status_code": 200
+}

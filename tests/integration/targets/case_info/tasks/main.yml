@@ -1,0 +1,267 @@
+---
+# Integration tests for the case_info module
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# API scopes: Cases [READ]
+#
+# The test only reads. It changes nothing in the tenant and makes no cases
+# (the API cannot delete a case), so it has no cleanup. Each check uses values
+# that an earlier read of the same run returned, and never a tenant count or
+# a case name. A check that needs data the tenant does not have (no case, no
+# closed case, no case with a tag) is skipped with a debug message.
+# Case data is tenant data, so the tasks that return it use no_log and the
+# asserts use quiet. The prefix is only used for names that must not exist.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set test variables
+  ansible.builtin.set_fact:
+    case_prefix: "ansible-int-case-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+
+- name: Run read-only case tests
+  block:
+    # =====================================================================
+    # Phase 1: all cases, and the values that the later checks use
+    # =====================================================================
+
+    - name: "EXAMPLE | Get all cases"
+      crowdstrike.falcon.case_info:
+      register: case_all_info
+      no_log: true
+
+    - name: "READ | Verify the result of the read of all cases"
+      ansible.builtin.assert:
+        that:
+          - case_all_info is not changed
+          - case_all_info.cases is sequence
+          - case_all_info.cases | map(attribute='id') | unique | list | length == case_all_info.cases | length
+        fail_msg: "The read of all cases returned unexpected data"
+        quiet: true
+
+    - name: "READ | Keep the values that the later checks use"
+      ansible.builtin.set_fact:
+        # An exact name filter finds no name with a quote or a backslash,
+        # so the name checks use a case whose name has neither.
+        case_first: >-
+          {{ case_all_info.cases
+             | rejectattr('name', 'search', "['\\\\]")
+             | list | first | default({}, true) }}
+        case_closed: "{{ case_all_info.cases | selectattr('status', 'defined') | selectattr('status', 'equalto', 'closed') | list }}"
+        case_tagged: "{{ case_all_info.cases | selectattr('tags', 'defined') | selectattr('tags') | list }}"
+      no_log: true
+
+    - name: "READ | Report that the tenant has no case"
+      ansible.builtin.debug:
+        msg: "The tenant has no case. The checks that need a case are skipped."
+      when: case_first | length == 0
+
+    # =====================================================================
+    # Phase 2: limit and ids
+    # =====================================================================
+
+    - name: "EXAMPLE | Get the first 2 cases with limit"
+      crowdstrike.falcon.case_info:
+        limit: 2
+      register: case_limit_info
+      no_log: true
+
+    - name: "READ | Verify the limit"
+      ansible.builtin.assert:
+        that:
+          - case_limit_info.cases | length <= 2
+          - case_limit_info.cases | length == [2, case_all_info.cases | length] | min
+        fail_msg: "The limit returned an unexpected number of cases"
+        quiet: true
+
+    - name: "EXAMPLE | Get cases by ID"
+      crowdstrike.falcon.case_info:
+        ids: "{{ case_limit_info.cases | map(attribute='id') | list }}"
+      register: case_ids_info
+      no_log: true
+      when: case_limit_info.cases | length > 0
+
+    - name: "READ | Verify the read by ID returns the same cases"
+      ansible.builtin.assert:
+        that:
+          - case_ids_info.cases | length > 0
+          - >-
+            case_ids_info.cases | map(attribute='id') | sort
+            == case_limit_info.cases | map(attribute='id') | sort
+          - >-
+            case_ids_info.cases | map(attribute='name') | sort
+            == case_limit_info.cases | map(attribute='name') | sort
+        fail_msg: "The read by ID returned other cases than the limit read"
+        quiet: true
+      when: case_limit_info.cases | length > 0
+
+    - name: "READ | Get cases with an empty ID list"
+      crowdstrike.falcon.case_info:
+        ids: []
+      register: case_ids_empty
+
+    - name: "READ | Verify that an empty ID list returns no case"
+      ansible.builtin.assert:
+        that:
+          - case_ids_empty is not changed
+          - case_ids_empty.cases == []
+        fail_msg: "An empty ID list returned cases"
+
+    # =====================================================================
+    # Phase 3: filters on name
+    # =====================================================================
+
+    - name: "EXAMPLE | Get the case with an exact name (case sensitive)"
+      crowdstrike.falcon.case_info:
+        filter: "name:'{{ case_first.name }}'"
+      register: case_name_info
+      no_log: true
+      when: case_first | length > 0
+
+    - name: "READ | Verify the exact name filter"
+      ansible.builtin.assert:
+        that:
+          - case_name_info.cases | length > 0
+          - case_first.id in case_name_info.cases | map(attribute='id') | list
+          - case_name_info.cases | rejectattr('name', 'equalto', case_first.name) | list | length == 0
+        fail_msg: "The exact name filter returned unexpected cases"
+        quiet: true
+      when: case_first | length > 0
+
+    - name: "READ | Keep the name prefix of the first case"
+      ansible.builtin.set_fact:
+        case_name_prefix: "{{ case_first.name[:3] }}"
+      no_log: true
+      when: case_first | length > 0
+
+    - name: "EXAMPLE | Get the cases whose name starts with a prefix, newest first"
+      crowdstrike.falcon.case_info:
+        filter: "name:*'{{ case_name_prefix }}*'"
+        sort: created_timestamp.desc
+      register: case_prefix_info
+      no_log: true
+      when: case_first | length > 0
+
+    - name: "READ | Verify the prefix filter and the sort order"
+      ansible.builtin.assert:
+        that:
+          - case_prefix_info.cases | length > 0
+          - case_first.id in case_prefix_info.cases | map(attribute='id') | list
+          - >-
+            case_prefix_info.cases | map(attribute='name')
+            | select('match', case_name_prefix | regex_escape) | list | length
+            == case_prefix_info.cases | length
+          - >-
+            case_prefix_info.cases | map(attribute='created_timestamp') | list
+            == case_prefix_info.cases | map(attribute='created_timestamp') | sort(reverse=true)
+        fail_msg: "The prefix filter or the sort order returned unexpected data"
+        quiet: true
+      when: case_first | length > 0
+
+    - name: "READ | Get cases with an unknown name"
+      crowdstrike.falcon.case_info:
+        filter: "name:'{{ case_prefix }}-missing'"
+      register: case_missing_info
+
+    - name: "READ | Verify that an unknown name returns no case"
+      ansible.builtin.assert:
+        that:
+          - case_missing_info is not changed
+          - case_missing_info.cases == []
+        fail_msg: "An unknown name returned cases"
+
+    # =====================================================================
+    # Phase 4: status, tags, q and sort
+    # =====================================================================
+
+    - name: "EXAMPLE | Get the 10 first closed cases, sorted by name"
+      crowdstrike.falcon.case_info:
+        filter: "status:'closed'"
+        sort: name.asc
+        limit: 10
+      register: case_closed_info
+      no_log: true
+
+    - name: "READ | Verify the status filter, the limit and the sort order"
+      ansible.builtin.assert:
+        that:
+          - case_closed_info.cases | length == [10, case_closed | length] | min
+          - case_closed_info.cases | rejectattr('status', 'equalto', 'closed') | list | length == 0
+          - >-
+            case_closed_info.cases | map(attribute='id')
+            | reject('in', case_all_info.cases | map(attribute='id') | list) | list | length == 0
+          - >-
+            case_closed_info.cases | map(attribute='name') | list
+            == case_closed_info.cases | map(attribute='name') | sort(case_sensitive=true)
+        fail_msg: "The status filter, the limit or the sort order returned unexpected data"
+        quiet: true
+
+    - name: "READ | Report that no case has a tag"
+      ansible.builtin.debug:
+        msg: "No case in the tenant has a tag. The tag filter check is skipped."
+      when: case_tagged | length == 0
+
+    - name: "EXAMPLE | Get the cases with a tag"
+      crowdstrike.falcon.case_info:
+        filter: "tags:'{{ case_tagged[0].tags[0] }}'"
+      register: case_tag_info
+      no_log: true
+      when: case_tagged | length > 0
+
+    - name: "READ | Verify the tag filter"
+      ansible.builtin.assert:
+        that:
+          - case_tag_info.cases | length > 0
+          - case_tagged[0].id in case_tag_info.cases | map(attribute='id') | list
+          - >-
+            case_tag_info.cases | selectattr('tags', 'contains', case_tagged[0].tags[0])
+            | list | length == case_tag_info.cases | length
+        fail_msg: "The tag filter returned unexpected cases"
+        quiet: true
+      when: case_tagged | length > 0
+
+    - name: "EXAMPLE | Search the cases for a text"
+      crowdstrike.falcon.case_info:
+        q: "{{ case_first.name }}"
+      register: case_q_info
+      no_log: true
+      when: case_first | length > 0
+
+    - name: "READ | Verify the text search"
+      ansible.builtin.assert:
+        that:
+          - case_q_info.cases | length > 0
+          - case_first.id in case_q_info.cases | map(attribute='id') | list
+        fail_msg: "The text search did not find the case"
+        quiet: true
+      when: case_first | length > 0
+
+    # =====================================================================
+    # Phase 5: errors
+    # =====================================================================
+
+    - name: "READ | Get cases with a bad filter"
+      crowdstrike.falcon.case_info:
+        filter: "name:"
+      register: case_bad_filter
+      ignore_errors: true
+
+    - name: "READ | Verify that a bad filter fails"
+      ansible.builtin.assert:
+        that:
+          - case_bad_filter is failed
+          - "'invalid query filter' in case_bad_filter.msg"
+        fail_msg: "A bad filter did not fail with the API error"

@@ -48,6 +48,8 @@ Name | Description
 [crowdstrike.falcon.falconctl_info](https://crowdstrike.github.io/ansible_collection_falcon/falconctl_info_module.html)|Get Values Associated with Falcon Sensor (Linux)
 [crowdstrike.falcon.fctl_child_cid_info](https://crowdstrike.github.io/ansible_collection_falcon/fctl_child_cid_info_module.html)|Retrieve details about Flight Control child CIDs
 [crowdstrike.falcon.auth](https://crowdstrike.github.io/ansible_collection_falcon/auth_module.html)|Manage Authentication with Falcon API
+[crowdstrike.falcon.case](https://crowdstrike.github.io/ansible_collection_falcon/case_module.html)|Create and update Falcon cases
+[crowdstrike.falcon.case_info](https://crowdstrike.github.io/ansible_collection_falcon/case_info_module.html)|Get information about Falcon cases
 [crowdstrike.falcon.cid_info](https://crowdstrike.github.io/ansible_collection_falcon/cid_info_module.html)|Get CID with checksum
 [crowdstrike.falcon.correlation_rule](https://crowdstrike.github.io/ansible_collection_falcon/correlation_rule_module.html)|Manage NG-SIEM correlation rules
 [crowdstrike.falcon.correlation_rule_info](https://crowdstrike.github.io/ansible_collection_falcon/correlation_rule_info_module.html)|Get information about NG-SIEM correlation rules

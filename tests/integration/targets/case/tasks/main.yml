@@ -1,0 +1,583 @@
+---
+# Integration tests for the case module
+#
+# Requirements:
+#   FALCON_CLIENT_ID     - API client ID
+#   FALCON_CLIENT_SECRET - API client secret
+#   FALCON_CLOUD         - Falcon cloud region (optional, defaults to us-1)
+#
+# Optional variable:
+#   falcon_case_alert_id - the composite ID of an alert in the tenant. When it
+#                          is set, the test adds this alert as evidence to the
+#                          cases of this run. When it is not set, the evidence
+#                          tasks are skipped. Adding an alert as evidence does
+#                          not change the status, tags or assignee of the alert.
+#
+# API scopes: Cases [READ, WRITE]
+#
+# The test creates cases whose names start with the prefix of this run
+# (ansible-int-case-<timestamp>), and updates, renames and closes them. It runs
+# the module examples, check mode, diff mode and a second run of each change.
+# It does not change any other case.
+#
+# The API cannot delete a case, so each run leaves its cases in the tenant
+# with the status closed. The always section closes each case that the run
+# made, by the ID from the create result, and reads each one by ID to check
+# that it is closed. Then it searches with filter
+# "name:*'<prefix>*'+status:!'closed'" (the names that start with the prefix
+# of this run and are not closed) and checks that it finds no case.
+# The name search does not see a new case for about 20 seconds, so the tasks
+# use the ID from the create result, and each name search retries.
+
+- name: Gather minimal facts for timestamp
+  ansible.builtin.setup:
+    gather_subset:
+      - date_time
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: Set the test prefix
+  ansible.builtin.set_fact:
+    case_prefix: "ansible-int-case-{{ ansible_facts.date_time.iso8601_basic_short | lower }}"
+    case_made_ids: []
+
+- name: Set the test names
+  ansible.builtin.set_fact:
+    case_name: "{{ case_prefix }}-main"
+    case_renamed: "{{ case_prefix }}-renamed"
+    case_check_name: "{{ case_prefix }}-check"
+    case_ev_name: "{{ case_prefix }}-evidence"
+    case_dup_name: "{{ case_prefix }}-dup"
+    case_quote_name: >-
+      {{ case_prefix }}-it's a \ case
+    case_missing_id: "00000000-0000-4000-8000-000000000000"
+
+- name: Run the case lifecycle
+  block:
+    # =====================================================================
+    # Phase 1: argument validation (fails before any API call)
+    # =====================================================================
+
+    - name: "VALIDATE | Severity 101 fails"
+      crowdstrike.falcon.case:
+        name: "{{ case_check_name }}"
+        severity: 101
+      register: case_bad_sev
+      ignore_errors: true
+
+    - name: "VALIDATE | Verify the severity error"
+      ansible.builtin.assert:
+        that:
+          - case_bad_sev is failed
+          - "'must be from 1 to 100' in case_bad_sev.msg"
+
+    - name: "VALIDATE | An unknown ID fails"
+      crowdstrike.falcon.case:
+        id: "{{ case_missing_id }}"
+        status: closed
+      register: case_missing
+      ignore_errors: true
+
+    - name: "VALIDATE | Verify the unknown ID error"
+      ansible.builtin.assert:
+        that:
+          - case_missing is failed
+          - "'Case not found' in case_missing.msg"
+
+    # =====================================================================
+    # Phase 2: create
+    # =====================================================================
+
+    - name: "CREATE | Create a case in check mode"
+      crowdstrike.falcon.case:
+        name: "{{ case_check_name }}"
+        severity: 30
+      check_mode: true
+      register: case_check_create
+
+    - name: "CREATE | Verify that check mode predicts a create and makes nothing"
+      ansible.builtin.assert:
+        that:
+          - case_check_create is changed
+          - case_check_create.case.id is not defined
+          - case_check_create.case.name == case_check_name
+
+    - name: "CREATE | Create a case with description, severity, status and tags"
+      crowdstrike.falcon.case:
+        name: "{{ case_name }}"
+        description: "Integration test case"
+        severity: 30
+        status: new
+        tags:
+          - ansible-int-a
+      diff: true
+      register: case_create
+
+    - name: "CREATE | Remember the case ID for the cleanup"
+      ansible.builtin.set_fact:
+        case_made_ids: "{{ case_made_ids + [case_create.case.id] }}"
+        case_id: "{{ case_create.case.id }}"
+
+    - name: "CREATE | Verify the create result and the diff"
+      ansible.builtin.assert:
+        that:
+          - case_create is changed
+          - case_create.diff.before == {}
+          - case_create.diff.after.name == case_name
+          - case_create.diff.after.severity == 30
+
+    - name: "CREATE | Read the case by ID"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read
+
+    - name: "CREATE | Verify the stored case"
+      ansible.builtin.assert:
+        that:
+          - case_read.cases | length == 1
+          - case_read.cases[0].name == case_name
+          - case_read.cases[0].description == "Integration test case"
+          - case_read.cases[0].severity == 30
+          - case_read.cases[0].status == "new"
+          - case_read.cases[0].tags == ["ansible-int-a"]
+
+    - name: "CREATE | Run the same values again by ID"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        name: "{{ case_name }}"
+        description: "Integration test case"
+        severity: 30
+        status: new
+        tags:
+          - ansible-int-a
+      register: case_again
+
+    - name: "CREATE | Verify that the second run changes nothing"
+      ansible.builtin.assert:
+        that:
+          - case_again is not changed
+          - case_again.case.version == case_read.cases[0].version
+
+    # =====================================================================
+    # Phase 3: update
+    # =====================================================================
+
+    - name: "UPDATE | Set the status to in_progress and add tags, by ID (example)"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        status: in_progress
+        tags:
+          - ansible-int-b
+      register: case_upd
+
+    - name: "UPDATE | Read the case"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read
+
+    - name: "UPDATE | Verify the status and the tags"
+      ansible.builtin.assert:
+        that:
+          - case_upd is changed
+          - case_read.cases[0].status == "in_progress"
+          - case_read.cases[0].tags | sort == ["ansible-int-a", "ansible-int-b"]
+          - case_read.cases[0].severity == 30
+          - case_read.cases[0].description == "Integration test case"
+
+    - name: "UPDATE | Change the severity in check mode"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        severity: 60
+      check_mode: true
+      register: case_check_upd
+
+    - name: "UPDATE | Read the case after check mode"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read_check
+
+    - name: "UPDATE | Verify that check mode predicts a change and changes nothing"
+      ansible.builtin.assert:
+        that:
+          - case_check_upd is changed
+          - case_read_check.cases[0].severity == 30
+          - case_read_check.cases[0].version == case_read.cases[0].version
+
+    - name: "UPDATE | Change the severity and the description in diff mode"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        severity: 60
+        description: "Changed description"
+      diff: true
+      register: case_diff
+
+    - name: "UPDATE | Verify the diff"
+      ansible.builtin.assert:
+        that:
+          - case_diff is changed
+          - case_diff.diff.before.severity == 30
+          - case_diff.diff.after.severity == 60
+          - case_diff.diff.before.description == "Integration test case"
+          - case_diff.diff.after.description == "Changed description"
+          - case_diff.diff.before.status == case_diff.diff.after.status
+
+    - name: "UPDATE | Read the case after the diff mode change"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read
+
+    - name: "UPDATE | Verify the stored severity and description"
+      ansible.builtin.assert:
+        that:
+          - case_read.cases[0].severity == 60
+          - case_read.cases[0].description == "Changed description"
+
+    - name: "UPDATE | Purge the tags that are not in the list"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        tags:
+          - ansible-int-b
+        purge_tags: true
+      register: case_purge
+
+    - name: "UPDATE | Purge the tags again"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        tags:
+          - ansible-int-b
+        purge_tags: true
+      register: case_purge_again
+
+    - name: "UPDATE | Read the case after the purge"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read
+
+    - name: "UPDATE | Verify the purge"
+      ansible.builtin.assert:
+        that:
+          - case_purge is changed
+          - case_purge_again is not changed
+          - case_read.cases[0].tags == ["ansible-int-b"]
+
+    - name: "UPDATE | Rename the case by ID"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        name: "{{ case_renamed }}"
+      register: case_rename
+
+    - name: "UPDATE | Read the case after the rename"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read
+
+    - name: "UPDATE | Verify the rename"
+      ansible.builtin.assert:
+        that:
+          - case_rename is changed
+          - case_read.cases[0].name == case_renamed
+
+    - name: "UPDATE | Remove the assignee of the case (example)"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        assigned_to_user_uuid: ""
+      register: case_unassign
+
+    - name: "UPDATE | Remove the assignee again"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        assigned_to_user_uuid: ""
+      register: case_unassign_again
+
+    - name: "UPDATE | Read the case after the assignee removal"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read
+
+    - name: "UPDATE | Verify that the case has no assignee"
+      ansible.builtin.assert:
+        that:
+          - case_unassign_again is not changed
+          - (case_read.cases[0].assigned_to.uuid | default('', true)) == ""
+
+    # The example that assigns the case to a user is not run: it would notify
+    # a real user of the tenant.
+
+    # =====================================================================
+    # Phase 4: alert evidence (only with falcon_case_alert_id)
+    # =====================================================================
+
+    - name: "EVIDENCE | Skip the evidence tasks"
+      ansible.builtin.debug:
+        msg: "falcon_case_alert_id is not set; the alert evidence tasks are skipped"
+      when: falcon_case_alert_id is not defined
+
+    - name: "EVIDENCE | Run the alert evidence tasks"
+      when: falcon_case_alert_id is defined
+      block:
+        - name: "EVIDENCE | Create a case with an alert as evidence (example)"
+          crowdstrike.falcon.case:
+            name: "{{ case_ev_name }}"
+            description: "Integration test case with an alert"
+            severity: 50
+            tags:
+              - ansible-int-a
+            alerts:
+              - "{{ falcon_case_alert_id }}"
+          register: case_ev_create
+          no_log: true
+
+        - name: "EVIDENCE | Remember the case ID for the cleanup"
+          ansible.builtin.set_fact:
+            case_made_ids: "{{ case_made_ids + [case_ev_create.case.id] }}"
+
+        - name: "EVIDENCE | Add the same alert again by ID"
+          crowdstrike.falcon.case:
+            id: "{{ case_ev_create.case.id }}"
+            alerts:
+              - "{{ falcon_case_alert_id }}"
+          register: case_ev_again
+          no_log: true
+
+        - name: "EVIDENCE | Add the alert to the main case"
+          crowdstrike.falcon.case:
+            id: "{{ case_id }}"
+            alerts:
+              - "{{ falcon_case_alert_id }}"
+          register: case_ev_add
+          no_log: true
+
+        - name: "EVIDENCE | Read the two cases"
+          crowdstrike.falcon.case_info:
+            ids:
+              - "{{ case_ev_create.case.id }}"
+              - "{{ case_id }}"
+          register: case_ev_read
+          no_log: true
+
+        - name: "EVIDENCE | Verify that each case holds the alert once"
+          ansible.builtin.assert:
+            quiet: true
+            that:
+              - case_ev_create is changed
+              - case_ev_again is not changed
+              - case_ev_add is changed
+              - case_ev_read.cases | length == 2
+              - >-
+                case_ev_read.cases | map(attribute='evidence.alerts.records')
+                | map('map', attribute='selector.id') | map('list') | list
+                == [[falcon_case_alert_id], [falcon_case_alert_id]]
+
+    # =====================================================================
+    # Phase 5: name search (after the index delay)
+    # =====================================================================
+
+    - name: "READ | Find the renamed case by name"
+      crowdstrike.falcon.case_info:
+        filter: "name:'{{ case_renamed }}'"
+      register: case_by_name
+      until: case_by_name.cases | length == 1
+      retries: 12
+      delay: 5
+
+    - name: "READ | Find the case of the check mode create by name"
+      crowdstrike.falcon.case_info:
+        filter: "name:'{{ case_check_name }}'"
+      register: case_check_read
+
+    - name: "READ | Verify the name searches"
+      ansible.builtin.assert:
+        that:
+          - case_by_name.cases[0].id == case_id
+          - case_check_read.cases | length == 0
+
+    - name: "NAME | Run the module by name with the current values"
+      crowdstrike.falcon.case:
+        name: "{{ case_renamed }}"
+        severity: 60
+        tags:
+          - ansible-int-b
+      register: case_name_same
+
+    - name: "NAME | Change the severity by name"
+      crowdstrike.falcon.case:
+        name: "{{ case_renamed }}"
+        severity: 70
+      register: case_name_update
+
+    - name: "NAME | Read the case after the change by name"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read
+
+    - name: "NAME | Verify that the module found the case by name"
+      ansible.builtin.assert:
+        that:
+          - case_name_same is not changed
+          - case_name_same.case.id == case_id
+          - case_name_update is changed
+          - case_name_update.case.id == case_id
+          - case_read.cases[0].severity == 70
+
+    - name: "NAME | Set the same name again by ID"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        name: "{{ case_renamed }}"
+      register: case_dup_noop
+
+    - name: "NAME | Make a second case with the same name"
+      crowdstrike.falcon.case:
+        name: "{{ case_dup_name }}"
+        severity: 10
+      register: case_dup
+
+    - name: "NAME | Remember the second case ID for the cleanup"
+      ansible.builtin.set_fact:
+        case_made_ids: "{{ case_made_ids + [case_dup.case.id] }}"
+
+    - name: "NAME | Rename the second case to the name of the first"
+      crowdstrike.falcon.case:
+        id: "{{ case_dup.case.id }}"
+        name: "{{ case_renamed }}"
+
+    - name: "NAME | Wait until the name search finds both cases"
+      crowdstrike.falcon.case_info:
+        filter: "name:'{{ case_renamed }}'"
+      register: case_two
+      until: case_two.cases | length == 2
+      retries: 12
+      delay: 5
+
+    - name: "NAME | Run the module by name when two cases have that name"
+      crowdstrike.falcon.case:
+        name: "{{ case_renamed }}"
+        severity: 80
+      register: case_name_two
+      ignore_errors: true
+
+    - name: "NAME | Verify that the module fails and lists both IDs"
+      ansible.builtin.assert:
+        that:
+          - case_dup_noop is not changed
+          - case_name_two is failed
+          - "'More than one case has the name' in case_name_two.msg"
+          - case_id in case_name_two.msg
+          - case_dup.case.id in case_name_two.msg
+
+    - name: "NAME | Make a case with a quote and a backslash in its name"
+      crowdstrike.falcon.case:
+        name: "{{ case_quote_name }}"
+        severity: 10
+      register: case_quote
+
+    - name: "NAME | Remember the quote case ID for the cleanup"
+      ansible.builtin.set_fact:
+        case_made_ids: "{{ case_made_ids + [case_quote.case.id] }}"
+
+    - name: "NAME | Set the prefix filter of the quote case"
+      ansible.builtin.set_fact:
+        # An exact name filter finds no name with a quote or a backslash,
+        # so search with the part of the name before the quote.
+        case_quote_filter: "name:*'{{ case_prefix }}-it*'"
+
+    - name: "NAME | Wait until the prefix filter finds the quote case"
+      crowdstrike.falcon.case_info:
+        filter: "{{ case_quote_filter }}"
+      register: case_quote_found
+      until: case_quote_found.cases | length == 1
+      retries: 12
+      delay: 5
+
+    - name: "NAME | Find the quote case by name with the module"
+      crowdstrike.falcon.case:
+        name: "{{ case_quote_name }}"
+        severity: 10
+      register: case_quote_again
+
+    - name: "NAME | Verify that the module finds the quote case by name"
+      ansible.builtin.assert:
+        that:
+          - case_quote.case.name == case_quote_name
+          - case_quote_found.cases[0].id == case_quote.case.id
+          - case_quote_again is not changed
+          - case_quote_again.case.id == case_quote.case.id
+
+    # =====================================================================
+    # Phase 6: close
+    # =====================================================================
+
+    - name: "CLOSE | Close the case (example)"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        status: closed
+      register: case_close
+
+    - name: "CLOSE | Close the case again"
+      crowdstrike.falcon.case:
+        id: "{{ case_id }}"
+        status: closed
+      register: case_close_again
+
+    - name: "CLOSE | Read the case after the close"
+      crowdstrike.falcon.case_info:
+        ids:
+          - "{{ case_id }}"
+      register: case_read
+
+    - name: "CLOSE | Verify the close"
+      ansible.builtin.assert:
+        that:
+          - case_close is changed
+          - case_close_again is not changed
+          - case_read.cases[0].status == "closed"
+          - case_read.cases[0].name == case_renamed
+          - case_read.cases[0].severity == 70
+          - case_read.cases[0].tags == ["ansible-int-b"]
+
+  always:
+    - name: "CLEANUP | Close each case of this run"
+      crowdstrike.falcon.case:
+        id: "{{ item }}"
+        status: closed
+      loop: "{{ case_made_ids }}"
+      failed_when: false
+
+    - name: "CLEANUP | Read the cases of this run by ID"
+      crowdstrike.falcon.case_info:
+        ids: "{{ case_made_ids }}"
+      register: case_cleanup_read
+      when: case_made_ids | length > 0
+      no_log: true
+
+    - name: "CLEANUP | Verify that each case of this run is closed"
+      ansible.builtin.assert:
+        quiet: true
+        that:
+          - case_cleanup_read.cases | length == case_made_ids | length
+          - case_cleanup_read.cases | rejectattr('status', 'eq', 'closed') | list | length == 0
+      when: case_made_ids | length > 0
+
+    - name: "CLEANUP | Find the open cases of this run"
+      crowdstrike.falcon.case_info:
+        filter: "name:*'{{ case_prefix }}*'+status:!'closed'"
+      register: case_leftover
+      until: case_leftover.cases | length == 0
+      retries: 12
+      delay: 5
+
+    - name: "CLEANUP | List the case IDs of this run (they stay closed in the tenant)"
+      ansible.builtin.debug:
+        msg: "{{ case_made_ids }}"

@@ -1,0 +1,19 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 409,
+        "message": "Conflict"
+      }
+    ],
+    "meta": {
+      "query_time": 0.131483472,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": null
+  },
+  "method": "update_case_fields",
+  "status_code": 409
+}

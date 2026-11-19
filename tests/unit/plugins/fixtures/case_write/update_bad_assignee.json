@@ -1,0 +1,19 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "resolve assignee \"00000000-0000-0000-0000-000000000000\": invalid user ID"
+      }
+    ],
+    "meta": {
+      "query_time": 0.029099704,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": null
+  },
+  "method": "update_case_fields",
+  "status_code": 400
+}
