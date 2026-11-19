@@ -1,0 +1,17 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.474255318
+    },
+    "resources": [
+      {
+        "cloud_request_id": "00000000-0000-0000-0000-000000000002",
+        "queued_command_offline": false,
+        "session_id": "00000000-0000-0000-0000-000000000001"
+      }
+    ]
+  },
+  "method": "execute_admin_command",
+  "status_code": 201
+}

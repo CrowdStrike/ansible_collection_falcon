@@ -1,0 +1,12 @@
+{
+  "body": {
+    "meta": {
+      "query_time": 1.2445067220000001,
+      "writes": {
+        "resources_affected": 1
+      }
+    }
+  },
+  "method": "create_put_files",
+  "status_code": 200
+}

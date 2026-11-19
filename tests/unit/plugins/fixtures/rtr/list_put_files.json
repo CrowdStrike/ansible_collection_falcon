@@ -1,0 +1,18 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 100,
+        "offset": 0,
+        "total": 1
+      },
+      "query_time": 0.014713702
+    },
+    "resources": [
+      "00000000000000000000000000000001"
+    ]
+  },
+  "method": "list_put_files",
+  "status_code": 200
+}

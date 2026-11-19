@@ -76,6 +76,12 @@ Name | Description
 [crowdstrike.falcon.sensor_update_policy](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_policy_module.html)|Manage Falcon sensor update policies
 [crowdstrike.falcon.sensor_update_policy_info](https://crowdstrike.github.io/ansible_collection_falcon/sensor_update_policy_info_module.html)|Get information about Falcon Update Sensor Policies
 
+### Connection plugins
+
+Name | Description
+--- | ---
+[crowdstrike.falcon.rtr](https://crowdstrike.github.io/ansible_collection_falcon/rtr_connection.html)|Run tasks on hosts through Falcon Real Time Response
+
 ### Inventory plugins
 
 Name | Description
