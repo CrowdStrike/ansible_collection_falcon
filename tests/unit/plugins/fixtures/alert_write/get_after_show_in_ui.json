@@ -1,0 +1,38 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.011061974,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": [
+      {
+        "assigned_to_name": "fixture-user",
+        "assigned_to_uid": "user1@example.com",
+        "assigned_to_uuid": "00000000-0000-0000-0000-000000000001",
+        "comments": [
+          {
+            "falcon_user_id": "00000000000000000000000000000001",
+            "timestamp": "2026-11-19T15:10:25.958761043Z",
+            "value": "ansible-dev-probe-20261119150817"
+          }
+        ],
+        "composite_id": "00000000000000000000000000000002:ind:00000000000000000000000000000003:1795099186111222947-10304-11423760",
+        "show_in_ui": false,
+        "status": "in_progress"
+      },
+      {
+        "assigned_to_name": "fixture-user",
+        "assigned_to_uid": "user1@example.com",
+        "assigned_to_uuid": "00000000-0000-0000-0000-000000000001",
+        "composite_id": "00000000000000000000000000000002:ind:00000000000000000000000000000003:1795099196699211637-10303-11427088",
+        "show_in_ui": false,
+        "status": "in_progress"
+      }
+    ]
+  },
+  "method": "get_alerts_v2",
+  "status_code": 200
+}

@@ -1,0 +1,15 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 2,
+        "total": 0
+      },
+      "query_time": 0.012859438
+    },
+    "resources": []
+  },
+  "method": "get_alerts_combined",
+  "status_code": 200
+}

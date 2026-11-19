@@ -1,0 +1,42 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 2.074202639,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": [
+      {
+        "comments": [
+          {
+            "falcon_user_id": "00000000000000000000000000000001",
+            "timestamp": "2026-11-19T15:10:25.958761043Z",
+            "value": "ansible-dev-probe-20261119150817"
+          }
+        ],
+        "composite_id": "00000000000000000000000000000002:ind:00000000000000000000000000000003:1795099186111222947-10304-11423760",
+        "resolution": "true_positive",
+        "show_in_ui": true,
+        "status": "in_progress",
+        "tags": [
+          "ansible-unit-fixture-tag",
+          "true_positive"
+        ]
+      },
+      {
+        "composite_id": "00000000000000000000000000000002:ind:00000000000000000000000000000003:1795099196699211637-10303-11427088",
+        "resolution": "true_positive",
+        "show_in_ui": true,
+        "status": "in_progress",
+        "tags": [
+          "ansible-unit-fixture-tag",
+          "true_positive"
+        ]
+      }
+    ]
+  },
+  "method": "get_alerts_v2",
+  "status_code": 200
+}

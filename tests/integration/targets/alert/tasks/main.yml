@@ -1,0 +1,562 @@
+---
+# Integration tests for the alert module (with alert_info for the reads)
+#
+# Requirements:
+#   FALCON_CLIENT_ID        - API client ID
+#   FALCON_CLIENT_SECRET    - API client secret
+#   FALCON_CLOUD            - Falcon cloud region (optional, defaults to us-1)
+#   FALCON_TEST_ALERT_IDS   - comma-separated composite IDs of test alerts that
+#                             the tests may change; the tests skip without it
+#
+# API scopes: Alerts [READ, WRITE]
+#
+# The API cannot create or delete alerts, so the tests change existing alerts.
+# They save the status, resolution, tags, assignee and show_in_ui of each alert
+# first, and the always block restores them. Tags of this run start with
+# ansible-int-<timestamp>. Each run appends one comment
+# ansible-int-<timestamp> to each alert: the API cannot delete comments.
+# The tasks do not print alert data (no_log, quiet asserts).
+
+- name: Validate required environment variables
+  ansible.builtin.assert:
+    that:
+      - lookup('env', 'FALCON_CLIENT_ID') | length > 0
+      - lookup('env', 'FALCON_CLIENT_SECRET') | length > 0
+    fail_msg: "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET environment variables must be set"
+
+- name: "SKIP | Skip the alert tests"
+  ansible.builtin.debug:
+    msg: "Set FALCON_TEST_ALERT_IDS to a comma-separated list of composite IDs of test alerts to run the alert tests"
+  when: lookup('env', 'FALCON_TEST_ALERT_IDS') | length == 0
+
+- name: Run alert tests
+  when: lookup('env', 'FALCON_TEST_ALERT_IDS') | length > 0
+  block:
+    - name: "SETUP | Set the alert IDs and the run timestamp"
+      ansible.builtin.set_fact:
+        alert_ids: "{{ lookup('env', 'FALCON_TEST_ALERT_IDS').split(',') | map('trim') | reject('equalto', '') | list }}"
+        alert_run_ts: "{{ now(utc=true, fmt='%Y%m%d%H%M%S') }}"
+      no_log: true
+
+    - name: "SETUP | Set the test tags, the comment and a missing ID"
+      ansible.builtin.set_fact:
+        alert_tag_a: "ansible-int-{{ alert_run_ts }}-a"
+        alert_tag_b: "ansible-int-{{ alert_run_ts }}-b"
+        alert_comment: "ansible-int-{{ alert_run_ts }}"
+        # Same CID prefix, last part replaced, so the API returns a 404 for it.
+        alert_missing_id: >-
+          {{ (alert_ids[0].split(':')[:-1] + [alert_ids[0].split(':')[-1] | regex_replace('[0-9]', '0')]) | join(':') }}
+      no_log: true
+
+    - name: "SETUP | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_saved
+      no_log: true
+
+    - name: "SETUP | Verify that every alert was found"
+      ansible.builtin.assert:
+        that:
+          - alert_ids | length > 0
+          - alert_saved.alerts | length == alert_ids | length
+          - alert_missing_id not in alert_ids
+        fail_msg: "Not every alert in FALCON_TEST_ALERT_IDS was found"
+        quiet: true
+
+    - name: "SETUP | Find an alert that has a user ID assignee"
+      ansible.builtin.set_fact:
+        alert_assigned: "{{ alert_saved.alerts | selectattr('assigned_to_uid', 'defined') | selectattr('assigned_to_uid', 'truthy') | list }}"
+      no_log: true
+
+    # STATUS
+    - name: "STATUS | Set status in_progress (check mode)"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        status: in_progress
+      check_mode: true
+      register: alert_check
+      no_log: true
+
+    - name: "STATUS | Read the alerts after check mode"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "STATUS | Verify that check mode predicted a change and changed nothing"
+      ansible.builtin.assert:
+        that:
+          - alert_check is changed
+          - >-
+            alert_read.alerts | map(attribute='status') | list
+            == alert_saved.alerts | map(attribute='status') | list
+        quiet: true
+
+    - name: "STATUS | Set status in_progress"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        status: in_progress
+      register: alert_result
+      no_log: true
+
+    - name: "STATUS | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "STATUS | Verify the status"
+      ansible.builtin.assert:
+        that:
+          - alert_result is changed
+          - alert_result.alerts | length == alert_ids | length
+          - alert_result.alerts | rejectattr('status', 'equalto', 'in_progress') | list | length == 0
+          - alert_read.alerts | rejectattr('status', 'equalto', 'in_progress') | list | length == 0
+        quiet: true
+
+    - name: "STATUS | Set status in_progress again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        status: in_progress
+      register: alert_result
+      no_log: true
+
+    - name: "STATUS | Verify idempotence"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    # RESOLUTION
+    - name: "RESOLUTION | Set false_positive with status closed"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        status: closed
+        resolution: false_positive
+      register: alert_result
+      no_log: true
+
+    - name: "RESOLUTION | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "RESOLUTION | Verify false_positive and closed"
+      ansible.builtin.assert:
+        that:
+          - alert_result is changed
+          - alert_read.alerts | rejectattr('status', 'equalto', 'closed') | list | length == 0
+          - alert_read.alerts | rejectattr('resolution', 'equalto', 'false_positive') | list | length == 0
+        quiet: true
+
+    - name: "RESOLUTION | Set false_positive with status closed again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        status: closed
+        resolution: false_positive
+      register: alert_result
+      no_log: true
+
+    - name: "RESOLUTION | Verify idempotence of false_positive"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    - name: "RESOLUTION | Change to true_positive"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        resolution: true_positive
+      register: alert_result
+      no_log: true
+
+    - name: "RESOLUTION | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "RESOLUTION | Verify true_positive and that false_positive is gone"
+      ansible.builtin.assert:
+        that:
+          - alert_result is changed
+          - alert_read.alerts | rejectattr('resolution', 'equalto', 'true_positive') | list | length == 0
+          - >-
+            alert_read.alerts | map(attribute='tags', default=[]) | map('default', [], true)
+            | flatten | select('equalto', 'false_positive') | list | length == 0
+        quiet: true
+
+    - name: "RESOLUTION | Change to true_positive again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        resolution: true_positive
+      register: alert_result
+      no_log: true
+
+    - name: "RESOLUTION | Verify idempotence of true_positive"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    - name: "RESOLUTION | Remove the resolution"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        resolution: none
+      register: alert_result
+      no_log: true
+
+    - name: "RESOLUTION | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "RESOLUTION | Verify that no resolution is set"
+      ansible.builtin.assert:
+        that:
+          - alert_result is changed
+          - alert_read.alerts | map(attribute='resolution', default='') | select | list | length == 0
+        quiet: true
+
+    - name: "RESOLUTION | Remove the resolution again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        resolution: none
+      register: alert_result
+      no_log: true
+
+    - name: "RESOLUTION | Verify idempotence of none"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    # TAGS
+    - name: "TAGS | Add two test tags"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        tags:
+          - "{{ alert_tag_a }}"
+          - "{{ alert_tag_b }}"
+      register: alert_result
+      no_log: true
+
+    - name: "TAGS | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "TAGS | Verify the two test tags"
+      ansible.builtin.assert:
+        that:
+          - alert_result is changed
+          - alert_read.alerts | rejectattr('tags', 'contains', alert_tag_a) | list | length == 0
+          - alert_read.alerts | rejectattr('tags', 'contains', alert_tag_b) | list | length == 0
+        quiet: true
+
+    - name: "TAGS | Add two test tags again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        tags:
+          - "{{ alert_tag_a }}"
+          - "{{ alert_tag_b }}"
+      register: alert_result
+      no_log: true
+
+    - name: "TAGS | Verify idempotence of the tags"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    - name: "TAGS | Purge all tags but one test tag"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        tags:
+          - "{{ alert_tag_a }}"
+        purge_tags: true
+      register: alert_result
+      no_log: true
+
+    - name: "TAGS | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "TAGS | Verify that only the first test tag is left"
+      ansible.builtin.assert:
+        that:
+          - alert_result is changed
+          - alert_read.alerts | map(attribute='tags', default=[]) | map('default', [], true) | map('sort') | list | unique == [[alert_tag_a]]
+        quiet: true
+
+    - name: "TAGS | Purge all tags but one test tag again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        tags:
+          - "{{ alert_tag_a }}"
+        purge_tags: true
+      register: alert_result
+      no_log: true
+
+    - name: "TAGS | Verify idempotence of purge_tags"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    # SHOW IN UI
+    - name: "SHOW_IN_UI | Hide the alerts with diff mode"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        show_in_ui: false
+      diff: true
+      register: alert_result
+      no_log: true
+
+    - name: "SHOW_IN_UI | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "SHOW_IN_UI | Verify show_in_ui false and the diff"
+      ansible.builtin.assert:
+        that:
+          - alert_result is changed
+          - alert_read.alerts | selectattr('show_in_ui') | list | length == 0
+          - alert_result.diff.before.keys() | sort == alert_ids | sort
+          - alert_result.diff.after.keys() | sort == alert_ids | sort
+          - alert_result.diff.before.values() | map(attribute='show_in_ui') | list | unique == [true]
+          - alert_result.diff.after.values() | map(attribute='show_in_ui') | list | unique == [false]
+        quiet: true
+
+    - name: "SHOW_IN_UI | Hide the alerts again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        show_in_ui: false
+      register: alert_result
+      no_log: true
+
+    - name: "SHOW_IN_UI | Verify idempotence of show_in_ui false"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    - name: "SHOW_IN_UI | Show the alerts"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        show_in_ui: true
+      register: alert_result
+      no_log: true
+
+    - name: "SHOW_IN_UI | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "SHOW_IN_UI | Verify show_in_ui true"
+      ansible.builtin.assert:
+        that:
+          - alert_result is changed
+          - alert_read.alerts | rejectattr('show_in_ui') | list | length == 0
+        quiet: true
+
+    - name: "SHOW_IN_UI | Show the alerts again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        show_in_ui: true
+      register: alert_result
+      no_log: true
+
+    - name: "SHOW_IN_UI | Verify idempotence of show_in_ui true"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    # COMMENT
+    - name: "COMMENT | Append the comment of this run"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        comment: "{{ alert_comment }}"
+      register: alert_result
+      no_log: true
+
+    - name: "COMMENT | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "COMMENT | Verify that each alert has the comment once"
+      ansible.builtin.assert:
+        that:
+          - alert_result is changed
+          - >-
+            alert_read.alerts | map(attribute='comments', default=[]) | map('default', [], true)
+            | map('selectattr', 'value', 'equalto', alert_comment) | map('length') | list | unique == [1]
+        quiet: true
+
+    - name: "COMMENT | Append the comment again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        comment: "{{ alert_comment }}"
+      register: alert_result
+      no_log: true
+
+    - name: "COMMENT | Verify idempotence of the comment"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    # ASSIGN
+    - name: "ASSIGN | Skip the assign tests"
+      ansible.builtin.debug:
+        msg: "No alert has a user ID assignee, so the assign by user ID tests are skipped"
+      when: alert_assigned | length == 0
+
+    - name: "ASSIGN | Assign by the user ID that one alert has"
+      when: alert_assigned | length > 0
+      block:
+        - name: "ASSIGN | Assign all alerts by user ID"
+          crowdstrike.falcon.alert:
+            composite_ids: "{{ alert_ids }}"
+            assigned_to_user_id: "{{ alert_assigned[0].assigned_to_uid }}"
+          register: alert_result
+          no_log: true
+
+        - name: "ASSIGN | Read the alerts"
+          crowdstrike.falcon.alert_info:
+            composite_ids: "{{ alert_ids }}"
+          register: alert_read
+          no_log: true
+
+        - name: "ASSIGN | Verify the assignee"
+          ansible.builtin.assert:
+            that:
+              - alert_read.alerts | rejectattr('assigned_to_uid', 'equalto', alert_assigned[0].assigned_to_uid) | list | length == 0
+            quiet: true
+
+        - name: "ASSIGN | Assign all alerts by user ID again"
+          crowdstrike.falcon.alert:
+            composite_ids: "{{ alert_ids }}"
+            assigned_to_user_id: "{{ alert_assigned[0].assigned_to_uid }}"
+          register: alert_result
+          no_log: true
+
+        - name: "ASSIGN | Verify idempotence of the assign"
+          ansible.builtin.assert:
+            that:
+              - alert_result is not changed
+
+    - name: "UNASSIGN | Unassign the alerts"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        assigned_to_uuid: ""
+      register: alert_result
+      no_log: true
+
+    - name: "UNASSIGN | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_read
+      no_log: true
+
+    - name: "UNASSIGN | Verify that no alert is assigned"
+      ansible.builtin.assert:
+        that:
+          # changed only when an alert had an assignee before
+          - >-
+            alert_result.changed == (alert_assigned | length > 0
+            or alert_saved.alerts | map(attribute='assigned_to_uuid', default='') | select | list | length > 0)
+          - alert_read.alerts | map(attribute='assigned_to_uuid', default='') | select | list | length == 0
+          - alert_read.alerts | map(attribute='assigned_to_uid', default='') | select | list | length == 0
+        quiet: true
+
+    - name: "UNASSIGN | Unassign the alerts again"
+      crowdstrike.falcon.alert:
+        composite_ids: "{{ alert_ids }}"
+        assigned_to_uuid: ""
+      register: alert_result
+      no_log: true
+
+    - name: "UNASSIGN | Verify idempotence of the unassign"
+      ansible.builtin.assert:
+        that:
+          - alert_result is not changed
+
+    # MISSING
+    - name: "MISSING | Change a found alert and a missing ID"
+      crowdstrike.falcon.alert:
+        composite_ids:
+          - "{{ alert_ids[0] }}"
+          - "{{ alert_missing_id }}"
+        status: reopened
+      register: alert_missing
+      failed_when: false
+      no_log: true
+
+    - name: "MISSING | Read the found alert"
+      crowdstrike.falcon.alert_info:
+        composite_ids:
+          - "{{ alert_ids[0] }}"
+      register: alert_read
+      no_log: true
+
+    - name: "MISSING | Verify the error and that the found alert did not change"
+      ansible.builtin.assert:
+        that:
+          - alert_missing.failed is defined
+          - alert_missing.msg is search('Alert not found')
+          - alert_missing.msg is search(alert_missing_id.split(':')[-1])
+          - alert_missing is not changed
+          # The resolution tests closed the alerts.
+          - alert_read.alerts[0].status == 'closed'
+        quiet: true
+
+  always:
+    - name: "CLEANUP | Restore the saved state of each alert"
+      crowdstrike.falcon.alert:
+        composite_ids:
+          - "{{ item.composite_id }}"
+        status: "{{ item.status }}"
+        resolution: "{{ item.resolution | default('none', true) }}"
+        tags: "{{ item.tags | default([], true) | reject('in', ['true_positive', 'false_positive', 'ignored']) | list }}"
+        purge_tags: true
+        show_in_ui: "{{ item.show_in_ui }}"
+        assigned_to_uuid: "{{ item.assigned_to_uuid | default('', true) }}"
+      loop: "{{ alert_saved.alerts | default([]) }}"
+      loop_control:
+        label: "alert {{ loop_index }}"
+        index_var: loop_index
+      failed_when: false
+      no_log: true
+
+    - name: "CLEANUP | Read the alerts"
+      crowdstrike.falcon.alert_info:
+        composite_ids: "{{ alert_ids }}"
+      register: alert_restored
+      when: alert_saved.alerts is defined
+      no_log: true
+
+    - name: "CLEANUP | Verify the restored state"
+      ansible.builtin.assert:
+        that:
+          - alert_restored.alerts | length == alert_saved.alerts | length
+          - >-
+            alert_restored.alerts | map(attribute='status') | list
+            == alert_saved.alerts | map(attribute='status') | list
+          - >-
+            alert_restored.alerts | map(attribute='resolution', default='') | map('default', '', true) | list
+            == alert_saved.alerts | map(attribute='resolution', default='') | map('default', '', true) | list
+          - >-
+            alert_restored.alerts | map(attribute='tags', default=[]) | map('default', [], true) | map('sort') | list
+            == alert_saved.alerts | map(attribute='tags', default=[]) | map('default', [], true) | map('sort') | list
+          - >-
+            alert_restored.alerts | map(attribute='show_in_ui') | list
+            == alert_saved.alerts | map(attribute='show_in_ui') | list
+          - >-
+            alert_restored.alerts | map(attribute='assigned_to_uuid', default='') | map('default', '', true) | list
+            == alert_saved.alerts | map(attribute='assigned_to_uuid', default='') | map('default', '', true) | list
+        fail_msg: "The alerts were not restored to the saved state"
+        quiet: true
+      when: alert_saved.alerts is defined
