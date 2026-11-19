@@ -279,6 +279,21 @@ def ps_exec_script(cmd, marker, stdin_data=None, stdin_path=None):
     return ps_wrap("\n".join(lines), marker, cleanup=cleanup)
 
 
+def ps_fetch_part_body(path, offset, count):
+    """Return a ps_wrap body that sets $__o to the base64 of up to count bytes of path at offset.
+
+    FileShare ReadWrite, as winrm does: a file that another process writes (a log) still opens.
+    """
+    return (
+        f"$__p = {ps_text(path)}\n"
+        f"$__b = New-Object byte[] {count}\n"
+        "$__fs = New-Object IO.FileStream($__p, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)\n"
+        f"try {{ $null = $__fs.Seek({offset}, [IO.SeekOrigin]::Begin); $__n = 0\n"
+        "while ($__n -lt $__b.Length) { $__r = $__fs.Read($__b, $__n, $__b.Length - $__n); if ($__r -le 0) { break }; $__n += $__r }\n"
+        "$__o = [Convert]::ToBase64String($__b, 0, $__n) } finally { $__fs.Close() }"
+    )
+
+
 def escape_fql(value):
     """Escape a value for a single-quoted FQL string."""
     return value.replace("\\", "\\\\").replace("'", "\\'")
@@ -601,7 +616,12 @@ class RTRSession:
             # The script removes the file; it did not run, so remove it here.
             self._remove_leftover(stdin_path, timeout)
             raise
-        return ps_parse(stdout, stderr, marker)
+        rc, out, err = ps_parse(stdout, stderr, marker)
+        if rc == 255 and marker not in (stdout or ""):
+            # No marker: RTR stopped the script (timeout), so its finally block may not have
+            # run. The file holds the module and its arguments.
+            self._remove_leftover(stdin_path, timeout)
+        return rc, out, err
 
     def win_temp(self, timeout):
         """Return the full path of the Windows temp folder, read once per session."""
@@ -870,19 +890,10 @@ class RTRSession:
             raise RTRError(f"Unable to read the size of {in_path}: {out.strip()} {err.strip()}") from exc
         self.log(f"RTR fetch of {in_path} ({size} bytes)")
         # The marker line holds the base64 of the base64 text, so the parts are smaller than on POSIX.
-        if size <= FETCH_PART_BYTES:
-            parts = [path_expr + "$__o = [Convert]::ToBase64String([IO.File]::ReadAllBytes($__p))"]
-        else:
-            parts = [
-                path_expr
-                + f"$__b = New-Object byte[] {FETCH_PART_BYTES}\n"
-                + "$__fs = [IO.File]::OpenRead($__p)\n"
-                + f"try {{ $null = $__fs.Seek({offset}, [IO.SeekOrigin]::Begin); $__n = 0\n"
-                + f"while ($__n -lt {FETCH_PART_BYTES}) {{ $__r = $__fs.Read($__b, $__n, {FETCH_PART_BYTES} - $__n);"
-                + " if ($__r -le 0) { break }; $__n += $__r }\n"
-                + "$__o = [Convert]::ToBase64String($__b, 0, $__n) } finally { $__fs.Close() }"
-                for offset in range(0, size, FETCH_PART_BYTES)
-            ]
+        parts = [
+            ps_fetch_part_body(in_path, offset, min(FETCH_PART_BYTES, max(size - offset, 1)))
+            for offset in range(0, max(size, 1), FETCH_PART_BYTES)
+        ]
         data = []
         for body in parts:
             rc, out, err = self.run_with_rc(body, timeout)

@@ -184,6 +184,32 @@
           - rtr_fetched_local.stat.exists
           - rtr_fetched_local.stat.checksum == rtr_big_local.stat.checksum
 
+    - name: "FETCH | Hold a file open for writing in a background process"
+      ansible.windows.win_shell: |
+        $f = '{{ rtr_dir }}\open.log'
+        $s = "`$fs = New-Object IO.FileStream('$f', [IO.FileMode]::Create, [IO.FileAccess]::Write, [IO.FileShare]::Read); " +
+          "`$b = [Text.Encoding]::ASCII.GetBytes('open-log'); `$fs.Write(`$b, 0, `$b.Length); `$fs.Flush(); " +
+          "Start-Sleep -Seconds 90; `$fs.Close()"
+        $e = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($s))
+        Start-Process -FilePath powershell.exe -ArgumentList "-NoProfile -EncodedCommand $e" -WindowStyle Hidden
+        Start-Sleep -Seconds 3
+      delegate_to: "{{ rtr_host }}"
+      changed_when: false
+
+    - name: "FETCH | Fetch the file that the other process has open"
+      ansible.builtin.fetch:
+        src: "{{ rtr_dir }}\\open.log"
+        dest: "{{ rtr_local_tmp.path }}/open.log"
+        flat: true
+      delegate_to: "{{ rtr_host }}"
+      register: rtr_fetch_open
+
+    - name: "FETCH | Verify the fetch of the open file"
+      ansible.builtin.assert:
+        that:
+          - rtr_fetch_open is changed
+          - lookup('ansible.builtin.file', rtr_local_tmp.path ~ '/open.log') == 'open-log'
+
     - name: "FETCH | Fetch a file that does not exist"
       ansible.builtin.fetch:
         src: "{{ rtr_dir }}\\missing.txt"

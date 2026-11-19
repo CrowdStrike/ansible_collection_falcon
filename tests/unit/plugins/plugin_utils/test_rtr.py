@@ -1366,6 +1366,26 @@ def test_windows_exec_timeout_has_no_rc(wmake):
     )
 
 
+def test_windows_exec_timeout_removes_the_stdin_file(wmake):
+    """An RTR timeout returns no marker and can stop the script before its finally block."""
+    t = wmake(admin=win_putfile_admin(
+        ["win_temp_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete", "timeout_complete",
+         "mkdir_complete"]
+    ))
+    assert t.session.exec_command("x", TIMEOUT, in_data=b"a\nb\n", inline_max=0) == (
+        255, "", "RTR did not return an exit code. Execution timeout exceeded",
+    )
+    assert sent(t)[-2:] == [plain(rtr_utils.ps_exec_script("x", MARKER, stdin_path=STDIN_PATH)), remove_script(STDIN_PATH)]
+
+
+def test_windows_exec_result_keeps_the_cleanup_to_the_script(wmake):
+    t = wmake(admin=win_putfile_admin(
+        ["win_temp_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete", "exec_file_complete"]
+    ))
+    t.session.exec_command("x", TIMEOUT, in_data=b"a\nb\n", inline_max=0)
+    assert sent(t)[-1] == plain(rtr_utils.ps_exec_script("x", MARKER, stdin_path=STDIN_PATH))
+
+
 def test_windows_error_record_drops_stdout(wmake):
     """Fact 41: an error record that escapes a plain runscript drops all its stdout."""
     t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["runscript_error_complete"]})
@@ -1545,17 +1565,22 @@ WIN_SIZE = ps_raw(
     + "if (-not (Test-Path -LiteralPath $__p -PathType Leaf)) { $__rc = 1 }"
     + " else { $__o = [string](Get-Item -LiteralPath $__p).Length }"
 )
-WIN_READ = ps_raw(WIN_PATH_EXPR + "$__o = [Convert]::ToBase64String([IO.File]::ReadAllBytes($__p))")
+WIN_READ = ps_raw(rtr_utils.ps_fetch_part_body(WIN_SRC, 0, 5))
 
 
 def win_part(offset, size):
-    return ps_raw(
+    return ps_raw(rtr_utils.ps_fetch_part_body(WIN_SRC, offset, size))
+
+
+def test_ps_fetch_part_body_shares_the_file():
+    """A file that another process has open for writing (a log) opens only with FileShare ReadWrite."""
+    body = rtr_utils.ps_fetch_part_body(WIN_SRC, 6, 3)
+    assert body == (
         WIN_PATH_EXPR
-        + "$__b = New-Object byte[] %d\n" % size
-        + "$__fs = [IO.File]::OpenRead($__p)\n"
-        + "try { $null = $__fs.Seek(%d, [IO.SeekOrigin]::Begin); $__n = 0\n" % offset
-        + "while ($__n -lt %d) { $__r = $__fs.Read($__b, $__n, %d - $__n);" % (size, size)
-        + " if ($__r -le 0) { break }; $__n += $__r }\n"
+        + "$__b = New-Object byte[] 3\n"
+        + "$__fs = New-Object IO.FileStream($__p, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)\n"
+        + "try { $null = $__fs.Seek(6, [IO.SeekOrigin]::Begin); $__n = 0\n"
+        + "while ($__n -lt $__b.Length) { $__r = $__fs.Read($__b, $__n, $__b.Length - $__n); if ($__r -le 0) { break }; $__n += $__r }\n"
         + "$__o = [Convert]::ToBase64String($__b, 0, $__n) } finally { $__fs.Close() }"
     )
 
@@ -1574,7 +1599,7 @@ def test_windows_fetch_in_parts(wmake, fixture, monkeypatch):
     parts = [with_ps_stdout(read, ps_line(0, rtr_utils.b64(b"hel"))), with_ps_stdout(read, ps_line(0, rtr_utils.b64(b"lo")))]
     t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["fetch_size_complete"] + parts})
     assert t.session.fetch(WIN_SRC, TIMEOUT) == b"hello"
-    assert sent(t) == [WIN_SIZE, win_part(0, 3), win_part(3, 3)]
+    assert sent(t) == [WIN_SIZE, win_part(0, 3), win_part(3, 2)]
 
 
 def test_windows_fetch_missing_has_rc_1(wmake):

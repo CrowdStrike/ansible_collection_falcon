@@ -2450,9 +2450,7 @@ def record_rtr_windows(rec, creds):
 
         record("fetch_missing", "runscript", wrapped(size_body("C:\\Windows\\Temp\\%s-missing" % PREFIX)))
         record("fetch_size", "runscript", wrapped(size_body(src)))
-        record("fetch_read", "runscript", wrapped(
-            "$__p = %s\n" % rtr_utils.ps_text(src) + "$__o = [Convert]::ToBase64String([IO.File]::ReadAllBytes($__p))"
-        ))
+        record("fetch_read", "runscript", wrapped(rtr_utils.ps_fetch_part_body(src, 0, 5)))
     finally:
         cleanup()
     rec.call("delete_session", "delete_session", rtr.delete_session if rtr else None, session_id=session["id"])
