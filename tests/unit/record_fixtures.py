@@ -249,6 +249,8 @@ class Recorder:
         self.dry_run = dry_run
         self.wait = wait
         self.cleanup_only = cleanup_only
+        # Only the rtr service uses it: the AID of a test host that the user owns.
+        self.rtr_device_id = None
         self.files = {}
         # The case names in call order, also in a dry run.
         self.cases = []
@@ -1602,6 +1604,252 @@ def record_response_policy(rec, creds):
         cleanup()
 
 
+RTR_SESSION_FIELDS = ("session_id", "created_at", "pwd", "offline_queued", "existing_aid_sessions")
+# A fixed rc marker, so that the tests can parse the recorded stdout.
+RTR_MARKER = "__ANSIBLE_RTR_RC_0123456789abcdef__="
+RTR_DIR = "/tmp/%s-dir" % PREFIX
+RTR_PUT_NAME = "%s-put" % PREFIX
+
+
+def load_rtr_utils():
+    """Load plugins/plugin_utils/rtr.py by path; it needs only the standard library."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "rtr_utils", COLLECTION_ROOT / "plugins" / "plugin_utils" / "rtr.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def until_complete(admin, limit=120):
+    """Wrap check_admin_command_status so that it polls until the command is complete.
+
+    It follows sequence_id as the plugin does and returns the last response.
+    """
+    import time
+
+    def call(cloud_request_id, sequence_id):
+        deadline = time.time() + limit
+        while True:
+            response = admin.check_admin_command_status(cloud_request_id=cloud_request_id, sequence_id=sequence_id)
+            part = (resources(response) or [{}])[0]
+            if response.get("status_code") != 200 or part.get("complete") or time.time() > deadline:
+                return response
+            if part.get("sequence_id") not in (None, sequence_id):
+                sequence_id = part["sequence_id"]
+                continue
+            time.sleep(0.5)
+
+    return call
+
+
+def record_rtr(rec, creds):
+    """Record the RTR calls used by the rtr connection plugin.
+
+    This is the only recorder that runs commands on a host. It runs only on the
+    host that --rtr-device-id names, uses only PREFIX names and /tmp/PREFIX-*
+    paths, runs harmless commands (echo, printf, sleep, mkdir, rm of its own
+    files), and deletes its put-file and files at the end.
+    """
+    import time
+
+    from falconpy import Hosts, RealTimeResponse, RealTimeResponseAdmin
+
+    device_id = rec.rtr_device_id
+    if not device_id:
+        print("  rtr: needs --rtr-device-id <AID of a test host that you own>; no host calls are made.")
+        if not rec.dry_run:
+            return
+    rtr_utils = load_rtr_utils()
+    # A dry run makes no service objects; rec.call() does not call func then.
+    rtr = admin = hosts = None
+    if not rec.dry_run:
+        rtr = RealTimeResponse(**creds)
+        admin = RealTimeResponseAdmin(auth_object=rtr.auth_object)
+        hosts = Hosts(auth_object=rtr.auth_object)
+    session = {"id": ""}
+    poll = until_complete(admin) if admin else None
+    init = keep_fields(rtr.init_session, RTR_SESSION_FIELDS) if rtr else None
+
+    def submit(base_command, command_string):
+        """Submit a command that is not saved, and return its cloud_request_id."""
+        if rec.dry_run:
+            print("  rtr/(not saved) <- execute_admin_command(%s)" % base_command)
+            return "0" * 32
+        response = admin.execute_admin_command(
+            base_command=base_command, command_string=command_string,
+            session_id=session["id"], persist=False,
+        )
+        return (resources(response) or [{}])[0].get("cloud_request_id", "")
+
+    def run(base_command, command_string):
+        """Run a command that is not saved and wait for it."""
+        crid = submit(base_command, command_string)
+        if not rec.dry_run:
+            poll(cloud_request_id=crid, sequence_id=0)
+
+    def raw(body):
+        return "runscript -Raw=```" + rtr_utils.wrap_script(body, RTR_MARKER) + "``` -Timeout=30"
+
+    def put_file_ids():
+        listed = admin.list_put_files(filter="name:'%s'" % RTR_PUT_NAME)
+        return resources(listed)
+
+    def cleanup():
+        if rec.dry_run:
+            return
+        if not session["id"]:
+            opened = rtr.init_session(device_id=device_id, queue_offline=False)
+            session["id"] = (resources(opened) or [{}])[0].get("session_id", "")
+        run("cd", "cd /")
+        run("runscript", raw("rm -f %s/*; rmdir %s 2>/dev/null; true" % (RTR_DIR, RTR_DIR)))
+        ids = put_file_ids()
+        if ids:
+            admin.delete_put_files(ids=ids)
+
+    if rec.cleanup_only:
+        cleanup()
+        return
+
+    cleanup()
+    try:
+        # Sessions
+        opened = rec.call("init_session", "init_session", init, device_id=device_id, queue_offline=False)
+        session["id"] = (resources(opened) or [{"session_id": ""}])[0].get("session_id", session["id"])
+        rec.call("init_session_missing", "init_session", init, device_id="f" * 32, queue_offline=False)
+
+        # runscript: one complete result with stdout, stderr and the rc marker
+        body = "mkdir -p %s && echo out && echo err >&2 && exit 3" % RTR_DIR
+        submitted = rec.call(
+            "runscript_submit", "execute_admin_command", admin.execute_admin_command if admin else None,
+            base_command="runscript", command_string=raw(body), session_id=session["id"], persist=False,
+        )
+        crid = (resources(submitted) or [{"cloud_request_id": "0" * 32}])[0]["cloud_request_id"]
+        rec.call(
+            "runscript_complete", "check_admin_command_status", poll, cloud_request_id=crid, sequence_id=0,
+        )
+
+        # runscript: output in parts. Each first response of a kind is saved in order.
+        crid = submit("runscript", raw("echo first; sleep 3; echo second"))
+        seq = 0
+        saved = set()
+        deadline = time.time() + 120
+        while not rec.dry_run and time.time() < deadline:
+            response = admin.check_admin_command_status(cloud_request_id=crid, sequence_id=seq)
+            part = (resources(response) or [{}])[0]
+            if part.get("complete"):
+                rec.cases.append("parts_complete")
+                rec.save("parts_complete", "check_admin_command_status", response)
+                break
+            if part.get("sequence_id") not in (None, seq):
+                if "parts_next" not in saved:
+                    saved.add("parts_next")
+                    rec.cases.append("parts_next")
+                    rec.save("parts_next", "check_admin_command_status", response)
+                seq = part["sequence_id"]
+                continue
+            if "parts_waiting" not in saved:
+                saved.add("parts_waiting")
+                rec.cases.append("parts_waiting")
+                rec.save("parts_waiting", "check_admin_command_status", response)
+            time.sleep(0.5)
+        if rec.dry_run:
+            # The loop above does not run in a dry run. List its cases, so that --only accepts them.
+            for case in ("parts_waiting", "parts_next", "parts_complete"):
+                rec.call(case, "check_admin_command_status", None, cloud_request_id=crid, sequence_id=seq)
+
+        # runscript: the RTR timeout of the script
+        crid = submit("runscript", "runscript -Raw=```sleep 5``` -Timeout=2")
+        rec.call("timeout_complete", "check_admin_command_status", poll, cloud_request_id=crid, sequence_id=0)
+
+        # A stray backtick is refused before anything runs.
+        rec.call(
+            "runscript_backtick", "execute_admin_command", admin.execute_admin_command if admin else None,
+            base_command="runscript", command_string="runscript -Raw=```echo a``` `",
+            session_id=session["id"], persist=False,
+        )
+
+        # Put-files
+        content = b"ansible unit fixture\n"
+        rec.call(
+            "create_put_files", "create_put_files", admin.create_put_files if admin else None,
+            files=[("file", (RTR_PUT_NAME, content, "application/octet-stream"))], name=RTR_PUT_NAME,
+            description="Ansible crowdstrike.falcon.rtr transfer",
+            comments_for_audit_log="Ansible crowdstrike.falcon.rtr put_file",
+        )
+        listed = rec.call(
+            "list_put_files", "list_put_files", admin.list_put_files if admin else None,
+            filter="name:'%s'" % RTR_PUT_NAME,
+        )
+        rec.call(
+            "list_put_files_missing", "list_put_files", admin.list_put_files if admin else None,
+            filter="name:'%s-missing'" % PREFIX,
+        )
+
+        # cd and put
+        for case, path in (("cd_missing", "/tmp/%s-missing" % PREFIX), ("cd_dir", RTR_DIR)):
+            crid = submit("cd", "cd %s" % path)
+            rec.call(case + "_complete", "check_admin_command_status", poll, cloud_request_id=crid, sequence_id=0)
+        for case in ("put", "put_exists"):
+            crid = submit("put", "put %s" % RTR_PUT_NAME)
+            rec.call(case + "_complete", "check_admin_command_status", poll, cloud_request_id=crid, sequence_id=0)
+        crid = submit("cd", "cd /")
+        rec.call("cd_root_complete", "check_admin_command_status", poll, cloud_request_id=crid, sequence_id=0)
+
+        rec.call(
+            "delete_put_files", "delete_put_files", admin.delete_put_files if admin else None,
+            ids=resources(listed) or ["0" * 32],
+        )
+
+        # Hosts: the name lookup of the plugin. The host name comes from the API.
+        details = keep_fields(hosts.get_device_details, HOST_FIELDS) if hosts else None
+        found = rec.call("device_details", "get_device_details", details, ids=[device_id])
+        hostname = (resources(found) or [{"hostname": "%s-host" % PREFIX}])[0].get("hostname") or ""
+        rec.call(
+            "query_by_name", "query_devices_by_filter", hosts.query_devices_by_filter if hosts else None,
+            filter="hostname:'%s'" % hostname, limit=100,
+        )
+        rec.call(
+            "query_by_name_missing", "query_devices_by_filter", hosts.query_devices_by_filter if hosts else None,
+            filter="hostname:'%s-missing'" % PREFIX, limit=100,
+        )
+        # Added after the cases above, so that their fake IDs stay the same.
+        rec.call(
+            "query_by_name_bad_filter", "query_devices_by_filter", hosts.query_devices_by_filter if hosts else None,
+            filter="hostname:'", limit=100,
+        )
+        rec.call("device_details_missing", "get_device_details", details, ids=["f" * 32])
+        rec.call(
+            "status_missing", "check_admin_command_status",
+            admin.check_admin_command_status if admin else None,
+            cloud_request_id="ffffffff-ffff-ffff-ffff-ffffffffffff", sequence_id=0,
+        )
+
+        # fetch: the scripts of RTRSession.fetch on a 5 byte file
+        src = "%s/fetch" % RTR_DIR
+        run("runscript", raw("mkdir -p %s && printf hello > %s" % (RTR_DIR, src)))
+        fetch_scripts = (
+            ("fetch_missing", "test -f /tmp/%s-missing || exit 1\nwc -c < /tmp/%s-missing" % (PREFIX, PREFIX)),
+            ("fetch_size", "test -f %s || exit 1\nwc -c < %s" % (src, src)),
+            ("fetch_read", "test -f %s || exit 1\nbase64 < %s | tr -d '\\n'" % (src, src)),
+        ) + tuple(
+            (
+                "fetch_part%d" % part,
+                "test -f %s || exit 1\ndd if=%s bs=1048576 skip=%d count=1 2>/dev/null | base64 | tr -d '\\n'"
+                % (src, src, part),
+            )
+            for part in (1,)
+        )
+        for case, body in fetch_scripts:
+            crid = submit("runscript", raw(body))
+            rec.call(case + "_complete", "check_admin_command_status", poll, cloud_request_id=crid, sequence_id=0)
+    finally:
+        cleanup()
+    rec.call("delete_session", "delete_session", rtr.delete_session if rtr else None, session_id=session["id"])
+
+
 SCENARIOS = {
     "auth": record_auth,
     "correlation_rule": record_correlation_rule,
@@ -1614,6 +1862,7 @@ SCENARIOS = {
     "ngsiem": record_ngsiem,
     "prevention_policy": record_prevention_policy,
     "response_policy": record_response_policy,
+    "rtr": record_rtr,
     "sensor_download": record_sensor_download,
     "sensor_update_policy": record_sensor_update_policy,
 }
@@ -1739,6 +1988,11 @@ def main():
         help="Write only these cases (SERVICE:CASE, or CASE with one service). "
         "Every call of the service still runs, so the fake IDs stay the same.",
     )
+    parser.add_argument(
+        "--rtr-device-id", metavar="AID",
+        help="Device ID of a test host that you own. The rtr service runs commands only on this host, "
+        "and records nothing without it.",
+    )
     args = parser.parse_args()
 
     if args.list:
@@ -1786,6 +2040,7 @@ def main():
         # Each service gets its own Sanitizer, so its fake IDs do not depend
         # on the other services that are recorded in the same run.
         rec = Recorder(service, Sanitizer(), args.dry_run, args.wait, args.cleanup)
+        rec.rtr_device_id = args.rtr_device_id
         SCENARIOS[service](rec, creds)
         recorders.append(rec)
 

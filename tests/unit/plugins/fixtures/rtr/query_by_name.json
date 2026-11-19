@@ -1,0 +1,18 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "limit": 100,
+        "offset": 1,
+        "total": 1
+      },
+      "query_time": 0.26267004
+    },
+    "resources": [
+      "00000000000000000000000000000002"
+    ]
+  },
+  "method": "query_devices_by_filter",
+  "status_code": 200
+}

@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 403,
+        "message": "unknown user"
+      }
+    ],
+    "meta": {
+      "query_time": 0.018897153
+    },
+    "resources": []
+  },
+  "method": "check_admin_command_status",
+  "status_code": 403
+}

@@ -1,0 +1,20 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.047357435
+    },
+    "resources": [
+      {
+        "base_command": "cd",
+        "complete": true,
+        "session_id": "00000000-0000-0000-0000-000000000001",
+        "stderr": "",
+        "stdout": "/tmp/ansible-unit-fixture-dir\n",
+        "task_id": "00000000-0000-0000-0000-000000000006"
+      }
+    ]
+  },
+  "method": "check_admin_command_status",
+  "status_code": 200
+}

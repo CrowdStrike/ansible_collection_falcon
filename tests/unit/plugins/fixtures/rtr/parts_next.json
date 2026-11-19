@@ -1,0 +1,21 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.004902919
+    },
+    "resources": [
+      {
+        "base_command": "runscript",
+        "complete": false,
+        "sequence_id": 1,
+        "session_id": "00000000-0000-0000-0000-000000000001",
+        "stderr": "",
+        "stdout": "first\n",
+        "task_id": "00000000-0000-0000-0000-000000000003"
+      }
+    ]
+  },
+  "method": "check_admin_command_status",
+  "status_code": 200
+}

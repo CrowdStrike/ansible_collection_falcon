@@ -40,6 +40,11 @@ has. They skip their tests unless you opt in:
     (needs Falcon Adversary Intelligence Premium)
   * ``FALCON_TEST_FLIGHT_CONTROL=1``: the flight_control target (needs a
     Flight Control parent CID)
+  * ``FALCON_TEST_RTR_HOST=<device ID>``: the rtr_connection target runs tasks
+    on this Linux or macOS host over Real Time Response (needs a test host that you own,
+    with Python 3 and an RTR policy that allows custom scripts and ``put``)
+  * ``FALCON_TEST_RTR_CONTAIN=1``: the rtr_connection target also contains the
+    host, runs tasks on it while it is contained, and lifts containment
 
 'uv run' reads the script metadata at the top of this file and installs
 ansible-core, FalconPy and python-dotenv in a temporary environment. The
@@ -260,14 +265,21 @@ def main():
         print(f"Running targets: {', '.join(targets)}")
         print(f"Interpreter: {interpreter}\n", flush=True)
 
+        # A host var and not an extra var: an extra var would also set the
+        # interpreter of hosts that a target adds with add_host (rtr_connection).
+        inventory = staging_dir / "inventory.ini"
+        inventory.write_text(
+            f"localhost ansible_connection=local ansible_python_interpreter={interpreter}\n"
+        )
+
         results = {}
         for target in targets:
             playbook = build_playbook(staging_dir, [target])
             cmd = [
                 ansible_playbook,
                 str(playbook),
-                "-e",
-                f"ansible_python_interpreter={interpreter}",
+                "-i",
+                str(inventory),
                 *passthrough,
             ]
             completed = subprocess.run(cmd, env=env, check=False)

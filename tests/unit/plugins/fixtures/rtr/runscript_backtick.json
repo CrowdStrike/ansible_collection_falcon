@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 40015,
+        "message": "Illegal characters found:   in  "
+      }
+    ],
+    "meta": {
+      "query_time": 0.001891378
+    },
+    "resources": []
+  },
+  "method": "execute_admin_command",
+  "status_code": 400
+}

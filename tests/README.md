@@ -459,6 +459,12 @@ def record_host_group(rec, creds):
 Add the function to the `SCENARIOS` map at the end of the file, with the
 service name as the key.
 
+The `rtr` recorder is the only one that runs commands on a host. It needs
+`--rtr-device-id` with the device ID of a test host that you own, and without
+it, it makes no host calls. On the host it uses only `ansible-unit-fixture-*`
+put-file names and `/tmp/ansible-unit-fixture-*` paths, and it deletes them
+at the end.
+
 ### Recording and re-recording
 
 ```shell

@@ -1,0 +1,16 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 40401,
+        "message": "device not found"
+      }
+    ],
+    "meta": {
+      "query_time": 1.97602447
+    },
+    "resources": null
+  },
+  "method": "init_session",
+  "status_code": 404
+}
