@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import copy
 import types
 
 import pytest
@@ -393,3 +394,197 @@ def test_reset_without_a_device_does_not_fail(services):
     conn.reset()
     assert api.rtr.calls == []
     assert conn._connected is False
+
+
+# Windows (ansible_shell_type powershell)
+
+
+def load_shell(shell, **options):
+    """Load the plugin with a shell type, as Ansible does for ansible_shell_type."""
+    context = PlayContext()
+    context.shell = shell
+    return load(context, **options)
+
+
+class FakeWinSession(FakeSession):
+    def exec_command(self, cmd, timeout, in_data=None, inline_max=None):
+        return self._call("exec_command", cmd, timeout, in_data, inline_max)
+
+
+def win_connected(session, **options):
+    conn = load_shell("powershell", device_id=AID, **options)
+    conn._session = session
+    conn._connected = True
+    return conn
+
+
+def test_windows_attributes_for_the_powershell_shell():
+    conn = load_shell("powershell")
+    assert conn._windows() is True
+    assert (conn.has_pipelining, conn.always_pipeline_modules, conn.has_native_async) == (True, True, True)
+    assert conn.module_implementation_preferences == (".ps1", ".exe", "")
+    assert conn.allow_executable is False
+
+
+@pytest.mark.parametrize("shell", [None, "sh"])
+def test_posix_attributes_unchanged(shell):
+    conn = load_shell(shell)
+    assert conn._windows() is False
+    assert (conn.has_pipelining, conn.always_pipeline_modules, conn.has_native_async) == (False, False, False)
+    assert conn.module_implementation_preferences == ("",)
+    assert conn.allow_executable is True
+
+
+def test_connect_cmd_shell_fails_before_any_api_call(services):
+    api = services()
+    conn = load_shell("cmd", device_id=AID)
+    with pytest.raises(AnsibleError, match=r"^rtr supports Windows hosts only with ansible_shell_type powershell$") as exc:
+        conn._connect()
+    assert not isinstance(exc.value, AnsibleConnectionFailure)
+    assert "check" not in api.built
+    assert api.built["admin"] == [] and api.built["hosts"] == []
+    assert api.rtr.calls == []
+
+
+@pytest.fixture
+def win_services(services, falcon_api, fixture):
+    """services() with the Windows init_session fixture, or a copy of the Linux one with a platform."""
+
+    def make(init):
+        api = services()
+        api.rtr = falcon_api(rtr_connection, {"init_session": [init if isinstance(init, dict) else fixture(init)]})
+        return api
+
+    return make
+
+
+def linux_init(fixture):
+    """The Linux init_session fixture was recorded before the plugin read the platform.
+
+    A copy with platform "Linux" stands for a new recording of the Linux host.
+    """
+    response = copy.deepcopy(fixture("rtr/init_session"))
+    response["body"]["resources"][0]["platform"] = "Linux"
+    return response
+
+
+def test_connect_windows_host_with_powershell(win_services):
+    api = win_services("rtr_windows/init_session")
+    conn = load_shell("powershell", device_id=AID)
+    assert conn._connect() is conn
+    assert conn._session.windows is True
+    assert conn._session.platform == "Windows"
+    assert api.rtr.calls == [("init_session", {"device_id": AID, "queue_offline": False})]
+
+
+def test_connect_windows_host_with_sh_fails(win_services):
+    api = win_services("rtr_windows/init_session")
+    conn = load_shell("sh", device_id=AID)
+    with pytest.raises(AnsibleConnectionFailure) as exc:
+        conn._connect()
+    assert exc.value.message == (
+        "%s is a Windows host; set ansible_shell_type to powershell for Windows hosts "
+        "and leave it unset for Linux and macOS hosts" % AID
+    )
+    assert conn._connected is False and conn._session is None
+    assert [c[0] for c in api.rtr.calls] == ["init_session"]
+
+
+def test_connect_linux_host_with_powershell_fails(win_services, fixture):
+    win_services(linux_init(fixture))
+    conn = load_shell("powershell", device_id=AID)
+    with pytest.raises(AnsibleConnectionFailure, match="^%s is a Linux host; set ansible_shell_type" % AID):
+        conn._connect()
+    assert conn._connected is False
+
+
+def test_connect_linux_host_with_sh(win_services, fixture):
+    win_services(linux_init(fixture))
+    conn = load_shell("sh", device_id=AID)
+    conn._connect()
+    assert (conn._connected, conn._session.windows) == (True, False)
+
+
+def test_connect_without_a_platform_skips_the_check(services):
+    # The recorded Linux init_session has no platform field.
+    services()
+    conn = load_shell("powershell", device_id=AID)
+    conn._connect()
+    assert conn._session.platform is None
+    assert conn._connected is True
+
+
+def test_windows_exec_command_passes_in_data_and_the_inline_limit():
+    session = FakeWinSession(result=(0, "out", ""))
+    conn = win_connected(session, command_timeout=30, inline_max_bytes=100)
+    assert conn.exec_command("cmd", in_data="dé") == (0, b"out", b"")
+    assert session.calls == [("exec_command", "cmd", 30, "dé".encode("utf-8"), 100)]
+
+
+def test_windows_exec_command_without_in_data_caps_the_limit():
+    session = FakeWinSession(result=(0, "", ""))
+    win_connected(session, inline_max_bytes=50000).exec_command("cmd")
+    assert session.calls == [("exec_command", "cmd", 600, None, rtr_utils.INLINE_MAX_BYTES_LIMIT)]
+
+
+def recorded_clixml(fixture):
+    return fixture("rtr_windows/clixml_text_complete")["body"]["resources"][0]["stdout"].rstrip("\n")
+
+
+CLIXML_TEXT = (
+    b"$OutputEncoding = [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false\r\n"
+    b"Write-Error 'boom' : boom\r\n"
+    b"    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException\r\n"
+    b"    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException\r\n \r\n"
+)
+
+
+def test_windows_exec_command_converts_clixml(fixture):
+    session = FakeWinSession(result=(1, "", recorded_clixml(fixture)))
+    assert win_connected(session).exec_command("cmd") == (1, b"", CLIXML_TEXT)
+
+
+def test_posix_exec_command_keeps_clixml(fixture):
+    session = FakeSession(result=(1, "", recorded_clixml(fixture)))
+    assert connected(session).exec_command("cmd")[2] == recorded_clixml(fixture).encode("utf-8")
+
+
+def test_clixml_to_text_with_this_ansible(fixture):
+    # 2.19 and later use replace_stderr_clixml, older versions _parse_clixml.
+    assert (rtr_connection.replace_stderr_clixml is None) != (rtr_connection._parse_clixml is None)
+    assert rtr_connection._clixml_to_text(recorded_clixml(fixture).encode("utf-8")) == CLIXML_TEXT
+    assert rtr_connection._clixml_to_text(b"plain error\r\n") == b"plain error\r\n"
+
+
+def test_clixml_to_text_uses_replace_stderr_clixml(monkeypatch):
+    monkeypatch.setattr(rtr_connection, "replace_stderr_clixml", lambda b: b"replaced:" + b)
+    monkeypatch.setattr(rtr_connection, "_parse_clixml", lambda b: b"parsed")
+    assert rtr_connection._clixml_to_text(b"x") == b"replaced:x"
+
+
+def test_clixml_to_text_uses_parse_clixml_only_for_clixml(monkeypatch):
+    monkeypatch.setattr(rtr_connection, "replace_stderr_clixml", None)
+    monkeypatch.setattr(rtr_connection, "_parse_clixml", lambda b: b"parsed")
+    assert rtr_connection._clixml_to_text(b"#< CLIXML\r\n<Objs/>") == b"parsed"
+    assert rtr_connection._clixml_to_text(b"plain") == b"plain"
+
+
+def test_clixml_to_text_without_a_helper(monkeypatch):
+    monkeypatch.setattr(rtr_connection, "replace_stderr_clixml", None)
+    monkeypatch.setattr(rtr_connection, "_parse_clixml", None)
+    assert rtr_connection._clixml_to_text(b"#< CLIXML\r\n<Objs/>") == b"#< CLIXML\r\n<Objs/>"
+
+
+@pytest.mark.parametrize("size, method", [(100, "put_inline"), (101, "upload_putfile")])
+def test_windows_put_file_uses_the_session(local_file, size, method):
+    session = FakeWinSession()
+    win_connected(session, inline_max_bytes=100, command_timeout=40).put_file(local_file(size), "C:\\x\\y.ps1")
+    assert session.calls == [(method, b"a" * size, "C:\\x\\y.ps1", 40)]
+
+
+def test_windows_fetch_file_uses_the_session(tmp_path):
+    session = FakeWinSession(result=b"hello")
+    out = tmp_path / "out.txt"
+    win_connected(session, command_timeout=50).fetch_file("C:\\x\\in.txt", str(out))
+    assert out.read_bytes() == b"hello"
+    assert session.calls == [("fetch", "C:\\x\\in.txt", 50)]

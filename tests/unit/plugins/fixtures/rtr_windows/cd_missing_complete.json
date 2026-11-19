@@ -1,0 +1,20 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.004816477
+    },
+    "resources": [
+      {
+        "base_command": "cd",
+        "complete": true,
+        "session_id": "00000000-0000-0000-0000-000000000001",
+        "stderr": "Cannot find path, 'C:\\Windows\\Temp\\ansible-unit-fixture-missing' does not exist\n",
+        "stdout": "",
+        "task_id": "00000000-0000-0000-0000-000000000008"
+      }
+    ]
+  },
+  "method": "check_admin_command_status",
+  "status_code": 200
+}

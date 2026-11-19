@@ -1,0 +1,12 @@
+{
+  "body": {
+    "errors": [
+      {
+        "message": "No content was received for this request."
+      }
+    ],
+    "resources": []
+  },
+  "method": "delete_session",
+  "status_code": 204
+}
