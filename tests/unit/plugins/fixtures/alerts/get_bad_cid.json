@@ -1,0 +1,19 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "invalid CID provided"
+      }
+    ],
+    "meta": {
+      "query_time": 0.000626354,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": []
+  },
+  "method": "get_alerts_v2",
+  "status_code": 400
+}

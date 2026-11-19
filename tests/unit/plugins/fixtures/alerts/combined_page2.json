@@ -1,0 +1,43 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "pagination": {
+        "after": "opaque-token-2",
+        "limit": 2,
+        "total": 29
+      },
+      "query_time": 0.149825991
+    },
+    "resources": [
+      {
+        "cid": "00000000000000000000000000000001",
+        "composite_id": "00000000000000000000000000000001:ind:00000000000000000000000000000002:1792079001424043070-10304-186602768",
+        "created_timestamp": "2026-10-15T15:44:25.658225936Z",
+        "id": "ind:00000000000000000000000000000002:1792079001424043070-10304-186602768",
+        "product": "epp",
+        "severity": 70,
+        "severity_name": "High",
+        "show_in_ui": true,
+        "status": "closed",
+        "type": "ldt",
+        "updated_timestamp": "2026-10-15T16:43:44.737308821Z"
+      },
+      {
+        "cid": "00000000000000000000000000000001",
+        "composite_id": "00000000000000000000000000000001:ind:00000000000000000000000000000002:1792427481589501975-10304-214484240",
+        "created_timestamp": "2026-10-19T16:32:24.592170024Z",
+        "id": "ind:00000000000000000000000000000002:1792427481589501975-10304-214484240",
+        "product": "epp",
+        "severity": 70,
+        "severity_name": "High",
+        "show_in_ui": true,
+        "status": "closed",
+        "type": "ldt",
+        "updated_timestamp": "2026-11-09T21:26:49.816600957Z"
+      }
+    ]
+  },
+  "method": "get_alerts_combined",
+  "status_code": 200
+}

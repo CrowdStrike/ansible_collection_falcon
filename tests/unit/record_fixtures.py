@@ -1658,6 +1658,48 @@ def record_case_write(rec, creds):
                 made_id, resources(falcon.get_cases(body={"ids": [made_id]}))[0]["status"]))
 
 
+ALERT_FIELDS = (
+    "composite_id", "id", "cid", "product", "type", "status", "severity", "severity_name",
+    "show_in_ui", "created_timestamp", "updated_timestamp",
+)
+
+
+def record_alerts(rec, creds):
+    """Record the Alerts calls used by alert_info.
+
+    Read-only. Each alert keeps only a few fields, so the fixtures stay small
+    and hold no host or user data.
+    """
+    from falconpy import Alerts
+
+    falcon = Alerts(**creds)
+    combined = keep_fields(falcon.get_alerts_combined, ALERT_FIELDS)
+    get_alerts = keep_fields(falcon.get_alerts_v2, ALERT_FIELDS)
+    search = {"filter": "product:'epp'", "sort": "created_timestamp.asc"}
+
+    page1 = rec.call("combined_page1", "get_alerts_combined", combined, limit=2, **search)
+    after = (((page1.get("body") or {}).get("meta") or {}).get("pagination") or {}).get("after")
+    page2 = rec.call("combined_page2", "get_alerts_combined", combined, limit=2, after=after, **search)
+    ids = [a["composite_id"] for a in resources(page1) + resources(page2)] or ["x:ind:x:0"]
+    rec.call(
+        "combined_last", "get_alerts_combined", combined,
+        filter="composite_id:'%s'" % ids[0], limit=2,
+    )
+    rec.call(
+        "combined_empty", "get_alerts_combined", combined,
+        filter="product:'%s-missing'" % PREFIX, limit=2,
+    )
+    rec.call("combined_bad_filter", "get_alerts_combined", combined, filter="status:", limit=2)
+    cid = ids[0].split(":", 1)[0]
+    missing_id = "%s:ind:%s:0-0-0" % (cid, "f" * 32)
+    rec.call("get_several", "get_alerts_v2", get_alerts, composite_ids=ids[:3])
+    rec.call("get_one_missing", "get_alerts_v2", get_alerts, composite_ids=[ids[0], missing_id])
+    rec.call(
+        "get_bad_cid", "get_alerts_v2", get_alerts,
+        composite_ids=["%s:ind:%s:0-0-0" % ("f" * 32, "f" * 32)],
+    )
+
+
 def record_response_policy(rec, creds):
     """Record the ResponsePolicies calls used by response_policy and response_policy_info.
 
@@ -2078,6 +2120,7 @@ def record_rtr(rec, creds):
 
 
 SCENARIOS = {
+    "alerts": record_alerts,
     "auth": record_auth,
     "case": record_case,
     "case_write": record_case_write,
