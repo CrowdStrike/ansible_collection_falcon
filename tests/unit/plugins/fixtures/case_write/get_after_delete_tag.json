@@ -1,0 +1,130 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.177000234,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": [
+      {
+        "analysis_results": {
+          "alerts": {
+            "records": [
+              {
+                "id": "fixture-cid:cwpp:fixture-aid:fixture-alert-1"
+              }
+            ]
+          },
+          "cloud_assets": {
+            "records": []
+          },
+          "data_domains": [],
+          "events": {
+            "records": []
+          },
+          "files": {
+            "records": []
+          },
+          "hashes": {
+            "records": []
+          },
+          "hosts": {
+            "records": []
+          },
+          "leads": {
+            "records": []
+          },
+          "users": {
+            "records": []
+          }
+        },
+        "assigned_to": null,
+        "assigned_to_groups": null,
+        "cid": "00000000000000000000000000000001",
+        "consistency": {
+          "consistent": false,
+          "version": 1
+        },
+        "created_by": {
+          "email": "",
+          "full_name": "",
+          "uuid": ""
+        },
+        "created_timestamp": "2026-11-19T15:16:19.133696Z",
+        "creation_actor": {
+          "type": ""
+        },
+        "description": "Unit fixture case updated",
+        "end_timestamp": "2026-11-18T19:21:31Z",
+        "evidence": {
+          "adversary_evidence": {
+            "records": []
+          },
+          "alerts": {
+            "records": [
+              {
+                "id": "00000000000000000000000000000002",
+                "selector": {
+                  "id": "fixture-cid:cwpp:fixture-aid:fixture-alert-1"
+                }
+              }
+            ]
+          },
+          "custom_evidence": {
+            "records": []
+          },
+          "events": {
+            "records": []
+          },
+          "hash_evidence": {
+            "records": []
+          },
+          "host_evidence": {
+            "records": []
+          },
+          "host_group_evidence": {
+            "records": []
+          },
+          "leads": {
+            "records": []
+          },
+          "report_evidence": {
+            "records": []
+          },
+          "users": {
+            "records": []
+          }
+        },
+        "id": "00000000-0000-0000-0000-000000000001",
+        "last_updated_by": {
+          "email": "",
+          "full_name": "",
+          "uuid": "00000000000000000000000000000003"
+        },
+        "name": "ansible-dev-case-unit-20261119101616",
+        "read_only": {
+          "is_read_only": false
+        },
+        "reference_id": "E82-7",
+        "severity": 50,
+        "severity_info": {
+          "level": "Medium"
+        },
+        "start_timestamp": "2026-11-10T17:26:24.970100987Z",
+        "status": "in_progress",
+        "tags": [
+          "ansible-dev-t2"
+        ],
+        "update_actor": {
+          "type": ""
+        },
+        "updated_timestamp": "2026-11-19T15:16:32.501737Z",
+        "version": 5
+      }
+    ]
+  },
+  "method": "get_cases",
+  "status_code": 200
+}

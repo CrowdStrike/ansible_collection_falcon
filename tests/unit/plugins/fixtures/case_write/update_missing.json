@@ -1,0 +1,19 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 404,
+        "message": "Not Found"
+      }
+    ],
+    "meta": {
+      "query_time": 0.065760187,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": null
+  },
+  "method": "update_case_fields",
+  "status_code": 404
+}

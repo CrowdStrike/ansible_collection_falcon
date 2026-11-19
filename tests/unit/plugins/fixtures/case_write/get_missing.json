@@ -1,0 +1,14 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.01673507,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": []
+  },
+  "method": "get_cases",
+  "status_code": 200
+}

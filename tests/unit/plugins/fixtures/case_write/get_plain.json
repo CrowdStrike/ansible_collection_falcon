@@ -1,0 +1,116 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.03202235,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": [
+      {
+        "analysis_results": {
+          "alerts": {
+            "records": []
+          },
+          "cloud_assets": {
+            "records": []
+          },
+          "data_domains": [],
+          "events": {
+            "records": []
+          },
+          "files": {
+            "records": []
+          },
+          "hashes": {
+            "records": []
+          },
+          "hosts": {
+            "records": []
+          },
+          "leads": {
+            "records": []
+          },
+          "users": {
+            "records": []
+          }
+        },
+        "assigned_to": null,
+        "assigned_to_groups": null,
+        "cid": "00000000000000000000000000000001",
+        "consistency": {
+          "consistent": true,
+          "version": 1
+        },
+        "created_by": {
+          "email": "",
+          "full_name": "",
+          "uuid": ""
+        },
+        "created_timestamp": "2026-11-19T15:16:40.585325Z",
+        "creation_actor": {
+          "type": ""
+        },
+        "description": "Unit fixture case",
+        "end_timestamp": null,
+        "evidence": {
+          "adversary_evidence": {
+            "records": []
+          },
+          "alerts": {
+            "records": []
+          },
+          "custom_evidence": {
+            "records": []
+          },
+          "events": {
+            "records": []
+          },
+          "hash_evidence": {
+            "records": []
+          },
+          "host_evidence": {
+            "records": []
+          },
+          "host_group_evidence": {
+            "records": []
+          },
+          "leads": {
+            "records": []
+          },
+          "report_evidence": {
+            "records": []
+          },
+          "users": {
+            "records": []
+          }
+        },
+        "id": "00000000-0000-0000-0000-000000000002",
+        "last_updated_by": {
+          "email": "",
+          "full_name": "",
+          "uuid": ""
+        },
+        "name": "ansible-dev-case-unit-20261119101616",
+        "read_only": {
+          "is_read_only": false
+        },
+        "reference_id": "E82-8",
+        "severity": 30,
+        "severity_info": {
+          "level": "Low"
+        },
+        "start_timestamp": null,
+        "status": "new",
+        "update_actor": {
+          "type": ""
+        },
+        "updated_timestamp": "2026-11-19T15:16:40.585325Z",
+        "version": 1
+      }
+    ]
+  },
+  "method": "get_cases",
+  "status_code": 200
+}
