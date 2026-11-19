@@ -22,6 +22,11 @@ The script calls FalconPy directly. For the services that can change state it
 makes throwaway objects named 'ansible-unit-fixture-*' and deletes them when it
 is done. It does not change hosts or other objects that it did not make.
 
+The one exception is alert_write: the API cannot create alerts, so it changes
+the two test alerts that FALCON_TEST_ALERT_IDS names (comma-separated
+composite IDs, the same variable as the alert integration target) and puts
+them back at the end. Each recording adds one comment, which cannot be removed.
+
 Every response goes through the Sanitizer before it is written: IDs, emails,
 IP and MAC addresses, host names and tokens are replaced. Then the script
 checks that no credential and no original ID is left in the output. If one is
@@ -1709,11 +1714,11 @@ ALERT_WRITE_FIELDS = (
 def record_alert_write(rec, creds):
     """Record the Alerts calls used by alert.
 
-    Writes only to the two test alerts that ALERT_WRITE_FILTER finds, and puts
-    back their status, tags, resolution, assignee and show_in_ui at the end.
-    A comment cannot be removed, so the recorder adds one comment only.
-    FALCON_ALERT_WRITE_FILTER is an FQL filter "device.hostname:'<host>'+<more>"
-    that matches the two test alerts; the host part finds an assignee to reuse.
+    The API cannot create alerts, so this writes to the two test alerts in
+    FALCON_TEST_ALERT_IDS (the same variable as the alert integration target),
+    and puts back their status, tags, resolution, assignee and show_in_ui at
+    the end. A comment cannot be removed, so the recorder adds one comment only.
+    The assign cases reuse the assignee of an alert that is already assigned.
     """
     import datetime
     import uuid
@@ -1732,15 +1737,18 @@ def record_alert_write(rec, creds):
         return call
 
     get_alerts = hide_names(keep_fields(falcon.get_alerts_v2, ALERT_WRITE_FIELDS))
-    write_filter = os.environ.get("FALCON_ALERT_WRITE_FILTER", "")
     if rec.dry_run:
         ids = ["x:ind:x:1", "x:ind:x:2"]
     else:
-        found = resources(falcon.get_alerts_combined(filter=write_filter, limit=10))
-        names = [a.get("display_name") or "" for a in found]
-        if len(found) != 2 or not all(n.startswith("TestTrigger") for n in names):
-            raise SystemExit("alert_write: expected exactly 2 TestTrigger alerts, found %d" % len(found))
-        ids = sorted(a["composite_id"] for a in found)
+        ids = sorted({i.strip() for i in os.environ.get("FALCON_TEST_ALERT_IDS", "").split(",") if i.strip()})
+        if len(ids) != 2:
+            raise SystemExit(
+                "alert_write: set FALCON_TEST_ALERT_IDS to the composite IDs of 2 test alerts "
+                "that the recording may change (found %d)" % len(ids)
+            )
+        found = resources(falcon.get_alerts_v2(composite_ids=ids))
+        if len(found) != 2:
+            raise SystemExit("alert_write: FALCON_TEST_ALERT_IDS must name 2 alerts that exist (found %d)" % len(found))
     if rec.cleanup_only:
         return
 
@@ -1768,8 +1776,10 @@ def record_alert_write(rec, creds):
     print("  before: %s" % summary(before))
     assignee = {}
     if not rec.dry_run:
-        host_alerts = resources(falcon.get_alerts_combined(filter=write_filter.split("+")[0], limit=500))
-        assigned = [a for a in host_alerts if a.get("assigned_to_uuid") and a.get("assigned_to_uid")]
+        assigned = [
+            a for a in resources(falcon.get_alerts_combined(filter="assigned_to_uuid:*'*'", limit=50))
+            if a.get("assigned_to_uuid") and a.get("assigned_to_uid")
+        ]
         if assigned:
             assignee = {"uuid": assigned[0]["assigned_to_uuid"], "uid": assigned[0]["assigned_to_uid"]}
     tag = "%s-tag" % PREFIX
