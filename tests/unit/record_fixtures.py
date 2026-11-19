@@ -78,6 +78,9 @@ REQUIRED_ENV = ("FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET")
 SECRET_ENV = ("FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET", "FALCON_MEMBER_CID", "FALCON_CID")
 
 PREFIX = "ansible-unit-fixture"
+# The cases that case_info reads. The API cannot delete a case, so the
+# recorder reads these existing test cases and creates none.
+CASE_PREFIX = "ansible-dev-case-"
 
 HEX32_RE = re.compile(r"(?<![0-9a-fA-F])[0-9a-fA-F]{32}(?![0-9a-fA-F])")
 UUID_RE = re.compile(
@@ -1429,6 +1432,65 @@ def record_hunting(rec, creds):
     )
 
 
+def record_case(rec, creds):
+    """Record the CaseManagement calls used by case_info.
+
+    Read only: the API cannot delete a case, so this records the cases that
+    exist and creates none. Every filter matches only the test cases, whose
+    names start with CASE_PREFIX. The searches use the kwargs of the module:
+    limit and offset, and filter, q and sort only when set.
+
+    The tenant must have at least two cases whose names start with
+    CASE_PREFIX, all of them closed, and at least one of them with a tag.
+    Make them once with the Falcon console or the API and close them.
+    """
+    from falconpy import CaseManagement
+
+    falcon = CaseManagement(**creds)
+    prefix = "name:*'%s*'" % CASE_PREFIX
+
+    def search(case, limit=100, offset=0, **kwargs):
+        return rec.call(case, "query_case_ids", falcon.query_case_ids, limit=limit, offset=offset, **kwargs)
+
+    if rec.cleanup_only:
+        return
+
+    if not rec.dry_run:
+        # Check before any recording, so that no fixture is written.
+        existing = resources(falcon.query_case_ids(limit=100, offset=0, filter=prefix))
+        if len(existing) < 2:
+            raise SystemExit(
+                "case: found %d case(s) whose names start with %s, need at least 2. "
+                "Make them with the Falcon console or the API and close them."
+                % (len(existing), CASE_PREFIX)
+            )
+
+    found = search("query_by_prefix", filter=prefix)
+    search("query_by_prefix_sorted", filter=prefix, sort="name.asc")
+    search("query_closed", filter="%s+status:'closed'" % prefix)
+    search("query_q", q=CASE_PREFIX)
+    search("query_page_1", limit=1, offset=0, filter=prefix, sort="name.asc")
+    search("query_page_2", limit=1, offset=1, filter=prefix, sort="name.asc")
+    search("query_empty", filter="name:'ansible-dev-none-xyz'")
+    search("query_bad_filter", filter="name:")
+    search("query_bad_sort", filter=prefix, sort="nosuchfield.asc")
+
+    def get_cases(**kwargs):
+        # An alert ID has a hash of 64 characters, which test_fixtures_clean.py
+        # treats as a token, so the alert records of the evidence are left out.
+        response = falcon.get_cases(**kwargs)
+        for case in resources(response):
+            for part in ("evidence", "analysis_results"):
+                alerts = (case.get(part) or {}).get("alerts")
+                if alerts:
+                    alerts["records"] = []
+        return response
+
+    ids = sorted(resources(found)) if not rec.dry_run else ["0" * 32, "1" * 32]
+    rec.call("get_several", "get_cases", get_cases, body={"ids": ids})
+    rec.call("get_missing", "get_cases", get_cases, body={"ids": ["f" * 32]})
+
+
 def record_response_policy(rec, creds):
     """Record the ResponsePolicies calls used by response_policy and response_policy_info.
 
@@ -1604,6 +1666,7 @@ def record_response_policy(rec, creds):
 
 SCENARIOS = {
     "auth": record_auth,
+    "case": record_case,
     "correlation_rule": record_correlation_rule,
     "discover": record_discover,
     "flight_control": record_flight_control,

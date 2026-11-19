@@ -1,0 +1,24 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "invalid query filter in request"
+      }
+    ],
+    "meta": {
+      "pagination": {
+        "limit": 100,
+        "offset": 0,
+        "total": 0
+      },
+      "query_time": 0.001171496,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": null
+  },
+  "method": "query_case_ids",
+  "status_code": 400
+}

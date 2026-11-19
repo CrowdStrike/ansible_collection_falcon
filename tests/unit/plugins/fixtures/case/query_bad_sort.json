@@ -1,0 +1,24 @@
+{
+  "body": {
+    "errors": [
+      {
+        "code": 400,
+        "message": "invalid field for sort"
+      }
+    ],
+    "meta": {
+      "pagination": {
+        "limit": 100,
+        "offset": 0,
+        "total": 0
+      },
+      "query_time": 0.002613222,
+      "writes": {
+        "resources_affected": 0
+      }
+    },
+    "resources": null
+  },
+  "method": "query_case_ids",
+  "status_code": 400
+}
