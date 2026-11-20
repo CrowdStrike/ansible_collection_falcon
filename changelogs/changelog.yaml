@@ -736,6 +736,254 @@ releases:
       - fix-eda-ruff-cpy001.yml
       - fix-token-no-log.yml
     release_date: '2026-10-06'
+  4.15.0:
+    changes:
+      bugfixes:
+        - Update the Python requirement in the module, lookup, inventory and event
+          source documentation from 3.8 (3.6 for the event source) to 3.12, which
+          is the minimum Python version of the collection.
+        - auth - fail with a clear message when the API base URL does not match a
+          known cloud, instead of a ``KeyError``.
+        - correlation_rule - do not fail with ``publish=true`` when the latest rule
+          version is already published. The API publishes the new version on create
+          and update, so the module now skips the publish call for a published version
+          instead of failing with ``409 version is already published``.
+        - correlation_rule - document that the API can set a rule to ``inactive``
+          when the rule leaves the ``creating`` or ``updating`` status, also when
+          the rule was created or updated with ``status=active``.
+        - correlation_rule - give a clear error message when ``state=absent`` cannot
+          delete a rule that is still in a transition status such as ``creating``.
+          Before this fix, the module failed with the raw API message ``cannot delete
+          unpublished version while rule is in transition state``.
+        - correlation_rule - support check mode. Before this fix, the module exited
+          with ``changed=false`` before it read the rule. Now it reads the rule and
+          reports the create, update or delete that a real run would make.
+        - falcon_configure - fix the macOS provisioning token task, which always failed
+          because its ``failed_when`` used the result of the skipped CID task.
+        - falcon_configure - read the current Windows grouping tags correctly when
+          the sensor stores the ``GroupingTags`` registry value as a string (``REG_SZ``)
+          instead of binary. Before this fix, the role always set the tags again and
+          could not clear them (https://github.com/CrowdStrike/ansible_collection_falcon/issues/726).
+        - falcon_configure - the Windows grouping tag tasks no longer show the maintenance
+          token in task output when ``falcon_maintenance_token`` is set.
+        - falcon_hosts, falcon_discover inventory - compare the FalconPy version as
+          numbers, so versions such as ``1.10.0`` are accepted.
+        - falcon_hosts, falcon_discover inventory - raise an ``AnsibleError`` when
+          the API cannot query hosts, instead of ``SystemExit``.
+        - falcon_hosts, falcon_discover inventory - read the ``FALCON_CLOUD`` environment
+          variable. Before, the ``cloud`` option default of ``us-1`` was always used
+          when ``cloud`` was not set in the inventory file.
+        - falcon_install - ask for ``falcon_cid`` only on Windows with the ``url``
+          and ``file`` install methods. The Linux and macOS installs do not use the
+          CID. On Linux and macOS, the role now shows a warning when ``falcon_cid``
+          is not set, because the sensor is not registered until the CID is set (for
+          example with the ``falcon_configure`` role).
+        - falcon_install - retry the removal of the Windows temporary install directory,
+          and show a warning instead of a failure when the directory cannot be removed.
+          The installer package can stay locked for a short time after the install,
+          so the delete failed with ``Access to the path ... is denied`` and stopped
+          the play.
+        - falcon_install - the ``url`` install method no longer reports a change on
+          every run. The role downloads the package into its temporary directory and
+          removes that directory after the install, so the download is not a change.
+          The package install task still reports a change when it installs or upgrades
+          the sensor.
+        - falconctl - allow ``.`` and ``@`` in ``tags``, which Linux sensors accept.
+        - falconctl_info, falconctl - keep dots inside sensor grouping tags (for example
+          ``v1.2``) instead of removing them.
+        - falconctl_info, falconctl - parse ``falconctl -g`` output by option name,
+          so tag values that contain ``version``, ``aph``, or ``rfm-reason`` are returned
+          without quotes or trailing dots.
+        - host_group - find an existing host group by ``name`` when the name has uppercase
+          letters. The API name filter only matches the lowercase form of a name,
+          so a second run with ``state=present`` tried to create the group again and
+          failed with ``Duplicate group name``, and ``state=absent`` did not delete
+          the group. The name match is not case-sensitive, because the API does not
+          allow two groups whose names differ only in case.
+        - host_group_info - a search that matches no host groups no longer fails with
+          ``object of type 'NoneType' has no len()``. The module now returns an empty
+          ``host_groups`` list.
+        - host_group_info - document that a ``name`` value in ``filter`` must be lowercase.
+          The API compares it with the lowercase form of the group name, so ``name:'web
+          servers'`` finds a group named ``Web Servers``, but ``name:'Web Servers'``
+          finds nothing.
+        - host_group_info - document that a sort on ``group_type``, ``created_by``
+          or ``modified_by`` can repeat or skip groups across pages, because many
+          groups have the same value. Sort by ``name`` or a timestamp to page through
+          the results.
+        - host_group_info - fix the example that finds the dynamic groups created
+          in the last 7 days. The API does not accept a timestamp in epoch seconds
+          in a ``created_timestamp`` filter, so the example now uses an ISO 8601 timestamp.
+        - host_group_info - remove ``group_hash`` from the return values, because
+          the API does not return it, and document that ``assignment_rule`` is not
+          returned for every group.
+        - host_group_info - the ``limit`` option now accepts values from 1 to 500.
+          The API rejects a page size over 500, but the module documented and accepted
+          values up to 5000.
+        - host_group_info - the ``sort`` option now accepts only the values that the
+          Host Groups API accepts, in the form ``<property>.asc`` or ``<property>.desc``
+          for ``name``, ``created_by``, ``created_timestamp``, ``group_type``, ``modified_by``
+          and ``modified_timestamp``. The documentation said to put ``-`` before a
+          property for descending order, but the API rejects ``-created_timestamp``
+          and a property with no direction such as ``name``. An unsupported value
+          now fails before the API call, with a list of the valid values. Use ``created_timestamp.desc``
+          instead of ``-created_timestamp``.
+        - host_group_info - with ``include_members=true``, a host group with no members
+          now returns an empty ``members`` list instead of ``null``.
+        - host_ids, maintenance_token, fctl_child_cids lookups, falcon_hosts, falcon_discover
+          inventory - the error message when FalconPy is not installed now says "plugin"
+          instead of "lookup", because the inventory plugins also show it.
+        - host_info - check the API errors of each batch of 5000 hosts, not only the
+          errors of the last batch.
+        - host_info - return an empty ``hosts`` list when ``hosts`` is empty, instead
+          of failing with an ``UnboundLocalError`` traceback.
+        - intel_rule_info - read every page of rule IDs when ``limit`` is not set.
+          Before this fix, the module read the first page again when there were more
+          than 5000 rules, because the Intel API returns the offset of the request
+          and not of the next page.
+        - kernel_support_info, sensor_update_policy_info - calculate the offset of
+          the next page from the number of results read, instead of from the offset
+          that the API returns.
+        - module_utils - the API modules, lookups and inventories now send the collection
+          version in the ``crowdstrike-ansible/<version>`` user agent. Since version
+          4.3.0, the user agent sent ``4.2.1`` because the version in ``module_utils/version.py``
+          was not updated at each release. A unit test now makes sure that this version
+          is the same as the ``galaxy.yml`` version.
+        - ngsiem_data_connection - check mode now reads the connection and reports
+          the change that the module would make. Before, check mode stopped before
+          the lookup and always reported no change.
+        - ngsiem_data_connection - find a connection by ``name`` only when its name
+          is equal to ``name``. The API name filter also returns connections that
+          only contain the name (for example ``foo-renamed`` or ``xfoo`` for ``foo``),
+          and the module used the first result, so ``state=present`` could update
+          and ``state=absent`` could delete a different connection. The comparison
+          ignores case, because the API does not accept two connections whose names
+          differ only in case.
+        - ngsiem_parser - apply YAML changes to an existing parser. The module sent
+          the versioned parser ID to the update call, which the API accepts with a
+          200 response but does not apply, so the parser kept its old script and every
+          run reported a change. The module now sends the ID without the version,
+          and returns the new version of the parser.
+        - ngsiem_parser - find a parser by ``parser_id`` after an update. Each update
+          gives the parser a new version and ID, so a ``parser_id`` with an earlier
+          version, or without a version, now also finds the parser.
+        - ngsiem_parser - find an existing parser by the ``name`` it was created with.
+          The API stores custom parsers as ``custom-<name>``, so a second run with
+          the same ``name`` did not find the parser and tried to create it again.
+        - ngsiem_parser - find an extension by the ``name`` it was created with. The
+          API stores an extension as ``<base parser>-<name>``, so a second run with
+          the same ``extension_of`` failed with ``404 parser not found``, and ``state=absent``
+          with the name did not delete the extension.
+        - ngsiem_parser - read all pages of the parser list. Before this fix, the
+          module read only the first 500 parsers, so it did not find a parser that
+          was not on the first page.
+        - ngsiem_parser - return the full parser after an update. The update returns
+          a parser ID that the API cannot find, so before this fix the module returned
+          only that ID.
+        - ngsiem_search - document the ``cancelled`` and ``done`` return values as
+          they work. ``cancelled`` is ``false`` and ``done`` is ``true`` when the
+          module succeeds, and the return keys did not change. The ``timeout`` option
+          now says that the module stops the search job and fails when the timeout
+          is reached.
+        - ngsiem_search - fail with ``Search job <id> was cancelled`` when the search
+          status has ``cancelled`` set to true. The API deletes a stopped search job,
+          so the status call for a stopped job fails with the error described above.
+          Before this fix, the module returned success with the message ``Search job
+          was cancelled``.
+        - ngsiem_search - when the search status call fails, fail with the job ID,
+          the HTTP status code and the error message of the API, for example ``No
+          query with id=<id>`` for a search job that the API deleted, or the error
+          of a query that fails while it runs. The module also returns the API errors
+          in ``errors``. Before this fix, the module failed with only ``Failed to
+          get search status``.
+      deprecated_features:
+        - falcon_configure - the ``falcon_message_log`` variable is deprecated and
+          will be removed in version 5.0.0.
+        - falconctl - the ``message_log`` option is deprecated and will be removed
+          in version 5.0.0. Linux sensors 7.21 and later do not support ``--message-log``,
+          so the module skips the option with a warning on those sensors.
+        - falconctl_info - the ``message_log`` choice of ``name`` is deprecated and
+          will be removed in version 5.0.0, together with the ``message_log`` key
+          in the returned ``falconctl_info``. Linux sensors 7.21 and later do not
+          support it and return ``null`` for it.
+      minor_changes:
+        - falcon_configure - remove the ``falcon_cloud_autodiscover`` default. No
+          task used this variable.
+        - falcon_configure - the ``falcon_cloud`` default is now ``us-1``, which matches
+          the README and the ``falcon_install`` role. The old default ``api.crowdstrike.com``
+          had no effect because the ``falcon_install`` default always took precedence.
+        - falcon_configure, falcon_install, falcon_uninstall - remove the unused ``falcon_cloud_urls``
+          role variable, and document ``falcon_cloud`` as a cloud region name. The
+          API modules accept only region names, not API URLs.
+        - falcon_uninstall - the ``falcon_cloud`` default is now ``us-1``, which matches
+          the README and the ``falcon_install`` role. The old default ``api.crowdstrike.com``
+          had no effect because the ``falcon_install`` default always took precedence.
+        - falconctl module - Add ``tags_list`` and ``exclusive`` options to ensure
+          individual sensor grouping tags are present or absent without replacing
+          the other existing tags (https://github.com/CrowdStrike/ansible_collection_falcon/issues/661).
+        - ngsiem_parser_info - add ``extension`` to the choices of ``parser_type``.
+      release_summary: '| Release Date: 2026-11-19
+
+        | `Release Notes: <https://github.com/CrowdStrike/ansible_collection_falcon/releases/tag/4.15.0>`__
+
+        '
+    fragments:
+      - 4.15.0.yaml
+      - 661-falconctl-tags-list.yml
+      - 726-win-grouping-tags-reg-sz.yml
+      - correlation-rule-check-mode.yml
+      - correlation-rule-publish-already-published.yml
+      - eda-ruff-unpin-up041.yml
+      - falcon-cloud-role-defaults.yml
+      - falcon-configure-token-fixes.yml
+      - falcon-install-url-idempotence-cid-assert.yml
+      - falconctl-deprecate-message-log.yml
+      - falconctl-format-stdout-routing.yml
+      - falconctl-utils-run-command.yml
+      - host-group-info-empty-results.yml
+      - host-group-info-sort-limit.yml
+      - host-group-name-case.yml
+      - host-info-inventory-fixes.yml
+      - info-pagination-and-unknown-cloud.yml
+      - ngsiem-data-connection-exact-name-lookup.yml
+      - ngsiem-parser-extensions.yml
+      - ngsiem-parser-name-and-update-id.yml
+      - ngsiem-parser-update-idempotence.yml
+      - ngsiem-search-status-errors.yml
+      - prevention-policy-info-seealso.yml
+      - user-agent-collection-version.yml
+      - win-tmp-cleanup-retry.yml
+    modules:
+      - description: Update Falcon alerts
+        name: alert
+        namespace: ''
+      - description: Get information about Falcon alerts
+        name: alert_info
+        namespace: ''
+      - description: Manage Falcon cases
+        name: case
+        namespace: ''
+      - description: Get information about Falcon cases
+        name: case_info
+        namespace: ''
+      - description: Manage Falcon prevention policies
+        name: prevention_policy
+        namespace: ''
+      - description: Get information about Falcon prevention policies
+        name: prevention_policy_info
+        namespace: ''
+      - description: Manage Falcon Real Time Response policies
+        name: response_policy
+        namespace: ''
+      - description: Get information about Falcon Real Time Response policies
+        name: response_policy_info
+        namespace: ''
+    plugins:
+      connection:
+        - description: run tasks on Falcon hosts through Real Time Response
+          name: rtr
+          namespace: null
+    release_date: '2026-11-19'
   4.2.0:
     changes:
       minor_changes:
