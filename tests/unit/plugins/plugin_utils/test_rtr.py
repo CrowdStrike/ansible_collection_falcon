@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import base64
 import copy
 import types
 
@@ -1044,3 +1045,592 @@ def test_fetch_part_error(make, monkeypatch):
     with pytest.raises(rtr_utils.RTRError) as exc:
         t.session.fetch(SRC, TIMEOUT)
     assert exc.value.message == "Unable to read %s (rc 3): err" % SRC
+
+
+# Windows (shell powershell). The fixtures in rtr_windows/ come from record_rtr_windows,
+# which builds its scripts with ps_wrap, ps_exec_script and ps_text.
+
+WIN_TEMP = "C:\\WINDOWS\\TEMP"
+WIN_DIR = "C:\\Windows\\Temp\\ansible-unit-fixture-dir"
+WIN_MISSING = "C:\\Windows\\Temp\\ansible-unit-fixture-missing"
+WIN_TEMP_BODY = "$__o = [IO.Path]::GetFullPath($env:TEMP)"
+WIN_LIST_CALL = ("list_put_files", {"filter": "name:'ansible-rtr-%s'" % hexid(2)})
+WIN_NAME = "ansible-rtr-" + hexid(2)
+
+
+def ps_raw(body, cleanup=""):
+    """The command string of a body that run_with_rc wraps on Windows."""
+    return plain(rtr_utils.ps_wrap(body, MARKER, cleanup))
+
+
+def ps_line(rc, out="", err=""):
+    """The marker line that a ps_wrap script prints."""
+    return "%s%d:%s:%s\n" % (MARKER, rc, rtr_utils.b64(out), rtr_utils.b64(err))
+
+
+def with_ps_stdout(response, stdout):
+    """Return a copy of a recorded Windows runscript result with another stdout.
+
+    Used for results that the test host cannot give cheaply: the parts of a file
+    larger than FETCH_PART_BYTES, a read that ends early, or a temp folder at a
+    drive root.
+    """
+    response = copy.deepcopy(response)
+    response["body"]["resources"][0]["stdout"] = stdout
+    return response
+
+
+@pytest.fixture
+def wmake(falcon_api, fixture, fake_clock):
+    """Return a function that builds a Windows RTRSession on fake RTR and admin services."""
+
+    def load(responses):
+        return {
+            method: [fixture("rtr_windows/" + r) if isinstance(r, str) else r for r in items]
+            for method, items in responses.items()
+        }
+
+    def build(admin=None, rtr=None):
+        holder = types.SimpleNamespace()
+        rtr_api = falcon_api(holder, load(rtr or {}), attr="rtr")
+        admin_api = falcon_api(holder, load(admin or {}), attr="admin")
+        logs = []
+        session = rtr_utils.RTRSession(rtr_api, admin_api, log=logs.append, warn=logs.append, shell="powershell")
+        clock = fake_clock(rtr_utils)
+        session.sleep = clock.sleep
+        session.clock = clock.time
+        session.device_id = AID
+        session.session_id = SESSION_ID
+        return types.SimpleNamespace(session=session, admin=admin_api, rtr=rtr_api, clock=clock, logs=logs)
+
+    return build
+
+
+def sent(t):
+    return [kw["command_string"] for kw in t.admin.called("execute_admin_command")]
+
+
+def test_ps_text_round_trips_any_text():
+    value = "a 'b' `c` $d ```e``` é"
+    expr = rtr_utils.ps_text(value)
+    encoded = expr[len("[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('"):-len("'))")]
+    assert expr == "[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('%s'))" % encoded
+    assert base64.b64decode(encoded).decode("utf-8") == value
+
+
+def test_ps_wrap_catches_errors_and_prints_the_marker_after_cleanup():
+    assert rtr_utils.ps_wrap("$__o = 1", MARKER, cleanup="Remove-Item a\nRemove-Item b") == (
+        "$ErrorActionPreference = 'Stop'\n"
+        "$ProgressPreference = 'SilentlyContinue'\n"
+        "$__u = New-Object System.Text.UTF8Encoding $false\n"
+        "$__rc = 0; $__o = ''; $__e = ''\n"
+        "try {\n$__o = 1\n} catch {\n"
+        "  $__rc = 1; $__e = [string]$__e + $_.Exception.Message\n"
+        "} finally {\n"
+        "  try { Remove-Item a } catch { }\n"
+        "  try { Remove-Item b } catch { }\n"
+        "}\n"
+        "Write-Output ('" + MARKER + "' + $__rc + ':' + [Convert]::ToBase64String($__u.GetBytes([string]$__o))"
+        " + ':' + [Convert]::ToBase64String($__u.GetBytes([string]$__e)))\n"
+    )
+
+
+def test_ps_wrap_without_cleanup_has_an_empty_finally():
+    assert "} finally {\n}\n" in rtr_utils.ps_wrap("$__o = 1", MARKER)
+
+
+def test_ps_parse_recorded_exec(fixture):
+    stdout = fixture("rtr_windows/exec_complete")["body"]["resources"][0]["stdout"]
+    assert rtr_utils.ps_parse(stdout, "", MARKER) == (3, "out\r\n", "#< CLIXML\r\nerr\r\n")
+
+
+def test_ps_parse_without_a_marker(fixture):
+    # The recorded RTR timeout (fact 57) has no marker.
+    result = fixture("rtr_windows/timeout_complete")["body"]["resources"][0]
+    assert rtr_utils.ps_parse(result["stdout"], result["stderr"], MARKER) == (
+        255, "", "RTR did not return an exit code. Execution timeout exceeded",
+    )
+
+
+@pytest.mark.parametrize("line", ["%sx:YQ==:" % MARKER, "%s0" % MARKER, "%s0:YQ==" % MARKER, "%s0:YQ=:" % MARKER])
+def test_ps_parse_bad_marker_line(line):
+    stdout = "a\n" + line + "\n"
+    assert rtr_utils.ps_parse(stdout, None, MARKER) == (255, stdout, "RTR did not return an exit code. ")
+
+
+def test_ps_parse_marker_only_inside_a_line():
+    stdout = "x" + ps_line(7)
+    assert rtr_utils.ps_parse(stdout, "e", MARKER) == (255, stdout, "RTR did not return an exit code. e")
+
+
+def child_command(script):
+    """Return the text of the -EncodedCommand of a ps_exec_script script."""
+    enc = script.split("-EncodedCommand ", 1)[1].split("'", 1)[0]
+    return base64.b64decode(enc).decode("utf-16-le")
+
+
+def test_ps_exec_script_without_stdin():
+    script = rtr_utils.ps_exec_script("Write-Output 'é'", MARKER)
+    assert child_command(script) == rtr_utils.PS_UTF8_PREFIX + "Write-Output 'é'"
+    assert "$__fs" not in script and "FromBase64String" not in script and "Remove-Item" not in script
+    assert "try { $__p.StandardInput.Close() } catch { }\n$__p.WaitForExit()\n" in script
+    assert script.startswith("$ErrorActionPreference = 'Stop'\n")
+    assert script.endswith(rtr_utils.ps_wrap("", MARKER).split("} finally {", 1)[1])
+
+
+def test_ps_exec_script_with_inline_stdin():
+    script = rtr_utils.ps_exec_script("x", MARKER, stdin_data=b"a\nb\n")
+    assert (
+        "try { $__b = [Convert]::FromBase64String('YQpiCg=='); "
+        "$__p.StandardInput.BaseStream.Write($__b, 0, $__b.Length) } catch { }\n"
+        "try { $__p.StandardInput.Close() } catch { }\n"
+    ) in script
+    assert "$__fs" not in script
+
+
+def test_ps_exec_script_with_stdin_from_a_file_removes_it():
+    path = "C:\\Windows\\Temp\\a 'b'.in"
+    script = rtr_utils.ps_exec_script("x", MARKER, stdin_path=path)
+    # The file is opened before the child starts, and closed and removed in finally.
+    assert script.index("$__fs = [IO.File]::OpenRead(%s)" % rtr_utils.ps_text(path)) < script.index("Process]::Start(")
+    assert "try { $__fs.CopyTo($__p.StandardInput.BaseStream) } catch { } finally { $__fs.Close() }\n" in script
+    assert (
+        "} finally {\n"
+        "  try { if ($__fs) { $__fs.Close() } } catch { }\n"
+        "  try { Remove-Item -LiteralPath (%s) -Force } catch { }\n}\n" % rtr_utils.ps_text(path)
+    ) in script
+    assert path not in script
+
+
+def test_windows_session_init_keeps_the_platform(wmake):
+    t = wmake(rtr={"init_session": ["init_session"]})
+    assert t.session.windows is True
+    assert t.session.init(AID) == SESSION_ID
+    assert t.session.platform == "Windows"
+    assert t.rtr.calls == [("init_session", {"device_id": AID, "queue_offline": False})]
+
+
+def test_posix_session_init_without_a_platform(make):
+    # The Linux init fixture was recorded without the platform field.
+    t = make(rtr={"init_session": ["init_session"]})
+    t.session.init(AID)
+    assert (t.session.windows, t.session.platform) == (False, None)
+
+
+def test_windows_exec_without_stdin(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["exec_complete"]})
+    assert t.session.exec_command("Write-Output out", TIMEOUT) == (3, "out\r\n", "#< CLIXML\r\nerr\r\n")
+    assert t.admin.calls == cmd("runscript", plain(rtr_utils.ps_exec_script("Write-Output out", MARKER)))
+
+
+def test_windows_exec_inline_stdin(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["exec_inline_complete"]})
+    assert t.session.exec_command("x", TIMEOUT, in_data=b"a\nb\n", inline_max=4) == (0, "in=a,b\r\n", "#< CLIXML\r\n")
+    assert t.admin.calls == cmd("runscript", plain(rtr_utils.ps_exec_script("x", MARKER, stdin_data=b"a\nb\n")))
+
+
+STDIN_PATH = WIN_TEMP + "\\.ansible-rtr-%s.in" % hexid(1)
+
+
+def win_putfile_admin(statuses, execute=("runscript_submit",)):
+    return {
+        "create_put_files": ["create_put_files"],
+        "list_put_files": ["list_put_files"],
+        "delete_put_files": ["delete_put_files"],
+        "execute_admin_command": list(execute),
+        "check_admin_command_status": statuses,
+    }
+
+
+def win_create_call(data, name=WIN_NAME):
+    return (
+        "create_put_files",
+        {
+            "files": [("file", (name, data, "application/octet-stream"))],
+            "name": name,
+            "description": "Ansible crowdstrike.falcon.rtr transfer",
+            "comments_for_audit_log": "Ansible crowdstrike.falcon.rtr put_file",
+        },
+    )
+
+
+def move_body(src, dest, stage=None):
+    body = "Move-Item -LiteralPath (%s) -Destination (%s) -Force" % (rtr_utils.ps_text(src), rtr_utils.ps_text(dest))
+    if stage:
+        body += "\nRemove-Item -LiteralPath (%s) -Force" % rtr_utils.ps_text(stage)
+    return body
+
+
+def remove_script(path):
+    return plain(rtr_utils.ps_wrap("Remove-Item -LiteralPath (%s) -Recurse -Force" % rtr_utils.ps_text(path), MARKER))
+
+
+def test_windows_exec_stdin_from_put_file(wmake):
+    t = wmake(admin=win_putfile_admin(
+        ["win_temp_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete", "exec_file_complete"]
+    ))
+    assert t.session.exec_command("x", TIMEOUT, in_data=b"a\nb\n", inline_max=3) == (0, "in=a,b\r\n", "#< CLIXML\r\n")
+    assert t.admin.calls == (
+        cmd("runscript", ps_raw(WIN_TEMP_BODY))
+        + [win_create_call(b"a\nb\n"), WIN_LIST_CALL]
+        + cmd("cd", "cd " + WIN_TEMP)
+        + cmd("put", "put " + WIN_NAME)
+        + cmd("cd", "cd C:\\")
+        + cmd("runscript", ps_raw(move_body(WIN_TEMP + "\\" + WIN_NAME, STDIN_PATH)))
+        + [DELETE_CALL]
+        + cmd("runscript", plain(rtr_utils.ps_exec_script("x", MARKER, stdin_path=STDIN_PATH)))
+    )
+
+
+def test_windows_exec_inline_max_is_capped(wmake):
+    t = wmake(admin=win_putfile_admin(
+        ["win_temp_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete", "exec_file_complete"]
+    ))
+    data = b"a" * (rtr_utils.INLINE_MAX_BYTES_LIMIT + 1)
+    t.session.exec_command("x", TIMEOUT, in_data=data, inline_max=10 ** 6)
+    assert t.admin.called("create_put_files")[0]["files"][0][1][1] == data
+
+
+def test_windows_exec_inline_too_large_uses_put_file(wmake):
+    data = b"a" * rtr_utils.INLINE_MAX_BYTES_LIMIT
+    command = "x" * 1500
+    assert len(rtr_utils.ps_exec_script(command, MARKER, stdin_data=data)) > rtr_utils.EXEC_SCRIPT_MAX
+    t = wmake(admin=win_putfile_admin(
+        ["win_temp_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete", "exec_file_complete"]
+    ))
+    assert t.session.exec_command(command, TIMEOUT, in_data=data, inline_max=len(data))[0] == 0
+    assert sent(t) == [
+        ps_raw(WIN_TEMP_BODY), "cd " + WIN_TEMP, "put " + WIN_NAME, "cd C:\\",
+        ps_raw(move_body(WIN_TEMP + "\\" + WIN_NAME, STDIN_PATH)),
+        plain(rtr_utils.ps_exec_script(command, MARKER, stdin_path=STDIN_PATH)),
+    ]
+
+
+def test_windows_exec_too_large_makes_no_call(wmake):
+    t = wmake()
+    command = "x" * 12000
+    size = len(rtr_utils.ps_exec_script(command, MARKER))
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.exec_command(command, TIMEOUT)
+    assert exc.value.message == "The command is too large for RTR: %d bytes after encoding, the limit is 32000." % size
+    assert exc.value.status_code is None
+    assert t.admin.calls == []
+
+
+def test_windows_exec_too_large_fails_before_the_upload(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["win_temp_complete"]})
+    command = "x" * 12000
+    size = len(rtr_utils.ps_exec_script(command, MARKER, stdin_path=STDIN_PATH))
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.exec_command(command, TIMEOUT, in_data=b"a", inline_max=0)
+    assert exc.value.message == "The command is too large for RTR: %d bytes after encoding, the limit is 32000." % size
+    assert t.admin.calls == cmd("runscript", ps_raw(WIN_TEMP_BODY))
+
+
+def leftover_admin(refused, remove_ok):
+    """The exec runscript after the upload gets the recorded 400 of a refused runscript.
+
+    The 400 was recorded on the Linux host (a stray backtick); the Windows host
+    gives the same submit error, and a failed submit is what this branch needs.
+    """
+    return win_putfile_admin(
+        ["win_temp_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete", "mkdir_complete"],
+        execute=["runscript_submit"] * 5 + [refused, "runscript_submit" if remove_ok else refused],
+    )
+
+
+def test_windows_exec_error_removes_the_stdin_file(wmake, fixture):
+    t = wmake(admin=leftover_admin(fixture("rtr/runscript_backtick"), True))
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.exec_command("x", TIMEOUT, in_data=b"a\nb\n", inline_max=0)
+    assert exc.value.message == "RTR runscript failed with status 400: Illegal characters found:   in  "
+    assert sent(t)[-2:] == [plain(rtr_utils.ps_exec_script("x", MARKER, stdin_path=STDIN_PATH)), remove_script(STDIN_PATH)]
+    assert t.admin.calls[-2:] == cmd("runscript", remove_script(STDIN_PATH))
+
+
+def test_windows_exec_error_leftover_error_is_logged(wmake, fixture):
+    t = wmake(admin=leftover_admin(fixture("rtr/runscript_backtick"), False))
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.exec_command("x", TIMEOUT, in_data=b"a\nb\n", inline_max=0)
+    assert exc.value.message == "RTR runscript failed with status 400: Illegal characters found:   in  "
+    assert t.logs[-1] == (
+        "RTR upload leftover %s was not removed: RTR runscript failed with status 400: Illegal characters found:   in  "
+        % STDIN_PATH
+    )
+
+
+def test_windows_exec_timeout_has_no_rc(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["timeout_complete"]})
+    assert t.session.exec_command("Start-Sleep 25", TIMEOUT) == (
+        255, "", "RTR did not return an exit code. Execution timeout exceeded",
+    )
+
+
+def test_windows_exec_timeout_removes_the_stdin_file(wmake):
+    """An RTR timeout returns no marker and can stop the script before its finally block."""
+    t = wmake(admin=win_putfile_admin(
+        ["win_temp_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete", "timeout_complete",
+         "mkdir_complete"]
+    ))
+    assert t.session.exec_command("x", TIMEOUT, in_data=b"a\nb\n", inline_max=0) == (
+        255, "", "RTR did not return an exit code. Execution timeout exceeded",
+    )
+    assert sent(t)[-2:] == [plain(rtr_utils.ps_exec_script("x", MARKER, stdin_path=STDIN_PATH)), remove_script(STDIN_PATH)]
+
+
+def test_windows_exec_result_keeps_the_cleanup_to_the_script(wmake):
+    t = wmake(admin=win_putfile_admin(
+        ["win_temp_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete", "exec_file_complete"]
+    ))
+    t.session.exec_command("x", TIMEOUT, in_data=b"a\nb\n", inline_max=0)
+    assert sent(t)[-1] == plain(rtr_utils.ps_exec_script("x", MARKER, stdin_path=STDIN_PATH))
+
+
+def test_windows_error_record_drops_stdout(wmake):
+    """Fact 41: an error record that escapes a plain runscript drops all its stdout."""
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["runscript_error_complete"]})
+    stdout, stderr = t.session.run_raw("Write-Output out\nWrite-Error err", TIMEOUT)
+    assert (stdout, stderr) == ("", "err\n")
+    assert rtr_utils.ps_parse(stdout, stderr, MARKER) == (255, "", "RTR did not return an exit code. err\n")
+
+
+def test_windows_win_temp_is_read_once(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["win_temp_complete"]})
+    assert t.session.win_temp(TIMEOUT) == WIN_TEMP
+    assert t.session.win_temp(TIMEOUT) == WIN_TEMP
+    assert t.admin.calls == cmd("runscript", ps_raw(WIN_TEMP_BODY))
+
+
+@pytest.mark.parametrize("result", ["fetch_missing_complete", "mkdir_complete"])
+def test_windows_win_temp_error(wmake, result):
+    # rc 1 (the recorded missing file) or rc 0 with no path (the recorded mkdir).
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": [result]})
+    rc = 1 if result == "fetch_missing_complete" else 0
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.win_temp(TIMEOUT)
+    assert exc.value.message == "Unable to read the Windows temp folder (rc %d): " % rc
+    assert t.session._win_temp is None
+
+
+@pytest.mark.parametrize("path, expected", [("C:\\", "C:\\"), ("D:\\Temp\\", "D:\\Temp")])
+def test_windows_win_temp_keeps_a_drive_root(wmake, fixture, path, expected):
+    result = with_ps_stdout(fixture("rtr_windows/win_temp_complete"), ps_line(0, path))
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": [result]})
+    assert t.session.win_temp(TIMEOUT) == expected
+
+
+def inline_body(path, data):
+    return (
+        "$__p = %s\n" % rtr_utils.ps_text(path)
+        + "[IO.File]::WriteAllBytes($__p + '.rtrtmp', [Convert]::FromBase64String('%s'))\n" % rtr_utils.b64(data)
+        + "Move-Item -LiteralPath ($__p + '.rtrtmp') -Destination $__p -Force"
+    )
+
+
+def test_windows_put_inline_success(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["put_inline_complete"]})
+    t.session.put_inline(b"hello", WIN_DIR + "\\inline", TIMEOUT)
+    assert t.admin.calls == cmd("runscript", ps_raw(inline_body(WIN_DIR + "\\inline", b"hello")))
+
+
+def test_windows_put_inline_rc_error(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["fetch_missing_complete"]})
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.put_inline(b"hello", "C:\\x", TIMEOUT)
+    assert exc.value.message == "Upload to C:\\x failed (rc 1): "
+    assert exc.value.rc == 1
+
+
+def test_windows_upload_into_existing_parent(wmake):
+    t = wmake(admin=win_putfile_admin(["cd_dir_complete", "put_complete", "cd_root_complete", "move_complete"]))
+    t.session.upload_putfile(b"data", WIN_DIR + "\\mod.ps1", TIMEOUT)
+    # The name uses the first uuid here: no stdin path came first.
+    name = "ansible-rtr-" + hexid(1)
+    assert t.admin.calls == (
+        [win_create_call(b"data", name), ("list_put_files", {"filter": "name:'%s'" % name})]
+        + cmd("cd", "cd " + WIN_DIR)
+        + cmd("put", "put " + name)
+        + cmd("cd", "cd C:\\")
+        + cmd("runscript", ps_raw(move_body(WIN_DIR + "\\" + name, WIN_DIR + "\\mod.ps1")))
+        + [DELETE_CALL]
+    )
+
+
+WIN_STAGE = WIN_TEMP + "\\.ansible-rtr-" + hexid(2)
+WIN_MKDIR = "$null = New-Item -ItemType Directory -Force -Path (%s)" % rtr_utils.ps_text(WIN_STAGE)
+
+
+def test_windows_upload_missing_parent_uses_stage(wmake):
+    t = wmake(admin=win_putfile_admin([
+        "cd_missing_complete", "win_temp_complete", "mkdir_complete", "cd_dir_complete", "put_complete",
+        "cd_root_complete", "move_complete",
+    ]))
+    t.session.upload_putfile(b"data", WIN_MISSING + "\\mod.ps1", TIMEOUT)
+    name = "ansible-rtr-" + hexid(1)
+    assert sent(t) == [
+        "cd " + WIN_MISSING,
+        ps_raw(WIN_TEMP_BODY),
+        ps_raw(WIN_MKDIR),
+        "cd " + WIN_STAGE,
+        "put " + name,
+        "cd C:\\",
+        ps_raw(move_body(WIN_STAGE + "\\" + name, WIN_MISSING + "\\mod.ps1", stage=WIN_STAGE)),
+    ]
+    assert t.admin.called("delete_put_files") == [DELETE_CALL[1]]
+
+
+def test_windows_upload_unsafe_parent_uses_stage(wmake):
+    t = wmake(admin=win_putfile_admin([
+        "win_temp_complete", "mkdir_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete",
+    ]))
+    out = "C:\\Program Files\\x\\mod.ps1"
+    t.session.upload_putfile(b"data", out, TIMEOUT)
+    name = "ansible-rtr-" + hexid(1)
+    assert sent(t) == [
+        ps_raw(WIN_TEMP_BODY), ps_raw(WIN_MKDIR), "cd " + WIN_STAGE, "put " + name, "cd C:\\",
+        ps_raw(move_body(WIN_STAGE + "\\" + name, out, stage=WIN_STAGE)),
+    ]
+
+
+def test_windows_upload_relative_cd_text_uses_stage(wmake, fixture):
+    """The "Try an absolute path" text came from a live cd probe; the recorder uses absolute paths only."""
+    missing = with_stderr(fixture("rtr_windows/cd_missing_complete"), "Try an absolute path, 'x' doesn't resolve to a directory")
+    t = wmake(admin=win_putfile_admin([
+        missing, "win_temp_complete", "mkdir_complete", "cd_dir_complete", "put_complete", "cd_root_complete", "move_complete",
+    ]))
+    t.session.upload_putfile(b"data", WIN_MISSING + "\\mod.ps1", TIMEOUT)
+    assert sent(t)[:3] == ["cd " + WIN_MISSING, ps_raw(WIN_TEMP_BODY), ps_raw(WIN_MKDIR)]
+
+
+@pytest.mark.parametrize("stderr", ["Cannot find path, 'x' is locked", "Access is denied", "cd: x: No such file or directory"])
+def test_windows_upload_other_cd_error_raises(wmake, fixture, stderr):
+    """Other cd errors are not the missing-folder case (copies of the recorded cd result)."""
+    other = with_stderr(fixture("rtr_windows/cd_missing_complete"), stderr)
+    t = wmake(admin=win_putfile_admin([other, "mkdir_complete"]))
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.upload_putfile(b"data", WIN_MISSING + "\\mod.ps1", TIMEOUT)
+    assert exc.value.message == "RTR cd failed: " + stderr
+    name = "ansible-rtr-" + hexid(1)
+    # No cd happened, so no cd C:\; the put-file is deleted and the file name removed.
+    assert sent(t) == ["cd " + WIN_MISSING, remove_script(WIN_MISSING + "\\" + name)]
+
+
+def test_windows_upload_put_exists_cleans_up(wmake):
+    t = wmake(admin=win_putfile_admin(["cd_dir_complete", "put_exists_complete", "cd_root_complete", "mkdir_complete"]))
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.upload_putfile(b"data", WIN_DIR + "\\mod.ps1", TIMEOUT)
+    assert exc.value.message == "RTR put failed: Destination file already exists."
+    name = "ansible-rtr-" + hexid(1)
+    assert t.admin.calls[2:] == (
+        cmd("cd", "cd " + WIN_DIR)
+        + cmd("put", "put " + name)
+        + cmd("cd", "cd C:\\")
+        + [DELETE_CALL]
+        + cmd("runscript", remove_script(WIN_DIR + "\\" + name))
+    )
+
+
+def test_windows_upload_cd_root_retries(wmake, fixture):
+    t = wmake(admin=win_putfile_admin(
+        ["cd_dir_complete", "put_complete", fixture("rtr/status_missing"), "cd_root_complete", "move_complete"]
+    ))
+    t.session.upload_putfile(b"data", WIN_DIR + "\\mod.ps1", TIMEOUT)
+    assert sent(t)[2:4] == ["cd C:\\", "cd C:\\"]
+    assert t.clock.sleeps == [2]
+    assert "RTR cd C:\\ failed (attempt 1): RTR status check failed with status 403: unknown user" in t.logs
+
+
+def test_windows_upload_stage_mkdir_fails(wmake):
+    t = wmake(admin=win_putfile_admin(["win_temp_complete", "fetch_missing_complete", "mkdir_complete"]))
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.upload_putfile(b"data", "C:\\a b\\mod.ps1", TIMEOUT)
+    assert exc.value.message == "Unable to make %s (rc 1): " % WIN_STAGE
+    assert sent(t) == [ps_raw(WIN_TEMP_BODY), ps_raw(WIN_MKDIR), remove_script(WIN_STAGE)]
+
+
+def test_windows_upload_move_fails(wmake):
+    t = wmake(admin=win_putfile_admin(
+        ["cd_dir_complete", "put_complete", "cd_root_complete", "fetch_missing_complete", "mkdir_complete"]
+    ))
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.upload_putfile(b"data", WIN_DIR + "\\mod.ps1", TIMEOUT)
+    assert exc.value.message == "Upload to %s\\mod.ps1 failed (rc 1): " % WIN_DIR
+    assert sent(t)[-1] == remove_script(WIN_DIR + "\\ansible-rtr-" + hexid(1))
+
+
+WIN_SRC = WIN_DIR + "\\fetch"
+WIN_PATH_EXPR = "$__p = %s\n" % rtr_utils.ps_text(WIN_SRC)
+WIN_SIZE = ps_raw(
+    WIN_PATH_EXPR
+    + "if (-not (Test-Path -LiteralPath $__p -PathType Leaf)) { $__rc = 1 }"
+    + " else { $__o = [string](Get-Item -LiteralPath $__p).Length }"
+)
+WIN_READ = ps_raw(rtr_utils.ps_fetch_part_body(WIN_SRC, 0, 5))
+
+
+def win_part(offset, size):
+    return ps_raw(rtr_utils.ps_fetch_part_body(WIN_SRC, offset, size))
+
+
+def test_ps_fetch_part_body_shares_the_file():
+    """A file that another process has open for writing (a log) opens only with FileShare ReadWrite."""
+    body = rtr_utils.ps_fetch_part_body(WIN_SRC, 6, 3)
+    assert body == (
+        WIN_PATH_EXPR
+        + "$__b = New-Object byte[] 3\n"
+        + "$__fs = New-Object IO.FileStream($__p, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)\n"
+        + "try { $null = $__fs.Seek(6, [IO.SeekOrigin]::Begin); $__n = 0\n"
+        + "while ($__n -lt $__b.Length) { $__r = $__fs.Read($__b, $__n, $__b.Length - $__n); if ($__r -le 0) { break }; $__n += $__r }\n"
+        + "$__o = [Convert]::ToBase64String($__b, 0, $__n) } finally { $__fs.Close() }"
+    )
+
+
+def test_windows_fetch_small_file(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"],
+                     "check_admin_command_status": ["fetch_size_complete", "fetch_read_complete"]})
+    assert t.session.fetch(WIN_SRC, TIMEOUT) == b"hello"
+    assert sent(t) == [WIN_SIZE, WIN_READ]
+
+
+def test_windows_fetch_in_parts(wmake, fixture, monkeypatch):
+    """A file above FETCH_PART_BYTES (1 MiB) is not cheap to record, so the parts are copies."""
+    monkeypatch.setattr(rtr_utils, "FETCH_PART_BYTES", 3)
+    read = fixture("rtr_windows/fetch_read_complete")
+    parts = [with_ps_stdout(read, ps_line(0, rtr_utils.b64(b"hel"))), with_ps_stdout(read, ps_line(0, rtr_utils.b64(b"lo")))]
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["fetch_size_complete"] + parts})
+    assert t.session.fetch(WIN_SRC, TIMEOUT) == b"hello"
+    assert sent(t) == [WIN_SIZE, win_part(0, 3), win_part(3, 2)]
+
+
+def test_windows_fetch_missing_has_rc_1(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["fetch_missing_complete"]})
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.fetch(WIN_MISSING, TIMEOUT)
+    assert exc.value.message == "%s is not a file on the host" % WIN_MISSING
+    assert exc.value.rc == 1
+    assert len(sent(t)) == 1
+
+
+def test_windows_fetch_size_parse_error(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["win_temp_complete"]})
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.fetch(WIN_SRC, TIMEOUT)
+    assert exc.value.message == "Unable to read the size of %s: %s " % (WIN_SRC, WIN_TEMP)
+    assert exc.value.rc is None
+
+
+def test_windows_fetch_read_error_is_rc_2(wmake):
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"],
+                     "check_admin_command_status": ["fetch_size_complete", "fetch_missing_complete"]})
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.fetch(WIN_SRC, TIMEOUT)
+    assert exc.value.message == "Unable to read %s (rc 1): " % WIN_SRC
+    assert exc.value.rc == 2
+
+
+def test_windows_fetch_short_data_fails(wmake, fixture):
+    short = with_ps_stdout(fixture("rtr_windows/fetch_read_complete"), ps_line(0, rtr_utils.b64(b"hel")))
+    t = wmake(admin={"execute_admin_command": ["runscript_submit"], "check_admin_command_status": ["fetch_size_complete", short]})
+    with pytest.raises(rtr_utils.RTRError) as exc:
+        t.session.fetch(WIN_SRC, TIMEOUT)
+    assert exc.value.message == "Read 3 bytes of %s, but the file has 5 bytes." % WIN_SRC

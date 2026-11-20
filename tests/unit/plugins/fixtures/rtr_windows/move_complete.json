@@ -1,0 +1,20 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.003938214
+    },
+    "resources": [
+      {
+        "base_command": "runscript",
+        "complete": true,
+        "session_id": "00000000-0000-0000-0000-000000000001",
+        "stderr": "",
+        "stdout": "__ANSIBLE_RTR_RC_0123456789abcdef__=0::\n",
+        "task_id": "00000000-0000-0000-0000-000000000016"
+      }
+    ]
+  },
+  "method": "check_admin_command_status",
+  "status_code": 200
+}

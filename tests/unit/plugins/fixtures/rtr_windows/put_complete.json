@@ -1,0 +1,20 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 0.002898791
+    },
+    "resources": [
+      {
+        "base_command": "mv",
+        "complete": true,
+        "session_id": "00000000-0000-0000-0000-000000000001",
+        "stderr": "",
+        "stdout": "Operation completed successfully.",
+        "task_id": "00000000-0000-0000-0000-000000000011"
+      }
+    ]
+  },
+  "method": "check_admin_command_status",
+  "status_code": 200
+}

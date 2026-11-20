@@ -1,0 +1,20 @@
+{
+  "body": {
+    "errors": [],
+    "meta": {
+      "query_time": 1.136320085
+    },
+    "resources": [
+      {
+        "created_at": "2026-11-19T19:49:27.057133461Z",
+        "existing_aid_sessions": 1,
+        "offline_queued": false,
+        "platform": "Windows",
+        "pwd": "C:\\",
+        "session_id": "00000000-0000-0000-0000-000000000001"
+      }
+    ]
+  },
+  "method": "init_session",
+  "status_code": 201
+}

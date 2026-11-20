@@ -5,19 +5,24 @@
 #   FALCON_CLIENT_ID         - API client ID
 #   FALCON_CLIENT_SECRET     - API client secret
 #   FALCON_CLOUD             - Falcon cloud region (optional, defaults to us-1)
-#   FALCON_TEST_RTR_HOST     - device ID (AID) of a Linux or macOS test host that you own;
-#                              set it to run these tests
+#   FALCON_TEST_RTR_HOST     - device ID (AID) of a Linux, macOS or Windows test host
+#                              that you own; set it to run these tests
 #   FALCON_TEST_RTR_CONTAIN  - set to 1 to also contain the host, run tasks on it
 #                              while it is contained, and lift containment
 #
-# The host needs /usr/bin/python3 and an RTR response policy that allows
-# Real Time Response, custom scripts and the put command.
+# The target reads the platform of the host with crowdstrike.falcon.host_info and
+# runs posix.yml (Linux and macOS, needs /usr/bin/python3) or windows.yml (Windows,
+# needs the ansible.windows collection on the controller; win_template of
+# ansible.windows 2.5.0 does not render templates on ansible-core 2.22, 3.9.2 does,
+# so use a current release). The host needs an RTR
+# response policy that allows Real Time Response, custom scripts and the put command.
 #
 # API scopes: Real time response [READ, WRITE], Real time response (admin)
 # [WRITE], Hosts [READ] (and Hosts [WRITE] with FALCON_TEST_RTR_CONTAIN)
 #
-# The tests run commands on the host as root and write only under
-# /tmp/ansible-int-rtr-<timestamp>-<random>, which the always section removes.
+# The tests run commands on the host as root (SYSTEM on Windows) and write only
+# under /tmp/ansible-int-rtr-<timestamp>-<random> (C:\Windows\Temp\ansible-int-rtr-...
+# on Windows), which the always section removes.
 # The plugin makes RTR put-files named ansible-rtr-<uuid> for large uploads and
 # deletes each one after the upload. The target counts these put-files before the
 # first RTR task and checks at the end that the count did not grow, with the
@@ -35,7 +40,7 @@
 
 - name: "SKIP | Skip the RTR connection tests"
   ansible.builtin.debug:
-    msg: "Set FALCON_TEST_RTR_HOST=<device ID> of a Linux or macOS test host that you own to run the RTR connection tests"
+    msg: "Set FALCON_TEST_RTR_HOST=<device ID> of a Linux, macOS or Windows test host that you own to run the RTR connection tests"
   when: lookup('env', 'FALCON_TEST_RTR_HOST') | length == 0
 
 - name: Run RTR connection tests
@@ -73,17 +78,45 @@
         rtr_prefix: >-
           ansible-int-rtr-{{ now(utc=true).strftime('%Y%m%dt%H%M%S') }}-{{ 999999 | random }}
 
+    - name: "SETUP | Read the platform of the host"
+      crowdstrike.falcon.host_info:
+        hosts:
+          - "{{ rtr_device_id }}"
+      register: rtr_host_platform
+      no_log: true
+
+    - name: "SETUP | Verify that the host was found"
+      ansible.builtin.assert:
+        that:
+          - rtr_host_platform.hosts | length == 1
+        fail_msg: "FALCON_TEST_RTR_HOST is not a host in this tenant"
+        quiet: true
+
     - name: "SETUP | Set the test paths"
       ansible.builtin.set_fact:
-        rtr_dir: "/tmp/{{ rtr_prefix }}"
+        rtr_windows: "{{ rtr_host_platform.hosts[0].platform_name == 'Windows' }}"
+        rtr_dir: >-
+          {{ 'C:\\Windows\\Temp\\' ~ rtr_prefix
+             if rtr_host_platform.hosts[0].platform_name == 'Windows'
+             else '/tmp/' ~ rtr_prefix }}
 
-    - name: "SETUP | Add the RTR host"
+    - name: "SETUP | Add the RTR host (Linux or macOS)"
       ansible.builtin.add_host:
         name: "{{ rtr_host }}"
         ansible_connection: crowdstrike.falcon.rtr
         ansible_rtr_device_id: "{{ rtr_device_id }}"
         ansible_python_interpreter: /usr/bin/python3
         ansible_falcon_cloud: "{{ lookup('env', 'FALCON_CLOUD') | default('us-1', true) }}"
+      when: not rtr_windows
+
+    - name: "SETUP | Add the RTR host (Windows)"
+      ansible.builtin.add_host:
+        name: "{{ rtr_host }}"
+        ansible_connection: crowdstrike.falcon.rtr
+        ansible_rtr_device_id: "{{ rtr_device_id }}"
+        ansible_shell_type: powershell
+        ansible_falcon_cloud: "{{ lookup('env', 'FALCON_CLOUD') | default('us-1', true) }}"
+      when: rtr_windows
 
     - name: "SETUP | Make a local temporary directory"
       ansible.builtin.tempfile:
@@ -107,204 +140,10 @@
         checksum_algorithm: sha256
       register: rtr_big_local
 
-    - name: "PING | Ping the host over RTR"
-      ansible.builtin.ping:
-      delegate_to: "{{ rtr_host }}"
-      register: rtr_ping
-
-    - name: "PING | Verify the ping"
-      ansible.builtin.assert:
-        that:
-          - rtr_ping.ping == 'pong'
-
-    - name: "COMMAND | Run a command"
-      ansible.builtin.command:
-        argv:
-          - echo
-          - "{{ rtr_prefix }}"
-      delegate_to: "{{ rtr_host }}"
-      changed_when: false
-      register: rtr_cmd
-
-    - name: "COMMAND | Verify the command result"
-      ansible.builtin.assert:
-        that:
-          - rtr_cmd.rc == 0
-          - rtr_cmd.stdout == rtr_prefix
-          - rtr_cmd.stderr == ''
-
-    - name: "COMMAND | Run a command that exits 3"
-      ansible.builtin.command:
-        argv:
-          - sh
-          - -c
-          - "echo to-stdout; echo to-stderr >&2; exit 3"
-      delegate_to: "{{ rtr_host }}"
-      changed_when: false
-      failed_when: false
-      register: rtr_cmd_rc3
-
-    - name: "COMMAND | Verify the exit code and that stdout and stderr are apart"
-      ansible.builtin.assert:
-        that:
-          - rtr_cmd_rc3.rc == 3
-          - rtr_cmd_rc3.stdout == 'to-stdout'
-          - rtr_cmd_rc3.stderr == 'to-stderr'
-
-    - name: "RAW | Run a raw command with quotes, a dollar sign and a backtick"
-      ansible.builtin.raw: >-
-        echo "dq-\"x\" sq-'y' dollar-\$HOME tick-\`"
-      delegate_to: "{{ rtr_host }}"
-      changed_when: false
-      register: rtr_raw
-
-    - name: "RAW | Verify the raw output"
-      ansible.builtin.assert:
-        that:
-          - rtr_raw.rc == 0
-          - rtr_raw.stdout | trim == rtr_raw_expected
+    - name: Run the tasks for the platform of the host
+      ansible.builtin.include_tasks: "{{ 'windows.yml' if rtr_windows else 'posix.yml' }}"
       vars:
-        rtr_raw_expected: >-
-          dq-"x" sq-'y' dollar-$HOME tick-`
-
-    - name: "FILE | Make the test directory"
-      ansible.builtin.file:
-        path: "{{ rtr_dir }}"
-        state: directory
-        mode: "0700"
-      delegate_to: "{{ rtr_host }}"
-      register: rtr_mkdir
-
-    - name: "FILE | Verify the directory was made"
-      ansible.builtin.assert:
-        that:
-          - rtr_mkdir is changed
-          - rtr_mkdir.state == 'directory'
-
-    - name: "COPY | Copy a small file (inline upload)"
-      ansible.builtin.copy:
-        content: "{{ rtr_prefix }}\n"
-        dest: "{{ rtr_dir }}/small.txt"
-        mode: "0600"
-      delegate_to: "{{ rtr_host }}"
-      register: rtr_copy_small
-
-    - name: "COPY | Copy the same small file again"
-      ansible.builtin.copy:
-        content: "{{ rtr_prefix }}\n"
-        dest: "{{ rtr_dir }}/small.txt"
-        mode: "0600"
-      delegate_to: "{{ rtr_host }}"
-      register: rtr_copy_small_again
-
-    - name: "COPY | Read the small file"
-      ansible.builtin.command:
-        argv:
-          - cat
-          - "{{ rtr_dir }}/small.txt"
-      delegate_to: "{{ rtr_host }}"
-      changed_when: false
-      register: rtr_small_content
-
-    - name: "COPY | Verify the small copy and its idempotence"
-      ansible.builtin.assert:
-        that:
-          - rtr_copy_small is changed
-          - rtr_copy_small_again is not changed
-          - rtr_small_content.stdout == rtr_prefix
-
-    - name: "COPY | Copy the 300 KB file (put-file upload)"
-      ansible.builtin.copy:
-        src: "{{ rtr_local_tmp.path }}/big.bin"
-        dest: "{{ rtr_dir }}/big.bin"
-        mode: "0600"
-      delegate_to: "{{ rtr_host }}"
-      register: rtr_copy_big
-
-    - name: "COPY | Get the checksum of the file on the host"
-      ansible.builtin.stat:
-        path: "{{ rtr_dir }}/big.bin"
-        checksum_algorithm: sha256
-      delegate_to: "{{ rtr_host }}"
-      register: rtr_big_remote
-
-    - name: "COPY | Verify the large copy"
-      ansible.builtin.assert:
-        that:
-          - rtr_copy_big is changed
-          - rtr_big_remote.stat.exists
-          - rtr_big_remote.stat.size == 307200
-          - rtr_big_remote.stat.checksum == rtr_big_local.stat.checksum
-
-    - name: "COPY | Read the session working directory after the put-file upload"
-      ansible.builtin.raw: pwd
-      delegate_to: "{{ rtr_host }}"
-      changed_when: false
-      register: rtr_pwd
-
-    - name: "COPY | Verify that the session working directory is / again"
-      ansible.builtin.assert:
-        that:
-          - rtr_pwd.stdout | trim == '/'
-
-    - name: "TEMPLATE | Render a template on the host"
-      ansible.builtin.template:
-        src: rtr_test.conf.j2
-        dest: "{{ rtr_dir }}/rtr_test.conf"
-        mode: "0600"
-      delegate_to: "{{ rtr_host }}"
-      register: rtr_template
-      vars:
-        rtr_tpl_value: "dollar-$HOME"
-
-    - name: "TEMPLATE | Read the rendered file"
-      ansible.builtin.command:
-        argv:
-          - cat
-          - "{{ rtr_dir }}/rtr_test.conf"
-      delegate_to: "{{ rtr_host }}"
-      changed_when: false
-      register: rtr_template_content
-
-    - name: "TEMPLATE | Verify the rendered file"
-      ansible.builtin.assert:
-        that:
-          - rtr_template is changed
-          - rtr_template_content.stdout_lines == ['host=dollar-$HOME', 'prefix=' ~ rtr_prefix]
-
-    - name: "FETCH | Fetch the 300 KB file back"
-      ansible.builtin.fetch:
-        src: "{{ rtr_dir }}/big.bin"
-        dest: "{{ rtr_local_tmp.path }}/fetched.bin"
-        flat: true
-      delegate_to: "{{ rtr_host }}"
-      register: rtr_fetch
-
-    - name: "FETCH | Get the checksum of the fetched file"
-      ansible.builtin.stat:
-        path: "{{ rtr_local_tmp.path }}/fetched.bin"
-        checksum_algorithm: sha256
-      register: rtr_fetched_local
-
-    - name: "FETCH | Verify the fetched file"
-      ansible.builtin.assert:
-        that:
-          - rtr_fetch is changed
-          - rtr_fetched_local.stat.exists
-          - rtr_fetched_local.stat.checksum == rtr_big_local.stat.checksum
-
-    - name: "SETUP | Gather the min facts of the host"
-      ansible.builtin.setup:
-        gather_subset:
-          - min
-      delegate_to: "{{ rtr_host }}"
-      register: rtr_facts
-
-    - name: "SETUP | Verify the facts"
-      ansible.builtin.assert:
-        that:
-          - rtr_facts.ansible_facts.ansible_system in ['Linux', 'Darwin']
-          - rtr_facts.ansible_facts.ansible_user_id == 'root'
+        rtr_phase: all
 
     - name: Run the tests on a contained host
       when: rtr_contain | bool
@@ -349,40 +188,26 @@
           delay: 5
           no_log: true
 
-        - name: "CONTAIN | Ping the contained host over RTR"
-          ansible.builtin.ping:
-          delegate_to: "{{ rtr_host }}"
-          register: rtr_ping_contained
+        # RTR answered 404 "Could not establish sensor comms" once right after the
+        # status turned contained; give the sensor time to connect again.
+        - name: "CONTAIN | Wait for the sensor to connect again"
+          ansible.builtin.wait_for:
+            timeout: 60
 
-        - name: "CONTAIN | Run a command on the contained host"
-          ansible.builtin.command:
-            argv:
-              - echo
-              - contained
-          delegate_to: "{{ rtr_host }}"
-          changed_when: false
-          register: rtr_cmd_contained
-
-        - name: "CONTAIN | Copy the 300 KB file to the contained host"
-          ansible.builtin.copy:
-            src: "{{ rtr_local_tmp.path }}/big.bin"
-            dest: "{{ rtr_dir }}/big-contained.bin"
-            mode: "0600"
-          delegate_to: "{{ rtr_host }}"
-          register: rtr_copy_contained
-
-        - name: "CONTAIN | Get the checksum of the copy on the contained host"
-          ansible.builtin.stat:
-            path: "{{ rtr_dir }}/big-contained.bin"
-            checksum_algorithm: sha256
-          delegate_to: "{{ rtr_host }}"
-          register: rtr_big_contained
+        - name: "CONTAIN | Run the tasks on the contained host"
+          ansible.builtin.include_tasks: "{{ 'windows.yml' if rtr_windows else 'posix.yml' }}"
+          vars:
+            rtr_phase: contained
 
         - name: "CONTAIN | Verify the tasks on the contained host"
           ansible.builtin.assert:
             that:
+              - rtr_ping_contained is not unreachable
+              - rtr_cmd_contained is not unreachable
+              - rtr_copy_contained is not unreachable
+              - rtr_big_contained is not unreachable
               - rtr_ping_contained.ping == 'pong'
-              - rtr_cmd_contained.stdout == 'contained'
+              - rtr_cmd_contained.stdout | trim == 'contained'
               - rtr_copy_contained is changed
               - rtr_big_contained.stat.checksum == rtr_big_local.stat.checksum
 
@@ -408,13 +233,21 @@
           when: rtr_contain_result is defined and rtr_contain_result is not skipped
 
   always:
-    - name: "CLEANUP | Remove the test directory on the host"
+    - name: "CLEANUP | Remove the test directory on the host (Linux or macOS)"
       ansible.builtin.file:
         path: "{{ rtr_dir }}"
         state: absent
       delegate_to: "{{ rtr_host }}"
       failed_when: false
-      when: rtr_dir is defined
+      when: rtr_dir is defined and not rtr_windows
+
+    - name: "CLEANUP | Remove the test directory on the host (Windows)"
+      ansible.windows.win_file:
+        path: "{{ rtr_dir }}"
+        state: absent
+      delegate_to: "{{ rtr_host }}"
+      failed_when: false
+      when: rtr_dir is defined and rtr_windows
 
     - name: "CLEANUP | Remove the local temporary directory"
       ansible.builtin.file:

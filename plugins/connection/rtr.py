@@ -21,15 +21,19 @@ description:
     needs no SSH access and no open inbound port.
   - RTR keeps working when Falcon network containment isolates the host, so Ansible
     can collect data from or fix a contained host.
-  - Modules run the normal way. The plugin uploads each module file (small files as
-    base64 in one RTR C(runscript), larger files as an RTR put-file and the C(put)
-    command), then runs it with the Python of the host.
+  - Modules run the normal way. On Linux and macOS, the plugin uploads each module file
+    (small files as base64 in one RTR C(runscript), larger files as an RTR put-file and
+    the C(put) command), then runs it with the Python of the host.
   - The RTR response policy of the host must turn on Real Time Response, custom scripts
     and the C(put) command.
   - Read-only access to the RTR API is equivalent to Domain Admin level access. Give
     the API client only to trusted users.
-  - This version supports Linux and macOS hosts with the C(sh) shell. Windows hosts are not
-    supported.
+  - Linux and macOS hosts use the C(sh) shell.
+  - Windows hosts are supported with C(ansible_shell_type=powershell). Tasks run as
+    C(NT AUTHORITY\SYSTEM) in Windows PowerShell 5.1. Use the C(ansible.windows) modules
+    on Windows hosts.
+  - The plugin compares the platform that RTR reports for the host with the shell type,
+    and fails when they do not match.
 
 options:
   device_id:
@@ -109,11 +113,15 @@ options:
       - name: ansible_rtr_inline_max_bytes
 
 notes:
-  - The host needs Python 3 for modules. Tasks run as root.
-  - Pipelining is not supported. A module file is too large for one RTR command, so the
-    plugin always uploads it first.
-  - Use C(become) only with C(sudo) to another user, or not at all.
+  - On Linux and macOS, the host needs Python 3 for modules. Tasks run as root.
+  - Pipelining is not supported on Linux and macOS. A module file is too large for one RTR
+    command, so the plugin always uploads it first.
+  - On Windows, tasks run as C(NT AUTHORITY\SYSTEM) in Windows PowerShell 5.1. Each task
+    sends its module as an RTR put-file and runs it with the PowerShell of the host; the
+    plugin always pipelines on Windows, as the Windows connection plugins of Ansible do.
+  - On Linux and macOS, use C(become) only with C(sudo) to another user, or not at all.
     RTR gives no terminal, so a become password prompt cannot be answered.
+  - C(become) is not supported on Windows hosts.
   - One RTR command can run for at most 10 minutes. Use C(async) for longer tasks.
   - Under network containment, the host can reach only the Falcon cloud. Tasks that need
     other network access (package mirrors, for example) fail.
@@ -157,14 +165,24 @@ EXAMPLES = r"""
 # The credentials come from FALCON_CLIENT_ID, FALCON_CLIENT_SECRET and
 # FALCON_CLOUD, or from the ansible_falcon_* variables.
 
+# A Windows host needs the powershell shell type:
+#
+# all:
+#   hosts:
+#     win01:
+#       ansible_connection: crowdstrike.falcon.rtr
+#       ansible_rtr_device_id: fedcba9876543210fedcba9876543210
+#       ansible_shell_type: powershell
+
 # Dynamic inventory (falcon_hosts.yml) that reaches each host over RTR:
 #
 # plugin: crowdstrike.falcon.falcon_hosts
-# filter: "platform_name:['Linux','Mac']"
+# filter: "platform_name:['Linux','Mac','Windows']"
 # hostnames:
 #   - device_id
 # compose:
 #   ansible_connection: "'crowdstrike.falcon.rtr'"
+#   ansible_shell_type: "'powershell' if platform_name == 'Windows' else 'sh'"
 
 # Contain a host, then collect data from it over RTR.
 - name: Contain the host
@@ -190,6 +208,21 @@ EXAMPLES = r"""
       ansible.builtin.fetch:
         src: /var/log/auth.log
         dest: "evidence/{{ inventory_hostname }}/"
+
+# Collect data from a Windows host over RTR.
+- name: Collect data from the Windows host
+  hosts: win01
+  gather_facts: false
+  tasks:
+    - name: List the open connections
+      ansible.windows.win_command: netstat -ano
+      register: win_connections
+      changed_when: false
+
+    - name: Fetch the hosts file
+      ansible.builtin.fetch:
+        src: C:\Windows\System32\drivers\etc\hosts
+        dest: "evidence/{{ inventory_hostname }}/"
 """
 
 import os
@@ -199,6 +232,17 @@ from ansible.errors import AnsibleConnectionFailure, AnsibleError, AnsibleFileNo
 from ansible.module_utils.common.text.converters import to_bytes, to_text
 from ansible.plugins.connection import ConnectionBase
 from ansible.utils.display import Display
+
+# ansible-core 2.19 and later have replace_stderr_clixml; older versions have _parse_clixml.
+try:
+    from ansible._internal._powershell._clixml import replace_stderr_clixml
+except ImportError:
+    replace_stderr_clixml = None
+try:
+    from ansible.plugins.shell.powershell import _parse_clixml
+except ImportError:
+    _parse_clixml = None
+
 from ansible_collections.crowdstrike.falcon.plugins.plugin_utils.falconpy_utils import (
     authenticate,
     check_falconpy,
@@ -225,6 +269,15 @@ except ImportError:
 display = Display()
 
 
+def _clixml_to_text(b_stderr):
+    """Replace the CLIXML that PowerShell writes to stderr with its text, as winrm does."""
+    if replace_stderr_clixml is not None:
+        return replace_stderr_clixml(b_stderr)
+    if _parse_clixml is not None and b_stderr.startswith(b"#< CLIXML"):
+        return _parse_clixml(b_stderr)
+    return b_stderr
+
+
 class Connection(ConnectionBase):
     """Run commands and move files over CrowdStrike Falcon Real Time Response."""
 
@@ -239,6 +292,16 @@ class Connection(ConnectionBase):
         super().__init__(*args, **kwargs)
         self._connected = False
         self._session = None
+        # Ansible pipelines every Windows module, and 2.22 has no other path for script.
+        if self._windows():
+            self.has_pipelining = True
+            self.always_pipeline_modules = True
+            self.has_native_async = True
+            self.module_implementation_preferences = (".ps1", ".exe", "")
+            self.allow_executable = False
+
+    def _windows(self):
+        return bool(getattr(self._shell, "_IS_WINDOWS", False))
 
     def _timeout(self):
         timeout = self.get_option("command_timeout")
@@ -269,6 +332,8 @@ class Connection(ConnectionBase):
         if self._connected:
             return self
         self._check_options()
+        if self._windows() and getattr(self._shell, "SHELL_FAMILY", None) != "powershell":
+            raise AnsibleError("rtr supports Windows hosts only with ansible_shell_type powershell")
         check_falconpy("crowdstrike.falcon.rtr")
         rtr = authenticate(RealTimeResponse, self.get_option)
         admin = RealTimeResponseAdmin(auth_object=rtr.auth_object)
@@ -280,6 +345,7 @@ class Connection(ConnectionBase):
             poll_interval=float(self.get_option("poll_interval")),
             log=display.vvv,
             warn=display.warning,
+            shell="powershell" if self._windows() else "sh",
         )
         session.debug_log = display.vvvvv
         try:
@@ -288,6 +354,12 @@ class Connection(ConnectionBase):
             session.init(aid)
         except RTRError as exc:
             raise AnsibleConnectionFailure(exc.message) from exc
+        platform = session.platform
+        if platform and (platform == "Windows") != self._windows():
+            raise AnsibleConnectionFailure(
+                f"{aid} is a {platform} host; set ansible_shell_type to powershell for Windows hosts "
+                "and leave it unset for Linux and macOS hosts"
+            )
         self._session = session
         self._connected = True
         return self
@@ -295,18 +367,29 @@ class Connection(ConnectionBase):
     def exec_command(self, cmd, in_data=None, sudoable=True):
         """Run a command on the host with one RTR runscript."""
         super().exec_command(cmd, in_data=in_data, sudoable=sudoable)
-        if in_data is not None:
+        windows = self._windows()
+        if in_data is not None and not windows:
             raise AnsibleError("rtr does not support pipelining")
         display.vvv(f"RTR exec ({len(cmd)} characters)", host=self._session.device_id)
         display.vvvvv(f"RTR exec command: {cmd}", host=self._session.device_id)
         try:
-            rc, stdout, stderr = self._session.exec_command(to_text(cmd), self._timeout())
+            if windows:
+                limit = min(int(self.get_option("inline_max_bytes")), INLINE_MAX_BYTES_LIMIT)
+                b_in = None if in_data is None else to_bytes(in_data, errors="surrogate_or_strict")
+                rc, stdout, stderr = self._session.exec_command(
+                    to_text(cmd), self._timeout(), in_data=b_in, inline_max=limit
+                )
+            else:
+                rc, stdout, stderr = self._session.exec_command(to_text(cmd), self._timeout())
         except RTRError as exc:
             if exc.status_code is None and not isinstance(exc, RTRTimeout):
                 # A size check before any API call: the command itself is wrong.
                 raise AnsibleError(exc.message) from exc
             raise AnsibleConnectionFailure(exc.message) from exc
-        return rc, to_bytes(stdout, errors="surrogate_or_strict"), to_bytes(stderr, errors="surrogate_or_strict")
+        b_stderr = to_bytes(stderr, errors="surrogate_or_strict")
+        if windows:
+            b_stderr = _clixml_to_text(b_stderr)
+        return rc, to_bytes(stdout, errors="surrogate_or_strict"), b_stderr
 
     def put_file(self, in_path, out_path):
         """Upload a file inline (small) or with an RTR put-file (large)."""

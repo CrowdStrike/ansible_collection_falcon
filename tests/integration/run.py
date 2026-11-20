@@ -41,8 +41,9 @@ has. They skip their tests unless you opt in:
   * ``FALCON_TEST_FLIGHT_CONTROL=1``: the flight_control target (needs a
     Flight Control parent CID)
   * ``FALCON_TEST_RTR_HOST=<device ID>``: the rtr_connection target runs tasks
-    on this Linux or macOS host over Real Time Response (needs a test host that you own,
-    with Python 3 and an RTR policy that allows custom scripts and ``put``)
+    on this Linux, macOS or Windows host over Real Time Response (needs a test host
+    that you own, with an RTR policy that allows custom scripts and ``put``; Python 3
+    on Linux and macOS, the ``ansible.windows`` collection on the controller for Windows)
   * ``FALCON_TEST_RTR_CONTAIN=1``: the rtr_connection target also contains the
     host, runs tasks on it while it is contained, and lifts containment
   * ``FALCON_TEST_ALERT_IDS=<id>,<id>``: the alert target (composite IDs of
@@ -261,7 +262,13 @@ def main():
         (link_parent / COLLECTION).symlink_to(COLLECTION_ROOT)
 
         env = os.environ.copy()
-        env["ANSIBLE_COLLECTIONS_PATH"] = str(staging_dir)
+        # The checkout comes first; the paths that the user set (else the default
+        # paths) follow, so that installed dependencies such as ansible.windows
+        # (rtr_connection on Windows) resolve.
+        other_paths = env.get("ANSIBLE_COLLECTIONS_PATH") or os.pathsep.join(
+            [os.path.expanduser("~/.ansible/collections"), "/usr/share/ansible/collections"]
+        )
+        env["ANSIBLE_COLLECTIONS_PATH"] = os.pathsep.join([str(staging_dir), other_paths])
 
         # Flush, so that this comes before the ansible-playbook output
         print(f"Running targets: {', '.join(targets)}")

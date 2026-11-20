@@ -64,6 +64,7 @@ objects that an interrupted run left behind.
 """
 
 import argparse
+import base64
 import contextlib
 import functools
 import io
@@ -2079,6 +2080,11 @@ def record_rtr(rec, creds):
     session = {"id": ""}
     poll = until_complete(admin) if admin else None
     init = keep_fields(rtr.init_session, RTR_SESSION_FIELDS) if rtr else None
+    if not rec.dry_run:
+        # The Linux fixtures MUST NOT come from a Windows host; record_rtr_windows records that one.
+        if rtr_platform(rtr, device_id) == "Windows":
+            print("  rtr: %s is a Windows host; record it with the rtr_windows service. Nothing recorded." % device_id)
+            return
 
     def submit(base_command, command_string):
         """Submit a command that is not saved, and return its cloud_request_id."""
@@ -2257,6 +2263,199 @@ def record_rtr(rec, creds):
     rec.call("delete_session", "delete_session", rtr.delete_session if rtr else None, session_id=session["id"])
 
 
+def rtr_platform(rtr, device_id):
+    """Return the platform that init_session reports for the host, or None."""
+    opened = rtr.init_session(device_id=device_id, queue_offline=False)
+    return (resources(opened) or [{}])[0].get("platform")
+
+
+RTR_WIN_SESSION_FIELDS = RTR_SESSION_FIELDS + ("platform",)
+RTR_WIN_DIR = "C:\\Windows\\Temp\\%s-dir" % PREFIX
+RTR_WIN_PUT_NAME = "%s-win-put" % PREFIX
+
+
+def record_rtr_windows(rec, creds):
+    """Record the RTR calls of the rtr connection plugin on a Windows host.
+
+    It runs only on the host that --rtr-device-id names, and only when
+    init_session reports the platform Windows. The scripts come from the
+    PowerShell builders of plugins/plugin_utils/rtr.py, so the recorded output
+    is what the plugin parses. It runs harmless commands (Write-Output, exit
+    codes, New-Item and Remove-Item of its own files), uses only PREFIX names
+    and C:\\Windows\\Temp\\PREFIX-* paths, and deletes its put-file and files
+    at the end.
+    """
+    from falconpy import RealTimeResponse, RealTimeResponseAdmin
+
+    device_id = rec.rtr_device_id
+    if not device_id:
+        print("  rtr_windows: needs --rtr-device-id <AID of a Windows test host that you own>; no host calls are made.")
+        if not rec.dry_run:
+            return
+    rtr_utils = load_rtr_utils()
+    rtr = admin = None
+    if not rec.dry_run:
+        rtr = RealTimeResponse(**creds)
+        admin = RealTimeResponseAdmin(auth_object=rtr.auth_object)
+        platform = rtr_platform(rtr, device_id)
+        if platform != "Windows":
+            print("  rtr_windows: %s is not a Windows host (platform %s). Nothing recorded." % (device_id, platform))
+            return
+    session = {"id": ""}
+    poll = until_complete(admin) if admin else None
+    init = keep_fields(rtr.init_session, RTR_WIN_SESSION_FIELDS) if rtr else None
+
+    def submit(base_command, command_string):
+        """Submit a command that is not saved, and return its cloud_request_id."""
+        if rec.dry_run:
+            print("  rtr_windows/(not saved) <- execute_admin_command(%s)" % base_command)
+            return "0" * 32
+        response = admin.execute_admin_command(
+            base_command=base_command, command_string=command_string,
+            session_id=session["id"], persist=False,
+        )
+        return (resources(response) or [{}])[0].get("cloud_request_id", "")
+
+    def run(base_command, command_string):
+        """Run a command that is not saved and wait for it."""
+        crid = submit(base_command, command_string)
+        if not rec.dry_run:
+            poll(cloud_request_id=crid, sequence_id=0)
+
+    def runscript(script):
+        return "runscript -Raw=```" + script + "``` -Timeout=30"
+
+    def wrapped(body):
+        """A body wrapped as RTRSession.run_with_rc wraps it on Windows."""
+        return runscript(rtr_utils.ps_wrap(body, RTR_MARKER))
+
+    def record(case, base_command, command_string):
+        crid = submit(base_command, command_string)
+        rec.call(case + "_complete", "check_admin_command_status", poll, cloud_request_id=crid, sequence_id=0)
+
+    def put_file_ids():
+        listed = admin.list_put_files(filter="name:'%s'" % RTR_WIN_PUT_NAME)
+        return resources(listed)
+
+    def cleanup():
+        if rec.dry_run:
+            return
+        if not session["id"]:
+            opened = rtr.init_session(device_id=device_id, queue_offline=False)
+            session["id"] = (resources(opened) or [{}])[0].get("session_id", "")
+        run("cd", "cd C:\\")
+        run("runscript", wrapped(
+            "if (Test-Path -LiteralPath (%s)) { Remove-Item -LiteralPath (%s) -Recurse -Force }"
+            % (rtr_utils.ps_text(RTR_WIN_DIR), rtr_utils.ps_text(RTR_WIN_DIR))
+        ))
+        ids = put_file_ids()
+        if ids:
+            admin.delete_put_files(ids=ids)
+
+    if rec.cleanup_only:
+        cleanup()
+        return
+
+    cleanup()
+    try:
+        opened = rec.call("init_session", "init_session", init, device_id=device_id, queue_offline=False)
+        session["id"] = (resources(opened) or [{"session_id": ""}])[0].get("session_id", session["id"])
+
+        # exec_command with no stdin: rc 3, stdout and stderr apart
+        # At exit the child host writes a CLIXML progress record to stderr. Its base64
+        # in the marker line is one long opaque string, so these commands end with
+        # [Environment]::Exit, which skips that record.
+        script = rtr_utils.ps_exec_script(
+            "[Console]::Out.WriteLine('out'); [Console]::Error.WriteLine('err'); [Environment]::Exit(3)", RTR_MARKER
+        )
+        submitted = rec.call(
+            "runscript_submit", "execute_admin_command", admin.execute_admin_command if admin else None,
+            base_command="runscript", command_string=runscript(script), session_id=session["id"], persist=False,
+        )
+        crid = (resources(submitted) or [{"cloud_request_id": "0" * 32}])[0]["cloud_request_id"]
+        rec.call("exec_complete", "check_admin_command_status", poll, cloud_request_id=crid, sequence_id=0)
+
+        stdin_cmd = "[Console]::Out.WriteLine('in=' + (@($input) -join ',')); [Environment]::Exit(0)"
+        record("exec_inline", "runscript", runscript(rtr_utils.ps_exec_script(stdin_cmd, RTR_MARKER, stdin_data=b"a\nb\n")))
+        # The CLIXML stderr of a child that writes an error record. Its base64 in a
+        # marker line is one long opaque string, so this script prints it as text.
+        child = base64.b64encode((rtr_utils.PS_UTF8_PREFIX + "Write-Error 'boom'").encode("utf-16-le")).decode("ascii")
+        record("clixml_text", "runscript", runscript(
+            "$__psi = New-Object System.Diagnostics.ProcessStartInfo\n"
+            "$__psi.FileName = Join-Path $env:SystemRoot 'System32\\WindowsPowerShell\\v1.0\\powershell.exe'\n"
+            "$__psi.Arguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand %s'\n"
+            "$__psi.UseShellExecute = $false; $__psi.CreateNoWindow = $true\n"
+            "$__psi.RedirectStandardInput = $true; $__psi.RedirectStandardError = $true\n"
+            "$__p = [System.Diagnostics.Process]::Start($__psi); $__p.StandardInput.Close()\n"
+            "$__e = $__p.StandardError.ReadToEnd(); $__p.WaitForExit()\n"
+            "Write-Output $__e" % child
+        ))
+        record("win_temp", "runscript", wrapped("$__o = [IO.Path]::GetFullPath($env:TEMP)"))
+
+        # An error record that escapes a plain runscript: RTR drops the stdout before it.
+        record("runscript_error", "runscript", runscript("Write-Output out\nWrite-Error err"))
+        # The RTR timeout of the script
+        record("timeout", "runscript", "runscript -Raw=```Start-Sleep 25``` -Timeout=10")
+
+        # Put-files
+        content = b"a\nb\n"
+        rec.call(
+            "create_put_files", "create_put_files", admin.create_put_files if admin else None,
+            files=[("file", (RTR_WIN_PUT_NAME, content, "application/octet-stream"))], name=RTR_WIN_PUT_NAME,
+            description="Ansible crowdstrike.falcon.rtr transfer",
+            comments_for_audit_log="Ansible crowdstrike.falcon.rtr put_file",
+        )
+        listed = rec.call(
+            "list_put_files", "list_put_files", admin.list_put_files if admin else None,
+            filter="name:'%s'" % RTR_WIN_PUT_NAME,
+        )
+
+        # cd, the stage folder, put, cd C:\
+        record("cd_missing", "cd", "cd C:\\Windows\\Temp\\%s-missing" % PREFIX)
+        record("mkdir", "runscript", wrapped(
+            "$null = New-Item -ItemType Directory -Force -Path (%s)" % rtr_utils.ps_text(RTR_WIN_DIR)
+        ))
+        record("cd_dir", "cd", "cd %s" % RTR_WIN_DIR)
+        record("put", "put", "put %s" % RTR_WIN_PUT_NAME)
+        record("put_exists", "put", "put %s" % RTR_WIN_PUT_NAME)
+        record("cd_root", "cd", "cd C:\\")
+
+        rec.call(
+            "delete_put_files", "delete_put_files", admin.delete_put_files if admin else None,
+            ids=resources(listed) or ["0" * 32],
+        )
+
+        # exec_command with stdin from the put-file; the script removes the file.
+        stdin_path = RTR_WIN_DIR + "\\" + RTR_WIN_PUT_NAME
+        record("exec_file", "runscript", runscript(rtr_utils.ps_exec_script(stdin_cmd, RTR_MARKER, stdin_path=stdin_path)))
+
+        # put_inline, the move of an upload, and fetch: the bodies of RTRSession on Windows
+        inline = RTR_WIN_DIR + "\\inline"
+        src = RTR_WIN_DIR + "\\fetch"
+        record("put_inline", "runscript", wrapped(
+            "$__p = %s\n" % rtr_utils.ps_text(inline)
+            + "[IO.File]::WriteAllBytes($__p + '.rtrtmp', [Convert]::FromBase64String('%s'))\n" % rtr_utils.b64(b"hello")
+            + "Move-Item -LiteralPath ($__p + '.rtrtmp') -Destination $__p -Force"
+        ))
+        record("move", "runscript", wrapped(
+            "Move-Item -LiteralPath (%s) -Destination (%s) -Force" % (rtr_utils.ps_text(inline), rtr_utils.ps_text(src))
+        ))
+
+        def size_body(path):
+            return (
+                "$__p = %s\n" % rtr_utils.ps_text(path)
+                + "if (-not (Test-Path -LiteralPath $__p -PathType Leaf)) { $__rc = 1 }"
+                + " else { $__o = [string](Get-Item -LiteralPath $__p).Length }"
+            )
+
+        record("fetch_missing", "runscript", wrapped(size_body("C:\\Windows\\Temp\\%s-missing" % PREFIX)))
+        record("fetch_size", "runscript", wrapped(size_body(src)))
+        record("fetch_read", "runscript", wrapped(rtr_utils.ps_fetch_part_body(src, 0, 5)))
+    finally:
+        cleanup()
+    rec.call("delete_session", "delete_session", rtr.delete_session if rtr else None, session_id=session["id"])
+
+
 SCENARIOS = {
     "alert_write": record_alert_write,
     "alerts": record_alerts,
@@ -2274,6 +2473,7 @@ SCENARIOS = {
     "prevention_policy": record_prevention_policy,
     "response_policy": record_response_policy,
     "rtr": record_rtr,
+    "rtr_windows": record_rtr_windows,
     "sensor_download": record_sensor_download,
     "sensor_update_policy": record_sensor_update_policy,
 }

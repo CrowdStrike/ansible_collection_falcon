@@ -18,6 +18,7 @@ import base64
 import contextlib
 import fcntl
 import functools
+import ntpath
 import os
 import posixpath
 import re
@@ -51,6 +52,9 @@ RETRYABLE_BUILTIN_STDERR = "Contact support."
 # "<path> does not exist" on macOS.
 CD_MISSING_LINUX = "No such file or directory"
 CD_MISSING_MAC = " does not exist"
+# Windows: "Cannot find path, '<path>' does not exist", or "Try an absolute path" for a relative one.
+CD_MISSING_WIN = "Cannot find path"
+CD_MISSING_WIN_RELATIVE = "Try an absolute path"
 RTR_DISABLED_CODE = 40301
 RTR_DISABLED_HINT = (
     "Check the RTR response policy of the host; a new host can need up to an hour before RTR works."
@@ -59,6 +63,7 @@ RTR_DISABLED_HINT = (
 AID_RE = re.compile(r"^[0-9a-fA-F]{32}$")
 # Folders that the cd admin command takes as is, without quotes.
 SAFE_DIR_RE = re.compile(r"^/[A-Za-z0-9_./-]*$")
+SAFE_WIN_DIR_RE = re.compile(r"^[A-Za-z]:\\[A-Za-z0-9_.\\-]*$")
 
 
 class RTRError(Exception):
@@ -167,6 +172,126 @@ def build_exec_script(cmd, marker):
         f"/bin/sh {path}"
     )
     return wrap_script(body, marker, cleanup=f"rm -f {path}")
+
+
+# PowerShell (Windows) helpers. RTR returns only the success pipeline, and any
+# error record drops all stdout, so each script catches every error and writes
+# one marker line: <marker><rc>:<base64 stdout>:<base64 stderr>.
+
+# The child powershell.exe writes in the OEM code page unless it is told otherwise.
+PS_UTF8_PREFIX = "$OutputEncoding = [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false\n"
+
+
+def ps_text(value):
+    """Return a PowerShell expression for value, sent as base64 UTF-8.
+
+    The value never appears as text in the script, so no character in it can
+    change the script.
+    """
+    return f"[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{b64(value)}'))"
+
+
+def ps_wrap(body, marker, cleanup=""):
+    """Wrap a PowerShell body that sets $__rc, $__o and $__e; print them after a marker."""
+    lines = [
+        "$ErrorActionPreference = 'Stop'",
+        "$ProgressPreference = 'SilentlyContinue'",
+        "$__u = New-Object System.Text.UTF8Encoding $false",
+        "$__rc = 0; $__o = ''; $__e = ''",
+        "try {",
+        body,
+        "} catch {",
+        "  $__rc = 1; $__e = [string]$__e + $_.Exception.Message",
+        "} finally {",
+    ]
+    for line in cleanup.splitlines() if cleanup else []:
+        lines.append(f"  try {{ {line} }} catch {{ }}")
+    lines.append("}")
+    lines.append(
+        f"Write-Output ('{marker}' + $__rc + ':' + [Convert]::ToBase64String($__u.GetBytes([string]$__o))"
+        " + ':' + [Convert]::ToBase64String($__u.GetBytes([string]$__e)))"
+    )
+    return "\n".join(lines) + "\n"
+
+
+def ps_parse(stdout, stderr, marker):
+    """Split the marker line of a ps_wrap script.
+
+    Returns (rc, stdout, stderr). Without a marker (for example after an RTR
+    timeout) rc is 255 and stderr says that no exit code came back.
+    """
+    stdout = stdout or ""
+    stderr = stderr or ""
+    idx = stdout.rfind(marker)
+    while idx > 0 and stdout[idx - 1] not in "\r\n":
+        idx = stdout.rfind(marker, 0, idx)
+    if idx == -1:
+        return 255, stdout, "RTR did not return an exit code. " + stderr
+    parts = stdout[idx + len(marker):].strip().split(":")
+    try:
+        rc = int(parts[0])
+        out = base64.b64decode(parts[1]).decode("utf-8", errors="replace")
+        err = base64.b64decode(parts[2]).decode("utf-8", errors="replace")
+    except (IndexError, ValueError):
+        return 255, stdout, "RTR did not return an exit code. " + stderr
+    return rc, out, err
+
+
+def ps_exec_script(cmd, marker, stdin_data=None, stdin_path=None):
+    """Build the runscript text that runs cmd as PowerShell text in a child powershell.exe.
+
+    The child gives the exit code rules of the Windows connection plugins of
+    Ansible, and its stdout and stderr come back apart. stdin is stdin_data
+    (bytes, inline) or the file stdin_path, which the script removes.
+    """
+    enc = base64.b64encode((PS_UTF8_PREFIX + cmd).encode("utf-16-le")).decode("ascii")
+    lines = []
+    if stdin_path is not None:
+        # Open before the start, so that a missing file does not leave the child waiting.
+        lines.append(f"$__fs = [IO.File]::OpenRead({ps_text(stdin_path)})")
+    lines += [
+        "$__psi = New-Object System.Diagnostics.ProcessStartInfo",
+        "$__psi.FileName = Join-Path $env:SystemRoot 'System32\\WindowsPowerShell\\v1.0\\powershell.exe'",
+        f"$__psi.Arguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand {enc}'",
+        "$__psi.UseShellExecute = $false; $__psi.CreateNoWindow = $true",
+        "$__psi.RedirectStandardInput = $true",
+        "$__psi.RedirectStandardOutput = $true; $__psi.RedirectStandardError = $true",
+        "$__psi.StandardOutputEncoding = $__u; $__psi.StandardErrorEncoding = $__u",
+        "$__p = [System.Diagnostics.Process]::Start($__psi)",
+        "$__ot = $__p.StandardOutput.ReadToEndAsync(); $__et = $__p.StandardError.ReadToEndAsync()",
+    ]
+    # A write error means that the child closed stdin early; its output tells why.
+    if stdin_data is not None:
+        lines.append(
+            f"try {{ $__b = [Convert]::FromBase64String('{b64(stdin_data)}'); "
+            "$__p.StandardInput.BaseStream.Write($__b, 0, $__b.Length) } catch { }"
+        )
+    elif stdin_path is not None:
+        lines.append("try { $__fs.CopyTo($__p.StandardInput.BaseStream) } catch { } finally { $__fs.Close() }")
+    lines += [
+        "try { $__p.StandardInput.Close() } catch { }",
+        "$__p.WaitForExit()",
+        "$__rc = $__p.ExitCode; $__o = $__ot.Result; $__e = $__et.Result",
+    ]
+    cleanup = ""
+    if stdin_path is not None:
+        cleanup = f"if ($__fs) {{ $__fs.Close() }}\nRemove-Item -LiteralPath ({ps_text(stdin_path)}) -Force"
+    return ps_wrap("\n".join(lines), marker, cleanup=cleanup)
+
+
+def ps_fetch_part_body(path, offset, count):
+    """Return a ps_wrap body that sets $__o to the base64 of up to count bytes of path at offset.
+
+    FileShare ReadWrite, as winrm does: a file that another process writes (a log) still opens.
+    """
+    return (
+        f"$__p = {ps_text(path)}\n"
+        f"$__b = New-Object byte[] {count}\n"
+        "$__fs = New-Object IO.FileStream($__p, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)\n"
+        f"try {{ $null = $__fs.Seek({offset}, [IO.SeekOrigin]::Begin); $__n = 0\n"
+        "while ($__n -lt $__b.Length) { $__r = $__fs.Read($__b, $__n, $__b.Length - $__n); if ($__r -le 0) { break }; $__n += $__r }\n"
+        "$__o = [Convert]::ToBase64String($__b, 0, $__n) } finally { $__fs.Close() }"
+    )
 
 
 def escape_fql(value):
@@ -294,7 +419,7 @@ def host_lock(aid):
 class RTRSession:
     """One RTR session on one host."""
 
-    def __init__(self, rtr, admin, poll_interval=0.5, log=None, warn=None):
+    def __init__(self, rtr, admin, poll_interval=0.5, log=None, warn=None, *, shell="sh"):  # pylint: disable=too-many-arguments
         self.rtr = rtr
         self.admin = admin
         self.poll_interval = poll_interval
@@ -307,6 +432,10 @@ class RTRSession:
         self.clock = time.monotonic
         self.device_id = None
         self.session_id = None
+        # shell "powershell" selects the Windows scripts; "sh" the POSIX ones.
+        self.windows = shell == "powershell"
+        self.platform = None
+        self._win_temp = None
 
     # Session
 
@@ -318,6 +447,7 @@ class RTRSession:
         if status == 201 and resource and resource.get("session_id"):
             self.device_id = device_id
             self.session_id = resource["session_id"]
+            self.platform = resource.get("platform")
             return self.session_id
         code, msg = first_error(resp)
         if status == 403 and code == RTR_DISABLED_CODE:
@@ -432,13 +562,23 @@ class RTRSession:
         return stdout, stderr
 
     def run_with_rc(self, body, timeout, cleanup=""):
-        """Run a shell body and return (rc, stdout, stderr)."""
+        """Run a shell body (PowerShell on Windows) and return (rc, stdout, stderr)."""
         marker = new_marker()
+        if self.windows:
+            stdout, stderr = self.run_raw(ps_wrap(body, marker, cleanup), timeout)
+            return ps_parse(stdout, stderr, marker)
         stdout, stderr = self.run_raw(wrap_script(body, marker, cleanup), timeout)
         return parse_marker(stdout, stderr, marker)
 
-    def exec_command(self, cmd, timeout):
-        """Run an Ansible command and return (rc, stdout, stderr) as text."""
+    def exec_command(self, cmd, timeout, in_data=None, inline_max=INLINE_MAX_BYTES_LIMIT):
+        """Run an Ansible command and return (rc, stdout, stderr) as text.
+
+        in_data (bytes, Windows only) is sent to the stdin of the command:
+        inline when it is at most inline_max bytes and the script fits, else
+        with an RTR put-file.
+        """
+        if self.windows:
+            return self._ps_exec_command(cmd, timeout, in_data, inline_max)
         marker = new_marker()
         script = build_exec_script(cmd, marker)
         size = len(script.encode("utf-8"))
@@ -449,11 +589,80 @@ class RTRSession:
         stdout, stderr = self.run_raw(script, timeout)
         return parse_marker(stdout, stderr, marker)
 
+    def _check_exec_size(self, script):
+        size = len(script.encode("utf-8"))
+        if size > EXEC_SCRIPT_MAX:
+            raise RTRError(
+                f"The command is too large for RTR: {size} bytes after encoding, the limit is {EXEC_SCRIPT_MAX}."
+            )
+
+    def _ps_exec_command(self, cmd, timeout, in_data, inline_max):
+        marker = new_marker()
+        limit = min(inline_max, INLINE_MAX_BYTES_LIMIT)
+        if in_data is None or len(in_data) <= limit:
+            script = ps_exec_script(cmd, marker, stdin_data=in_data)
+            if in_data is None or len(script.encode("utf-8")) <= EXEC_SCRIPT_MAX:
+                self._check_exec_size(script)
+                stdout, stderr = self.run_raw(script, timeout)
+                return ps_parse(stdout, stderr, marker)
+        # Check the size of the command before the upload.
+        stdin_path = ntpath.join(self.win_temp(timeout), f".ansible-rtr-{uuid.uuid4().hex}.in")
+        script = ps_exec_script(cmd, marker, stdin_path=stdin_path)
+        self._check_exec_size(script)
+        self.upload_putfile(in_data, stdin_path, timeout)
+        try:
+            stdout, stderr = self.run_raw(script, timeout)
+        except Exception:
+            # The script removes the file; it did not run, so remove it here.
+            self._remove_leftover(stdin_path, timeout)
+            raise
+        rc, out, err = ps_parse(stdout, stderr, marker)
+        if rc == 255 and marker not in (stdout or ""):
+            # No marker: RTR stopped the script (timeout), so its finally block may not have
+            # run. The file holds the module and its arguments.
+            self._remove_leftover(stdin_path, timeout)
+        return rc, out, err
+
+    def win_temp(self, timeout):
+        """Return the full path of the Windows temp folder, read once per session."""
+        if self._win_temp is None:
+            rc, out, err = self.run_with_rc("$__o = [IO.Path]::GetFullPath($env:TEMP)", timeout)
+            path = out.strip()
+            if rc != 0 or not path:
+                raise RTRError(f"Unable to read the Windows temp folder (rc {rc}): {err.strip()}")
+            # Keep the backslash of a drive root such as C:\.
+            self._win_temp = path if len(path) <= 3 else path.rstrip("\\")
+        return self._win_temp
+
+    def _remove_leftover(self, path, timeout):
+        """Remove a file or folder that a failed transfer left on the host. Errors are logged."""
+        try:
+            if self.windows:
+                marker = new_marker()
+                self.run_raw(
+                    ps_wrap(f"Remove-Item -LiteralPath ({ps_text(path)}) -Recurse -Force", marker),
+                    timeout,
+                )
+            else:
+                self.run_raw(_DECODE_FLAG + "\n" + path_var("p", path) + '\nrm -rf "$p"\n', timeout)
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            self.log(f"RTR upload leftover {path} was not removed: {exc}")
+
     # Files
 
     def put_inline(self, data, out_path, timeout):
         """Write a small file with one runscript."""
         self.log(f"RTR inline upload of {len(data)} bytes")
+        if self.windows:
+            body = (
+                f"$__p = {ps_text(out_path)}\n"
+                f"[IO.File]::WriteAllBytes($__p + '.rtrtmp', [Convert]::FromBase64String('{b64(data)}'))\n"
+                "Move-Item -LiteralPath ($__p + '.rtrtmp') -Destination $__p -Force"
+            )
+            rc, _out, err = self.run_with_rc(body, timeout)
+            if rc != 0:
+                raise RTRError(f"Upload to {out_path} failed (rc {rc}): {err.strip()}", rc=rc)
+            return
         body = (
             path_var("p", out_path)
             + "\n"
@@ -508,21 +717,27 @@ class RTRSession:
             self.run_builtin("cd", f"cd {path}", timeout)
         except RTRError as exc:
             text = exc.message[len("RTR cd failed: "):] if exc.message.startswith("RTR cd failed: ") else ""
-            if (text.startswith("cd: ") and CD_MISSING_LINUX in text) or text == f"{path}{CD_MISSING_MAC}":
+            if self.windows:
+                if (text.startswith(CD_MISSING_WIN) and text.endswith(CD_MISSING_MAC.strip())) or (
+                    CD_MISSING_WIN_RELATIVE in text
+                ):
+                    return False
+            elif (text.startswith("cd: ") and CD_MISSING_LINUX in text) or text == f"{path}{CD_MISSING_MAC}":
                 return False
             raise
         return True
 
     def _cd_root(self, timeout):
-        """Set the session cwd back to /, with retries."""
+        """Set the session cwd back to / (C:\\ on Windows), with retries."""
+        root = "C:\\" if self.windows else "/"
         for attempt in range(CD_ROOT_RETRIES + 1):
             try:
-                self.run_builtin("cd", "cd /", timeout)
+                self.run_builtin("cd", f"cd {root}", timeout)
                 return
             except RTRError as exc:
                 if attempt == CD_ROOT_RETRIES:
                     raise
-                self.log(f"RTR cd / failed (attempt {attempt + 1}): {exc}")
+                self.log(f"RTR cd {root} failed (attempt {attempt + 1}): {exc}")
                 self.sleep(POLL_RETRY_DELAY)
 
     def upload_putfile(self, data, out_path, timeout):
@@ -533,7 +748,9 @@ class RTRSession:
         when that parent does not exist or has characters that ``cd`` cannot take.
         """
         name = f"ansible-rtr-{uuid.uuid4().hex}"
-        parent = posixpath.dirname(out_path)
+        parent = ntpath.dirname(out_path) if self.windows else posixpath.dirname(out_path)
+        sep = "\\" if self.windows else "/"
+        safe_re = SAFE_WIN_DIR_RE if self.windows else SAFE_DIR_RE
         stage = None
         self.log(f"RTR put-file {name} ({len(data)} bytes)")
         resp = self._with_rate_limit(
@@ -559,12 +776,17 @@ class RTRSession:
             with host_lock(self.device_id):
                 moved = False
                 try:
-                    if SAFE_DIR_RE.match(parent) and self._cd_existing(parent, timeout):
+                    if safe_re.match(parent) and self._cd_existing(parent, timeout):
                         moved = True
                     else:
-                        stage = f"/tmp/.ansible-rtr-{uuid.uuid4().hex}"
+                        if self.windows:
+                            stage = ntpath.join(self.win_temp(timeout), f".ansible-rtr-{uuid.uuid4().hex}")
+                            mkdir = f"$null = New-Item -ItemType Directory -Force -Path ({ps_text(stage)})"
+                        else:
+                            stage = f"/tmp/.ansible-rtr-{uuid.uuid4().hex}"
+                            mkdir = f"mkdir -m 700 -p {stage}"
                         folder = stage
-                        rc, _out, err = self.run_with_rc(f"mkdir -m 700 -p {stage}", timeout)
+                        rc, _out, err = self.run_with_rc(mkdir, timeout)
                         if rc != 0:
                             raise RTRError(f"Unable to make {stage} (rc {rc}): {err.strip()}", rc=rc)
                         self.run_builtin("cd", f"cd {stage}", timeout)
@@ -582,9 +804,16 @@ class RTRSession:
                 # Ansible deletes its tmp folder later; a session whose cwd is gone
                 # cannot be opened again, so the cwd MUST go back to /.
                 self._cd_root(timeout)
-            body = path_var("s", folder + "/" + name) + "\n" + path_var("p", out_path) + '\nmv -f "$s" "$p"'
-            if stage:
-                body += f" && rmdir {stage}"
+            if self.windows:
+                body = (
+                    f"Move-Item -LiteralPath ({ps_text(folder + sep + name)}) -Destination ({ps_text(out_path)}) -Force"
+                )
+                if stage:
+                    body += f"\nRemove-Item -LiteralPath ({ps_text(stage)}) -Force"
+            else:
+                body = path_var("s", folder + "/" + name) + "\n" + path_var("p", out_path) + '\nmv -f "$s" "$p"'
+                if stage:
+                    body += f" && rmdir {stage}"
             rc, _out, err = self.run_with_rc(body, timeout)
             if rc != 0:
                 raise RTRError(f"Upload to {out_path} failed (rc {rc}): {err.strip()}", rc=rc)
@@ -592,11 +821,7 @@ class RTRSession:
         finally:
             self._delete_put_files(name, ids)
             if not done:
-                left = stage or folder + "/" + name
-                try:
-                    self.run_raw(_DECODE_FLAG + "\n" + path_var("p", left) + '\nrm -rf "$p"\n', timeout)
-                except Exception as exc:  # pylint: disable=broad-exception-caught
-                    self.log(f"RTR upload leftover {left} was not removed: {exc}")
+                self._remove_leftover(stage or folder + sep + name, timeout)
 
     def fetch(self, in_path, timeout):
         """Return the content of a file on the host as bytes.
@@ -604,6 +829,8 @@ class RTRSession:
         Each read writes the data to a temporary file first, so that a failed
         read gives rc 2 and not empty or short output.
         """
+        if self.windows:
+            return self._ps_fetch(in_path, timeout)
         path_expr = path_var("p", in_path) + '\ntest -f "$p" || exit 1\n'
         rc, out, err = self.run_with_rc(path_expr + 'wc -c < "$p"', timeout)
         if rc != 0:
@@ -641,6 +868,38 @@ class RTRSession:
                     break
                 data.append(chunk)
                 part += 1
+        result = b"".join(data)
+        if len(result) != size:
+            raise RTRError(f"Read {len(result)} bytes of {in_path}, but the file has {size} bytes.")
+        return result
+
+    def _ps_fetch(self, in_path, timeout):
+        """Windows fetch: the body sets $__o to the base64 of the bytes."""
+        path_expr = f"$__p = {ps_text(in_path)}\n"
+        rc, out, err = self.run_with_rc(
+            path_expr
+            + "if (-not (Test-Path -LiteralPath $__p -PathType Leaf)) { $__rc = 1 }"
+            + " else { $__o = [string](Get-Item -LiteralPath $__p).Length }",
+            timeout,
+        )
+        if rc != 0:
+            raise RTRError(f"{in_path} is not a file on the host", rc=rc)
+        try:
+            size = int(out.strip())
+        except ValueError as exc:
+            raise RTRError(f"Unable to read the size of {in_path}: {out.strip()} {err.strip()}") from exc
+        self.log(f"RTR fetch of {in_path} ({size} bytes)")
+        # The marker line holds the base64 of the base64 text, so the parts are smaller than on POSIX.
+        parts = [
+            ps_fetch_part_body(in_path, offset, min(FETCH_PART_BYTES, max(size - offset, 1)))
+            for offset in range(0, max(size, 1), FETCH_PART_BYTES)
+        ]
+        data = []
+        for body in parts:
+            rc, out, err = self.run_with_rc(body, timeout)
+            if rc != 0:
+                raise RTRError(f"Unable to read {in_path} (rc {rc}): {err.strip()}", rc=2)
+            data.append(base64.b64decode(out.strip()))
         result = b"".join(data)
         if len(result) != size:
             raise RTRError(f"Read {len(result)} bytes of {in_path}, but the file has {size} bytes.")
