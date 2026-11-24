@@ -1,10 +1,11 @@
 ---
 extends: default
 
-# yamllint can't combine ignore and ignore-from-file, so tracked
-# paths to skip live in .yamllintignore
+# yamllint can't combine ignore and ignore-from-file, so paths to skip
+# live in .yamllintignore. Do not list .gitignore here: ansible-galaxy
+# leaves it out of the built collection, and yamllint then fails to load
+# this file when the Automation Hub importer lints the artifact.
 ignore-from-file:
-  - .gitignore
   - .yamllintignore
 
 rules:
