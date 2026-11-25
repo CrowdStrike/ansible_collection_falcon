@@ -18,6 +18,9 @@ name: eventstream
 short_description: Event source plugin for CrowdStrike Falcon Event Stream API
 description:
     - This event source plugin connects to the CrowdStrike Falcon Event Stream API and forwards events to EDA
+    - Each event has a C(falcon) key with two dicts. C(falcon.metadata) holds the event metadata, for example
+      C(eventType) and C(offset). C(falcon.event) holds the event data.
+    - In a rule condition, use C(event.falcon.metadata.eventType) or C(event.falcon.event.Severity), for example.
 options:
     falcon_client_id:
         description: Client ID for CrowdStrike Falcon API authentication
@@ -72,21 +75,6 @@ EXAMPLES = r"""
         latest: true
         include_event_types:
           - EppDetectionSummaryEvent
-"""
-
-RETURN = r"""
----
-falcon:
-    description: Event data from CrowdStrike Falcon API
-    type: dict
-    returned: always
-    contains:
-        metadata:
-            description: Metadata about the event
-            type: dict
-        event:
-            description: The event data
-            type: dict
 """
 
 logger = logging.getLogger()

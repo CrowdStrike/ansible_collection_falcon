@@ -1,0 +1,5 @@
+---
+trivial:
+  - pages workflow - cap antsibull-docs below 2.29. Its new EDA plugin support writes index links that its own Sphinx extension cannot parse, so the docs build failed.
+bugfixes:
+  - eventstream event source - remove the ``RETURN`` documentation block and describe the event in ``description``. antsibull-docs 2.29 does not accept a ``RETURN`` block for EDA event sources.
