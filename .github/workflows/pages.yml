@@ -28,10 +28,9 @@ jobs:
 
       - name: Build docs
         run: |
-          # Install dependencies. antsibull-docs 2.29 links EDA plugins with a
-          # plugin type that its own Sphinx extension cannot parse, so the build
-          # fails. Remove the cap when a fixed release is out.
-          pip install ansible-core 'antsibull-docs<2.29'
+          # Install dependencies. antsibull-docs 2.29.0 and 2.29.1 cannot build
+          # the index link of an EDA plugin; 2.29.2 fixes it.
+          pip install ansible-core 'antsibull-docs>=2.29.2'
 
           # Install collection
           ansible-galaxy collection build -f
