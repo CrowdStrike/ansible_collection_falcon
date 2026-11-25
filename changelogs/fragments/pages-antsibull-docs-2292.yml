@@ -1,0 +1,3 @@
+---
+trivial:
+  - pages workflow - require antsibull-docs 2.29.2 or later instead of capping it below 2.29. 2.29.2 fixes the index links of EDA plugins, so the docs site now has a page for the eventstream event source.
