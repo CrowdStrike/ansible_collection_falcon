@@ -273,7 +273,7 @@ CI runs on every pull request and does not use Falcon API credentials:
 - Molecule scenarios for the Linux side of the `falcon_install`, `falcon_configure` and `falcon_uninstall` roles, on Ubuntu 24.04 and Rocky Linux 9
 - `ansible-lint`, `yamllint`, and Python linting
 
-[tests/README.md](tests/README.md) tells you how to write and run the unit tests and the live integration tests for the modules, lookups and inventory plugins, and what tests a pull request must include.
+[tests/README.md](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/tests/README.md) tells you how to write and run the unit tests and the live integration tests for the modules, lookups and inventory plugins, and what tests a pull request must include.
 
 The molecule scenarios are in `extensions/molecule`. Each one starts a systemd container, builds a dummy `falcon-sensor` package that holds a stub `falconctl`, and runs a role against it, so no sensor or credentials are needed. To run a scenario locally you need Docker, and the checkout must be in an `ansible_collections/crowdstrike/falcon` directory. Set `ANSIBLE_COLLECTIONS_PATH` to the directory that holds `ansible_collections`:
 
@@ -282,7 +282,7 @@ uv run --with ansible-core ansible-galaxy collection install -r tests/requiremen
 FALCON_TEST_DISTRO=rocky9 uv run --with ansible-core --with molecule --with docker molecule test -s configure
 ```
 
-Tests that need a Falcon tenant run locally with your own API credentials. The live tests for the API modules, lookups and inventory plugins are in `tests/integration/targets`. They make throwaway `ansible-int-*` objects and delete them at the end, and they never act on a real host. See [tests/README.md](tests/README.md#integration-tests) for how to run them.
+Tests that need a Falcon tenant run locally with your own API credentials. The live tests for the API modules, lookups and inventory plugins are in `tests/integration/targets`. They make throwaway `ansible-int-*` objects and delete them at the end, and they never act on a real host. See [tests/README.md](https://github.com/CrowdStrike/ansible_collection_falcon/blob/main/tests/README.md#integration-tests) for how to run them.
 
 ## Contributing
 

@@ -1,0 +1,7 @@
+---
+bugfixes:
+  - collection - remove ``.gitignore`` from ``ignore-from-file`` in ``.yamllint``. The built collection does not include ``.gitignore``, so ansible-lint failed to load the yamllint configuration when it linted the collection artifact.
+  - collection - update the ``repository``, ``documentation``, ``homepage`` and ``issues`` URLs in ``galaxy.yml`` to the current ``ansible_collection_falcon`` repository name.
+  - collection - use full URLs for the links to ``tests/README.md`` in the README, so that the links work on Automation Hub.
+minor_changes:
+  - collection - turn on the ``no-log-password`` ansible-lint rule in ``.ansible-lint``.
