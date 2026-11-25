@@ -4,7 +4,7 @@ pylint
 pre-commit
 autopep8
 ansible
-ansible-core==2.18.3
+ansible-core==2.18.18rc1
 ansible-lint
 pywinrm
 wheel
